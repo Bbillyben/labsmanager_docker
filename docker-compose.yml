@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+    lab-db:
+        container_name: lab-db
+        image: postgres:13
+        ports:
+            - ${LAB_DB_PORT:-5435}:5432/tcp
+        environment:
+            - PGDATA=/var/lib/postgresql/data/pgdb
+            - POSTGRES_USER=${LAB_DB_USER:?You must provide the 'LAB_DB_USER' variable in the .env file}
+            - POSTGRES_PASSWORD=${LAB_DB_PASSWORD:?You must provide the 'LAB_DB_PASSWORD' variable in the .env file}
+            - POSTGRES_DB=${LAB_DB_NAME:?You must provide the 'LAB_DB_NAME' variable in the .env file}
+        volumes:
+            # Map 'data' volume such that postgres database is stored externally
+            - lab_data:/var/lib/postgresql/data/
+        restart: unless-stopped
+
+    # lab web server service    
+    # Uses gunicorn as the web server
+    lab-server:
+        build: .
+        container_name: lab-server
+        # If you wish to specify a particular lab version, do so here
+        image: labsmanager/labsmanager:${LAB_TAG:-stable}
+        ports :
+            - 8000:8000
+        depends_on:
+            - lab-db
+        env_file:
+            - .env
+        volumes:
+            # Data volume must map to /home/lab/data
+            - lab_data:/home/labsmanager/data/
+        restart: unless-stopped
+
+    lab-proxy:
+        container_name: lab-proxy
+        image: nginx:stable
+        depends_on:
+            - lab-server
+        env_file:
+            - .env
+        ports:
+            # Default web port is 1337 (can be changed in the .env file)
+            - ${LAB_WEB_PORT:-1337}:80
+        volumes:
+            # Provide nginx configuration file to the container
+            # Refer to the provided example file as a starting point
+            - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+            # nginx proxy needs access to static and media files
+            - lab_data:/var/www
+        restart: unless-stopped
+
+volumes:
+    # Persistent data, stored external to the container(s)
+    lab_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            # This directory specified where lab data are stored "outside" the docker containers
+            device: ${LAB_EXT_VOLUME:?You must specify the 'LAB_EXT_VOLUME' variable in the .env file!}

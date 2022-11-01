@@ -1,0 +1,22 @@
+# pip freeze > requirements.txt
+Django>=3.2.14,<4                       # Django package
+
+# for installed package
+django-filter                           # Extended filtering options
+cryptography==3.4.8                     # Core cryptographic functionality
+django-crispy-forms                     # Form helpers
+django-view-breadcrumbs                 # for breadcvrumbs view
+django-tables2                          # for tables
+djangorestframework                     # DRF framework
+django-bootstrap-modal-forms            # for modal form automation
+django-mptt                             # Modified Preorder Tree Traversal
+django-pivot                            # for pivoting request 
+django-auditlog                         # for automated audit log
+django-dbbackup                         # Backup / restore of database and media files
+
+# panda
+pandas
+jinja2
+
+# for server
+gunicorn                                # Gunicorn web server
