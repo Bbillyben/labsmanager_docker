@@ -33,6 +33,7 @@ filelock
 gunicorn
 httplib2
 idna
+invoke>=1.4.0
 importlib-metadata
 Jinja2
 jsonschema

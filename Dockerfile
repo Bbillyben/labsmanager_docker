@@ -49,6 +49,7 @@ COPY labsmanager ${LAB_HOME}/labsmanager
 COPY requirements.txt ${LAB_HOME}/requirements.txt
 COPY gunicorn.conf.py ${LAB_HOME}/gunicorn.conf.py
 COPY init.sh ${LAB_MNG_DIR}/init.sh
+COPY tasks.py ${LAB_HOME}/tasks.py
 
 # Server init entrypoint
 ENTRYPOINT ["/bin/bash", "init.sh"]
