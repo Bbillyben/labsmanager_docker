@@ -21,7 +21,7 @@ services:
         build: .
         container_name: lab-server
         # If you wish to specify a particular lab version, do so here
-        image: bbillyben/labsmanager:${LAB_TAG:-stable}
+        image: labsmanager/labsmanager:${LAB_TAG:-stable}
         ports :
             - 8000:8000
         depends_on:
