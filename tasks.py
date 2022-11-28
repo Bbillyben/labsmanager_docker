@@ -156,7 +156,7 @@ def export_records(c, filename='data.json', overwrite=False, include_permissions
         os.remove(tmpfile)
         
 
-@task(help={'filename': 'Input filename', 'clear': 'Clear existing data before import'}, post=[rebuild_models, rebuild_thumbnails])
+@task(help={'filename': 'Input filename', 'clear': 'Clear existing data before import'})
 def import_records(c, filename='data.json', clear=False):
     """Import database records from a file."""
     # Get an absolute path to the supplied filename
