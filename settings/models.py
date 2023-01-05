@@ -335,7 +335,7 @@ class BaseLabsManagerSetting(models.Model):
 
             # Cast to boolean if necessary
             if setting.is_bool():
-                value = LabsManager.utils.str2bool(value)
+                value = labsmanager.utils.str2bool(value)
 
             # Cast to integer if necessary
             if setting.is_int():
@@ -778,11 +778,34 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': 3,
             'validator': [int, MinValueValidator(0)]
         },
+        
+        'DASHBOARD_FUND_CONSOMATION_TYPE': {
+            'name': _('Fund ratio consumption report type'),
+            'description': _('Fund ratio consumption to report project in dahsboard'),
+            'default': 'treshold',
+            'choices': [
+                ('treshold', 'treshold'),
+                ('linear', 'linear Assumption'),
+                ('both', 'both')
+            ],
+        },
         'DASHBOARD_FUND_CONSOMATION_RATIO': {
-            'name': _('Fund ratio consumption'),
+            'name': _('Fund ratio consumption threshold'),
             'description': _('Fund ratio consumption to report project in dahsboard'),
             'default': '0.1',
             'validator': [DecimalValidator(max_digits=2, decimal_places=2) ]
+        },
+        'DASHBOARD_FUND_CONSOMATION_USE_STALE_PERIOD': {
+            'name': _('Use project Stale period for Consumption'),
+            'description': _('use Project Stale month scope period for under consommation calculation'),
+            'default': False,
+            'validator': bool,
+        },
+        'DASHBOARD_FUND_CONSOMATION_LINEAR_RATIO_MARGIN': {
+            'name': _('Margin to detect linear ratio'),
+            'description': _('margin in % to identifyed deviation in budget consumption from linear ratio'),
+            'default': '0.2',
+            'validator': [DecimalValidator(max_digits=2, decimal_places=2) ],
         },
         
     }

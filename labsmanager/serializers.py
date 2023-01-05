@@ -145,7 +145,8 @@ class ParticipantSerializer(serializers.ModelSerializer):
 # ---------------------------    APP FUND / SERIALISZER    --------------------------- #
 # ------------------------------------------------------------------------------------ #
 
-  
+from datetime import datetime
+
 class FundSerialize(serializers.ModelSerializer):
     funder=Fund_InstitutionSerializer(many=False, read_only=True)
     institution=InstitutionSerializer(many=False, read_only=True)
@@ -159,14 +160,31 @@ class FundConsumptionSerialize(serializers.ModelSerializer):
     institution=InstitutionSerializer(many=False, read_only=True)
     project=ProjectSerializer(many=False, read_only=True)
     ratio=serializers.SerializerMethodField()
+    time_ratio=serializers.SerializerMethodField()
     class Meta:
         model = Fund
-        fields = ['pk', 'project', 'funder', 'institution', 'ref','start_date', 'end_date', 'is_active','amount', 'expense','available','ratio',] 
+        fields = ['pk', 'project', 'funder', 'institution', 'ref','start_date', 'end_date', 'is_active','amount', 'expense','available','ratio', 'time_ratio'] 
     
     def get_ratio(self,obj):
         if obj.amount  and int(obj.amount)>0:
             return abs(obj.expense/obj.amount)
         return '-'
+    
+    def get_time_ratio(self,obj):
+        if not obj.amount  or  int(obj.amount)<=0:
+            return '-'
+        try:
+            sd = obj.start_date
+            se = obj.end_date
+            sn = datetime.now().date()   
+            d1=sn-sd
+            d2=se-sd
+            r = min((d1.days)/(d2.days), 1)
+            #r = abs(float(obj.expense)/(float(obj.amount) * rd ))
+        except TypeError:
+            r = "-"
+        return r
+    
 class FundItemSerialize(serializers.ModelSerializer):
     fund=FundSerialize(many=False, read_only=True)
     type=CostTypeSerialize(many=False, read_only=True)

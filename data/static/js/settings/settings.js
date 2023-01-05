@@ -18,7 +18,7 @@ function initSettingsPage(){
             url = `/api/settings/user/${setting}/`;
         }
 
-        inventreePut(
+        labsmanagerPut(
             url,
             {
                 value: checked.toString(),
@@ -140,8 +140,6 @@ function editSetting(key, options={}) {
                 method: 'PATCH',
                 title: options.title,
                 processResults: function(data, fields, opts) {
-                    console.log("processResults :");
-                    console.log("data.type :"+JSON.stringify(data.type));
                     switch (data.type) {
                         case 'boolean':
                             // Convert to boolean value

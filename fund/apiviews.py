@@ -1,5 +1,7 @@
 from django.http import JsonResponse
-from django.db.models import Q, F
+from django.db.models import Q, F, ExpressionWrapper, fields
+from django.db.models.functions import Cast, Coalesce, Now, Extract, Abs
+from datetime import datetime
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
@@ -50,22 +52,43 @@ class FundViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='noconsumption_fund', url_name='noconsumption_fund')
     def noConsumationFunds(self, request, pk=None):
         q_objects = Q(is_active=True) & Q(project__status=True) # base Q objkect
-        slot = utils.getDashboardTimeSlot(request)
-        if 'from' in slot:
-            q_objects = q_objects & Q(end_date__gte=slot["from"])
-        if 'to' in slot:
-            q_objects = q_objects & Q(end_date__lte=slot["to"])
         
-        # q_objects = q_objects & Q(expense=0)
-        f=Fund.objects.annotate(ratio=-F('expense')/(F('amount')+1))
-        
-        # get the settings
+         # get the settings
         minConsump = LMUserSetting.get_setting('DASHBOARD_FUND_CONSOMATION_RATIO',user=request.user)
+        userStalePeriod= LMUserSetting.get_setting('DASHBOARD_FUND_CONSOMATION_USE_STALE_PERIOD',user=request.user)
+        typeReport= LMUserSetting.get_setting('DASHBOARD_FUND_CONSOMATION_TYPE',user=request.user)
+        periodRatioMargin= float(LMUserSetting.get_setting('DASHBOARD_FUND_CONSOMATION_LINEAR_RATIO_MARGIN',user=request.user))
         
+        if userStalePeriod:
+            slot = utils.getDashboardTimeSlot(request)
+            if 'from' in slot:
+                q_objects = q_objects & Q(end_date__gte=slot["from"])
+            if 'to' in slot:
+                q_objects = q_objects & Q(end_date__lte=slot["to"])
+       
+        f=Fund.objects
         
-        q_objects = q_objects & Q(ratio__lte=minConsump)
+        if typeReport == 'linear' or typeReport =='both':
+            f=f.annotate(duration_quotity=Extract(Now()-F('start_date'), 'epoch') / Extract(F('end_date')-F('start_date'), 'epoch'))
+            f=f.annotate(time_ratio=Abs(F('expense') / ((F('amount')+1)*F('duration_quotity'))))
+            
+            
+             # q_objects & ( Q(ratio__lte=minConsump) | Q(time_ratio__lte=0.9))
         
-        fund=f.select_related('project', 'funder', 'institution').filter(q_objects).order_by('ratio')
+        if typeReport == 'treshold' or typeReport =='both':
+            f = f.annotate(ratio=-F('expense')/(F('amount')+1))
+            
+        
+        lteM=1-periodRatioMargin
+        gteM=1+periodRatioMargin
+        if typeReport == 'linear':
+            q_objects = q_objects & ( Q(time_ratio__lte = lteM) | Q(time_ratio__gte = gteM) ) 
+        elif typeReport == 'treshold':
+            q_objects = q_objects & Q(ratio__lte=minConsump)
+        else:
+            q_objects = q_objects & ( Q(time_ratio__lte = lteM) | Q(time_ratio__gte = gteM) | Q(ratio__lte=minConsump) ) 
+        
+        fund=f.select_related('project', 'funder', 'institution').filter(q_objects)
         
         return JsonResponse(serializers.FundConsumptionSerialize(fund, many=True).data, safe=False) 
 
