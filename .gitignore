@@ -1,2 +1,3 @@
 data/dbs/
 **/__pycache__/
+config_template.yaml
