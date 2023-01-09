@@ -1,4 +1,5 @@
 data/dbs/
 **/__pycache__/
-config_template.yaml
-**.pyc
+config.yaml
+**/*.pyc
+*.bck

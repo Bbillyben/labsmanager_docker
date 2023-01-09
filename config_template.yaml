@@ -1,0 +1,9 @@
+email:
+  backend: 'django.core.mail.backends.smtp.EmailBackend'
+  host: ''
+  port: 25
+  username: ''
+  password: ''
+  sender: ''
+  tls: False
+  ssl: False
