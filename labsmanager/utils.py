@@ -1,6 +1,8 @@
 
 from django.db.models import Q
 from datetime import datetime
+from django.core.mail import send_mail
+from labsmanager import settings
 
 
 def str2bool(text, test=True):
@@ -31,3 +33,26 @@ def getDateFilter():
     now = datetime.now()
     fi = (Q(end_date__gte=now) | Q(end_date=None))
     return fi
+
+
+## send an email with specified parameters
+def send_email(subject, body, recipients, from_email=None, html_message=None):
+    """Send an email with the specified subject and body, to the specified recipients list."""
+    if type(recipients) == str:
+        recipients = [recipients]
+    
+    if from_email == None:
+        from_email=settings.EMAIL_SENDER
+        
+    response = send_mail(
+        subject,
+        body,
+        from_email,
+        recipients,
+        html_message=html_message,
+        fail_silently=False,
+    )
+    return response
+
+
+

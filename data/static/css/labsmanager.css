@@ -50,7 +50,12 @@ main {
 .login-container input {
     background-color: rgba(250, 250, 250, 0.9);
 }
-
+.login-container a{
+    color: #cecece;
+}
+.login-container a:hover{
+    color: white;
+}
 .login-button {
     background-color: rgba(250, 250, 250, 0.9);
     color: #333;

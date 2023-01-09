@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
 import os
+from .config import get_setting, get_boolean_setting
 es_formats.DATETIME_FORMAT = "d M Y H:i:s"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -207,7 +208,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # crispy forms use the bootstrap templates
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-SITE_ID=1
+SITE_ID=5
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/" 
@@ -242,3 +243,20 @@ AUDITLOG_DISABLE_ON_RAW_SAVE = True
 
 ## breadcrumbs
 BREADCRUMBS_HOME_LABEL = '<i class="fas fa-bars"></i>'
+
+
+## EMAIL
+EMAIL_BACKEND = get_setting('LAB_EMAIL_BACKEND', 'email.backend', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = get_setting('LAB_EMAIL_HOST', 'email.host', '')
+EMAIL_PORT = get_setting('LAB_EMAIL_PORT', 'email.port', 25, typecast=int)
+EMAIL_HOST_USER = get_setting('LAB_EMAIL_USERNAME', 'email.username', '')
+EMAIL_SENDER = get_setting('LAB_EMAIL_SENDER', 'email.sender', '')
+EMAIL_HOST_PASSWORD = get_setting('LAB_EMAIL_PASSWORD', 'email.password', '')
+EMAIL_SUBJECT_PREFIX = get_setting('LAB_EMAIL_PREFIX', 'email.prefix', '[InvenTree] ')
+EMAIL_USE_TLS = get_boolean_setting('LAB_EMAIL_TLS', 'email.tls', False)
+EMAIL_USE_SSL = get_boolean_setting('LAB_EMAIL_SSL', 'email.ssl', False)
+
+DEFAULT_FROM_EMAIL = EMAIL_SENDER
+
+
+ 
