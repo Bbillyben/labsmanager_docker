@@ -95,6 +95,7 @@
                         <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionFormatter" data-searchable="false"
                         data-can-change="{{ perms.staff.change_employee }}"
                         data-can-delete="{{ perms.staff.delete_employee }}"
+                        data-is-staff="{{ request.user.is_staff }}"
                         >
                         {% trans 'Action' %}
                         </th>

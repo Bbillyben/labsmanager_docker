@@ -108,6 +108,7 @@ function updateAdminBtnHandler(){
 
 function adminActionFormatter(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
+    if(this.isStaff=='True')action += "<a href='/admin/project/project/"+row.pk+"/change/'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
     if(this.canChange=="True")action += "<button class='icon edit_project btn btn-success' data-form-url='/project/ajax/"+row.pk+"/udpate' ><i type = 'button' class='fas fa-edit'></i></button>";
     if(this.canDelete=="True")action += "<button class='icon delete_project btn btn-danger ' data-form-url='/project/ajax/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"

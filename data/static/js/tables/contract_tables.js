@@ -30,6 +30,7 @@ function adminActionContract(value, row, index, field){
     //console.log("adminActionContract   ------------------------------------------------------------------------------------------------- ")
 
     action = "<span class='icon-left-cell btn-group'>";
+    if(this.isStaff=='True')action += "<a href='/admin/expense/contract/"+row.pk+"/change/'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
     if(this.canChange=='True')action += "<button class='icon edit_contract btn btn-success' data-form-url='/expense/ajax/contract/"+row.pk+"/update' ><i type = 'button' class='fas fa-edit'></i></button>";
     action += "<button class='icon show_contract btn btn-secondary' data-contract='"+row.pk+"' ><i type = 'button' class='fas fa-toolbox'></i></button>";
     if(this.canDelete=='True')action += "<button class='icon delete_contract btn btn-danger ' data-form-url='/expense/ajax/contract/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";

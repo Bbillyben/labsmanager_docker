@@ -14,6 +14,12 @@ from pathlib import Path
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
 import os
 from .config import get_setting, get_boolean_setting
+import logging
+
+logger = logging.getLogger('labsmanager')
+
+
+
 es_formats.DATETIME_FORMAT = "d M Y H:i:s"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -32,9 +38,22 @@ else:
     
 # SECURITY WARNING: don't run with debug turned on in production!
 if os.environ.get("DEBUG"):
-     DEBUG = os.environ.get("DEBUG", default=False)=='True'
+     DEBUG = get_boolean_setting("DEBUG", "Debug", default_value=False)
 else:
     DEBUG = True # int(os.environ.get("DEBUG", default=0))
+    
+# Configure logging settings
+log_level = get_setting('LABS_LOG_LEVEL', 'log_level', 'WARNING')
+
+logging.basicConfig(
+    level=log_level,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+
+if log_level not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+    log_level = 'WARNING'  # pragma: no cover
+
+logger.debug("-------------------------- Start debug session  --------------------------")
 
 ALLOWED_HOSTS =  ['*'] # os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
@@ -208,7 +227,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # crispy forms use the bootstrap templates
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-SITE_ID=5
+SITE_ID=get_setting('LAB_SITE_ID', 'site_id', 1, int)
+logger.debug('SITE_ID :'+str(SITE_ID))
+
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/" 

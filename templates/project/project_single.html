@@ -29,6 +29,10 @@
                 <div class="btn-group" role="group">
 
                     {% if perms.project.change_project or perms.project.add_participant or perms.project.add_institution_participant%}
+                    {% if request.user.is_staff %}
+                    <a href='{% url "admin:project_project_change" project.pk %}'><button class='icon admin_employee btn btn-secondary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>
+                    {% endif %}
+                    
                     <button id="project-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Project Actions" aria-expanded="false">
                         <i class="fas fa-flask"></i>
                     </button>

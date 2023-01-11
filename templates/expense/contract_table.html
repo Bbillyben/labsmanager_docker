@@ -57,6 +57,7 @@
             <th data-sortable="false" data-searchable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionContract"
             data-can-change="{{ perms.expense.change_contract }}"
             data-can-delete="{{ perms.expense.delete_contract }}"
+            data-is-staff="{{ request.user.is_staff }}"
             >
                 {% trans 'Action' %}
             </th>
