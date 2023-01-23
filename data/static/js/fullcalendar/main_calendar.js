@@ -53,7 +53,6 @@ function initFullCalendar(){
 function eventClicked(info){
     $(info.el).tooltip('dispose');
     $('.popover').popover('dispose');
-    console.log(info.event)
     titleP ='<div class="d-flex flex-wrap">'
     titleP += "<b>"+info.event.extendedProps.type+"</b>";
     titleP += '<span class="flex" style="flex-grow: 1;"></span>';
@@ -149,8 +148,7 @@ function updateLeaveButtonHandler(){
 
 // ---------------------- Selection de date  --------------------- //
 function eventSelectHandler(info){
-    // console.log('Selection de date');
-    // console.log(info);
+
     $('.popover').popover('dispose');
 
     var d = new Date(info.end);
@@ -189,7 +187,6 @@ function getCalenderFilters(){
     var leaveList = $.map($('#leave_type :checkbox:checked'), function(n, i){
                 return n.value;
         }).join(',');
-    console.log(leaveList)
     filters={
         type:leaveList
     };
