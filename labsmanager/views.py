@@ -16,6 +16,7 @@ from fund.models import Cost_Type
 from expense.models import Contract_type
 from fund.models import Fund_Institution
 from project.models import Institution
+from leave.models import Leave_Type
 # from allauth.account.views import LoginView
 # Create your views here.
 
@@ -72,6 +73,13 @@ def get_filters_lists(request, *args, **kwargs):
         'data':inst,
     })
     
+    # for leaves
+    l_type=Leave_Type.objects.all().values(key=F('pk'), value=F('name'))
+    
+    data['codes'].append({
+        'name':'leave_type',
+        'data':l_type,
+    })
     
     return render_to_string('status_codes.js', data)
     

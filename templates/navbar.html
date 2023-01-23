@@ -61,6 +61,11 @@
           </button>
         </li>
         -->
+        <li class='nav-item'>
+          <a class='nav-link' href="{% url 'calendar_main' %}">
+            <span class='fas fa-calendar-days icon-header'></span>{% trans "Calendar" %}
+          </a>
+        </li>
         <!-- For Dashboard -->
         <li class='nav-item'>
           <a class='nav-link' href="{% url 'dashboard' %}">
@@ -84,8 +89,8 @@
             {% else %}
               <li><a class='dropdown-item' href="{% url 'login' %}"><span class="fas fa-sign-in-alt"></span> {% trans "Login" %}</a></li>
             {% endif %}    
-              <hr>     
-              <li><div class='dropdown-item' ><span class="fas fa-flag"></span>{{LANGUAGE_CODE}}</div></li>   
+              <!-- <hr>     
+              <li><div class='dropdown-item' ><span class="fas fa-flag"></span>{{LANGUAGE_CODE}}</div></li>    -->
           </ul>
 
         </li>

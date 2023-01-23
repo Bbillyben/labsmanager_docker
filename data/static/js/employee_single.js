@@ -31,6 +31,20 @@ function initEmployeeSingleView(user_idA, employee_idA){
         onToggle: function(){ update_status_btn();},
         onPageChange: function(){ update_status_btn();},
     });
+
+    var filters = loadTableFilters('leave');
+    var filterOption={
+        download:true,
+    }
+    var options={
+        queryParams: filters,
+        name:'leave',
+        callback:updateLeaveBtnHandler,
+        
+    }
+    setupFilterList('leave', $('#employee_leave_table'), '#filter-list-leave',filterOption);
+    $('#employee_leave_table').labTable(options);
+
     // MOdal for employee edition
     $('#edit-employee').modalForm({
         modalID: "#create-modal",
@@ -108,7 +122,27 @@ function initEmployeeSingleView(user_idA, employee_idA){
         }
     })
 
+    $('#add_leave').modalForm({
+        modalID: "#create-modal",
+        modalContent: ".modal-content",
+        modalForm: ".modal-content form",
+        formURL: '/calendar/add/employee/'+employee_id+"/",
+        isDeleteForm: false,
+        errorClass: ".form-validation-warning",
+        asyncUpdate: true,
+        asyncSettings: {
+            directUpdate: true,
+            closeOnSubmit: true,
+            successMessage: "Employee Updated",
+            dataUrl: '/api/employee/',
+            dataElementId: '#employee_dec_table',
+            dataKey: 'table',
+            addModalFormFunction: updateLeave,
+        }
+    })
+
     update_employee();
+    updateLeaveBtnHandler();
 }
 
 // ----------------------  Employee  ------------------- //
@@ -282,13 +316,68 @@ function updateParticipantBtnHandler(){
         });
     });
 }
-// ----------------------  table Contract  ------------------- //
+// ----------------------  table Leave  ------------------- //
+
+function updateLeave(){
+    $('#employee_leave_table').labTable('refresh');
+    updateLeaveBtnHandler();
+}
+
+function adminActionLeave(value, row, index, field){
+    //console.log(JSON.stringify(row));
+    action = "<span class='icon-left-cell btn-group'>";
+    if(this.isStaff=='True')action += "<a href='/admin/leave/leave/"+row.pk+"/change/'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
+
+    if(this.canChange=="True")action += "<button class='icon edit_leave btn btn-success' data-form-url='/calendar/update/"+row.pk+"/' ><i type = 'button' class='fas fa-edit'></i></button>";
+    
+    if(this.canDelete=="True")action += "<button class='icon delete_leave btn btn-danger ' data-form-url='/calendar/delete/"+row.pk+"/' ><i type = 'button' class='fas fa-trash'></i></button>";
+    action += "</span>"
+    return action;
+}
 
 
-
-
-
-
+function updateLeaveBtnHandler(){
+    $(".edit_leave").each(function () {
+        $(this).modalForm({
+            modalID: "#create-modal",
+            modalContent: ".modal-content",
+            modalForm: ".modal-content form",
+            formURL: $(this).data("form-url"),
+            isDeleteForm: false,
+            errorClass: ".form-validation-warning",
+            asyncUpdate: true,
+            asyncSettings: {
+                directUpdate: true,
+                closeOnSubmit: true,
+                successMessage: "Employee Updated",
+                dataUrl: '/api/employee/',
+                dataElementId: '#employee_main_table',
+                dataKey: 'table',
+                addModalFormFunction: updateLeave,
+            }
+        });
+    });
+    $(".delete_leave").each(function () {
+        $(this).modalForm({
+            modalID: "#create-modal",
+            modalContent: ".modal-content",
+            modalForm: ".modal-content form",
+            formURL: $(this).data("form-url"),
+            isDeleteForm: true,
+            errorClass: ".form-validation-warning",
+            asyncUpdate: true,
+            asyncSettings: {
+                directUpdate: true,
+                closeOnSubmit: true,
+                successMessage: "Employee Updated",
+                dataUrl: '/api/employee/',
+                dataElementId: '#employee_main_table',
+                dataKey: 'table',
+                addModalFormFunction: updateLeave,
+            }
+        });
+    });
+}
 
 // ----------------------  table Team  ------------------- //
 

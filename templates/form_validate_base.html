@@ -31,4 +31,7 @@
     //$(this).parent().find(':submit').prop( "disabled", !enabled );
     $('#modal-form-submit').prop( "disabled", !enabled );
   })
+  $('form').submit(function(){
+    $("form :disabled").removeAttr('disabled');
+  });
 </script>

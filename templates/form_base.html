@@ -18,3 +18,8 @@
     </div>  
   </div>
 </form>
+<script>
+  $('form').submit(function(){
+    $("form :disabled").removeAttr('disabled');
+  });
+</script>

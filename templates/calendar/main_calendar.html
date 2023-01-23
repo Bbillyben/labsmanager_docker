@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block page_title %}
+{% trans "LabManager Employee" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}
+
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='New Leave' %}
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Calendar' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                <!-- <div class="btn-group" role="group">
+                    {% if  perms.staff.add_employee %}
+                    <button type="button" class="btn btn-success" id="employee_create" title="Create New Employee">
+                        <span class='fa fa-user-plus'></span>
+                        {% trans 'Add Employee' %}
+                    </button>
+                    {% endif %}
+                </div> -->
+            </div>
+        </div>
+
+        <div class="panel-content">
+            <div class="card">
+                <div class="row-header">
+                    <div class="d-flex flex-wrap subheading">
+                        <h4><i class="fas fa-filter"></i>  {% trans 'Leave Type Filter' %}</h4> 
+                    </div>
+                </div>
+                <div class="row">
+                    <div id="leave_type" class="in-card" style="margin-left:1em;">
+                        
+                            {% for leave in leave_type %}
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" class="form-check-input leave_type_cb" name="{{ leave.pk }}" value="{{ leave.pk }}" checked>
+                                <label class="form-check-label" for="{{ leave.pk }}">{{ leave.name }}</label><br>
+                            </div>
+                            {% endfor %}
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="row-header">
+                    <div class="d-flex flex-wrap subheading">
+                        <h4><i class="fas fa-calendar-days"></i>  {% trans 'Calendar' %}</h4> 
+                        <span class="flex" style="flex-grow: 1;"></span>
+                        {% if  perms.leave.add_leave %}
+                            <button type="button" class="btn btn-success" id="leave_create" title="Create New Leave">
+                            <span class='fa fa-user-plus'></span>
+                            {% trans 'Add Leave' %}
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div id="calendar-box">
+                    <!-- where the calendar should be loaded -->
+                </div>
+            </div>
+        </div><!-- panel-content-->
+    </div> <!-- panel--> 
+</div> <!-- detail-panel--> 
+
+{{ request.user.id|json_script:"user_id" }}
+
+
+{% endblock %}
+
+{% block css %}
+    .ui-tooltip {
+        white-space: pre-line;
+    }
+{% endblock %}
+
+{% block js %}
+
+<script type='text/javascript' src="{% static 'js/fullcalendar/index.global.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/main_calendar.js' %}"></script>
+
+<script>
+    perms="{{ perms.leave }}";
+    perms=perms.replaceAll("&#x27;","'");
+    is_staff="{{ request.user.is_staff }}";
+    if(is_staff=="True")perms+=", is_staff";
+   
+$(document).ready(function () {
+    user_id = JSON.parse(document.getElementById('user_id').textContent);
+    initCalendar(user_id, "{% url 'api:leave-search-calendar' %}", "{% url 'api:leave-list' %}", "{% url 'add_leave' %}", perms);
+
+    // modal ajout
+    $('#leave_create').modalForm({
+            modalID: "#create-modal",
+            modalContent: ".modal-content",
+            modalForm: ".modal-content form",
+            formURL: "{% url 'add_leave' %}",
+            isDeleteForm: false,
+            errorClass: ".form-validation-warning",
+            asyncUpdate: true,
+            asyncSettings: {
+                directUpdate: true,
+                closeOnSubmit: true,
+                successMessage: "Employee Updated",
+                dataUrl: "{% url 'add_leave' %}",
+                dataElementId: '#employee_main_table',
+                dataKey: 'table',
+                addModalFormFunction: calendar_refresh,
+            }
+        });
+})
+
+</script>
+{% endblock %}

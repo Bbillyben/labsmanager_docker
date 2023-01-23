@@ -3,6 +3,7 @@ from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMat
 from django.utils.translation import gettext_lazy as _
 from .forms import TeamMateForm
 
+from leave.models import Leave
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
@@ -24,6 +25,10 @@ class EmployeeStatusInline(admin.TabularInline):
     model = Employee_Status
     extra = 0
     
+class LeaveInline(admin.TabularInline):
+    model = Leave
+    extra = 0
+    
     
 class EmployeeAdmin(ImportExportModelAdmin):
     list_display = ('first_name', 'last_name',  'entry_date' , 'exit_date', 'is_active', 'get_user')
@@ -38,7 +43,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
             'fields': ('user',)
         }),
     )
-    inlines = [EmployeeStatusInline]
+    inlines = [EmployeeStatusInline, LeaveInline]
     list_filter=('entry_date' , 'exit_date')
     resource_classes = [EmployeeResource]
      

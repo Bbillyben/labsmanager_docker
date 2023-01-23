@@ -32,6 +32,9 @@ https://github.com/trco/django-bootstrap-modal-forms
         // Modal close handler
         $(settings.modalID).on("hidden.bs.modal", function (event) {
             $(settings.modalForm).remove();
+            if (settings.asyncSettings.addModalFormFunction && settings.asyncSettings.forceExitFunction) {
+                settings.asyncSettings.addModalFormFunction();
+            }
         });
     };
 
@@ -64,10 +67,10 @@ https://github.com/trco/django-bootstrap-modal-forms
     // Submit form callback function
     var submitForm = function (settings) {        
         if (!settings.asyncUpdate) {
-            console.log("direct");
+            //console.log("direct");
             $(settings.modalForm).submit();
         } else {        
-            console.log("INdirect");  
+            //console.log("INdirect");  
             var asyncSettingsValid = validateAsyncSettings(settings.asyncSettings);
             
             if (asyncSettingsValid) {                
@@ -186,6 +189,7 @@ https://github.com/trco/django-bootstrap-modal-forms
                 dataKey: null,
                 addModalFormFunction: null,
                 directUpdate: false,
+                forceExitFunction: false,
             }
         };
 
@@ -193,6 +197,7 @@ https://github.com/trco/django-bootstrap-modal-forms
         var settings = $.extend(defaults, options);
 
         this.each(function () {
+            $(this).unbind('click');
             // Add click event handler to the element with attached modalForm
             $(this).click(function (event) {
                 // Instantiate new form in modal

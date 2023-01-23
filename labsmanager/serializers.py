@@ -6,10 +6,11 @@ from expense.models import Expense_point, Contract, Contract_expense, Contract_t
 from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution
 from project.models import Project, Institution, Participant,Institution_Participant
 from endpoints.models import Milestones
-
+from leave.models import Leave, Leave_Type
 from django.db.models import Sum
 
 
+from datetime import timedelta
 
  # User and Group Serailizer ########### ------------------------------------ ###########
        
@@ -85,7 +86,44 @@ class MilestonesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Milestones
         fields = ['pk', 'name', 'deadline_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project']  
+
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Leave
+class LeaveTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Leave_Type
+        fields = ['pk', 'short_name', 'name', 'parent',]  
         
+        
+class LeaveSerializerBasic(serializers.ModelSerializer):
+    class Meta:
+        model = Leave
+        fields = ['pk', 'employee', 'type', 'start_date', 'end_date',] 
+        
+class LeaveSerializer(serializers.ModelSerializer):
+    employee=EmployeeSerialize_Min(many=False, read_only=True)
+    type=LeaveTypeSerializer(many=False, read_only=True)
+    class Meta:
+        model = Leave
+        fields = ['pk', 'employee', 'type', 'start_date', 'end_date',]  
+
+class LeaveSerializer1D(serializers.ModelSerializer):
+    employee = serializers.CharField(source='employee.user_name')
+    employee_pk = serializers.CharField(source='employee.pk')
+    type = serializers.CharField(source='type.name')
+    type_pk = serializers.CharField(source='type.pk')
+    start= serializers.DateField(source='start_date')
+    end=serializers.SerializerMethodField()
+    title=serializers.SerializerMethodField()
+    color= serializers.CharField(source='type.color')
+    class Meta:
+        model = Leave
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment',]  
+        
+    def get_title(self,obj):
+        return f'{obj.employee.user_name} - {obj.type.name}'
+    def get_end(self,obj):
+        return obj.end_date +timedelta(days=1)
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #

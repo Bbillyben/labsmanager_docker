@@ -63,6 +63,12 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
             </div>
             <div class="row align-items-center justify-content-center" style="width:100%;">
+                {% url 'calendar_main' as urlCard %}
+                {% trans 'Calendar' as txtCard %}
+                {% static 'img/icons/calendar.png' as imgURL%}
+
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+
                 {% url 'dashboard' as urlCard %}
                 {% trans 'Dashboard' as txtCard %}
                 {% static 'img/icons/dashboard.png' as imgURL%}

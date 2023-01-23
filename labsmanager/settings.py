@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'tabular_permissions',          # https://pypi.org/project/django-tabular-permissions/
     'import_export',                # https://django-import-export.readthedocs.io/en/latest/installation.html
     'django_filters',               # https://django-filter.readthedocs.io/en/stable/guide/install.html
+    'colorfield',                  # to get a color field
     
     # App
     'staff.apps.StaffConfig',
@@ -93,6 +94,7 @@ INSTALLED_APPS = [
     'expense.apps.ExpenseConfig',
     'settings.apps.SettingsConfig',
     'endpoints.apps.EndpointsConfig',
+    'leave.apps.LeaveConfig'
     
 ]
 
@@ -179,10 +181,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-if os.environ.get("CSRF_TRUSTED_ORIGINS"):
-    CSRF_TRUSTED_ORIGINS =  os.environ.get("CSRF_TRUSTED_ORIGINS").split()
+if get_setting('CSRF_TRUSTED_ORIGINS', 'csrf_trusted_origins', False):
+    CSRF_TRUSTED_ORIGINS =  get_setting('CSRF_TRUSTED_ORIGINS', 'csrf_trusted_origins', False).split()
 else:
     CSRF_TRUSTED_ORIGINS=[]
+
+logger.debug('CSRF_TRUSTED_ORIGINS :'+str(CSRF_TRUSTED_ORIGINS))   
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
@@ -242,9 +246,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-       'rest_framework.authentication.TokenAuthentication',
+       
    ),
 }
 
@@ -252,7 +257,7 @@ APPEND_SLASH = False  # prevent error for post request by ajax
 
 
 # Session 
-SESSION_COOKIE_AGE = 86400
+SESSION_COOKIE_AGE = 6400
 
 
 ## Import export options

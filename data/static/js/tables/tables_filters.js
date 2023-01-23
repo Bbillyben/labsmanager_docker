@@ -153,6 +153,25 @@ function getAvailableTableFilters(tableKey) {
         
     }
 
+    if (tableKey == 'leave') {
+        return {
+            
+            name: {
+                title: 'Employee Name',
+                description: 'Employee Name',
+            },
+            type:{
+                title : 'Leave Type',
+                description: 'Leave Type Status code',
+                options:leave_type_codes,
+            },
+            start:{
+                title: 'start date',
+                type:'date'
+            }
+        };
+    }
+
 
     // Finally, no matching key
     return {};
