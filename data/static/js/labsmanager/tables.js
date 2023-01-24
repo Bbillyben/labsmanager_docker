@@ -484,6 +484,12 @@ function dueDatePassed(value, row, index, field){
 }
 
 
+function TeamFormatter(value, row, index, field){
+    response =  '<span class="icon-right-cell"><a href="'+Urls['team_single'](row.pk)+'" title="/'+row.ipkd+'/"> '+value+'</a>';
+    return response;
+}
+
+
 // --------------------     Basic Table Sorter    ------------------- // 
 
 function nameSorter(fieldA, fieldB){

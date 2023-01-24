@@ -171,6 +171,22 @@ function getAvailableTableFilters(tableKey) {
             }
         };
     }
+    if (tableKey == 'teams') {
+        return {
+            
+            name: {
+                title: 'Team Name',
+                description: 'Team Name',
+            },
+            leader:{
+                title : 'Leader Name',
+                description: 'Team Leader name',
+            },
+            mate:{
+                title: 'Team Mate Name'
+            }
+        };
+    }
 
 
     // Finally, no matching key

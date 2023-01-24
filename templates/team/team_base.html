@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block page_title %}
+{% trans "LabManager Team" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}
+
+
+
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
+
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Team List' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                <div class="btn-group" role="group">
+                    {% if  perms.staff.add_team %}
+                    <button type="button" class="btn btn-success" id="team_create" title="Create New Team">
+                        <span class='fa fa-user-plus'></span>
+                        {% trans 'Add Team' %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-content">
+            <!-- <div class="fixed-table-toolbar">
+                <div class="float-right search btn-group">
+                    <input class="form-control search-input" type="search" placeholder="Search" autocomplete="off">
+                  </div>
+            </div> -->
+            <div id='tracking-table-toolbar'>
+                <div class='btn-group'>
+                    {% include "filter_list.html" with id="team" %}
+                </div>
+            </div>
+            <table
+                class='table table-striped table-condensed'
+                id="team_main_table"
+                data-toolbar='#tracking-table-toolbar'
+                data-url="{% url 'api:team-list' %}"
+                >
+                <div class="fixed-table-toolbar">
+                </div>
+                <thead class="">
+                    <tr>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="name" data-formatter="TeamFormatter" >
+                            {% trans 'Team Name' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="leader" data-formatter="teamMateFormatter">
+                            {% trans 'Leader' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="team_mate" data-formatter="teamMateFormatter">
+                            {% trans 'Team Mate' %}
+                        </th>
+                        
+                        {% if  perms.staff.change_team or perms.staff.delete_team %}
+                        <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminTeamFormatter" data-searchable="false"
+                        data-can-change="{{ perms.staff.change_team }}"
+                        data-can-delete="{{ perms.staff.delete_team }}"
+                        data-is-staff="{{ request.user.is_staff }}"
+                        >
+                        {% trans 'Action' %}
+                        </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+        {{ request.user.id|json_script:"user_id" }}
+        {% endblock %}
+
+
+
+
+
+{% block js_load %}
+
+<script>
+    perms="{{ perms }}";
+    perms=perms.replaceAll("&#x27;","'");
+    is_staff="{{ request.user.is_staff }}";
+    if(is_staff=="True")perms+=", is_staff";
+
+    $(document).ready(function () {
+        user_id = JSON.parse(document.getElementById('user_id').textContent);
+        initTeam(user_id, perms);
+
+         // modal ajout
+            $('#team_create').modalForm({
+                modalID: "#create-modal",
+                modalContent: ".modal-content",
+                modalForm: ".modal-content form",
+                formURL: "{% url 'create_team' %}",
+                isDeleteForm: false,
+                errorClass: ".form-validation-warning",
+                asyncUpdate: true,
+                asyncSettings: {
+                    directUpdate: true,
+                    closeOnSubmit: true,
+                    successMessage: "Team Added Updated",
+                    dataUrl: "{% url 'create_team' %}",
+                    dataElementId: '#employee_main_table',
+                    dataKey: 'table',
+                    addModalFormFunction: team_refresh,
+                }
+            });
+
+    })
+
+
+</script>
+{% endblock %}
+
+
+{% block js %}
+<script type='text/javascript' src="{% static 'js/team_base.js' %}"></script>
+
+<script>
+
+</script>
+{% endblock %}
+

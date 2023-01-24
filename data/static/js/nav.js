@@ -61,7 +61,6 @@ function activatePanel(label, panel_name, options={}) {
 
         // Find the matching panel element to display
         var panel_name = el.attr('id').replace('select-', '');
-        console.log("Panle Name :"+panel_name)
 
         activatePanel(label, panel_name, options);
     });

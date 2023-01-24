@@ -1,14 +1,10 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
 from labsmanager.ressources import labResource
-from .models import Employee
+from .models import Employee, Employee_Status, Team, TeamMate
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
-
-
-
-from .models import Employee_Status
 
 
 
@@ -122,3 +118,45 @@ class EmployeeResource(labResource):
         exclude = [ 'id',
                     'user',
          ]
+        
+        
+        
+class TeamMateWidget(widgets.CharWidget):
+    
+    def render(self, value, obj=None):
+        pa=TeamMate.objects.filter(team=value)
+        
+        li=[]
+        for c in pa:
+            strC= str(c.employee.user_name) 
+            # strC+= " - " +str(c.get_status_display())
+            # strC+= " (" +str(c.start_date)
+            # strC+= " > " +str(c.end_date)+')'
+            # strC+= '#'+str(c.quotity)
+            li.append(strC)
+           
+        return "\n".join(li)       
+class TeamResource(labResource):
+    
+    name = Field(
+        column_name=_('Team Name'),
+        attribute='name', 
+        widget=widgets.CharWidget(), readonly=True
+        ) 
+    leader = Field(
+        column_name=_('Leader'),
+        attribute='leader__user_name', 
+        widget=widgets.CharWidget(), readonly=True
+        )
+    mate = Field(
+        column_name=_('Team Mate'),
+        attribute='pk', 
+        widget=TeamMateWidget(), readonly=True
+        )
+    class Meta:
+        """Metaclass"""
+        model = Team
+        skip_unchanged = False
+        clean_model_instances = False
+        exclude = [ 'id',
+            ]

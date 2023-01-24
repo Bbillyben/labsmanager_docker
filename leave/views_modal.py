@@ -16,10 +16,6 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Leave
 
     def get(self, request, *args, **kwargs):
-        print("LeaveItemCreateView - GET")
-        print("  - args :"+str(args))
-        print("  - kwargs :"+str(kwargs))
-        
         
         initial={}
         
@@ -27,7 +23,11 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
         
         if 'emp_pk' in kwargs:
             initial['employee']=kwargs['emp_pk']
-            
+        
+        
+        team = data.get('team', None)
+        if team is not None:
+            initial['team']=team
         
         start_date=data.get("start_date", None)
         if start_date is not None:

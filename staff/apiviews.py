@@ -12,9 +12,10 @@ from expense.models import  Contract
 from labsmanager.utils import str2bool
 from labsmanager.helpers import DownloadFile
 
+
 from staff.filters import EmployeeFilter
 
-from .ressources import EmployeeResource
+from .ressources import EmployeeResource, TeamResource
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
@@ -90,3 +91,42 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         
         return JsonResponse(serializers.ParticipantSerializer(t1, many=True).data, safe=False)
     
+class TeamViewSet(viewsets.ModelViewSet):
+    queryset = Team.objects.select_related('leader').all()
+    serializer_class = serializers.TeamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    
+    
+    def filter_queryset(self, queryset):
+        params = self.request.query_params
+        queryset = super().filter_queryset(queryset)
+
+        name = params.get('name', None)
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+        
+        leader = params.get('leader', None)
+        if leader is not None:
+            queryset = queryset.filter(Q(leader__first_name__icontains=leader) | Q(leader__last_name__icontains=leader))
+        
+        mate = params.get('mate', None)
+        if mate is not None:
+            tm=TeamMate.objects.filter(Q(employee__first_name__icontains=mate) | Q(employee__last_name__icontains=mate)).values("team")
+            queryset = queryset.filter(pk__in=tm)
+        
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        export = request.GET.get('export', None)
+        if export is not None:
+            qs = self.filter_queryset(self.get_queryset())
+            return self.download_queryset(qs, export)
+        return super().list( request, *args, **kwargs)
+    
+    def download_queryset(self, queryset, export_format):
+        """Download the filtered queryset as a data file"""
+        dataset = TeamResource().export(queryset=queryset)
+        filedata = dataset.export(export_format)
+        filename = f"Team.{export_format}"
+        return DownloadFile(filedata, filename)

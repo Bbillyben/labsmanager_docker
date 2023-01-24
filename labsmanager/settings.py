@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     'import_export',                # https://django-import-export.readthedocs.io/en/latest/installation.html
     'django_filters',               # https://django-filter.readthedocs.io/en/stable/guide/install.html
     'colorfield',                  # to get a color field
+    'django_js_reverse',            # get reverse url in javascript file https://github.com/ierror/django-js-reverse
     
     # App
     'staff.apps.StaffConfig',

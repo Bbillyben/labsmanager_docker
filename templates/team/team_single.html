@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block page_title %}
+{% trans "LabManager Team" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'team/team_sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='Team' %}
+
+<div id='detail-panels'>
+    <div class="panel" id="panel-project" style="display: block;">
+
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Team' %} : {{ team }}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                
+                <div class="btn-group" role="group">
+                    {% if request.user.is_staff %}
+                    <a href='{% url "admin:staff_team_change" team.pk %}'><button class='icon admin_employee btn btn-secondary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>
+                    {% endif %}
+
+                </div>
+                
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="row">
+                <div class="col" id="detail-panel-left">
+                    <div class="card">
+                        <div class="col" id="team_desc_table">
+                            <!-- team description table inserted here -->
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col" id="detail-panel-left">
+                    <div class="card">
+                        <div class="col" id="team_mate_table">
+                            <!-- team description table inserted here -->
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- ######################################    Leave PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-team-leave" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-team-leave1" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'TeamMate leaves' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>   
+                
+                    <div class="btn-group" role="group">
+    
+                    </div>             
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div class="card" id="team_leave_calendar">
+                            <div id="calendar-team-box">
+                                <!-- where the calendar should be loaded -->
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ request.user.id|json_script:"user_id" }}
+{{ team.pk|json_script:"team_id" }}
+{% endblock %}
+
+{% block js_load %}
+<script type='text/javascript' src="{% static 'js/team_single.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script>
+$(document).ready(function () {
+    perms="{{ perms }}";
+    perms=perms.replaceAll("&#x27;","'");
+    is_staff="{{ request.user.is_staff }}";
+    if(is_staff=="True")perms+=", is_staff";
+
+    user_id = JSON.parse(document.getElementById('user_id').textContent);
+    team_id = JSON.parse(document.getElementById('team_id').textContent);
+
+    initTeamSingleView(user_id, team_id, perms, "{% url 'api:leave-search-calendar' %}");
+    enableSidebar('team');
+})
+</script>
+
+{% endblock %}
+
+{% block js %}
+{% endblock %}

@@ -38,7 +38,7 @@ class EmployeeView(LoginRequiredMixin, BaseBreadcrumbMixin ,  TemplateView):
     @cached_property
     def crumbs(self):
         return [("Employee","./",) ,
-                (str(self.construct_crumb()) ,  reverse("employee", kwargs={'pk':'4'} ) ),
+                (str(self.construct_crumb()) ,  reverse("employee_index" ) ),
                 ]
 
     def construct_crumb(self):
@@ -155,3 +155,57 @@ class StatusDeleteView(LoginRequiredMixin, BSModalDeleteView):
 def get_employee_valid(request, pk):
     emp = Employee.objects.filter(pk=pk).first()
     return render(request, 'staff/employee_desc_table.html', {'employee': emp})
+
+
+# TEAMS views
+class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
+    template_name = 'team/team_base.html'
+    home_label = '<i class="fas fa-bars"></i>'
+    model = Team
+    crumbs = [("Teams","teams")]
+    
+    
+
+class TeamView(LoginRequiredMixin, BaseBreadcrumbMixin ,  TemplateView):
+    template_name = 'team/team_single.html'
+    home_label = '<i class="fas fa-bars"></i>'
+    model = Team
+    
+    @cached_property
+    def crumbs(self):
+        return [("Team","./",) ,
+                (str(self.construct_crumb()) ,  reverse("team_index" ) ),
+                ]
+
+    def construct_crumb(self):
+        emp = Team.objects.get(pk=self.kwargs['pk'])
+        return emp
+    
+    def get_context_data(self, **kwargs):
+        """Returns custom context data for the Employee view:
+            - employee : the employee corresponding
+        """
+        context = super().get_context_data(**kwargs).copy()
+
+        if not 'pk' in kwargs:
+            return context
+
+        id=kwargs.get("pk", None)
+        team = Team.objects.filter(pk=id)
+        context['team'] = team.first()
+
+        # View top-level categories
+        return context
+    
+    
+def get_team_resume(request, pk):
+    team = Team.objects.filter(pk=pk).first()
+    data = {'team': team}
+    
+    return render(request, 'team/team_desc_table.html', data)
+
+def get_team_mate(request, pk):
+    teamMate = TeamMate.objects.filter(team=pk)
+    data = {'mates': teamMate}
+    
+    return render(request, 'team/team_mate_table.html', data)

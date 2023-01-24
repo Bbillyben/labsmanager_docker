@@ -28,6 +28,8 @@ from staff import apiviews as staffApiViews
 from endpoints import apiviews as endPointApiViews
 from leave import apiviews as leaveApiViews
 from django.conf.urls.i18n import i18n_patterns
+from django_js_reverse import views as jsrev_views
+
 
 urlpatterns = [
     path('filter_code_list', get_filters_lists, name='filter_code_list'),
@@ -47,6 +49,11 @@ urlpatterns = [
 urlpatterns += [
     path('accounts/', include('django.contrib.auth.urls')),
 ]
+#  django_js_reverse
+urlpatterns += [
+    re_path(r'^jsreverse.json$', jsrev_views.urls_json, name='js_reverse'),
+]
+    
 
 #  Django Rest Framework
 
@@ -54,6 +61,7 @@ router = routers.DefaultRouter()
 router.register(r'users', apiviews.UserViewSet, basename='user')
 router.register(r'groups', apiviews.GroupViewSet, basename='groups')
 router.register(r'employee', staffApiViews.EmployeeViewSet, basename='employee')
+router.register(r'team', staffApiViews.TeamViewSet, basename='team')
 router.register(r'project', projectApiViews.ProjectViewSet, basename='project')
 router.register(r'fund', fundApiViews.FundViewSet, basename='fund')
 router.register(r'funditem', fundApiViews.FundItemViewSet, basename='funditem')
