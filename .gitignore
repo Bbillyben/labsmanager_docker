@@ -3,3 +3,5 @@ data/dbs/
 config.yaml
 **/*.pyc
 *.bck
+*.json
+*_dump.json
