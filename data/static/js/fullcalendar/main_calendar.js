@@ -17,6 +17,7 @@ function initCalendar(userId, apiURL,patchUrl, addUrl, perms){
 }
 
 function initFullCalendar(){
+    var canMod=perms.includes("leave.change_leave") || perms.includes("is_staff");
     const calendarEl = document.getElementById('calendar-box')
     calendar = new FullCalendar.Calendar(calendarEl, {
         timeZone: 'UTC',
@@ -26,13 +27,13 @@ function initFullCalendar(){
             center: 'title',
             right: 'dayGridMonth,dayGridWeek,listWeek'
         },
-        editable: true,
+        editable: canMod,
         events:{
                 url: api_URL,
                 method: 'GET',
                 extraParams:getCalenderFilters,
             },
-        selectable: true,
+        selectable: canMod,
         eventDidMount: function(info) {
             $(info.el).tooltip({
               title: info.event.title,
