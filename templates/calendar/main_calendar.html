@@ -2,6 +2,8 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load mptt_tags %} 
+
 
 {% block page_title %}
 {% trans "LabManager Employee" %}
@@ -33,27 +35,50 @@
             </div>
         </div>
 
-        <div class="panel-content">
-            <div class="card">
-                <div class="row-header">
-                    <div class="d-flex flex-wrap subheading">
-                        <h4><i class="fas fa-filter"></i>  {% trans 'Leave Type Filter' %}</h4> 
-                    </div>
-                </div>
-                <div class="row">
-                    <div id="leave_type" class="in-card" style="margin-left:1em;">
-                        
-                            {% for leave in leave_type %}
-                            <div class="form-check form-check-inline">
-                                <input type="checkbox" class="form-check-input leave_type_cb" name="{{ leave.pk }}" value="{{ leave.pk }}" checked>
-                                <label class="form-check-label" for="{{ leave.pk }}">{{ leave.name }}</label><br>
+        <div class="panel-content ">
+            <div class="row">
+                <div class="d-flex flex-wrap ">
+                    <div class="col-auto" >
+                        <div class="card mr-2" >
+                            <div class="row-header">
+                                <div class="d-flex flex-wrap subheading">
+                                    <h4><i class="fas fa-filter"></i>  {% trans 'Leave Type Filter' %}</h4> 
+                                </div>
                             </div>
-                            {% endfor %}
-                        
+                            <div class="row">
+
+                                <div id="leave_type" class="in-card d-flex flex-wrap" style="margin-left:1em;">
+                                    
+                                        {% recursetree leave_type %}
+                                            {% if not node.parent %}
+                                            <div class="col-auto" >
+                                                    <ul class="list-group">
+                                            {%endif%}
+                                            <li class="">
+                                                <div class="form-check form-check-inline">
+                                                    <input type="checkbox" class="form-check-input leave_type_cb" name="{{ node.pk }}" value="{{ node.pk }}" checked>
+                                                    <label class="form-check-label" for="{{ node.pk }}">{{ node.name }}</label>
+                                                    <span class="leave-type-legend badge badge-primary badge-pill" style="background-color:{{node.color}};color:{{node.color}}">..</span>
+                                                    {% if not node.is_leaf_node %}
+                                                        <ul class="children">
+                                                            {{ children }}
+                                                        </ul>
+                                                    {% endif %}
+                                                </div>
+                                            </li>
+                                            {% if not node.parent %}
+                                                    </ul>
+                                            </div>
+                                            {%endif%}
+                                        {% endrecursetree %}
+                                    
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="card">
+            <div class="card mt-2">
                 <div class="row-header">
                     <div class="d-flex flex-wrap subheading">
                         <h4><i class="fas fa-calendar-days"></i>  {% trans 'Calendar' %}</h4> 
