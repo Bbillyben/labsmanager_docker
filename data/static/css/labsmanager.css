@@ -1079,6 +1079,9 @@ a {
     border-bottom: thin solid;
     border-bottom-color: currentcolor;
 }
+.row-header div[data-bs-toggle="collapse"]{
+    padding-right: 1em;
+}
 
 
 .warning-quotity{
@@ -1274,7 +1277,6 @@ li.list-spacer{
   }
   #leave_type li{
     list-style:none;
-    margin: 0.5em;
+    margin: 0em;
 
   }
- 

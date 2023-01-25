@@ -19,17 +19,17 @@
         titleP += '</div>';
         titleP += '</div>';
         textP = "<em><b>" + info.event.extendedProps.employee + "</b></em>";
-        textP += "</br>" + info.event.start.toDateString() + " - " + info.event.end.toDateString();
+        textP += "</br>" + info.event.start.toLocaleDateString() + " - " + info.event.end.toLocaleDateString();
         if(info.event.extendedProps.comment) textP +="</br><i>"+ info.event.extendedProps.comment+"</i>";
         if(USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("leave.delete_leave") || USER_PERMS.includes("staff.view_employee")){
             textP +="<hr/>";
-            textP +="<div class='d-flex flex-wrap'>";
+            textP +="<div class='d-flex flex-wrap btn-group btn-group-sm' role='group'>";
             //textP +="<span class='btn-group'>";
-            if(USER_PERMS.includes("leave.change_leave"))textP +="<button class='icon edit_leave btn btn-success' data-form-url='/calendar/update/"+info.event.extendedProps.pk+"/' ><i type = 'button' class='fas fa-edit'></i></button>";
-            if(USER_PERMS.includes("staff.view_employee")) textP +="<a href='/staff/employee/"+info.event.extendedProps.employee_pk+"'><button class='icon btn btn-secondary'><i type = 'button' class='fas fa-user'></i></button></a>"; 
-            if(USER_PERMS.includes("is_staff"))textP +="<a href='/admin/leave/leave/"+info.event.extendedProps.pk+"/change/'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"; 
-            textP += '<span class="flex" style="flex-grow: 1;"></span>';
-            if(USER_PERMS.includes("leave.delete_leave"))textP +="<button class='icon delete_leave btn btn-danger ' data-form-url='/calendar/delete/"+info.event.extendedProps.pk+"/' ><i type = 'button' class='fas fa-trash'></i></button>";
+            if(USER_PERMS.includes("leave.change_leave"))textP +="<button class='icon edit_leave btn btn-success' data-form-url='/calendar/update/"+info.event.extendedProps.pk+"/' title='edit leave'><i type = 'button' class='fas fa-edit'></i></button>";
+            if(USER_PERMS.includes("staff.view_employee")) textP +="<a role='button' class=' btn btn-secondary' href='/staff/employee/"+info.event.extendedProps.employee_pk+"' title='navigate to user'><i type = 'button' class='fas fa-user'></i></a>"; 
+            if(USER_PERMS.includes("is_staff"))textP +="<a role='button' class=' btn btn-primary'  href='/admin/leave/leave/"+info.event.extendedProps.pk+"/change/' title='see in admin'><i type = 'button' class='fas fa-shield-halved'></i></a>"; 
+            //textP += '<span class="flex" style="flex-grow: 1;min-width:1.5em;"></span>';
+            if(USER_PERMS.includes("leave.delete_leave"))textP +="<button class='icon delete_leave btn btn-danger ' data-form-url='/calendar/delete/"+info.event.extendedProps.pk+"/' title='delete leave'><i type = 'button' class='fas fa-trash'></i></button>";
             //textP +="</span>";
 
             textP +="</div>";
@@ -207,6 +207,8 @@
     $.fn.lab_calendar = function (options) {
         //console.log("Modal Form Call :"+options.formURL);
             // Default settings
+            var language = window.navigator.userLanguage || window.navigator.language;
+            //console.log(language.split("-")[0])
             var defaults = {
                 selectable:false,
                 editable:false,
@@ -215,6 +217,7 @@
                 eventResize: LeaveChangeHandler,
                 eventClick: eventClicked,
                 select: eventSelectHandler,
+                local: language,
             };
 
             // Extend default settings with provided options
@@ -224,6 +227,7 @@
             eltCal=document.getElementById(this.attr('id'))
             calendar = new FullCalendar.Calendar(eltCal, {
                 timeZone: 'UTC',
+                locale:settings.local,
                 initialView: 'dayGridMonth',
                 headerToolbar: {
                     left: 'prev,next today',

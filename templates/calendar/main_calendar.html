@@ -41,37 +41,39 @@
                     <div class="col-auto" >
                         <div class="card mr-2" >
                             <div class="row-header">
-                                <div class="d-flex flex-wrap subheading">
+                                  
+                                <div class="d-flex flex-wrap subheading" role="button" data-bs-toggle="collapse" data-bs-target="#filters" aria-expanded="false" aria-controls="collapseExample">
                                     <h4><i class="fas fa-filter"></i>  {% trans 'Leave Type Filter' %}</h4> 
                                 </div>
+                            
                             </div>
                             <div class="row">
-
-                                <div id="leave_type" class="in-card d-flex flex-wrap" style="margin-left:1em;">
-                                    
-                                        {% recursetree leave_type %}
-                                            {% if not node.parent %}
-                                            <div class="col-auto" >
-                                                    <ul class="list-group">
-                                            {%endif%}
-                                            <li class="">
-                                                <div class="form-check form-check-inline">
-                                                    <input type="checkbox" class="form-check-input leave_type_cb" name="{{ node.pk }}" value="{{ node.pk }}" checked>
-                                                    <label class="form-check-label" for="{{ node.pk }}">{{ node.name }}</label>
-                                                    <span class="leave-type-legend badge badge-primary badge-pill" style="background-color:{{node.color}};color:{{node.color}}">..</span>
+                                <div id="filters" class="collapse">
+                                    <div id="leave_type" class="in-card d-flex flex-wrap collapse" style="margin-left:1em;">
+                                        
+                                            {% recursetree leave_type %}
+                                                {% if not node.parent %}
+                                                <div class="col-auto" >
+                                                        <ul class="list-group">
+                                                {%endif%}
+                                                <li class="">
+                                                    <div class="form-check form-check-inline">
+                                                        <input id="leave-{{ node.pk }}" type="checkbox" style="background-color:{{node.color}};" class="form-check-input leave_type_cb" name="{{ node.pk }}" value="{{ node.pk }}" checked>
+                                                        <label class="form-check-label" for="leave-{{ node.pk }}">{{ node.name }}</label>
                                                     {% if not node.is_leaf_node %}
-                                                        <ul class="children">
-                                                            {{ children }}
+                                                            <ul class="children">
+                                                                {{ children }}
+                                                            </ul>
+                                                        {% endif %}
+                                                    </div>
+                                                </li>
+                                                {% if not node.parent %}
                                                         </ul>
-                                                    {% endif %}
                                                 </div>
-                                            </li>
-                                            {% if not node.parent %}
-                                                    </ul>
-                                            </div>
-                                            {%endif%}
-                                        {% endrecursetree %}
-                                    
+                                                {%endif%}
+                                            {% endrecursetree %}
+                                        
+                                    </div>
                                 </div>
                             </div>
                         </div>
