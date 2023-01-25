@@ -1,60 +1,13 @@
 from django.contrib import admin
 from expense.models import Expense_point, Expense, Contract_expense, Contract, Contract_type
-from fund.models import Fund, Cost_Type
+from fund.models import Fund
 from django.utils.translation import gettext_lazy as _
 from django.forms.models import BaseInlineFormSet
 from django import forms
-from functools import partialmethod, partial
-from import_export import resources, results
-from import_export.admin import ImportExportModelAdmin
-from import_export.fields import Field
-from import_export.widgets import ForeignKeyWidget
 
-# ressource for import export 
-class SimpleError(results.Error):
-    def __init__(self, error, traceback=None, row=None):
-        super().__init__(error, traceback=traceback, row=row)
-        self.traceback = "redacted"
-        
-class ExpensePointResource(resources.ModelResource):
-    
-    @classmethod
-    def get_error_result_class(self):
-        """
-        Returns a class which has custom formatting of the error.
-        """
-        return SimpleError
-    
-    fund=Field(
-        column_name='fund_ref',
-        attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'ref')
-        )
-    type=Field(
-        column_name='type',
-        attribute='type',
-        widget=ForeignKeyWidget(Cost_Type, 'short_name')
-        )
-    project=Field(
-        column_name='project',
-        attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'project__name')
-        )
-    institiution=Field(
-        column_name='institution',
-        attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'institution__short_name')
-        )
-    class Meta:
-        model = Expense_point
-        skip_unchanged = True
-        report_skipped = True
-        collect_failed_rows=True
-        rollback_on_validation_errors=True
-        use_transactions=True
-        export_order  = ('project','institiution', 'fund','type', 'entry_date', 'value_date',  'amount', )
-      
-      
+from import_export.admin import ImportExportModelAdmin
+
+from .resources import ExpensePointResource  
     
 class ContractExpenseInlineFormSet(BaseInlineFormSet):
     

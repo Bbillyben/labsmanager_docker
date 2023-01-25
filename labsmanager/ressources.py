@@ -1,6 +1,12 @@
 from import_export.resources import ModelResource
+from import_export import results
 
-
+# ressource for import export 
+class SimpleError(results.Error):
+    def __init__(self, error, traceback=None, row=None):
+        super().__init__(error, traceback=traceback, row=row)
+        self.traceback = "redacted"
+        
 class labResource(ModelResource):
     """Custom subclass of the ModelResource class provided by django-import-export"
     Ensures that exported data are escaped to prevent malicious formula injection.
