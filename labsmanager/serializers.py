@@ -224,7 +224,7 @@ class FundConsumptionSerialize(serializers.ModelSerializer):
             d2=se-sd
             r = min((d1.days)/(d2.days), 1)
             #r = abs(float(obj.expense)/(float(obj.amount) * rd ))
-        except TypeError:
+        except:
             r = "-"
         return r
     

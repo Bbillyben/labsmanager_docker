@@ -2,7 +2,8 @@ from tabnanny import verbose
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Sum
+from django.db.models import Sum, Q, F
+
 
 from project.models import Project, Institution
 from labsmanager.mixin import LabsManagerBudgetMixin
@@ -58,6 +59,12 @@ class Fund(LabsManagerBudgetMixin):
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund")
         ordering = ['project__name']
+        constraints = [
+            models.CheckConstraint(
+                check=Q(end_date__gt=F('start_date')),
+                name=_("End Date should be greater than start date"),
+            )
+        ]
     project=models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Funded Project'))
     funder=models.ForeignKey(Fund_Institution, on_delete=models.CASCADE, verbose_name=_('Fund Instituition'))
     institution=models.ForeignKey(Institution, on_delete=models.CASCADE, verbose_name=_('Manager Institution'))

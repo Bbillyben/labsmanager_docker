@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.db.models import Q, F, ExpressionWrapper, fields
+from django.db.models import Q, F, ExpressionWrapper, fields, Value
 from django.db.models.functions import Cast, Coalesce, Now, Extract, Abs
 from datetime import datetime
 
