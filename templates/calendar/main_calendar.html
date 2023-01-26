@@ -58,7 +58,7 @@
                                                 {%endif%}
                                                 <li class="">
                                                     <div class="form-check form-check-inline">
-                                                        <input id="leave-{{ node.pk }}" type="checkbox" style="background-color:{{node.color}};" class="form-check-input leave_type_cb" name="{{ node.pk }}" value="{{ node.pk }}" checked>
+                                                        <input id="leave-{{ node.pk }}" type="checkbox" style="background-color:{{node.color}};border-color:{{node.color}};" class="form-check-input leave_type_cb" name="{{ node.pk }}" value="{{ node.pk }}" checked>
                                                         <label class="form-check-label" for="leave-{{ node.pk }}">{{ node.name }}</label>
                                                     {% if not node.is_leaf_node %}
                                                             <ul class="children">
