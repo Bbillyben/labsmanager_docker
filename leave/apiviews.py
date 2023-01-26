@@ -114,7 +114,13 @@ class LeaveViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='calendar', url_name='search-calendar')
     def search_calendar(self, request):
         qset=self.filter_queryset(self.queryset) 
-        return Response(serializers.LeaveSerializer1D(qset, many=True).data)
+        is_cal=request.data.get('cal',  request.query_params.get('cal', None))
+        
+        print("search_calendar - is cal :"+str(is_cal))
+        if request.data.get('cal', None) or request.query_params.get('cal', None):
+            return Response(serializers.LeaveSerializer1DCal(qset, many=True).data)
+        else:
+            return Response(serializers.LeaveSerializer1D(qset, many=True).data)
     
     @action(methods=['post'], detail=False, url_path='search', url_name='search')
     def search(self, request):

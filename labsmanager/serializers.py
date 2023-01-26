@@ -113,7 +113,7 @@ class LeaveSerializer1D(serializers.ModelSerializer):
     type = serializers.CharField(source='type.name')
     type_pk = serializers.CharField(source='type.pk')
     start= serializers.DateField(source='start_date')
-    end=serializers.SerializerMethodField()
+    end=serializers.DateField(source='end_date')
     title=serializers.SerializerMethodField()
     color= serializers.CharField(source='type.color')
     class Meta:
@@ -122,6 +122,11 @@ class LeaveSerializer1D(serializers.ModelSerializer):
         
     def get_title(self,obj):
         return f'{obj.employee.user_name} - {obj.type.name}'
+    
+    
+class LeaveSerializer1DCal(LeaveSerializer1D):
+    end=serializers.SerializerMethodField()
+    
     def get_end(self,obj):
         return obj.end_date +timedelta(days=1)
 # --------------------------------------------------------------------------------------- #

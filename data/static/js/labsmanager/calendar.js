@@ -19,7 +19,9 @@
         titleP += '</div>';
         titleP += '</div>';
         textP = "<em><b>" + info.event.extendedProps.employee + "</b></em>";
-        textP += "</br>" + info.event.start.toLocaleDateString() + " - " + info.event.end.toLocaleDateString();
+        var d = new Date(info.event.end);
+        d.setDate(d.getDate() - 1)
+        textP += "</br>" + info.event.start.toLocaleDateString() + " - " + d.toLocaleDateString();
         if(info.event.extendedProps.comment) textP +="</br><i>"+ info.event.extendedProps.comment+"</i>";
         if(USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("leave.delete_leave") || USER_PERMS.includes("staff.view_employee")){
             textP +="<hr/>";
@@ -104,13 +106,22 @@
             $(this).click(function(){$('.popover').popover('dispose');})
         });
     }
-    function getExtraSettingURL(){
+
+    function getExtraSetting(){
         var extraSetting={};
         if(typeof settings.extraParams === 'function'){
             extraSetting=settings.extraParams();
         }else{
             extraSetting=settings.extraParams
         }
+
+        // to specify it's from calendar
+        extraSetting["cal"]=1;
+        return  extraSetting
+    }
+    function getExtraSettingURL(){
+        
+        extraSetting=getExtraSetting();
         extraSettingStr=""
         for (s in extraSetting) {
             extraSettingStr+="&"+s+"="+extraSetting[s]
@@ -237,7 +248,7 @@
                 events:{
                         url: Urls['api:leave-search-calendar'](),
                         method: 'GET',
-                        extraParams:settings.extraParams,
+                        extraParams:getExtraSetting,
                     },
                 selectable: settings.selectable,
                 editable: settings.editable,
