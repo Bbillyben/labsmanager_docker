@@ -116,7 +116,6 @@ class LeaveViewSet(viewsets.ModelViewSet):
         qset=self.filter_queryset(self.queryset) 
         is_cal=request.data.get('cal',  request.query_params.get('cal', None))
         
-        print("search_calendar - is cal :"+str(is_cal))
         if request.data.get('cal', None) or request.query_params.get('cal', None):
             return Response(serializers.LeaveSerializer1DCal(qset, many=True).data)
         else:

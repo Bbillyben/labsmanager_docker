@@ -28,6 +28,10 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
         team = data.get('team', None)
         if team is not None:
             initial['team']=team
+            
+        employee = data.get('employee', None)
+        if employee is not None:
+            initial['employee']=employee
         
         start_date=data.get("start_date", None)
         if start_date is not None:

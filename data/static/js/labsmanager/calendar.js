@@ -131,13 +131,18 @@
     }
     // ---------------------- Selection de date  --------------------- //
     function eventSelectHandler(info){
+        //console.log(JSON.stringify(info))
         $('.popover').popover('dispose');
 
         var d = new Date(info.end);
         d.setDate(d.getDate() - 1)
         modURL=Urls['add_leave']()+"?start_date="+info.start.toISOString()+"&end_date="+d.toISOString();
         modURL+=getExtraSettingURL();
-
+        resource=info.resource
+        console.log("resource :"+JSON.stringify(resource))
+        if(resource){
+            modURL+="&employee="+resource.id
+        }
        
 
 
@@ -237,19 +242,27 @@
 
             eltCal=document.getElementById(this.attr('id'))
             calendar = new FullCalendar.Calendar(eltCal, {
+                schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
                 timeZone: 'UTC',
                 locale:settings.local,
-                initialView: 'dayGridMonth',
+                initialView: 'resourceTimelineMonth',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,dayGridWeek,listWeek'
+                    right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
                 },
                 events:{
                         url: Urls['api:leave-search-calendar'](),
                         method: 'GET',
                         extraParams:getExtraSetting,
                     },
+                resources:{
+                        url: Urls['api:employee-calendar-resource'](),
+                        method: 'GET',
+                        extraParams:getExtraSetting,
+                    },
+                resourceGroupField:"employee",
+
                 selectable: settings.selectable,
                 editable: settings.editable,
                 eventDidMount: function(info) {

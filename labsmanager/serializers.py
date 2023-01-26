@@ -126,9 +126,22 @@ class LeaveSerializer1D(serializers.ModelSerializer):
     
 class LeaveSerializer1DCal(LeaveSerializer1D):
     end=serializers.SerializerMethodField()
+    resourceId= serializers.CharField(source='employee.pk')
+    class Meta:
+        model = Leave
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment','resourceId',]  
+        
     
     def get_end(self,obj):
         return obj.end_date +timedelta(days=1)
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    For calendar 
+class EmployeeSerialize_Cal(serializers.ModelSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    id = serializers.CharField(source='pk')
+    title = serializers.CharField(source='user_name')
+    class Meta:
+        model = Employee
+        fields = ['id', 'title', ]  
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #
