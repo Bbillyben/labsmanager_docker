@@ -76,10 +76,10 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="type.shortname">
                                                 {% trans 'Status abb' %}
                                             </th>
-                                            <th data-sortable="true" class="th-inner sortable both" data-field="start_date">
+                                            <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
                                                 {% trans 'Start Date' %}
                                             </th>
-                                            <th data-sortable="true" class="th-inner sortable both" data-field="end_date">
+                                            <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                                                 {% trans 'End Date' %}
                                             </th>
                                             <th data-sortable="true" class="th-inner sortable both" data-field="is_contractual">
@@ -187,10 +187,10 @@
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="project" data-formatter="projectFormatter">
                                                     {% trans 'Project' %}
                                                 </th>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="project.start_date">
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="project.start_date" data-formatter="baseDateFormatter">
                                                     {% trans 'Project Start Date' %}
                                                 </th>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="project.end_date">
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="project.end_date" data-formatter="baseDateFormatter">
                                                     {% trans 'Project End Date' %}
                                                 </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="project.status" data-cell-style="styleAlignMiddle" data-formatter="basicBoolean">
@@ -199,10 +199,10 @@
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="status">
                                                     {% trans 'Participant Status' %}
                                                 </th>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="start_date">
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
                                                     {% trans 'Start Date' %}
                                                 </th>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="end_date">
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                                                     {% trans 'End Date' %}
                                                 </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="quotity" data-formatter="quotityFormatter">
@@ -320,10 +320,10 @@
                                                         <th data-sortable="true" class="th-inner sortable both" data-field="type">
                                                             {% trans 'Type' %}
                                                         </th>
-                                                        <th data-sortable="true" class="th-inner sortable both" data-field="start">
+                                                        <th data-sortable="true" class="th-inner sortable both" data-field="start" data-formatter="baseDateFormatter">
                                                             {% trans 'Start Date' %}
                                                         </th>
-                                                        <th data-sortable="true" class="th-inner sortable both" data-field="end">
+                                                        <th data-sortable="true" class="th-inner sortable both" data-field="end" data-formatter="baseDateFormatter">
                                                             {% trans 'End Date' %}
                                                         </th>
                                                         {% if perms.leave.change_leave or perms.leave.delete_leave %}

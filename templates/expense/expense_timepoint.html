@@ -25,7 +25,7 @@
         <thead class="">
             <tr>
                 
-                <th data-sortable="true" class="th-inner sortable both" data-field="value_date" >
+                <th data-sortable="true" class="th-inner sortable both" data-field="value_date" data-formatter="baseDateFormatter">
                     {% trans 'Value Date' %}
                 </th>
                 <th data-sortable="true" class="th-inner sortable both" data-field="type.name" data-formatter="">
@@ -34,7 +34,7 @@
                 <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
                     {% trans 'Amount' %}
                 </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="entry_date" >
+                <th data-sortable="true" class="th-inner sortable both" data-field="entry_date" data-formatter="baseDateFormatter">
                     {% trans 'Entry Date' %}
                 </th>
                 {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense %}

@@ -641,7 +641,7 @@ msgstr "Type d'employé"
 
 #: staff/models.py:128 staff/models.py:154
 msgid "Team"
-msgstr "2quipe"
+msgstr "Equipe"
 
 #: staff/models.py:130 templates/employee/employee_single.html:248
 msgid "Team Name"

@@ -321,6 +321,12 @@ function styleAlignMiddle(value, row, index, field){
 
 
 // -------------------- Formatter
+function baseDateFormatter(value, row, index, field){
+    if(value == null || value =="")return value
+    d=new Date(value)
+    if (d == "Invalid Date" )return value;
+    return d.toLocaleDateString()
+}
 
 function basicBoolean(value, row, index, field){
     response = (value ? '<img src="/static/admin/img/icon-yes.svg" alt="True">' : '<img src="/static/admin/img/icon-no.svg" alt="False">');
