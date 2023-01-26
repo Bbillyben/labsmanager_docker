@@ -330,11 +330,12 @@ function basicBoolean(value, row, index, field){
 
 
 function quotityFormatter(value, row, index, field){
+    if(isNaN(value))return '-'
     return quotityDisplay(value);
 }
 
 function quotityAlertFormatter(value, row, index, field){
-    if( value == null ){
+    if( value == null || isNaN(value) ){
         return "-";
     }
     val = quotityDisplay(value)

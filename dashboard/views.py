@@ -113,7 +113,7 @@ class FundConsumptionCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':_('project'),'item':'project',  'formatter':'ProjectFormatter'},
                 {'name':_('funder'),'item':'funder.short_name'},
                 {'name':_('Institution'),'item':'institution.short_name'},
-                {'name':_('Consumption Ratio'),'item':'ratio','formatter':'quotityFormatter'},
+                {'name':_('Consumption Ratio'),'item':'ratio','formatter':'consumptionFormatter'},
                 {'name':_('Time Ratio'),'item':'time_ratio','formatter':'quotityFormatter'},
                 {'name':_('start date'),'item':'start_date'},
                 {'name':_('end date'),'item':'end_date', 'formatter':'dueDatePassed'},
