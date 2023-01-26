@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from django import forms
 from project.models import Project
 
+from labsmanager.forms import DateInput
+
 class FundItemModelForm(BSModalModelForm):
     class Meta:
         model = models.Fund_Item
@@ -31,6 +33,10 @@ class FundModelForm(BSModalModelForm):
     class Meta:
         model = models.Fund
         fields = ['project', 'funder','institution','start_date', 'end_date', 'ref','is_active',]
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         if ('initial' in kwargs and 'project' in kwargs['initial']):

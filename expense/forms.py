@@ -11,10 +11,16 @@ from fund.models import Cost_Type, Fund
 
 from datetime import date
 
+from labsmanager.forms import DateInput
+
 class ContractModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract
         fields = ['employee', 'fund','start_date','end_date', 'contract_type', 'quotity','is_active',]
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
@@ -56,6 +62,9 @@ class ContractExpenseModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract_expense
         fields = ['contract', 'date', 'type','status','amount',]
+        widgets = {
+            'date': DateInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         self.base_fields['type'].queryset = Cost_Type.objects.filter(short_name__startswith='RH')
@@ -90,6 +99,10 @@ class ExpenseTimepointModelForm(BSModalModelForm):
     class Meta:
         model = models.Expense_point
         fields = ['fund', 'value_date', 'type','amount','entry_date']
+        widgets = {
+            'value_date': DateInput(),
+            'entry_date': DateInput(),
+        }
         
     def __init__(self, *args, **kwargs):
         

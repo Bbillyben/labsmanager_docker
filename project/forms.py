@@ -6,10 +6,16 @@ from django.utils.translation import gettext_lazy as _
 from django import forms
 from staff.models import Employee
 
+from labsmanager.forms import DateInput
+
 class ProjectModelForm(BSModalModelForm):
     class Meta:
         model = models.Project
         fields = ['name', 'start_date', 'end_date',]
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
         
     def __init__(self, *args, **kwargs):
         super(ProjectModelForm, self).__init__(*args, **kwargs)
@@ -26,6 +32,10 @@ class ParticipantModelForm(BSModalModelForm):
     class Meta:
         model = models.Participant
         fields = ['project', 'employee','status','start_date', 'end_date', 'quotity',]
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
         
     def __init__(self, *args, **kwargs):
         if ('initial' in kwargs and 'project' in kwargs['initial']):
