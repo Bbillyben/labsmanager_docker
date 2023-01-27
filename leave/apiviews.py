@@ -10,7 +10,7 @@ from django_filters import rest_framework as filters
 from labsmanager import serializers 
 
 from .models import Leave, Leave_Type
-from staff.models import TeamMate, Employee_Status
+from staff.models import TeamMate, Employee_Status, Team
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -66,7 +66,8 @@ class LeaveViewSet(viewsets.ModelViewSet):
         team = data.get('team', None)
         if team is not None:
             tm = TeamMate.objects.filter(team=team).values('employee')
-            qset= qset.filter(employee__in=tm)
+            tl=Team.objects.filter(pk=team).values("leader")
+            qset= qset.filter(Q(employee__in=tm) | Q(employee__in=tl))
         
         start_date= data.get('start', None) 
         if start_date is not None:
