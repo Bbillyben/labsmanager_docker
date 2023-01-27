@@ -92,12 +92,17 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         return JsonResponse(serializers.ParticipantSerializer(t1, many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='calendar-resource', url_name='calendar-resource')
-    def projects(self, request, pk=None):
-        t1=Employee.objects.filter(is_active=True)
+    def employee_calendar(self, request, pk=None):
+        t1=Employee.objects.filter(is_active=True).order_by('first_name')
         team = request.data.get('team', request.query_params.get('team', None))
         if team is not None:
             tm = TeamMate.objects.filter(team=team).values('employee')
             t1= t1.filter(pk__in=tm)
+        
+        emp_status = request.data.get('emp_status', request.query_params.get('emp_status', None))
+        if emp_status is not None and emp_status.isdigit() :
+            empS=Employee_Status.current.filter(type=emp_status).values('employee')
+            t1= t1.filter(pk__in=empS)
         
         return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
     

@@ -5,7 +5,8 @@
     function calendar_refresh(){
         //console.log("calendar_refresh")
         $('#calendar-box').unbind('click');
-        calendar.refetchEvents();  
+        calendar.refetchEvents(); 
+        calendar.refetchResources();  
     }
 
     function eventClicked(info){
@@ -234,6 +235,7 @@
                 eventClick: eventClicked,
                 select: eventSelectHandler,
                 local: language,
+                height:"auto",
             };
 
             // Extend default settings with provided options
@@ -243,6 +245,7 @@
             eltCal=document.getElementById(this.attr('id'))
             calendar = new FullCalendar.Calendar(eltCal, {
                 schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+                
                 timeZone: 'UTC',
                 locale:settings.local,
                 initialView: 'resourceTimelineMonth',
@@ -277,6 +280,17 @@
                 eventResize: settings.eventResize,
                 eventClick: settings.eventClick,
                 select: settings.select,
+                height: settings.height,
+                resourceLabelContent : function(renderInfo ) {
+                    htmlRes=renderInfo.fieldValue
+                    if(USER_PERMS.includes("staff.view_employee")){
+                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to user'><i type = 'button' class='fa-regular fa-circle-right text-info'></i></a></sup>"; 
+                    } 
+                    //htmlRes+="</span>"
+                    
+                    return { html: htmlRes}
+                    },
+                    resourceOrder: 'title',
             })
             calendar.render()
 

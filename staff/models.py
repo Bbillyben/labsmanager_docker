@@ -78,8 +78,7 @@ class Employee(models.Model):
         return  f"{self.first_name} {self.last_name}"
 
 
-
-
+from labsmanager.manager import Current_date_Manager
 class Employee_Status(models.Model):
     
     class Meta:
@@ -102,6 +101,9 @@ class Employee_Status(models.Model):
         default='c', verbose_name=_('Is Contractual'),
     )
     history = AuditlogHistoryField()
+    
+    objects = models.Manager()
+    current = Current_date_Manager()
     
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""
