@@ -5,3 +5,4 @@ config.yaml
 *.bck
 *.json
 *_dump.json
+pull_all.sh
