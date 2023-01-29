@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django_q',
 
     # Installed Package
     'crispy_forms',                 # https://django-crispy-forms.readthedocs.io/en/latest/install.html
@@ -255,6 +256,17 @@ REST_FRAMEWORK = {
 }
 
 APPEND_SLASH = False  # prevent error for post request by ajax
+
+# for django Q
+# Configure your Q cluster
+# More details https://django-q.readthedocs.io/en/latest/configure.html
+Q_CLUSTER = {
+    'retry': 60,
+    'timeout': 30,
+    'workers': 1,
+    "name": "labsmanager",
+    "orm": "default",  # Use Django's ORM + database for broker
+}
 
 
 # Session 

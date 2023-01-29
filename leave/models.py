@@ -36,7 +36,7 @@ class Leave(models.Model):
         constraints = [
             models.CheckConstraint(
                 check=Q(end_date__gte=F('start_date')),
-                name=_("Fund End Date should be greater than start date"),
+                name=_("Leave End Date should be greater than start date"),
             )
         ]
         
