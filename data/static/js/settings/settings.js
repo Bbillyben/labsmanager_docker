@@ -41,7 +41,6 @@ function initSettingsPage(){
         var plugin = $(this).attr('plugin');
         var is_global = true;
         var notification = $(this).attr('notification');
-
         if ($(this).attr('user')){
             is_global = false;
         }
@@ -97,9 +96,13 @@ function initSettingsPage(){
 function editSetting(key, options={}) {
 
 
-    var  url = `/api/settings/user/${key}/`;
+    var  url = '';
 
-
+    if (options.global) {
+        url = `/api/settings/global/${key}/`;
+    } else {
+        url = `/api/settings/user/${key}/`;
+    }
     // First, read the settings object from the server
     labsmanagerGet(url, {}, {
         success: function(response) {

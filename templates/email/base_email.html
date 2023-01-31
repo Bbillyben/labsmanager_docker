@@ -1,15 +1,50 @@
 {% load i18n %}
+{% load static %}
+{% load customs_tags %}
 
 <style>
+    #header_bar{
+      width:100%;
+      background-color:#EEF3F7;
+      padding: 10px;
+
+    }
+    #header_bar img{
+      display: inline;
+      width:32px;
+      height:32px;
+      vertical-align:middle;
+
+    }
+    #header_bar .inline{
+      margin-right: auto;
+      font-weight: bold;
+    }
     {% block css %}
     {% endblock %}
 </style>
 
-{% trans 'Hello' %},
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=">
+  </head>
+  <body>
+    <div id="header_bar"> 
+      <img src="{% static 'img/labsmanager/labsmanager_icon.png' %}"> 
+      <span class="inline">LabsManager Report</span>
+    </div>
 
 {% block content %}
-                <!-- Each view fills in here.. -->
+<!-- Each view fills in here.. -->
 {% endblock %}
+
+
+  </body>
+</html>
+
+
+
 
 
 

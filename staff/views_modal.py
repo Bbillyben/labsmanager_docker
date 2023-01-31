@@ -50,6 +50,13 @@ class TeamMateCreateView(LoginRequiredMixin, BSModalCreateView):
         context = {'form': form}
         return render(request, self.template_name , context)
 
+class TeamMateUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.TeamMate
+    template_name = 'form_validate_base.html'
+    form_class = TeamMateModelForm
+    # form_class = EmployeeModelForm
+    success_url = reverse_lazy('employee_index')
+    
 # remove
 class TeamMateRemoveView(LoginRequiredMixin, BSModalDeleteView):
     model = models.TeamMate

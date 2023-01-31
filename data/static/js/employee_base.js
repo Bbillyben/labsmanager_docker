@@ -56,7 +56,7 @@ function statusFormatter(value, row, index, field){
   response = '';
   //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
   for (const item of value) {
-    if (item.end_date == null){
+    if (item.is_active){
       response+= (response.length > 1 ? ', ' : '') + item.type.shortname
     }
   }

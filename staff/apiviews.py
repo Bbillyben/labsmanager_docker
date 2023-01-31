@@ -17,6 +17,7 @@ from staff.filters import EmployeeFilter
 
 from .ressources import EmployeeResource, TeamResource
 
+from datetime import datetime
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
@@ -58,7 +59,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = EmployeeResource().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        filename = f"Employee.{export_format}"
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Employee_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
         # return JsonResponse('not a test', safe=False)
     
@@ -144,5 +146,6 @@ class TeamViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = TeamResource().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        filename = f"Team.{export_format}"
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Team_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)

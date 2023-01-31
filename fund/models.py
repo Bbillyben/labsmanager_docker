@@ -6,7 +6,7 @@ from django.db.models import Sum, Q, F
 
 
 from project.models import Project, Institution
-from labsmanager.mixin import LabsManagerBudgetMixin
+from labsmanager.mixin import LabsManagerBudgetMixin, ActiveDateMixin
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -54,7 +54,7 @@ class Fund_Item(LabsManagerBudgetMixin):
 
     def __str__(self):
         return f'{self.type.short_name} - {self.fund}'
-class Fund(LabsManagerBudgetMixin):
+class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund")
@@ -68,10 +68,7 @@ class Fund(LabsManagerBudgetMixin):
     project=models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Funded Project'))
     funder=models.ForeignKey(Fund_Institution, on_delete=models.CASCADE, verbose_name=_('Fund Instituition'))
     institution=models.ForeignKey(Institution, on_delete=models.CASCADE, verbose_name=_('Manager Institution'))
-    start_date=models.DateField(null=False, blank=False, verbose_name=_('Start Date'))
-    end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
     ref= models.CharField(max_length=30, blank=True, verbose_name=_('Reference'))
-    is_active=models.BooleanField(default=True, null=False)
     history = AuditlogHistoryField()
     
     @property

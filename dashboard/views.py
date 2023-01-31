@@ -41,14 +41,14 @@ class FundLossCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
     def get(self, request, *args, **kwargs):
         import pandas as pd
         
-        q_objects = Q(is_active=True) & Q(project__status=True) # base Q objkect
+        q_objects =  Q(project__status=True) # Q(is_active=True) &base Q objkect
         slot = utils.getDashboardTimeSlot(request)
         if 'from' in slot:
             q_objects = q_objects & Q(end_date__gte=slot["from"])
         if 'to' in slot:
             q_objects = q_objects & Q(end_date__lte=slot["to"])
             
-        fund=Fund.objects.filter(q_objects).order_by('end_date')
+        fund=Fund.current.filter(q_objects).order_by('end_date')
         if not fund:
             context={'data':{},
                  'type':'line',

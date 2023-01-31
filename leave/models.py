@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q, F
 
-
+from labsmanager.mixin import ActiveDateMixin
 from mptt.models import MPTTModel, TreeForeignKey
 from staff.models import Employee
 # Create your models here.
@@ -28,21 +28,13 @@ class Leave_Type(MPTTModel):
     def __str__(self):
         return f'{self.name}'
     
-class Leave(models.Model):
+class Leave(ActiveDateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Leave")
         # unique_together = ('type', 'fund',)
-        constraints = [
-            models.CheckConstraint(
-                check=Q(end_date__gte=F('start_date')),
-                name=_("Leave End Date should be greater than start date"),
-            )
-        ]
         
     type=models.ForeignKey(Leave_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
-    start_date=models.DateField(null=False, blank=False, verbose_name=_('Start Date'))
-    end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
     employee=models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
     comment=models.TextField(null=True, blank=True)
 

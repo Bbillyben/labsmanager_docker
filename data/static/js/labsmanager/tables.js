@@ -387,6 +387,7 @@ function teamMateFormatter(value, row, index, field){
         //if (item.employee.is_active == true){
 
             tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
+            if(!item.is_active)tm +='<sup><img src="/static/admin/img/icon-no.svg" alt="False" style="width:1em;"></img></sup>'
             response+= (response.length > 1 ? ', ' : '') + tm;
         //}
       }

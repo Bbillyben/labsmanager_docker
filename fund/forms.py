@@ -32,7 +32,7 @@ class FundItemModelForm(BSModalModelForm):
 class FundModelForm(BSModalModelForm):
     class Meta:
         model = models.Fund
-        fields = ['project', 'funder','institution','start_date', 'end_date', 'ref','is_active',]
+        fields = ['project', 'funder','institution','start_date', 'end_date', 'ref',]
         widgets = {
             'start_date': DateInput(),
             'end_date': DateInput(),

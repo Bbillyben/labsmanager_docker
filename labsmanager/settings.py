@@ -266,6 +266,7 @@ Q_CLUSTER = {
     'workers': 1,
     "name": "labsmanager",
     "orm": "default",  # Use Django's ORM + database for broker
+    'save_limit': 250,
 }
 
 

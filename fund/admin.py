@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from fund.models import Cost_Type, Fund_Institution, Fund_Item, Fund
-
+from import_export.admin import ImportExportModelAdmin
+from .resources import FundItemAdminResource
 
 class CostTypeAdmin(admin.ModelAdmin):
     list_display = ('name','short_name')
@@ -10,9 +11,21 @@ class FundTypeInline(admin.TabularInline):
     model=Fund_Item
     extra=0
 
-class FundItemAdmin(admin.ModelAdmin):
+class FundItemAdmin(ImportExportModelAdmin):
+    fields = ('project', 
+                      'funder',
+                      'institution',
+                      'start_date',
+                      'end_date',
+                      'type',
+                      'ref',
+                      'amount',
+                      'expense',
+                      'available',
+                      )
     list_display = ('get_funder_name','get_proj_name', 'get_institution', 'type', 'amount',)
     list_filter = ('fund__funder', 'fund__project', 'fund__institution', 'type',)
+    resource_classes = [FundItemAdminResource]  
     
     def get_proj_name(self, obj):
         return obj.fund.project.name

@@ -38,4 +38,5 @@ urlpatterns += [
     # for teamMate
     path('teammate/add/', views_modal.TeamMateCreateView.as_view(), name='create_teammate'), 
     path('teammate/<pk>/delete', views_modal.TeamMateRemoveView.as_view(), name='delete_teammate'), 
+    path('teammate/<pk>/update', views_modal.TeamMateUpdateView.as_view(), name='update_teammate'), 
 ]

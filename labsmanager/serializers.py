@@ -343,7 +343,7 @@ class EmployeeStatusSerialize(serializers.ModelSerializer):
     is_contractual=serializers.SerializerMethodField()
     class Meta:
         model = Employee_Status
-        fields = ['pk', 'type', 'start_date', 'end_date', 'is_contractual']
+        fields = ['pk', 'type', 'start_date', 'end_date', 'is_contractual', 'is_active',]
         
     def get_is_contractual(self,obj):
         return obj.get_is_contractual_display()
@@ -364,7 +364,7 @@ class TeamMateSerializer_min(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many=False, read_only=True)
     class Meta:
         model = TeamMate
-        fields=['pk', 'employee']
+        fields=['pk', 'employee', 'start_date', 'end_date', 'is_active',]
     
     
 class TeamSerializer(serializers.ModelSerializer):

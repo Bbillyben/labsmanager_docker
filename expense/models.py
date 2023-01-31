@@ -13,6 +13,8 @@ from dashboard import utils
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from labsmanager.mixin import DateMixin
+
 # Create your models here.
 class Expense(models.Model):
     class Meta:
@@ -102,18 +104,16 @@ class Contract_type(models.Model):
     def __str__(self):
         return f'{self.name}'
     
-class Contract(models.Model):
+class Contract(DateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Contract")
         
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
-    start_date=models.DateField(null=True, blank=True, verbose_name=_('Contract Start Date'))
-    end_date=models.DateField(null=True, blank=True, verbose_name=_('Contract End Date'))
     quotity = models.DecimalField(max_digits=4, decimal_places=3, default=0, validators=PERCENTAGE_VALIDATOR, verbose_name=_('Time quotity'))
     fund=models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'))
     contract_type=models.ForeignKey(Contract_type,null=True, on_delete=models.SET_NULL, verbose_name=_('Contract Type'))
-    is_active=models.BooleanField(default=True, verbose_name=_('Contract is active'))
+    is_active=models.BooleanField(default=True, verbose_name=_('is Active'))
     history = AuditlogHistoryField()
     
     def __str__(self):

@@ -14,6 +14,9 @@ from staff.filters import EmployeeFilter
 from expense.filters import ContractFilter
 from project.models import Project
 from fund.models import Fund
+from dashboard.utils import getDashboardContractTimeSlot
+
+from datetime import datetime
 
 class BudgetPOintViewSet(viewsets.ModelViewSet):
     queryset = Expense_point.objects.all()
@@ -87,9 +90,9 @@ class ContractViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = ContractResource().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        filename = f"Contract.{export_format}"
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Contract_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
-        # return JsonResponse('not a test', safe=False)
         
     @action(methods=['get'], detail=True, url_path='contract_expense', url_name='contract_expense')
     def items(self, request, pk=None):
@@ -99,6 +102,7 @@ class ContractViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='stale', url_name='contract_stale')
     def get_stale(self, request):
-        cont=Contract.objects.select_related('employee', 'fund', 'contract_type').filter( Q(fund__project__status=True)  & Contract.staleFilter()).order_by('-end_date')
+        slots=getDashboardContractTimeSlot(request)
+        cont=Contract.current.timeframe(slots).select_related('employee', 'fund', 'contract_type').filter( Q(fund__project__status=True) & Q(is_active=True)).order_by('-end_date')
         return JsonResponse(serializers.ContractSerializer(cont, many=True).data, safe=False) 
         

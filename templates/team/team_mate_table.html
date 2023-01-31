@@ -13,8 +13,23 @@
             <td><i class="fas fa-user"></i></td>
             <td  class="desc_title">{% trans 'Mate' %}</td>
             <td><a href="{% url 'employee' pk=m.employee.pk %}">{{m.employee.user_name }}</a></td>
-
             <td>
+                {% firstof m.start_date "-" %}
+            </td>
+            <td>
+                {% firstof m.end_date "-" %}
+            </td>
+            <td>
+                {% if m.is_active %}
+                <img src="/static/admin/img/icon-yes.svg" alt="True">
+                {% else %}
+                <img src="/static/admin/img/icon-no.svg" alt="False">
+                {%endif%}
+            </td>
+            <td>
+                {% if perms.staff.change_teammate %}
+                <button class='icon update_teammate btn btn-success ' data-form-url='/staff/teammate/{{m.pk}}/update' ><i type = 'button' class='fas fa-pen-to-square'></i></button>
+                {% endif %}
                 {% if perms.staff.delete_teammate %}
                 <button class='icon delete_teammate btn btn-danger ' data-form-url='/staff/teammate/{{m.pk}}/delete' ><i type = 'button' class='fas fa-trash'></i></button>
                 {% endif %}

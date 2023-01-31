@@ -1,0 +1,18 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load customs_tags %}
+
+{% block label %}auditlog_setting{% endblock %}
+
+{% block heading %}{% trans 'Audit Log' %}{% endblock %}
+
+{% block content %}
+<div class='row'>
+    <table class='table table-striped table-condensed'>
+        <tbody>
+            {% include "settings/setting.html" with key="AUDIT_LOG_RETENTION" icon='fa-clock-rotate-left' %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

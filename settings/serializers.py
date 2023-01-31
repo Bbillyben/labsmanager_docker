@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LMUserSetting
+from .models import LMUserSetting, LabsManagerSetting
     
 class SettingsSerializer(serializers.ModelSerializer):
     """Base serializer for a settings object."""
@@ -59,6 +59,27 @@ class UserSettingsSerializer(SettingsSerializer):
             'name',
             'description',
             'user',
+            'type',
+            'choices',
+            'model_name',
+            'api_url',
+            #'typ',
+        ]
+
+
+class GlobalSettingsSerializer(SettingsSerializer):
+    """Serializer for the LabsManagerSetting model."""
+
+    class Meta:
+        """Meta options for GlobalSettingsSerializer."""
+
+        model = LabsManagerSetting
+        fields = [
+            'pk',
+            'key',
+            'value',
+            'name',
+            'description',
             'type',
             'choices',
             'model_name',

@@ -82,7 +82,11 @@ class TeamModelForm(BSModalModelForm):
 class TeamMateModelForm(BSModalModelForm):
     class Meta:
         model = TeamMate
-        fields = ['team', 'employee',]
+        fields = ['team', 'employee','start_date','end_date']
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
         
     def __init__(self, *args, **kwargs):
         
@@ -97,7 +101,7 @@ class TeamMateModelForm(BSModalModelForm):
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
-            self.fields['teamp'].widget.attrs['disabled'] = True
+            self.fields['team'].widget.attrs['disabled'] = True
             self.fields['employee'].widget.attrs['disabled'] = True
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             self.fields['team'].widget.attrs['disabled'] = True

@@ -38,11 +38,18 @@ def getDateFilter():
 ## send an email with specified parameters
 def send_email(subject, body, recipients, from_email=None, html_message=None):
     """Send an email with the specified subject and body, to the specified recipients list."""
+    from settings.models import LabsManagerSetting
+    
     if type(recipients) == str:
         recipients = [recipients]
     
     if from_email == None:
         from_email=settings.EMAIL_SENDER
+        
+    # get the subject prefix from settings
+    subject_prefix=LabsManagerSetting.get_setting("MAIL_OBJECT_PREFIX")
+    if subject_prefix:
+        subject= subject_prefix+" "+subject
         
     response = send_mail(
         subject,

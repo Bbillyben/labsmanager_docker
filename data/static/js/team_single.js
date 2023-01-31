@@ -33,6 +33,26 @@ function updateTeamMateBtnHandler(){
             addModalFormFunction: update_team_desc,
         }
     })
+    $(".update_teammate").each(function () {
+        $(this).modalForm({
+            modalID: "#create-modal",
+            modalContent: ".modal-content",
+            modalForm: ".modal-content form",
+            formURL: $(this).data("form-url"),
+            isDeleteForm: false,
+            errorClass: ".form-validation-warning",
+            asyncUpdate: true,
+            asyncSettings: {
+                directUpdate: true,
+                closeOnSubmit: true,
+                successMessage: "Employee deleted",
+                dataUrl: '/api/employee/',
+                dataElementId: '#employee_main_table',
+                dataKey: 'table',
+                addModalFormFunction: update_team_desc,
+            }
+        });
+    });
     $(".delete_teammate").each(function () {
         $(this).modalForm({
             modalID: "#create-modal",

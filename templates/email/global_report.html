@@ -1,0 +1,42 @@
+{% extends "email/base_email.html" %}
+{% load i18n %}
+
+
+{% block css %}
+.table_container{
+    display:block;
+    width:100%;
+}
+table{
+    padding-top:10px;
+    margin:auto;
+   
+}
+{% endblock %}
+
+
+{% block content %}
+<div class="table_container">
+    <table class="table table-striped thead-default table-bordered">
+        <thead>
+            <tr>
+                <th colspan="4" style="background-color:#C9E0CF">Employee in over quantity in projects</th>
+            </tr>
+            <tr>
+                <th>Employee</th>
+                <th>Quotity</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for empl in participant %}
+            <tr>
+                <td><a href="{% url 'employee' pk=empl.pk %}">{{empl.first_name}} {{empl.last_name}}</a></td>
+                <td>{{empl.projects_quotity}}</td>
+                <td>{{empl.is_active}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
