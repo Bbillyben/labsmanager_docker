@@ -50,8 +50,12 @@ def superuser(c):
 def static(c):
     """Copies required static files to the STATIC_ROOT directory, as per Django requirements."""
     manage(c, "collectstatic --no-input")
-    
 
+@task
+def static_js_reverse(c):
+    """collect static files for django js reverse app, to be updated when url changes."""
+    manage(c, "collectstatic_js_reverse")
+    
 @task
 def backup(c):
     print("Backing up database...")
@@ -84,6 +88,7 @@ def migrate(c):
 def update(c):
     migrate(c)
     static(c)
+    
     
     
 # Data tasks
@@ -198,3 +203,9 @@ def import_records(c, filename='data.json', clear=False):
     manage(c, cmd, pty=True)
 
     print("Data import completed")
+    
+
+@task()
+def worker(c):
+    """Run the InvenTree background worker process."""
+    manage(c, 'qcluster', pty=True)

@@ -13,7 +13,7 @@ django-mptt                             # Modified Preorder Tree Traversal
 django-pivot                            # for pivoting request 
 django-auditlog                         # for automated audit log
 django-dbbackup                         # Backup / restore of database and media files
-
+django-colorfield                       # colorfield for model 
 # panda
 pandas
 jinja2

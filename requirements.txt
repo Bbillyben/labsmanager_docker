@@ -22,6 +22,9 @@ django-tables2
 django-tabular-permissions
 django-view-breadcrumbs
 djangorestframework
+django-q
+django-colorfield                       # colorfield for model 
+git+https://github.com/ierror/django-js-reverse    # for js reverse url
 dnspython
 docker
 docker-compose
