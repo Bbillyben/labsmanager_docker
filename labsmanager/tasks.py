@@ -8,6 +8,8 @@ from .utils import send_email
 
 from django.contrib.auth import get_user_model 
 from django_q.tasks import async_task
+from django_q.models import Schedule
+
 
 from settings.models import LabsManagerSetting
 import datetime
@@ -20,6 +22,25 @@ from auditlog.models import LogEntry
 import logging
 logger = logging.getLogger('labsmanager')
 
+
+# =========== Task global scheduler on start up call ========== #
+def scheduleBaseTasks():
+    logger.debug("[scheduleBaseTasks] starting ...")
+    currSch = Schedule.objects.filter(func='labsmanager.tasks.clean_auditlog')
+    if not currSch:
+        sch = Schedule.objects.create(name="clean_auditlog",
+                                      func='labsmanager.tasks.clean_auditlog',
+                            #hook='hooks.print_result',
+                            args='1,-1',
+                            schedule_type=Schedule.CRON,
+                            cron = '0 3 1 * *',
+                            )
+        logger.debug("New Schedule :"+str(sch))
+    else:
+        logger.debug("Already in schedules :"+str(currSch))
+        
+    
+    
 
 
 # --------------- Clean the audi log based on retention Setting
