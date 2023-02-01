@@ -32,7 +32,21 @@ services:
             # Data volume must map to /home/lab/data
             - lab_data:/home/labsmanager/data/
         restart: unless-stopped
-
+    # worker to process sceduled tasks
+    lab-worker:
+        build: .
+        container_name: lab-worker
+        # If you wish to specify a particular lab version, do so here
+        image: labsmanager/labsmanager:${LAB_TAG:-stable}
+        command: invoke worker
+        depends_on:
+            - lab-server
+        env_file:
+            - .env
+        volumes:
+            # Data volume must map to /home/lab/data
+            - lab_data:/home/labsmanager/data/
+        restart: unless-stopped
     lab-proxy:
         container_name: lab-proxy
         image: nginx:stable
