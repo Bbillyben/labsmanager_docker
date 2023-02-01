@@ -13,6 +13,9 @@ from mptt.models import MPTTModel, TreeForeignKey
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+import logging
+logger = logging.getLogger('labsmanager')
+
 class Cost_Type(MPTTModel):
     class Meta:
         """Metaclass defines extra model properties"""
@@ -76,7 +79,7 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
     
     def calculate(self):
-        print('[Fund]-calculate :'+str(self))
+        logger.debug('[Fund]-calculate :'+str(self))
         from expense.models import Expense_point
         # get all fund_items
         fi= Fund_Item.objects.filter(fund=self.pk)

@@ -11,7 +11,8 @@ import import_export.widgets as widgets
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
 from import_export import resources, results
-from labsmanager.ressources import SimpleError
+from labsmanager.ressources import SimpleError, SkipErrorRessource
+from fund.resources import FundField
 
 class ContractResource(labResource):
     employee = Field(
@@ -62,8 +63,9 @@ class ContractResource(labResource):
          ]
 
 
-        
-class ExpensePointResource(resources.ModelResource):
+
+
+class ExpensePointResource(SkipErrorRessource):
     
     @classmethod
     def get_error_result_class(self):
@@ -72,8 +74,8 @@ class ExpensePointResource(resources.ModelResource):
         """
         return SimpleError
     
-    fund=Field(
-        column_name='fund_ref',
+    fund=FundField(
+        column_name='Ref',
         attribute='fund',
         widget=ForeignKeyWidget(Fund, 'ref')
         )
@@ -82,21 +84,28 @@ class ExpensePointResource(resources.ModelResource):
         attribute='type',
         widget=ForeignKeyWidget(Cost_Type, 'short_name')
         )
-    project=Field(
+    project=FundField(
         column_name='project',
         attribute='fund',
         widget=ForeignKeyWidget(Fund, 'project__name')
         )
-    institiution=Field(
+    institiution=FundField(
         column_name='institution',
         attribute='fund',
         widget=ForeignKeyWidget(Fund, 'institution__short_name')
         )
+    amount=Field(
+        column_name=_('expense'),
+        attribute='amount', 
+        widget=widgets.DecimalWidget(),
+        readonly=False
+    )
+    
     class Meta:
         model = Expense_point
-        skip_unchanged = True
+        skip_unchanged = False
         report_skipped = True
-        collect_failed_rows=True
+        collect_failed_rows=False
         rollback_on_validation_errors=True
         use_transactions=True
         export_order  = ('project','institiution', 'fund','type', 'entry_date', 'value_date',  'amount', )

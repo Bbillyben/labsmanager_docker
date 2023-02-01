@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource
+from labsmanager.ressources import labResource, SkipErrorRessource
 from .models import Fund_Item, Fund, Cost_Type
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
@@ -73,27 +73,20 @@ class FundItemResource(labResource):
 
 class FundItemField(Field):
      def clean(self, data, **kwargs):
-        print("---------- [FundItemField] ----------------")
-        print(str(self.column_name))
-        # print(" data :" + str(data))
-        # print(" kwargs :" + str(kwargs))
-        # print("---------- ----------------")
+        if data[self.column_name] is None:
+            data[self.column_name]= 0
+        
         return super().clean(data, **kwargs)
 
 class FundField(Field):
      def clean(self, data, **kwargs):
-        print("---------- [FundField] ----------------")
-        print(str(self.column_name))
-        # print(" data :" + str(data))
-        # print(" kwargs :" + str(kwargs))
-        # print("---------- ----------------")
         query = Q(amount__gte=-1)
         project_name = data.get('Project', None)
         if project_name is not None:
             query = query & Q(project__name__icontains=project_name)
         
         funder_name = data.get('funder', None)
-        if project_name is not None:
+        if funder_name is not None:
             query = query & (Q(funder__name__icontains=funder_name) | Q(funder__short_name__icontains=funder_name))
         
         inst_name = data.get('institution', None)
@@ -108,7 +101,7 @@ class FundField(Field):
         return fu
    
     
-class FundItemAdminResource(labResource):
+class FundItemAdminResource(labResource, SkipErrorRessource):
     fund=FundField(
         column_name=_('Ref'),
         attribute='fund', 
@@ -153,7 +146,7 @@ class FundItemAdminResource(labResource):
     )
     
     amount=FundItemField(
-        column_name=_('amount'),
+        column_name=_('Budget'),
         attribute='amount', 
         widget=widgets.DecimalWidget(),
         readonly=False
@@ -162,35 +155,24 @@ class FundItemAdminResource(labResource):
         column_name=_('expense'),
         attribute='expense', 
         widget=widgets.DecimalWidget(),
-        readonly=False
+        readonly=True
     )
     available=FundItemField(
         column_name=_('available'),
         attribute='available', 
         widget=widgets.DecimalWidget(),
-        readonly=False
+        readonly=True
     )
-    
-    def get_or_init_instance(self, instance_loader, row):
-        print(">>>>>>>>>>> get_or_init_instance <<<<<<<<<<<<<<<<<<< ")
-        print(str(instance_loader))
-        print(str(instance_loader.resource))
-        print(row)
+            
         
-        return super().get_or_init_instance(instance_loader, row)
-    
     def before_import_row(self, row, row_number=None, **kwargs):
-        print(">>>>>>>>>>> before_import_row <<<<<<<<<<<<<<<<<<< ")
-        # print(" row :"+str(row))
-        # print(" row_number :"+str(row_number))
-        # print(" kwargs :"+str(kwargs))
         query = Q(amount__gte=-1)
         project_name = row.get('Project', None)
         if project_name is not None:
             query = query & Q(fund__project__name__icontains=project_name)
         
         funder_name = row.get('funder', None)
-        if project_name is not None:
+        if funder_name is not None:
             query = query & (Q(fund__funder__name__icontains=funder_name) | Q(fund__funder__short_name__icontains=funder_name))
         
         inst_name = row.get('institution', None)
@@ -203,17 +185,19 @@ class FundItemAdminResource(labResource):
             
         typeC = row.get('type', None)
         if typeC is not None:
-            query = query & Q(type__short_name__icontains=typeC)            
+            query = query & Q(type__short_name=typeC)            
         
         fu = Fund_Item.objects.filter(query).first()
-        if fu:
+        if fu is not None:
             row["id"] = fu.pk
+        else:
+            row["id"] = None
         return fu
         
     class Meta:
         """Metaclass"""
         model = Fund_Item
-        skip_unchanged = False
+        skip_unchanged = True
         clean_model_instances = False
         exclude = [ '' ]
         #import_id_fields=('fund', 'type')

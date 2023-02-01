@@ -33,3 +33,43 @@ class labResource(ModelResource):
                 row[idx] = val
 
         return row
+    
+class SkipErrorRessource(ModelResource):
+    
+    report_error_column=False
+    
+    def get_field_column_names(self):
+        names = []
+        for field in self.get_fields():
+            names.append(field.column_name)
+        return names
+
+    def import_row(self, row, instance_loader, **kwargs):
+        import_result = super(SkipErrorRessource, self).import_row(
+            row, instance_loader, **kwargs
+        )
+
+        if import_result.import_type == results.RowResult.IMPORT_TYPE_ERROR:
+            import_result.diff=[]
+            for field in self.get_fields():
+                import_result.diff.append(row.get(field.column_name, ''))
+            
+            if self.report_error_column:
+                for row_name in row:
+                    if not row_name in self.get_field_column_names():
+                        import_result.diff.append(row.get(row_name, ''))
+
+            # Add a column with the error message
+            import_result.diff.append(
+                "Errors: {}".format(
+                    [err.error for err in import_result.errors]
+                )
+            )
+            # clear errors and mark the record to skip
+            import_result.errors = []
+            import_result.import_type = results.RowResult.IMPORT_TYPE_SKIP
+
+        return import_result
+    
+    class Meta:
+        abstract = True
