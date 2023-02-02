@@ -7,7 +7,7 @@ from staff.models import Employee
 from django.db.models import Q, Sum
 
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR, NEGATIVE_VALIDATOR    
-
+from labsmanager.manager import LastInManager
 from settings.models import LMUserSetting
 from dashboard import utils
 from auditlog.models import AuditlogHistoryField
@@ -52,7 +52,7 @@ class Expense_point(models.Model):
     class Meta:
         verbose_name = _("Total Expense Timepoint")
         unique_together = ('value_date', 'fund', 'type')
-    
+
     entry_date = models.DateField(null=False, blank=False, verbose_name=_('Entry Date'))
     value_date = models.DateField(null=False, blank=False, verbose_name=_('value Date'))
     fund=models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'))
@@ -60,6 +60,9 @@ class Expense_point(models.Model):
     amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'), validators=NEGATIVE_VALIDATOR,)
     history = AuditlogHistoryField()
     
+    # manager
+    objects = models.Manager()
+    last = LastInManager()
     
     def clean_amount(self):
         if self.cleaned_data['amount']>0:

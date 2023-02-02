@@ -89,8 +89,9 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
             self.amount=0
         
         # get all expense
-        exp=Expense_point.objects.filter(fund=self.pk)
-        exp=Expense_point.get_lastpoint_by_fund_qs(exp)
+        # exp=Expense_point.objects.filter(fund=self.pk)
+        # exp=Expense_point.get_lastpoint_by_fund_qs(exp)
+        exp=Expense_point.last.fund(self.pk)
         sumEP=0
         for etp in exp:
             sumEP+=etp.amount
@@ -109,12 +110,14 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         import pandas as pd
         
         fi =Fund_Item.objects.filter(fund=self.pk).values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name', 'fund__end_date', 'amount')
-        exp=Expense_point.objects.filter(fund=self.pk)
-        exp=Expense_point.get_lastpoint_by_fund_qs(exp)
+        # exp=Expense_point.objects.filter(fund=self.pk)
+        # exp=Expense_point.get_lastpoint_by_fund_qs(exp)
+        exp=Expense_point.last.fund(self.pk)
         expI= exp.values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name','fund__end_date', 'amount')
         u = fi.union(expI)
         cpd=pd.DataFrame.from_records(u, columns=['project', 'funder','institution', 'type','end_date', 'amount',])
         # cpd = cpd.groupby('type').sum()
+        # print(cpd)
         return cpd        
         
     def __str__(self):

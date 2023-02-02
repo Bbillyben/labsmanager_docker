@@ -72,15 +72,20 @@ def get_project_fund_overview(request, pk):
         a=a.annotate(source=Value('Budget'))
         
     # get expense time poitn from related fund
-    b = Expense_point.objects.none()
-    for fu in fund:
-        ExpensePointItems=Expense_point.objects.filter(fund__pk=fu['pk']).annotate(source=Value('Expense'))
-        fuov=Expense_point.get_lastpoint_by_fund_qs(ExpensePointItems)
-        if fuov:
-            b=b.union(fuov)
-    if b:
-        b=b.values_list('fund__funder__short_name','fund__institution__short_name','fund__ref', 'type__name', 'amount', 'source', named=False)
-        # b=b.annotate(source=Value('Expense'))
+    fuov=Expense_point.last.fund(fund)
+    if fuov:
+        b=fuov.values_list('fund__funder__short_name','fund__institution__short_name','fund__ref', 'type__name', 'amount',  named=False).annotate(source=Value('Expense'))
+        
+    # b = Expense_point.objects.none()
+    # for fu in fund:
+    #     # ExpensePointItems=Expense_point.objects.filter(fund__pk=fu['pk']).annotate(source=Value('Expense'))
+    #     # fuov=Expense_point.get_lastpoint_by_fund_qs(ExpensePointItems)
+    #     fuov=Expense_point.last.fund(fu['pk']).annotate(source=Value('Expense'))
+    #     if fuov:
+    #         b=b.union(fuov)
+    # if b:
+    #     b=b.values_list('fund__funder__short_name','fund__institution__short_name','fund__ref', 'type__name', 'amount', 'source', named=False)
+    #     # b=b.annotate(source=Value('Expense'))
   
     if a and b:
         c = a.union(b)

@@ -1,5 +1,7 @@
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Value, Count, F, CharField, Max
+from django.db.models.functions import Concat
+
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
@@ -23,6 +25,21 @@ class BudgetPOintViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ExpensePOintSerializer
     
+    @action(methods=['get'], detail=False, url_path='current', url_name='current_expense')
+    def lasts(self, request, pk=None):
+      # queryset =  Expense_point.objects.filter(fund=18).annotate(ind=Concat(F('fund'), Value("-"), F('type'), output_field=CharField(),)) #.order_by('-value_date')
+      # queryset=queryset.values('ind').annotate(max_date=Max('value_date'))
+      
+      # queryset =  Expense_point.objects.values('fund', 'type').annotate(max_date=Max('value_date'))
+      queryset =  Expense_point.objects.values('fund', 'type').annotate(max_date=Max('value_date'))
+      query=Q()
+      for t in queryset:
+        query |= (Q(fund=t["fund"]) & Q(type=t["type"]) & Q(value_date=t["max_date"]))
+        
+      
+      queryset=Expense_point.objects.filter(query)
+      return JsonResponse(self.serializer_class(queryset, many=True).data, safe=False)
+      
 class ContractViewSet(viewsets.ModelViewSet):
     queryset = Contract.objects.select_related('employee', 'fund', 'contract_type').all()
     serializer_class = serializers.ContractSerializer
