@@ -16,7 +16,7 @@ import pandas as pd
 import json
 
 from labsmanager.pandas_utils import PDUtils
-
+from labsmanager.mixin import CrumbListMixin
 class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_base.html'
     model = Project
@@ -24,10 +24,14 @@ class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     
     
     
-class ProjectView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
+class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_single.html'
     model = Project
     # crumbs = [("Project","project")]
+    # for CrumbListMixin
+    reverseURL="project_single"
+    crumbListQuerySet=Project.objects.filter(status=True)
+    names_val=['name']
     
     @cached_property
     def crumbs(self):

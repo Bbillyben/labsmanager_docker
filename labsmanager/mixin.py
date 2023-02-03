@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.db import models
 from django.db.models import Q, F
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 
 from .manager import Current_date_Manager, outof_date_Manager, date_manager
 from datetime import date
@@ -110,3 +111,30 @@ class ActiveDateMixin(DateMixin):
     def get_inactive_filter():
         query = Q(end_date__lte=date.today())
         return query
+
+
+class CrumbListMixin():
+    
+    reverseURL=None
+    crumbListQuerySet=None
+    names_val=None
+    id_name="id"
+    
+    class Meta:
+        abstract = True
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sel=self.crumbListQuerySet.filter(~Q(pk=self.kwargs['pk'])).values() #'pk', self.names_val)
+        li=[]
+        for e in sel:
+            n=""
+            for i in self.names_val:
+                n+=str(e.get(i))+" "
+            li.append([
+                reverse(self.reverseURL, kwargs={'pk':e.get(self.id_name)} ),
+                n
+                ])
+            
+        context['crumbs_list']=li
+        return context
