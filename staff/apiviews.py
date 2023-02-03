@@ -102,6 +102,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             tl=Team.objects.filter(pk=team).values("leader")
             t1= t1.filter(Q(pk__in=tm)|Q(pk__in=tl))
         
+        project = request.data.get('project', request.query_params.get('project', None))
+        if project is not None:
+            pj = Participant.objects.filter(project=project).values('employee')
+            t1= t1.filter(Q(pk__in=pj))
+        
         emp_status = request.data.get('emp_status', request.query_params.get('emp_status', None))
         if emp_status is not None and emp_status.isdigit() :
             empS=Employee_Status.current.filter(type=emp_status).values('employee')

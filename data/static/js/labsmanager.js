@@ -74,14 +74,14 @@ function labLoad(name, defaultValue) {
 
   // ------------------  ajax load direct --------------  //
 
-  function loadInTemplate(elt, url, data={}, callback=null){
+  function loadInTemplate(elt, url, data={}, callback=null,type="GET"){
     csrftoken = getCookie('csrftoken');
     defaults={
         csrfmiddlewaretoken: csrftoken
     }
     var datas = $.extend(defaults, data);
     $.ajax({
-        type:"GET",
+        type:type,
         url: url,
         data:datas,
         success: function( data )

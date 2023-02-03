@@ -4,6 +4,7 @@ from . import views, views_modal
 urlpatterns = [
     path('', views.ContractIndexView.as_view(), name='contract_index'),
     # path('<pk>', views.ProjectView.as_view(), name='project_single'),
+    path('project_graph/<pk>/', views.ExpenseGraphView.as_view(), name='graph_project'),
     
     
     # for sub template 

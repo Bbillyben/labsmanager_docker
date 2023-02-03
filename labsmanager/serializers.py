@@ -292,7 +292,9 @@ class ExpensePOintSerializer(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Expense_point
-        fields = ['pk', 'entry_date', 'value_date', 'fund', 'type', 'amount']       
+        fields = ['pk', 'entry_date', 'value_date', 'fund', 'type', 'amount']
+        
+        
 # ---------------------------------------------------------------------------------------- #
 # ---------------------------    APP Expense / SERIALISZER    --------------------------- #
 # ---------------------------------------------------------------------------------------- #

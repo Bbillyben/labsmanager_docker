@@ -119,6 +119,17 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         # cpd = cpd.groupby('type').sum()
         # print(cpd)
         return cpd        
+    
+    @classmethod
+    def get_availables(cls, funds):
+        from expense.models import Expense_point
+        import pandas as pd
+        fi =Fund_Item.objects.filter(fund__in=funds).values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name', 'fund__end_date', 'amount')
+        exp=Expense_point.last.fund(funds)
+        expI= exp.values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name','fund__end_date', 'amount')
+        u = fi.union(expI)
+        cpd=pd.DataFrame.from_records(u, columns=['project', 'funder','institution', 'type','end_date', 'amount',])
+        return [cpd,]
         
     def __str__(self):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'

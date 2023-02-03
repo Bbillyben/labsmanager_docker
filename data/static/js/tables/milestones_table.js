@@ -21,7 +21,6 @@ function initializeMilestoneTable(tableurl, type=null, callback_ms=null){
     }
     $('#milestones_table').labTable(options);
 
-    console.log('add_milestones url : '+$('#add_milestones').data("form-url"));
     $('#add_milestones').modalForm({
         modalID: "#create-modal",
         modalContent: ".modal-content",

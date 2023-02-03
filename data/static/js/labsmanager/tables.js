@@ -98,6 +98,7 @@ function convertQueryParameters(params, filters) {
 
     // Extract table configuration options
     var table_options = table.bootstrapTable('getOptions');
+    
 
     var url = table_options.url;
 
@@ -494,6 +495,12 @@ function dueDatePassed(value, row, index, field){
 
 function TeamFormatter(value, row, index, field){
     response =  '<span class="icon-right-cell"><a href="'+Urls['team_single'](row.pk)+'" title="/'+row.ipkd+'/"> '+value+'</a>';
+    return response;
+}
+
+
+function leaveEmployeeFormatter(value, row, index, field){
+    response =  '<a href="'+Urls['employee'](row.employee_pk)+'" title="/'+row.employee_pk+'/"> '+value+'</a>';
     return response;
 }
 

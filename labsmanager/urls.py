@@ -40,7 +40,7 @@ urlpatterns = [
     path('staff/', include('staff.urls'), name='staff'),                  # For Staff models
     path('project/', include('project.urls')),              # for project model
     path('fund/', include('fund.urls')),              # for project model
-    path('expense/', include('expense.urls')),              # for project model
+    path('expense/', include('expense.urls'), name='expense'),              # for project model
     path('dashboard/', include('dashboard.urls')),
     path('settings/', include('settings.urls')),
     path('milestones/', include('endpoints.urls')),

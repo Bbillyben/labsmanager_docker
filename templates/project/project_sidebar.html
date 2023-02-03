@@ -12,5 +12,11 @@
 {% trans "Milestones" as text %}
 {% include "sidebar_item.html" with label="project-milestone" text=text icon="fa-location-dot" %}
 
+{% trans "Leaves" as text %}
+{% include "sidebar_item.html" with label="leave" text=text icon="fa-calendar-days" %}
+
+{% trans "Dashboard" as text %}
+{% include "sidebar_item.html" with label="project-dashboard" text=text icon="fa-chart-area" %}
+
 {% include "sidebar_toggle.html" with text="" target='sidebar' %}
 

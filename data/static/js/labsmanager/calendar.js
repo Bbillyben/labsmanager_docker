@@ -292,7 +292,7 @@
                     },
                     resourceOrder: 'title',
             })
-            calendar.render()
+            calendar.render();
 
             return calendar;
         };

@@ -73,6 +73,7 @@ def get_project_fund_overview(request, pk):
         
     # get expense time poitn from related fund
     fuov=Expense_point.last.fund(fund)
+    b=None
     if fuov:
         b=fuov.values_list('fund__funder__short_name','fund__institution__short_name','fund__ref', 'type__name', 'amount',  named=False).annotate(source=Value('Expense'))
         

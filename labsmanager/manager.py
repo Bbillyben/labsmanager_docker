@@ -5,12 +5,12 @@ from collections.abc import Iterable
 
 class date_manager(models.Manager):
     def timeframe(self, slots):
-        queryset=super().get_queryset()
+        query=Q()
         if 'from' in slots:
-            queryset = queryset.filter(Q(end_date__gte=slots["from"]))
+            query= query & Q(end_date__gte=slots["from"])
         if 'to' in slots:
-            queryset = queryset.filter(Q(end_date__lte=slots["to"]))
-        return queryset
+            query= query & Q(end_date__lte=slots["to"])
+        return self.get_queryset().filter(query)
 
 class Current_date_Manager(date_manager):
     def get_queryset(self):
@@ -30,12 +30,14 @@ class outof_date_Manager(date_manager):
 class LastInManager(models.Manager):
     
     def get_queryset(self, sel_fund=None):
-        print("---------> LastInManager - get_queryset")
-        print("  - sel_fund : "+str(sel_fund))
+        # print("---------> LastInManager - get_queryset")
+        # print("  - sel_fund : "+str(sel_fund))
         queryset = super().get_queryset()
         if sel_fund is not None:
-            if not isinstance(sel_fund, Iterable):
-                sel_fund=[sel_fund]
+            
+            if isinstance(sel_fund, str):
+                sel_fund=sel_fund.split(",")
+                
             try:
                 queryset=queryset.filter(fund__in=sel_fund)
             except:

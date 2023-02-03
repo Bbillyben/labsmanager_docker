@@ -4,7 +4,7 @@
 {% load customs_tags %}
 
 {% block page_title %}
-{% trans "LabManager Employee" %}
+{% trans "LabManager Project" %} - {{ project }}
 {% endblock %}
 
 {% block breadcrumb_list %}
@@ -273,6 +273,106 @@
         </div>
     </div>
 </div>
+<!-- ######################################    Leave PANEL ############################################### -->
+<div class="panel-hidden panel-visible" id="panel-leave" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-leave1" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'TeamMate leaves' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>   
+                
+                    <div class="btn-group" role="group">
+                    </div>             
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div class="card" id="project_leave_calendar">
+                            <div id="calendar-project-box">
+                                <!-- where the calendar should be loaded -->
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                         <!-- leaves table -->
+                        <div class="subheading">
+                            <div class="d-flex flex-wrap subheading">
+                                <h4><i class="fas fa-file-signature"></i>  {% trans 'Leaves Lists' %}</i></h4> 
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div id='tracking-table-toolbar_project'>
+                                <div class='btn-group'>
+                                    {% include "filter_list.html" with id="project-leave" %}
+                                </div>
+                            </div>
+                            <table
+                            class='table table-striped table-condensed'
+                            id="project_leave_item_table"
+                            data-id-table="leaveItemTable"
+                            data-url="{% url 'api:leave-search-calendar' %}"
+                            data-query-params="projectleavequeryParams()"
+                            data-query-params-type=""
+                            >
+                            <thead class="">
+                                <tr>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="employee" data-formatter="leaveEmployeeFormatter">
+                                        {% trans 'Employee' %}
+                                    </th>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="start" >
+                                        {% trans 'Start' %}
+                                    </th>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="end" >
+                                        {% trans 'End' %}
+                                    </th>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="type" >
+                                        {% trans 'Type' %}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    
+                            </tbody>
+                        </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ######################################    Dashboard PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-project-dashboard" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-fund1" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'project Dashboard' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>   
+                
+                    <div class="btn-group" role="group">
+                    </div>             
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col-xl-6">
+                        <div class="card" id="project_expense_graph">
+                            <!-- Graph will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     <!-- ######################################    Contract ############################################### -->
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-project-contract" style="display: block;">
@@ -323,6 +423,7 @@
     </div>
 </div>
 
+
 {{ request.user.id|json_script:"user_id" }}
 {{ project.pk|json_script:"project_id" }}
 {% endblock %}
@@ -347,8 +448,30 @@ $(document).ready(function () {
     initializeFundTable(null, update_project)
     enableSidebar('project')
 
+    var filterOption={
+        download:true,
+    }
+    setupFilterList('project-leave', $('#project_leave_item_table'), '#filter-list-project-leave', filterOption );
+    var options={
+        name:'leave',
+        //callback:updateParticipant,
+        search:false,
+        showColumns:false,
+        filters:projectleavequeryParams(),
+        
+    }
+    
+    $('#project_leave_item_table').labTable(options);
+
 
 })
+function projectleavequeryParams(params) {
+    if(params == null)params={}
+    params.project = "{{project.pk}}";
+    params.start = "{{project.start_date|date:'Y-m-d'}}";
+    params.end = "{{project.end_date|date:'Y-m-d'}}";
+    return params
+  }
 </script>
 
 {% endblock %}

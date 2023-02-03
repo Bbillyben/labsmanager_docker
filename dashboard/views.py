@@ -55,11 +55,11 @@ class FundLossCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                  'title':_("Project Loss Overview"),
                  }  
             return render(request, self.template_general, )
-        frames=[]
-        for fu in fund:
-            avail=fu.get_available()
-            frames.append(avail)
-            
+        # frames=[]
+        # for fu in fund:
+        #     avail=fu.get_available()
+        #     frames.append(avail)
+        frames=Fund.get_availables(fund.values("pk"))
         result = pd.concat(frames)
         result= result.groupby(['project', 'funder','institution', 'type','end_date',]).sum().sort_values(by='end_date')
         dataTosend=result.to_json(orient='table')

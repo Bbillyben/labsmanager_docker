@@ -121,8 +121,7 @@ function update_team_desc(){
 
 // for calendar
 function initTeamCalendar(){
-    var canMod=perms.includes("leave.change_leave") || perms.includes("is_staff");
-    const calendarEl = document.getElementById('calendar-team-box')
+    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
     option={
         selectable:canMod,
         editable:canMod,
