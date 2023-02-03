@@ -11,6 +11,21 @@ function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
     updateTeamMateBtnHandler()
     update_team_desc();
 
+    // project table
+    // var filters = loadTableFilters('funditem');
+    // var filterOption={
+    //     download:true,
+    // }
+    var options={
+        //queryParams: {team:team_id},
+        name:'teamProject',
+        //url:Urls['api:team-projects'](team_id)
+        
+    }
+    //setupFilterList('funditem', $('#fund_main_table'), '#filter-list-funditem',filterOption);
+    $('#team_project_table').labTable(options);
+
+
 
 
 }

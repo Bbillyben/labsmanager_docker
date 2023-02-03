@@ -396,8 +396,8 @@ function teamMateFormatter(value, row, index, field){
 }
 
 function ParticipantFormatter(value, row, index, field){
-    //console.log('ParticipantFormatter'+JSON.stringify(value))
-    //console.log('ParticipantFormatter'+JSON.stringify(row))
+    console.log('ParticipantFormatter'+JSON.stringify(value))
+    console.log('ParticipantFormatter'+JSON.stringify(row))
 
     if(!isIterable(value)){
         value=[{"employee":value}];
@@ -476,7 +476,9 @@ function FundFormatter(value, row, index, field){
 }
 
 
-function projectFormatter(value, row, index, field){
+function projectFormatterDirect(value, row, index, field){
+    console.log(value)
+    console.log(row)
     response = '<a href="/project/'+value.pk+'" >'+value.name+"</a>";
     return response;
 }

@@ -22,8 +22,8 @@
     <div class="panel" id="panel-project" style="display: block;">
 
         <div class="panel-heading">
-            <div class="d-flex flex-wrap">
-                <h4>{% trans 'Project' %} : {{ project }}</h4>
+            <div class="d-flex flex-wrap" >
+                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#project_description">{% trans 'Project' %} : {{ project }}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
                 
                 <div class="btn-group" role="group">
@@ -58,7 +58,7 @@
                 
             </div>
         </div>
-        <div class="panel-content">
+        <div class="panel-content collapse show" id="project_description" >
             <div class="container" style="max-width: 100%; padding: 5px;">
                 <div class="row">
                     <div class="col" id="detail-panel-left">
@@ -202,11 +202,11 @@
 
             <div class="panel-heading">
                 <div class="d-flex flex-wrap">
-                    <h4>{% trans 'project Funds Overview' %}</h4>
+                    <h4 role="button" data-bs-toggle="collapse" data-bs-target="#fundoverview-details">{% trans 'project Funds Overview' %}</h4>
                     <span class="flex" style="flex-grow: 1;"></span>                
                 </div>
             </div>
-            <div class="panel-content">
+            <div class="panel-content collapse show" id="fundoverview-details">
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
                         <div class="card" id="fund_project_overview_detail">
@@ -222,11 +222,11 @@
 
             <div class="panel-heading">
                 <div class="d-flex flex-wrap">
-                    <h4>{% trans 'Funds' %}</h4>
+                    <h4  role="button" data-bs-toggle="collapse" data-bs-target="#fund-details">{% trans 'Funds' %}</h4>
                     <span class="flex" style="flex-grow: 1;"></span>                
                 </div>
             </div>
-            <div class="panel-content">
+            <div class="panel-content collapse show" id="fund-details">
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
                         <div class="card">

@@ -22,7 +22,7 @@
 
         <div class="panel-heading">
             <div class="d-flex flex-wrap">
-                <h4>{% trans 'Employee' %} : {{ employee }}</h4>
+                <h4  role="button" data-bs-toggle="collapse" data-bs-target="#employee_details">{% trans 'Employee' %} : {{ employee }}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
                 {% if perms.staff.change_employee %}
                 <div class="btn-group" role="group">
@@ -45,7 +45,7 @@
                 {% endif %}
             </div>
         </div>
-        <div class="panel-content">
+        <div class="panel-content collapse show" id="employee_details">
             <div class="container" style="max-width: 100%; padding: 5px;">
                 <div class="row">
                     <div class="col" id="detail-panel-left">
@@ -187,7 +187,7 @@
                                     >
                                         <thead class="">
                                             <tr>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="project" data-formatter="projectFormatter">
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="project" data-formatter="projectFormatterDirect">
                                                     {% trans 'Project' %}
                                                 </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="project.start_date" data-formatter="baseDateFormatter">

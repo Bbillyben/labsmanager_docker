@@ -4,7 +4,7 @@
 {% load customs_tags %}
 
 {% block page_title %}
-{% trans "LabManager Team" %}
+{% trans "LabManager Team" %} - {{ team }}
 {% endblock %}
 
 {% block breadcrumb_list %}
@@ -22,7 +22,7 @@
 
         <div class="panel-heading">
             <div class="d-flex flex-wrap">
-                <h4>{% trans 'Team' %} : {{ team }}</h4>
+                <h4  role="button" data-bs-toggle="collapse" data-bs-target="#team_deatils">{% trans 'Team' %} : {{ team }}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
                 
                 <div class="btn-group" role="group">
@@ -34,7 +34,7 @@
                 
             </div>
         </div>
-        <div class="panel-content">
+        <div class="panel-content collapse show" id="team_deatils">
             <div class="row">
                 <div class="col" id="detail-panel-left">
                     <div class="card">
@@ -84,6 +84,61 @@
                                 <!-- where the calendar should be loaded -->
                             </div>
                             
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ######################################    Project PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-team-project" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-team-leave1" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'TeamMate Projects' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>   
+                       
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div class="card" id="team_project">
+                            <table
+                                    class='table table-striped table-condensed'
+                                    id="team_project_table"
+                                    data-id-table="projectTable"
+                                    data-url="/api/team/{{ team.pk }}/projects/"
+                                    >
+                                        <thead class="">
+                                            <tr>
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="project" data-formatter="projectFormatterDirect">
+                                                    {% trans 'Project' %}
+                                                </th>
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
+                                                    {% trans 'Project Start Date' %}
+                                                </th>
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
+                                                    {% trans 'Project End Date' %}
+                                                </th>
+
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="participant" data-formatter="ParticipantFormatter">
+                                                    {% trans 'Participant' %}
+                                                </th>
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="status" data-cell-style="styleAlignMiddle" data-formatter="basicBoolean">
+                                                    {% trans 'Project Status' %}
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        </tbody>
+                                    </table>
+                                                        
                         </div>
                     </div>
                 </div>

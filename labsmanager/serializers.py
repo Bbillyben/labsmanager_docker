@@ -195,7 +195,16 @@ class ParticipantSerializer(serializers.ModelSerializer):
     def get_project_pk(self,obj):
         return obj.project.pk
     
-
+class TeamParticipantSerializer(ParticipantSerializer):
+    participant = serializers.SerializerMethodField() 
+    class Meta:
+        model = Participant
+        # fields = ['pk', 'project_pk', 'project_name', 'project_start_date', 'project_end_date', 'project_status', 'status', 'quotity' ]
+        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity', 'participant', ]
+    
+    def get_participant(self,obj):
+        part = Participant.objects.select_related('employee').filter(project = obj.project.pk, employee__is_active= True)
+        return ParticipantProjectSerializer(part , many=True).data
 
 # ------------------------------------------------------------------------------------ #
 # ---------------------------    APP FUND / SERIALISZER    --------------------------- #
@@ -380,11 +389,6 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 
-
-
-#  For project table
-       
-        
 class ParticipantProjectSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     status_name=serializers.SerializerMethodField()
@@ -394,6 +398,37 @@ class ParticipantProjectSerializer(serializers.ModelSerializer):
     
     def get_status_name(self,obj):
         return obj.get_status_display()
+
+
+
+#  For Team table
+class TeamProjectSerializer(serializers.ModelSerializer):
+    fund=serializers.SerializerMethodField() 
+    participant = serializers.SerializerMethodField() 
+    institution=serializers.SerializerMethodField()
+    class Meta:
+        model = Project
+        fields = ['pk', 'name', 'start_date', 'end_date', 'status', 
+                  'participant',
+                  'institution', 
+                  'fund',
+                  ]
+    def get_fund(self,obj):
+        fund = Fund.objects.select_related('funder', 'institution').filter(project = obj.pk)
+        return FundProjectSerialize(fund , many=True).data
+    def get_participant(self,obj):
+        part = Participant.objects.select_related('employee').filter(project = obj.pk, employee__is_active= True)
+        return ParticipantProjectSerializer(part , many=True).data
+    def get_institution(self,obj):
+        ip = Institution_Participant.objects.filter(project = obj.pk)
+        return Institution_ProjectParticipantSerializer(ip , many=True).data
+    
+    
+    
+#  For project table
+       
+        
+
 
 class ProjectFullSerializer(serializers.ModelSerializer):
     participant = serializers.SerializerMethodField() 
@@ -405,7 +440,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Project
-        fields = ['pk', 'name', 'start_date', 'start_date', 'end_date', 'status', 
+        fields = ['pk', 'name', 'start_date', 'end_date', 'status', 
                   'participant', 'participant_count',
                   'institution', 
                   'fund','get_funds_amount', 'get_funds_expense','get_funds_available',

@@ -8,6 +8,7 @@ from django_filters import rest_framework as filters
 from labsmanager import serializers  # UserSerializer, GroupSerializer, EmployeeSerialize, EmployeeStatusSerialize, ContractEmployeeSerializer, TeamSerializer, ParticipantSerializer, ProjectSerializer
 from staff.models import Employee, Employee_Status, Team, TeamMate
 from expense.models import  Contract
+from project.models import Participant, Project
 
 from labsmanager.utils import str2bool
 from labsmanager.helpers import DownloadFile
@@ -154,3 +155,18 @@ class TeamViewSet(viewsets.ModelViewSet):
         dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
         filename = f"Team_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
+    
+    
+    @action(methods=['get'], detail=True, url_path='projects', url_name='projects')
+    def team_projects(self, request, pk=None):
+        if pk is None:
+            raise Exception("/api/team/<pk>/projects/ => No team Pk Found")
+        team=self.queryset.filter(pk=pk).first()
+        mate=TeamMate.objects.filter(team=team).values("employee")
+        parti=Participant.objects.filter(Q(employee__in=mate) | Q(employee=team.leader)).distinct('project') #.values("project")
+        #pjset=Project.objects.filter(pk__in=parti)
+        
+        return JsonResponse(serializers.TeamParticipantSerializer(parti, many=True).data, safe=False)
+        #return JsonResponse(serializers.TeamProjectSerializer(pjset, many=True).data, safe=False) 
+        
+        
