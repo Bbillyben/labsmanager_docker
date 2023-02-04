@@ -274,8 +274,9 @@ class FundStaleSerializer(serializers.ModelSerializer):
         fields=['pk', 'project', 'funder', 'institution', 'end_date', 'availability', 'amount','expense',]
         
     def get_availability(self,obj):
-        avail=obj.get_available()
-        return avail['amount'].sum(axis=0, skipna=True)
+        # avail=obj.get_available()
+        # return avail['amount'].sum(axis=0, skipna=True)
+        return obj.amount + obj.expense
     def get_project(self,obj):
         return obj.project.name
     def get_funder(self, obj):

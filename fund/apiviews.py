@@ -45,7 +45,7 @@ class FundViewSet(viewsets.ModelViewSet):
         q_objects = Q(project__status=True)  # & Q(is_active=True) &  base Q objkect
         slot = utils.getDashboardTimeSlot(request)
             
-        fund=Fund.current.timeframe(slot).select_related('project', 'funder', 'institution').filter( q_objects).order_by('-end_date')
+        fund=Fund.current.timeframe(slot).select_related('project', 'funder', 'institution').filter(q_objects).order_by('-end_date')
         
         return JsonResponse(serializers.FundStaleSerializer(fund, many=True).data, safe=False) 
     
