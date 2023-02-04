@@ -32,7 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq' # os.environ.get("SECRET_KEY") # 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq'
 if os.environ.get("SECRET_KEY"):
-    SECRET_KEY = os.environ.get("SECRET_KEY")
+    SECRET_KEY = get_setting('SECRET_KEY', 'secret_key', 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq')
 else:
     SECRET_KEY = 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq' # os.environ.get("SECRET_KEY") # 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq'
     
@@ -55,7 +55,7 @@ if log_level not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
 
 logger.debug("-------------------------- Start debug session  --------------------------")
 
-ALLOWED_HOSTS =  ['*'] # os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS =  get_setting('DJANGO_ALLOWED_HOSTS', 'django_allowed_hosts', '*').split(" ") # ['*']  os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
 
 # Application definition
