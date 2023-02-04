@@ -116,9 +116,10 @@ class LeaveSerializer1D(serializers.ModelSerializer):
     end=serializers.DateField(source='end_date')
     title=serializers.SerializerMethodField()
     color= serializers.CharField(source='type.color')
+    days= serializers.CharField(source='open_days')
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment',]  
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment', 'days']  
         
     def get_title(self,obj):
         return f'{obj.employee.user_name} - {obj.type.name}'

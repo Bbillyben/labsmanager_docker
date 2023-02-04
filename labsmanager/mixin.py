@@ -73,7 +73,7 @@ class LabsManagerBudgetMixin(models.Model):
             self.cleaned_data['expense']=-self.cleaned_data['expense']
         return self.cleaned_data['expense']
     
-
+from dateutil.rrule import *
 class DateMixin(models.Model):
     start_date=models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
     end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
@@ -83,6 +83,13 @@ class DateMixin(models.Model):
     current = Current_date_Manager()
     past = outof_date_Manager()
     
+    
+    @property
+    def open_days(self):
+        d1=rrule(DAILY, dtstart=self.start_date, until=self.end_date, byweekday=[MO, TU, WE, TH, FR])
+        d2=list(d1)
+        return len(d2)
+    
     class Meta:
         abstract = True
         constraints = [
@@ -91,6 +98,9 @@ class DateMixin(models.Model):
                 name=_("End Date should be greater than start date"),
             )
         ]
+    
+     
+    
     
 class ActiveDateMixin(DateMixin):
         

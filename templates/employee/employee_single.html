@@ -329,6 +329,9 @@
                                                         <th data-sortable="true" class="th-inner sortable both" data-field="end" data-formatter="baseDateFormatter">
                                                             {% trans 'End Date' %}
                                                         </th>
+                                                        <th data-sortable="true" class="th-inner sortable both" data-field="days">
+                                                            {% trans 'Nb Days' %}
+                                                        </th>
                                                         {% if perms.leave.change_leave or perms.leave.delete_leave %}
                                                         <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionLeave" 
                                                             data-can-change="{{ perms.leave.change_leave }}"
