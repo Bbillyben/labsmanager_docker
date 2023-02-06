@@ -30,18 +30,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq' # os.environ.get("SECRET_KEY") # 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq'
-if os.environ.get("SECRET_KEY"):
-    SECRET_KEY = get_setting('SECRET_KEY', 'secret_key', 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq')
-else:
-    SECRET_KEY = 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq' # os.environ.get("SECRET_KEY") # 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq'
-    
+SECRET_KEY = get_setting('SECRET_KEY', 'secret_key', 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq')  
 # SECURITY WARNING: don't run with debug turned on in production!
-if os.environ.get("DEBUG"):
-     DEBUG = get_boolean_setting("DEBUG", "Debug", default_value=False)
-else:
-    DEBUG = True # int(os.environ.get("DEBUG", default=0))
-    
+
+DEBUG = get_boolean_setting("DEBUG", "debug", default_value=False)  
+
 # Configure logging settings
 log_level = get_setting('LABS_LOG_LEVEL', 'log_level', 'WARNING')
 
@@ -141,12 +134,6 @@ LOCALE_PATHS = [
 WSGI_APPLICATION = 'labsmanager.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
-# print ("LAB_DB_NAME : "+str(os.environ.get("LAB_DB_NAME", default='labsmanager')))
-# print ("LAB_DB_USER : "+str(os.environ.get("LAB_DB_USER", default='labsmanager')))
-# print ("LAB_DB_PASSWORD : "+str(os.environ.get("LAB_DB_PASSWORD", default='labsManagerPass')))
 
 
 DATABASES = {
@@ -156,11 +143,11 @@ DATABASES = {
     # },
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get("LAB_DB_NAME", default='labsmanager'),
-        'USER': os.environ.get("LAB_DB_USER", default='labsmanager'),
-        'PASSWORD': os.environ.get("LAB_DB_PASSWORD", default='labsManagerPass'),
-        'HOST': os.environ.get("LAB_DB_HOST", default='localhost'),
-        'PORT': os.environ.get("LAB_DB_PORT", default='5432'),
+        'NAME': get_setting('LAB_DB_NAME', 'lab_db_name', 'labsmanager'),
+        'USER': get_setting('LAB_DB_USER', 'lab_db_user', 'labsmanager'), 
+        'PASSWORD': get_setting('LAB_DB_PASSWORD', 'lab_db_password', 'labsManagerPass'),
+        'HOST': get_setting('LAB_DB_HOST', 'lab_db_host', 'localhost'), 
+        'PORT': get_setting('LAB_DB_PORT', 'lab_db_port', '5432'),
     }
 }
 
@@ -208,9 +195,6 @@ LANGUAGES = [
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
-# The filesystem location for served static files
 
 STATIC_ROOT = '/home/labsmanager/data/static/'
 
@@ -222,9 +206,6 @@ STATICFILES_DIRS = [
 
 # Color Themes Directory
 STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_URL, 'css', 'color-themes')
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -263,10 +244,11 @@ APPEND_SLASH = False  # prevent error for post request by ajax
 Q_CLUSTER = {
     'retry': 60,
     'timeout': 30,
-    'workers': 1,
+    'workers': 4,
     "name": "labsmanager",
     "orm": "default",  # Use Django's ORM + database for broker
     'save_limit': 250,
+    'label': 'Scheduled Tasks',
 }
 
 
@@ -299,4 +281,13 @@ EMAIL_USE_SSL = get_boolean_setting('LAB_EMAIL_SSL', 'email.ssl', False)
 DEFAULT_FROM_EMAIL = EMAIL_SENDER
 
 
+## Admins
+ADMINS = []
+dj_admins= get_setting('DJANGO_ADMINS', 'django_admins', None)
+if dj_admins:
+    dj_admins=dj_admins.split(' ')
+    for ad in dj_admins:
+        ADMINS.append(ad.split(':'))
+
+logger.debug('ADMINS :'+str(ADMINS))  
  

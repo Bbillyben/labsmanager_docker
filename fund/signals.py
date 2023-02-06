@@ -9,7 +9,7 @@ logger = logging.getLogger('labsmanager')
 @receiver(post_save, sender=Fund_Item)
 def save_Fund_Item_handler(sender, instance, **kwargs):
     logger.debug('[save_Fund_Item_handler] called')
-    instance.fund.calculate(force=True)
+    instance.fund.calculate()
     
 # @receiver(post_migrate)
 # def update_all_fund(sender, **kwargs):

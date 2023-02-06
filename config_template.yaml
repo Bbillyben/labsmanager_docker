@@ -7,3 +7,21 @@ email:
   sender: ''
   tls: False
   ssl: False
+
+django_admins: ''  # string of username:email username2:email2
+
+site_id: 1
+
+django_allowed_hosts: '' # separator is space
+
+debug: true
+log_level: 'WARNING'
+secret_key: '12345678910abcdefghijklmnopqrstuvwxyz@django_secretkey'
+csrf_trusted_origins: ''
+
+# # Configure DB
+# lab_db_name: ''
+# lab_db_user: ''
+# lab_db_password: ''
+# lab_db_host: ''
+# lab_db_port: ''

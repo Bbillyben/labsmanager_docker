@@ -11,8 +11,9 @@ logger = logging.getLogger('LABSMANAGER')
 
 
 def is_true(x):
+    print(" - "+str(x))
     """Shortcut function to determine if a value "looks" like a boolean"""
-    return str(x).strip().lower() in ['1', 'y', 'yes', 't', 'true', 'on']
+    return str(x).strip().lower() in ['1', 'y', 'yes', 't', 'true', 'True', 'on']
 
 
 def get_base_dir() -> Path:
@@ -124,7 +125,6 @@ def get_setting(env_var=None, config_key=None, default_value=None, typecast=None
 
 def get_boolean_setting(env_var=None, config_key=None, default_value=False):
     """Helper function for retreiving a boolean configuration setting"""
-
     return is_true(get_setting(env_var, config_key, default_value))
 
 
