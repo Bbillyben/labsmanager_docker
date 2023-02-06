@@ -150,6 +150,19 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         
     def __str__(self):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
-    
+
+def calculate_fund(*arg):
+        logger.debug('[calculate_fund] :'+str(arg))
+        fuPk=arg[0]
+        print(fuPk)
+        if not fuPk or not isinstance(fuPk, int) or fuPk<=0:
+            raise KeyError(f'No Fund id submitted for calculate_project')
+        print("2")
+        pj=Fund.objects.get(pk=fuPk)
+        print(pj)
+        if not pj:
+            raise ValueError("No Project Found")
+        pj.calculate()
+        
 auditlog.register(Fund_Item)
 auditlog.register(Fund)

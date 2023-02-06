@@ -12,6 +12,9 @@ from dashboard import utils
 
 from labsmanager.mixin import ActiveDateMixin
 
+import logging
+logger = logging.getLogger('labsmanager')
+
 class Institution(models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
@@ -81,6 +84,30 @@ class Project(ActiveDateMixin):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.name}"
     
+    def calculate(self, force=False):
+        logger.debug(f'[Project]-calculate :{str(self)} / (force: {force})')
+        from fund.models import Fund
+        fi= Fund.objects.filter(project=self.pk)
+        if fi:
+            self.amount= fi.aggregate(Sum('amount'))["amount__sum"]
+            self.expense= fi.aggregate(Sum('expense'))["expense__sum"]
+        else:
+            self.amount = 0
+            self.expense = 0
+        
+def calculate_project(*arg):
+        logger.debug('[calculate_project] :'+str(arg))
+        pjPk=arg[0]
+        if not pjPk or not isinstance(pjPk, int) or pjPk<=0:
+            raise KeyError(f'No project id submitted for calculate_project')
+        pj=Project.objects.get(pk=pjPk)
+        if not pj:
+            raise ValueError("No Project Found")
+        pj.calculate()
+ 
+ 
+ 
+        
 class Institution_Participant(models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
