@@ -78,8 +78,8 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
     def getId(self):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
     
-    def calculate(self):
-        logger.debug('[Fund]-calculate :'+str(self))
+    def calculate(self, force=False):
+        logger.debug(f'[Fund]-calculate :{str(self)} / (force: {force})')
         from expense.models import Expense_point
         # get all fund_items
         fi= Fund_Item.objects.filter(fund=self.pk)
@@ -88,16 +88,33 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         else:
             self.amount=0
         
-        # get all expense
-        # exp=Expense_point.objects.filter(fund=self.pk)
-        # exp=Expense_point.get_lastpoint_by_fund_qs(exp)
         exp=Expense_point.last.fund(self.pk)
-        sumEP=0
-        for etp in exp:
-            sumEP+=etp.amount
-            fiS=fi.filter(type=etp.type).update(expense=etp.amount)  # update the corresponding Fund_item
-        self.expense=sumEP
+        if exp:
+            self.expense = exp.aggregate(Sum('amount'))["amount__sum"]
+        else:
+            self.expense = 0
+            
         self.save()
+        
+        # Update Fund_Item
+        
+        if force: # force to make expense calculation based on 0
+            fi.update(expense=0) 
+            
+        for etp in exp:
+            fiS=fi.filter(type=etp.type)
+            if fiS:
+                fiS.update(expense=etp.amount)  # update the corresponding Fund_item
+            else: # create a new one
+                logger.debug(f'[Fund]- create {etp.type} Fund Item')
+                fiS=Fund_Item(
+                    type=etp.type,
+                    fund=self,
+                    amount=0,
+                    expense=etp.amount
+                )
+                fiS.save()
+        
     
     def clean_end_date(self):
         ## print("EXIT DATE CLEAN Fund Model :"+str(self.cleaned_data))

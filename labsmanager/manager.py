@@ -30,17 +30,23 @@ class outof_date_Manager(date_manager):
 class LastInManager(models.Manager):
     
     def get_queryset(self, sel_fund=None):
-        # print("---------> LastInManager - get_queryset")
+        # print("---------> LastInManager - get_queryset :"+str(self.model))
         # print("  - sel_fund : "+str(sel_fund))
         queryset = super().get_queryset()
         if sel_fund is not None:
-            
+            # print(" type : "+str(type(sel_fund)))
             if isinstance(sel_fund, str):
                 sel_fund=sel_fund.split(",")
+                # print("  - trsf sel fund : "+str(sel_fund))
+            elif isinstance(sel_fund, int):
+                sel_fund=[sel_fund]
                 
             try:
                 queryset=queryset.filter(fund__in=sel_fund)
+                # print("  - fund found : "+str(queryset.count()))
             except:
+                queryset = None
+                # print("  IN ERROR")
                 pass
         if not queryset:
             return super().get_queryset().none()

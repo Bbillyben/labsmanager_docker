@@ -1283,6 +1283,6 @@ li.list-spacer{
 
   /*  fro crum list template */
   .crumb-dropdown .dropdown-menu{
-    max-height: 280px;
+    max-height: 15em;
     overflow-y: auto;
   }

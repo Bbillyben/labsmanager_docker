@@ -12,6 +12,7 @@ from django_q.models import Schedule
 
 
 from settings.models import LabsManagerSetting
+from fund.models import Fund
 import datetime
 from django.utils import timezone
 
@@ -26,20 +27,49 @@ logger = logging.getLogger('labsmanager')
 # =========== Task global scheduler on start up call ========== #
 def scheduleBaseTasks():
     logger.debug("[scheduleBaseTasks] starting ...")
+    # for audit log cleaning
     currSch = Schedule.objects.filter(func='labsmanager.tasks.clean_auditlog')
     if not currSch:
         sch = Schedule.objects.create(name="clean_auditlog",
                                       func='labsmanager.tasks.clean_auditlog',
                             #hook='hooks.print_result',
-                            args='1,-1',
                             schedule_type=Schedule.CRON,
                             cron = '0 3 1 * *',
+                            hook="labsmanager.tasks.sendSuperUserMail",
+                            )
+        logger.debug("New Schedule :"+str(sch))
+    else:
+        logger.debug("Already in schedules :"+str(currSch))
+    
+    # for Fund update calculation
+    currSch = Schedule.objects.filter(func='labsmanager.tasks.update_all_calculation')
+    if not currSch:
+        sch = Schedule.objects.create(name="update_all_calculation",
+                                      func='labsmanager.tasks.update_all_calculation',
+                            #hook='hooks.print_result',
+                            schedule_type=Schedule.CRON,
+                            cron = '30 3 * * 1-5',
+                            hook="labsmanager.tasks.sendSuperUserMail",
                             )
         logger.debug("New Schedule :"+str(sch))
     else:
         logger.debug("Already in schedules :"+str(currSch))
         
-    
+        
+        
+    # check periodically the scheduled tasks
+    currSch = Schedule.objects.filter(func='labsmanager.tasks.scheduleBaseTasks')
+    if not currSch:
+        sch = Schedule.objects.create(name="scheduleBaseTasks",
+                                      func='labsmanager.tasks.scheduleBaseTasks',
+                            #hook='hooks.print_result',
+                            schedule_type=Schedule.CRON,
+                            cron = '30 1 * * 1-5',
+                            hook="labsmanager.tasks.sendSuperUserMail",
+                            )
+        logger.debug("New Schedule :"+str(sch))
+    else:
+        logger.debug("Already in schedules :"+str(currSch))
     
 
 
@@ -63,6 +93,13 @@ def clean_auditlog():
     logger.debug("    >>> "+str(cc[0])+" entries has been deleted ")
     pass
 
+
+# --------------- Update all Expense and Fund calculation
+def update_all_calculation():
+    logger.debug("[update_all_calculation] starting ...")
+    fu=Fund.objects.all()
+    for f in fu:
+        f.calculate(force=True)
 # --------------- Generate a report to send
 def create_report(*args, **kwargs):
     from staff.models import Employee
@@ -104,3 +141,31 @@ def sendMailTest(*args, **kwargs):
         html_message=html_content
         )
     logger.debug(">>>>> mail response :"+str(resp))
+    
+    
+    
+# ============================================ send mail hook to super user
+def sendSuperUserMail(*args, **kwargs):
+    logger.debug("[sendSuperUserMail] starting ...")
+    User = get_user_model()
+    usersMails = User.objects.filter(is_superuser=True).values_list("email", flat=True)
+    
+    task=args[0]
+    
+    content=f"The task : {task.name} has finished \n"
+    content+=f" - fct : {task.func} \n"
+    
+    
+    resp=send_email(
+        subject="Task Hook Mail", 
+        body="Test HookMail Body",
+        recipients=usersMails,
+        from_email=None,
+        html_message=content
+        )
+    logger.debug(">>>>> mail response :"+str(resp))
+    
+# test hook
+def testHook(*args, **kwargs):
+    pass
+    

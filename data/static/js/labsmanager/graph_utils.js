@@ -10,7 +10,7 @@ function createDataSet(datas, setLabel, setXAxis, setAmount, stacked=true, makeC
   // cb-Paired cb-Pastel1
     for (var item in datas.data) {
         d=datas.data[item];
-        // get the data set
+        // get the data set or create
         if(d[setLabel] in indexDict){
             id=indexDict[d[setLabel] ];
             ds=datasets[id];
