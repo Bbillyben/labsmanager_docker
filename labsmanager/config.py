@@ -11,7 +11,6 @@ logger = logging.getLogger('LABSMANAGER')
 
 
 def is_true(x):
-    print(" - "+str(x))
     """Shortcut function to determine if a value "looks" like a boolean"""
     return str(x).strip().lower() in ['1', 'y', 'yes', 't', 'true', 'True', 'on']
 

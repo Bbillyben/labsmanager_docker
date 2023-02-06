@@ -236,6 +236,7 @@
                 select: eventSelectHandler,
                 local: language,
                 height:"auto",
+                filterResourcesWithEvents:false,
             };
 
             // Extend default settings with provided options
@@ -291,6 +292,7 @@
                     return { html: htmlRes}
                     },
                     resourceOrder: 'title',
+                filterResourcesWithEvents:settings.filterResourcesWithEvents,
             })
             calendar.render();
 

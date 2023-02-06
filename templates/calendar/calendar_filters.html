@@ -76,3 +76,29 @@
         </div>
     </div>
 </div>
+<!-- --------------------    Ressource with event filter    --------------------  -->
+<div class="col-auto" >
+    <div class="d-flex flex-wrap ">
+    
+        <div class="card mr-2" >
+            <div class="row-header">                                  
+                <div class="d-flex flex-wrap subheading" role="button" data-bs-toggle="collapse" data-bs-target="#resource_event_filters">
+                    <h4><i class="fas fa-filter"></i>  {% trans 'Resource event Filter' %}</h4> 
+                </div>
+            
+            </div>
+            <div class="row">
+                <div id="resource_event_filters" class="collapse">
+                    <div id="resource_event" class="in-card d-flex flex-wrap" style="margin-left:1em;">
+                        <div class="col-auto" >
+                            <input class="form-check-input" type="checkbox" id="resource_event_cb" name="resource_event">
+                            <label class="form-check-label" for="resource_event_cb">
+                                Show Only Resource with event
+                              </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
