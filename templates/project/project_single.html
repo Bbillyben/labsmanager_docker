@@ -62,7 +62,7 @@
             <div class="container" style="max-width: 100%; padding: 5px;">
                 <div class="row">
                     <div class="col" id="detail-panel-left">
-                        <div class="card">
+                        <div class="card  mb-2">
                             <div class="row">
                                 <div class="col" id="project_desc_table">
                                     <!-- project description table inserted here -->
@@ -72,7 +72,7 @@
                         </div>
                     </div>
                 <div class="col" id="detail-panel-center">
-                    <div class="card">
+                    <div class="card  mb-2">
 
                     
                         <div class="d-flex flex-wrap subheading">
@@ -101,9 +101,9 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="col" id="detail-panel-right">
-                    <div class="card">
+                <!-- </div>
+                <div class="col" id="detail-panel-right"> -->
+                    <div class="card mb-2">
                         
                             <div class="col">
                                 <div class="d-flex flex-wrap subheading">
@@ -273,6 +273,47 @@
             </div>
         </div>
     </div>
+   
+</div>
+<!-- ######################################    Budget PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-budget" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-budget1" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Project Budgets' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>
+                    <div class="btn-group" role="group">
+    
+                        {% if perms.fund.add_budget %}
+                        <button type="button" class="btn btn-secondary" id="add_budget" title="Add Item" data-pk="{{ project.pk }}" data-form-url="" >
+                            <span class='fa fas fa-plus'></span>
+                        </button>
+                        {% endif %}
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content collapse show" id="Budget-details">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div id='tracking-table-toolbar_funditem'>
+                            <div class='btn-group'>
+                                {% include "filter_list.html" with id="budget" %}
+                            </div>
+                        </div>
+                        <div class="card" id="project_budget_table">
+                            {% url 'api:budget-project' proj_pk=project.pk as BudgetDataURL %}
+                            {% include "fund/budget_table.html" with datatype="project" dataURL=BudgetDataURL datapk=project.pk %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <!-- ######################################    Leave PANEL ############################################### -->
 <div class="panel-hidden panel-visible" id="panel-leave" style="display: block;">
@@ -436,6 +477,7 @@
 <script type='text/javascript' src="{% static 'js/tables/milestones_table.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/contract_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/fund_tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script>
 $(document).ready(function () {
@@ -463,6 +505,7 @@ $(document).ready(function () {
     }
     
     $('#project_leave_item_table').labTable(options);
+    initializeBudgetTable();
 
 
 })

@@ -369,10 +369,12 @@ function employeeFormatter(value, row, index, field){
     }
     response = "";
     for (const item of value) {
-        //console.log("item :"+JSON.stringify(item));
-
-            tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
-            response+= (response.length > 1 ? ', ' : '') + tm;
+        // console.log("item :"+JSON.stringify(item));
+            if("employee" in item && item.employee!=null){
+                tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
+                response+= (response.length > 1 ? ', ' : '') + tm;
+            }
+            
       }
       return response;
 }
@@ -459,9 +461,23 @@ function ProjectFormatter(value, row, index, field){
 }
 
 
+function SingleFundFormatter(value, row, index, field){
+    
+    response = "";
+    response +=value.funder.short_name;
+    response+=" - "+value.institution.short_name;
+    response+=" ("+value.ref;
+    response+=" - "+moneyDisplay(value.amount)+")"
+    
+      return response;
+}
+
+
 function FundFormatter(value, row, index, field){
+    
+
     if(!isIterable(value)){
-        value=[{"fund":value}];
+        value=[value];
     }
     response = "<ul>";
     for (const item of value) {
@@ -506,6 +522,16 @@ function leaveEmployeeFormatter(value, row, index, field){
     return response;
 }
 
+
+function m2mBaseFormatter(value, row, index, field){
+    // console.log("m2mBaseFormatter")
+    // console.log(value)
+    response=value.map(function(elem){
+        return elem.name;
+    }).join(", ");
+
+    return response
+}
 
 // --------------------     Basic Table Sorter    ------------------- // 
 

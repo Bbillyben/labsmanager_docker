@@ -49,7 +49,7 @@
             <div class="container" style="max-width: 100%; padding: 5px;">
                 <div class="row">
                     <div class="col" id="detail-panel-left">
-                    <div class="card">
+                    <div class="card  mb-2">
                         <div class="row">
                             <div class="col" id="employee_dec_table">
                                 <!-- here is loaded the table description of the user-->
@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="col" id="detail-panel-right">
-                    <div class="card">
+                    <div class="card  mb-2">
                         <div class="row">
                             <div class="col">
                                 <table
@@ -134,7 +134,7 @@
                 <div class="container" style="max-width: 100%; padding: 5px;">
                     <div class="row" style=" padding-top: 5px;">
                         <div class="col">
-                            <div class="card">
+                            <div class="card  mb-2">
                                 <div class="row">
                                 
                                 {% include 'expense/contract_table.html' with datatype="employee" %}
@@ -146,7 +146,7 @@
                 <div class="container" style="max-width: 100%; padding: 5px;">
                     <div class="row">
                         <div class="col">
-                            <div class="card" id="contract_expense_detail">
+                            <div class="card  mb-2" id="contract_expense_detail">
                                 
                                 
                             </div>
@@ -156,6 +156,36 @@
             </div>
         </div>
     </div> <!-- END OF PANEL-->
+        <!-- ######################################    BUDGET PANEL ############################################### -->
+        <div id='detail-panels'>
+            <div class="panel panel-hidden panel-visible" id="panel-employee-budget" style="display: block;">
+                <div class="panel-heading">
+                    <div class="d-flex flex-wrap">
+                        <h4>{% trans 'Budgets' %}</h4>
+                        <span class="flex" style="flex-grow: 1;"></span>
+                        {% if perms.fund.add_budget %}
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-secondary" id="add_budget" title="Add Item" data-employee="{{ employee.pk }}" >
+                                <span class='fas fa-plus'></span>
+                            </button>
+                        </div>  
+                        {% endif %}           
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="row" style=" padding-top: 5px;">
+                        <div class="col">
+                            <div class="card  mb-2" id="project_budget_table">
+                                {% url 'api:budget-employee' emp_pk=employee.pk as BudgetDataURL %}
+                                {% include "fund/budget_table.html" with datatype="employee" dataURL=BudgetDataURL datapk=employee.pk %}
+                                
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div> <!-- END OF PANEL-->
 
     <!-- ######################################    PROJECT PANEL ############################################### -->
     <div id='detail-panels'>
@@ -177,7 +207,7 @@
                 <div class="container" style="max-width: 100%; padding: 5px;"></div>
                     <div class="row" style=" padding-top: 5px;">
                         <div class="col">
-                            <div class="card">
+                            <div class="card  mb-2">
                                 <div class="row">
                                     <table
                                     class='table table-striped table-condensed'
@@ -305,7 +335,7 @@
                         <div class="container" style="max-width: 100%; padding: 5px;">
                             <div class="row" style=" padding-top: 5px;">
                                 <div class="col">
-                                    <div class="card">
+                                    <div class="card  mb-2">
                                         <div id='tracking-table-toolbar_leave'>
                                             <div class='btn-group'>
                                                 {% include "filter_list.html" with id="leave" %}
@@ -368,14 +398,16 @@
 {% block js_load %}
 <script type='text/javascript' src="{% static 'js/employee_single.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/contract_tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     employee_id = JSON.parse(document.getElementById('employee_id').textContent);
     initEmployeeSingleView(user_id, employee_id);
-    initializeContractsTable(tableurl="{% url 'api:employee-contracts' pk=employee.pk %}", update_employee)
-    enableSidebar('employee')
+    initializeContractsTable(tableurl="{% url 'api:employee-contracts' pk=employee.pk %}", update_employee);
+    initializeBudgetTable();
+    enableSidebar('employee');
 })
 </script>
 

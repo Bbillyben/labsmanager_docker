@@ -1,7 +1,7 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
 from labsmanager.ressources import labResource, SkipErrorRessource
-from .models import Fund_Item, Fund, Cost_Type
+from .models import Fund_Item, Fund, Cost_Type, Budget
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
@@ -211,4 +211,76 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
                       'amount',
                       'expense',
                       'available',
+                      ]
+        
+from staff.models import Employee_Type
+from labsmanager.ressources import EmployeeWidget, FundWidget
+from expense.models import Contract_type
+
+class BudgetResource(labResource):
+    
+    cost_type=Field(
+        column_name=_('Cost Type'),
+        attribute='cost_type', 
+        widget=widgets.ForeignKeyWidget(Cost_Type, 'name'), readonly=True
+    )
+    # fund=Field(
+    #     column_name=_('Fund'),
+    #     attribute='fund', 
+    #     widget=FundWidget(), readonly=True
+    # )
+    funder=Field(
+        column_name=_('Funder'),
+        attribute='fund', 
+        widget=widgets.ForeignKeyWidget(Fund, 'funder__short_name'), readonly=True
+    )
+    institution=Field(
+        column_name=_('Institution'),
+        attribute='fund', 
+        widget=widgets.ForeignKeyWidget(Fund, 'institution__short_name'), readonly=True
+    )
+    ref=Field(
+        column_name=_('Ref'),
+        attribute='fund', 
+        widget=widgets.ForeignKeyWidget(Fund, 'ref'), readonly=True
+    )
+    emp_type=Field(
+        column_name=_('Employee Type'),
+        attribute='emp_type', 
+        widget=widgets.ForeignKeyWidget(Employee_Type, 'name'), readonly=True
+    )
+    employee=Field(
+        column_name=_('Employee'),
+        attribute='employee', 
+        widget=EmployeeWidget(), 
+        readonly=True,
+    )
+    is_active=Field(
+        column_name=_('Active'),
+        attribute='fund', 
+        widget=widgets.ForeignKeyWidget(Fund, 'is_active'), readonly=True
+    )
+    contract_type=Field(
+        column_name=_('Contract Type'),
+        attribute='contract_type', 
+        widget=widgets.ManyToManyWidget(Contract_type,separator=', ',  field='name'), readonly=True
+    )
+    
+    class Meta:
+        """Metaclass"""
+        model = Budget
+        skip_unchanged = True
+        clean_model_instances = False
+        exclude = [ 'id', 'fund' ]
+        # #import_id_fields=('fund', 'type')
+        export_order=['cost_type', 
+                      'funder',
+                      'institution',
+                      'ref',
+                      'amount',
+                      'emp_type',
+                      'contract_type',
+                      'employee',
+                      'quotity',
+                      'is_active',
                       ]

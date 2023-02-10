@@ -37,7 +37,7 @@
         <div class="panel-content collapse show" id="team_deatils">
             <div class="row">
                 <div class="col" id="detail-panel-left">
-                    <div class="card">
+                    <div class="card  mb-2">
                         <div class="col" id="team_desc_table">
                             <!-- team description table inserted here -->
 
@@ -46,7 +46,7 @@
 
                 </div>
                 <div class="col" id="detail-panel-left">
-                    <div class="card">
+                    <div class="card  mb-2">
                         <div class="col" id="team_mate_table">
                             <!-- team description table inserted here -->
 
@@ -79,7 +79,7 @@
             <div class="panel-content">
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
-                        <div class="card" id="team_leave_calendar">
+                        <div class="card  mb-2" id="team_leave_calendar">
                             <div id="calendar-team-box">
                                 <!-- where the calendar should be loaded -->
                             </div>
@@ -91,6 +91,42 @@
         </div>
     </div>
 </div>
+<!-- ######################################    BUDGET PANEL ############################################### -->
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-team-budget" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Budgets' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                {% if perms.fund.add_budget %}
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-secondary" id="add_budget" title="Add Item" data-employee="{{ team.pk }}" >
+                        <span class='fas fa-plus'></span>
+                    </button>
+                </div>  
+                {% endif %}           
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="row" style=" padding-top: 5px;">
+                <div class="col">
+                    <div id='tracking-table-toolbar_funditem'>
+                        <div class='btn-group'>
+                            {% include "filter_list.html" with id="budget" %}
+                        </div>
+                    </div>
+                    <div class="card  mb-2" id="project_budget_table">
+                        {% url 'api:budget-team' team_pk=team.pk as BudgetDataURL %}
+                        {% include "fund/budget_table.html" with datatype="team" dataURL=BudgetDataURL datapk=team.pk %}
+                        
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div> <!-- END OF PANEL-->
+
 <!-- ######################################    Project PANEL ############################################### -->
 
 <div class="panel-hidden panel-visible" id="panel-team-project" style="display: block;">
@@ -107,7 +143,7 @@
             <div class="panel-content">
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
-                        <div class="card" id="team_project">
+                        <div class="card  mb-2" id="team_project">
                             <table
                                     class='table table-striped table-condensed'
                                     id="team_project_table"
@@ -153,6 +189,7 @@
 
 {% block js_load %}
 <script type='text/javascript' src="{% static 'js/team_single.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script>
 $(document).ready(function () {
@@ -165,6 +202,7 @@ $(document).ready(function () {
     team_id = JSON.parse(document.getElementById('team_id').textContent);
 
     initTeamSingleView(user_id, team_id, perms, "{% url 'api:leave-search-calendar' %}");
+    initializeBudgetTable()
     enableSidebar('team');
 })
 </script>

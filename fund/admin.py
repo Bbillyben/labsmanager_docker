@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
-from fund.models import Cost_Type, Fund_Institution, Fund_Item, Fund
+from fund.models import Cost_Type, Fund_Institution, Fund_Item, Fund, Budget
 from import_export.admin import ImportExportModelAdmin
 from .resources import FundItemAdminResource
 
@@ -64,7 +64,16 @@ class FundAdmin(admin.ModelAdmin):
     get_manager_name.admin_order_field = 'fund__manager_name'
     
 # Register your models here.
-admin.site.register(Cost_Type, CostTypeAdmin)
-admin.site.register(Fund_Institution, CostTypeAdmin)
+class BudgetAdmin(admin.ModelAdmin):
+    list_display = ('fund','cost_type', 'amount', 'emp_type', 'employee', 'quotity', 'get_contract_type',)
+    list_filter = ('cost_type', 'emp_type','contract_type',)
+    
+    def get_contract_type(self, obj):
+        return ",  ".join([p.name for p in obj.contract_type.all()])
+    
+
 admin.site.register(Fund, FundAdmin)
+admin.site.register(Fund_Institution, CostTypeAdmin)
 admin.site.register(Fund_Item, FundItemAdmin)
+admin.site.register(Cost_Type, CostTypeAdmin)
+admin.site.register(Budget, BudgetAdmin)

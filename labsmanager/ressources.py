@@ -1,5 +1,6 @@
 from import_export.resources import ModelResource
-from import_export import results
+from import_export import results, widgets
+
 
 # ressource for import export 
 class SimpleError(results.Error):
@@ -73,3 +74,23 @@ class SkipErrorRessource(ModelResource):
     
     class Meta:
         abstract = True
+        
+        
+        
+################################ WIDGETS COMMON #################################
+from staff.models import Employee
+class EmployeeWidget(widgets.CharWidget):
+    
+    def render(self, value, obj=None):
+        #emp=Employee.objects.get(pk=value)
+        return value.__str__()
+
+class FundWidget(widgets.CharWidget):
+    
+    def render(self, value, obj=None):
+        strC= str(value.funder.short_name) 
+        strC+= " - " +str(value.institution.short_name)
+        strC+='('+str(value.ref)
+        strC+=' - '+str(value.amount)+")"
+       
+        return strC  

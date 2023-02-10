@@ -20,7 +20,7 @@ from dashboard.utils import getDashboardContractTimeSlot
 
 from datetime import datetime
 
-class BudgetPOintViewSet(viewsets.ModelViewSet):
+class ExpensePOintViewSet(viewsets.ModelViewSet):
     queryset = Expense_point.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ExpensePOintSerializer

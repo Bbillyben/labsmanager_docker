@@ -6,7 +6,9 @@ from django.db.models import Sum, Q, F
 
 
 from project.models import Project, Institution
+
 from labsmanager.mixin import LabsManagerBudgetMixin, ActiveDateMixin
+from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -164,5 +166,35 @@ def calculate_fund(*arg):
             raise ValueError("No Project Found")
         pj.calculate()
         
+
+class Budget(models.Model):
+    class Meta:
+        """Metaclass defines extra model properties"""
+        verbose_name = _("Budget")
+        
+    cost_type=models.ForeignKey(Cost_Type, on_delete=models.SET_NULL, verbose_name=_('Type'), null=True)
+    amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
+    fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('fund'))
+    emp_type=models.ForeignKey('staff.Employee_Type', on_delete=models.SET_NULL, verbose_name=_('employee type'), null=True,blank=True)
+    contract_type=models.ManyToManyField('expense.Contract_type', blank=True)
+    employee=models.ForeignKey('staff.Employee', on_delete=models.SET_NULL, verbose_name=_('employee'), null=True,blank=True)
+    quotity = models.DecimalField(max_digits=4, decimal_places=3, default=0, validators=PERCENTAGE_VALIDATOR, verbose_name=_('quotity'),  null=True,blank=True)
+    
+    history = AuditlogHistoryField()
+    
+    
+    def clean(self, *args, **kwargs):
+        ctRH =Cost_Type.objects.get(short_name="RH").get_descendants(include_self=True)
+        isIn=ctRH.filter(pk=self.cost_type.pk)
+        
+        # str =  ",  ".join([p.name for p in self.contract_type.all()])
+        if isIn.count()==0 and (not self.emp_type is None or not self.employee is None): # or self.contract_type != None):
+            raise ValidationError(_('Employee Type, Contract Type and employee can not be defined if Cost Type is not of RH or descendant '))
+            
+    def __str__(self):
+        return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
+        
+        
 auditlog.register(Fund_Item)
 auditlog.register(Fund)
+auditlog.register(Budget)

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate
 from expense.models import Expense_point, Contract, Contract_expense, Contract_type
-from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution
+from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget
 from project.models import Project, Institution, Participant,Institution_Participant
 from endpoints.models import Milestones
 from leave.models import Leave, Leave_Type
@@ -143,6 +143,8 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ['id', 'title', ]  
+        
+     
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #
@@ -468,4 +470,16 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     #     return Fund_Item.objects.filter(fund__in=fund).aggregate(Sum('amount'))["amount__sum"]
     
     
+    
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
+class BudgetSerializer(serializers.ModelSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    cost_type=CostTypeSerialize(many=False, read_only=False)
+    fund=FundSerialize(many=False, read_only=False)
+    emp_type=EmployeeTypeSerialize(many=False, read_only=False)
+    employee=EmployeeSerialize_Min(many=False, read_only=False)
+    contract_type=ContractTypeSerializer(many=True, read_only=True)
+    class Meta:
+        model = Budget
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type']  
     
