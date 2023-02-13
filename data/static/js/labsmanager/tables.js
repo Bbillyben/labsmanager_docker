@@ -446,12 +446,13 @@ function InstitutionParticipantFormatter(value, row, index, field){
 
 
 function ProjectFormatter(value, row, index, field){
+    // console.log("ProjectFormatter :"+JSON.stringify(value))
     if(!isIterable(value)){
         value=[{"project":value}];
     }
     response = "";
     for (const item of value) {
-        //console.log("item :"+JSON.stringify(item));
+        // console.log("item :"+JSON.stringify(item));
 
             tm ="<a href='/project/"+item.project.pk+"'>"+item.project.name;
             tm+="</a>";

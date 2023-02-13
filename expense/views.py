@@ -8,6 +8,8 @@ from view_breadcrumbs import BaseBreadcrumbMixin
 from .models import Contract, Contract_expense, Expense_point
 from django.http import HttpResponse, JsonResponse
 from .serializers import ProjectExpensePointGraphSerializer
+from django.contrib.contenttypes.models import ContentType
+from fund.models import AmountHistory
 
 class ContractIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'expense/contract_base.html'
@@ -37,28 +39,64 @@ class ExpenseGraphView(LoginRequiredMixin, View):
             return HttpResponse(_("No expense found for that project"))
         
         datas=[]
-        counter={}
-        for ep in qset:
+        
+        # for ep in qset:
+        #     en_item=ep.fund.pk
+        #     type_item=ep.type.pk
+        #     tid=str(en_item)+"-"+str(type_item)
+        #     # if tid in counter:
+        #     #     expense=ep.amount-counter[tid]
+        #     # else:
+        #     #     expense=ep.amount
+                
+        #     # counter[tid]=ep.amount
+        #     datas.append(
+        #         {
+        #             'tid':tid,
+        #             'date':ep.value_date.isoformat(),
+        #             'funder':ep.fund.funder.short_name,
+        #             'institution':ep.fund.institution.short_name,
+        #             'type':ep.type.short_name,
+        #             'ref':ep.fund.ref,
+        #             'amount':'',
+        #             'total':ep.amount,
+                    
+        #         }
+        #     )
+        # from history
+        ct = ContentType.objects.get_for_model(Expense_point)
+        qsetH=AmountHistory.objects.filter(content_type=ct, object_id__in=qset.values("pk")).order_by("value_date")
+        for e in qsetH:
+            ep=e.content_object
             en_item=ep.fund.pk
             type_item=ep.type.pk
             tid=str(en_item)+"-"+str(type_item)
-            if tid in counter:
-                expense=ep.amount-counter[tid]
-            else:
-                expense=ep.amount
-                
-            counter[tid]=ep.amount
+
+           
             datas.append(
                 {
-                    'date':ep.value_date.isoformat(),
+                    'tid':tid,
+                    'date':e.value_date.isoformat(),
                     'funder':ep.fund.funder.short_name,
                     'institution':ep.fund.institution.short_name,
                     'type':ep.type.short_name,
                     'ref':ep.fund.ref,
-                    'amount':str(expense),
+                    'amount':'',
+                    'total':e.amount,
                     
                 }
             )
+        # sort
+        #datas= sorted(datas, key=lambda item: item['date'])
+        counter={}
+        for it in datas:
+            tid=it['tid']
+            if tid in counter:
+                expense=it['total']-counter[tid]
+            else:
+                expense=it['total']
+            counter[tid]=it['total']
+            it['amount']=str(expense)
             
         import pandas as pd
         df = pd.DataFrame(datas)

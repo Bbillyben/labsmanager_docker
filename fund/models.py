@@ -7,7 +7,7 @@ from django.db.models import Sum, Q, F
 
 from project.models import Project, Institution
 
-from labsmanager.mixin import LabsManagerBudgetMixin, ActiveDateMixin
+from labsmanager.mixin import LabsManagerBudgetMixin, ActiveDateMixin, CachedModelMixin
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
 
 from mptt.models import MPTTModel, TreeForeignKey
@@ -46,19 +46,23 @@ class Fund_Institution(models.Model):
     def __str__(self):
         return f'{self.short_name}'
     
-class Fund_Item(LabsManagerBudgetMixin):
+class Fund_Item(LabsManagerBudgetMixin, CachedModelMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund Line")
         unique_together = ('type', 'fund',)
         
     type=models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
-    # amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
     fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('Related Fund'))
     history = AuditlogHistoryField()
+    
+    cached_vars=["amount"]
 
     def __str__(self):
         return f'{self.type.short_name} - {self.fund}'
+    
+    
+    
 class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
@@ -90,7 +94,7 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         else:
             self.amount=0
         
-        exp=Expense_point.last.fund(self.pk)
+        exp=Expense_point.objects.filter(fund=self.pk) #.last.fund(self.pk)
         if exp:
             self.expense = exp.aggregate(Sum('amount'))["amount__sum"]
         else:
@@ -131,7 +135,7 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         fi =Fund_Item.objects.filter(fund=self.pk).values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name', 'fund__end_date', 'amount')
         # exp=Expense_point.objects.filter(fund=self.pk)
         # exp=Expense_point.get_lastpoint_by_fund_qs(exp)
-        exp=Expense_point.last.fund(self.pk)
+        exp=Expense_point.objects.filter(fund=pk).last.fund(self.pk)
         expI= exp.values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name','fund__end_date', 'amount')
         u = fi.union(expI)
         cpd=pd.DataFrame.from_records(u, columns=['project', 'funder','institution', 'type','end_date', 'amount',])
@@ -144,7 +148,7 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         from expense.models import Expense_point
         import pandas as pd
         fi =Fund_Item.objects.filter(fund__in=funds).values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name', 'fund__end_date', 'amount')
-        exp=Expense_point.last.fund(funds)
+        exp=Expense_point.objects.filter(pk__in=funds)   #.last.fund(funds)
         expI= exp.values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name','fund__end_date', 'amount')
         u = fi.union(expI)
         cpd=pd.DataFrame.from_records(u, columns=['project', 'funder','institution', 'type','end_date', 'amount',])
@@ -194,7 +198,23 @@ class Budget(models.Model):
     def __str__(self):
         return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
         
-        
+
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+class AmountHistory(models.Model):
+    content_type = models.ForeignKey(ContentType, related_name="content_type_amountHistory", on_delete=models.CASCADE, )
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
+    delta=models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name=_('Delta'))
+    created_at = models.DateField(auto_now_add=True, null=False, blank=False, verbose_name=_('Date'))
+    value_date = models.DateField(null=True, blank=True, verbose_name=_('Value Date'))
+    
+    
+    class Meta:
+        verbose_name = _("Amount History")
+
 auditlog.register(Fund_Item)
 auditlog.register(Fund)
 auditlog.register(Budget)
