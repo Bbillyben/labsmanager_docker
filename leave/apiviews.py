@@ -10,7 +10,8 @@ from django_filters import rest_framework as filters
 from labsmanager import serializers 
 
 from .models import Leave, Leave_Type
-from staff.models import TeamMate
+from staff.models import TeamMate, Employee_Status, Team
+from project.models import Participant
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -50,17 +51,30 @@ class LeaveViewSet(viewsets.ModelViewSet):
                 qset= qset.filter(type__short_name__in=types)
                      
         emp= data.get('employee', None)
+       
         if emp is not None:
             if isinstance(emp, str):
                 emp=emp.split(',')
             elif not isinstance(emp, Iterable):
                 emp=[emp,]
             qset= qset.filter(employee__in=emp)
+            
+        emp_status= data.get('emp_status', None)
+        if emp_status is not None and emp_status.isdigit() :
+            empS=Employee_Status.current.filter(type=emp_status).values('employee')
+            qset= qset.filter(employee__in=empS)
         
         team = data.get('team', None)
         if team is not None:
             tm = TeamMate.objects.filter(team=team).values('employee')
-            qset= qset.filter(employee__in=tm)
+            tl=Team.objects.filter(pk=team).values("leader")
+            qset= qset.filter(Q(employee__in=tm) | Q(employee__in=tl))
+            
+            
+        project = data.get('project', None)
+        if project is not None:
+            pa = Participant.objects.filter(project=project).values('employee')
+            qset= qset.filter(Q(employee__in=pa))
         
         start_date= data.get('start', None) 
         if start_date is not None:
@@ -95,7 +109,8 @@ class LeaveViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = LeaveItemResources().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        filename = f"LeaveItem.{export_format}"
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"LeaveItem_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
     
     @action(methods=['get'], detail=False, url_path='employee/(?P<emp_pk>[^/.]+)', url_name='employee')
@@ -114,9 +129,15 @@ class LeaveViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='calendar', url_name='search-calendar')
     def search_calendar(self, request):
         qset=self.filter_queryset(self.queryset) 
+        
+        export = request.GET.get('export', None)
+        if export is not None:
+            qs = self.filter_queryset(qset)
+            return self.download_queryset(qs, export)   
+        
+        
         is_cal=request.data.get('cal',  request.query_params.get('cal', None))
         
-        print("search_calendar - is cal :"+str(is_cal))
         if request.data.get('cal', None) or request.query_params.get('cal', None):
             return Response(serializers.LeaveSerializer1DCal(qset, many=True).data)
         else:

@@ -1,0 +1,67 @@
+{% load i18n %}
+{% load customs_tags %}
+
+
+<table
+class='table table-striped table-condensed'
+id="budget_table"
+data-id-table="budgetTable"
+data-url="{{ BudgetDataURL }}"
+data-type="{{ datatype }}"
+data-pk="{{ datapk }}"
+>
+<thead class="">
+    <tr>
+        {% if datatype != "project" %}
+        <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="projectFormatterDirect">
+            {% trans 'Project' %}
+        </th>
+        {%endif%}
+        <th data-sortable="true" class="th-inner sortable both" data-field="fund" data-formatter="SingleFundFormatter">
+            {% trans 'Fund' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="fund.start_date" data-formatter="baseDateFormatter">
+            {% trans 'Start Date' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="fund.end_date" data-formatter="baseDateFormatter">
+            {% trans 'End Date' %}
+        </th>
+
+        <th data-sortable="true" class="th-inner sortable both" data-field="cost_type.name" >
+            {% trans 'Cost Type' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="contract_type" data-formatter="m2mBaseFormatter">
+            {% trans 'Contract Type' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="emp_type.name" data-formatter="">
+            {% trans 'Employee Status' %}
+        </th>
+        {% if datatype != "employee" %}
+        <th data-sortable="true" class="th-inner sortable both" data-field="employee" data-formatter="employeeFormatter">
+            {% trans 'Employee' %}
+        </th>
+        {%endif%}
+        <th data-sortable="true" class="th-inner sortable both" data-field="quotity" data-formatter="quotityFormatter">
+            {% trans 'Quotity' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
+            {% trans 'Amount' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="fund.is_active" data-formatter="basicBoolean">
+            {% trans 'Is Active' %}
+        </th>
+        {% if datatype != "search" and datatype != "team" %}
+        <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionBudget"
+        data-can-change="{{ perms.fund.change_budget }}"
+        data-can-delete="{{ perms.fund.delete_budget }}"
+        data-is-staff="{{ request.user.is_staff }}"
+        >
+        {% trans 'Action' %}
+        </th>
+        {%endif%}
+    </tr>
+</thead>
+<tbody>
+
+</tbody>
+</table>

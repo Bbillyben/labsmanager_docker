@@ -13,6 +13,8 @@ from .filters import ProjectFilter
 from .resources import ProjectResource
 from labsmanager.helpers import DownloadFile
 
+from datetime import datetime
+
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related('participant_project').all()
     serializer_class = serializers.ProjectFullSerializer
@@ -75,7 +77,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = ProjectResource().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        filename = f"Projects.{export_format}"
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Projects_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
         # return JsonResponse('not a test', safe=False)
             

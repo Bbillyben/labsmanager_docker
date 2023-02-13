@@ -3,7 +3,7 @@ from django import template
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from settings.models import LMUserSetting
+
 import math
 import uuid
 register = template.Library()
@@ -69,11 +69,14 @@ def setting_object(key, *args, **kwargs):
     (Or return None if the setting does not exist)
     if a user-setting was requested return that
     """
+    from settings.models import LMUserSetting, LabsManagerSetting
 
     if 'user' in kwargs:
         return LMUserSetting.get_setting_object(key, user=kwargs['user'])
-    else:
-        raise Warning("User Is not set for User settings display")
+    
+    return LabsManagerSetting.get_setting_object(key)
+    # else:
+    #     raise Warning("User Is not set for User settings display")
 
 @register.simple_tag()
 def get_filter_lists( *args, **kwargs):

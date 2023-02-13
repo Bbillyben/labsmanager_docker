@@ -5,7 +5,8 @@
     function calendar_refresh(){
         //console.log("calendar_refresh")
         $('#calendar-box').unbind('click');
-        calendar.refetchEvents();  
+        calendar.refetchEvents(); 
+        calendar.refetchResources();  
     }
 
     function eventClicked(info){
@@ -131,13 +132,18 @@
     }
     // ---------------------- Selection de date  --------------------- //
     function eventSelectHandler(info){
+        //console.log(JSON.stringify(info))
         $('.popover').popover('dispose');
 
         var d = new Date(info.end);
         d.setDate(d.getDate() - 1)
         modURL=Urls['add_leave']()+"?start_date="+info.start.toISOString()+"&end_date="+d.toISOString();
         modURL+=getExtraSettingURL();
-
+        resource=info.resource
+        console.log("resource :"+JSON.stringify(resource))
+        if(resource){
+            modURL+="&employee="+resource.id
+        }
        
 
 
@@ -229,6 +235,8 @@
                 eventClick: eventClicked,
                 select: eventSelectHandler,
                 local: language,
+                height:"auto",
+                filterResourcesWithEvents:false,
             };
 
             // Extend default settings with provided options
@@ -237,19 +245,28 @@
 
             eltCal=document.getElementById(this.attr('id'))
             calendar = new FullCalendar.Calendar(eltCal, {
+                schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+                
                 timeZone: 'UTC',
                 locale:settings.local,
-                initialView: 'dayGridMonth',
+                initialView: 'resourceTimelineMonth',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,dayGridWeek,listWeek'
+                    right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
                 },
                 events:{
                         url: Urls['api:leave-search-calendar'](),
                         method: 'GET',
                         extraParams:getExtraSetting,
                     },
+                resources:{
+                        url: Urls['api:employee-calendar-resource'](),
+                        method: 'GET',
+                        extraParams:getExtraSetting,
+                    },
+                resourceGroupField:"employee",
+
                 selectable: settings.selectable,
                 editable: settings.editable,
                 eventDidMount: function(info) {
@@ -264,8 +281,20 @@
                 eventResize: settings.eventResize,
                 eventClick: settings.eventClick,
                 select: settings.select,
+                height: settings.height,
+                resourceLabelContent : function(renderInfo ) {
+                    htmlRes=renderInfo.fieldValue
+                    if(USER_PERMS.includes("staff.view_employee")){
+                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to user'><i type = 'button' class='fa-regular fa-circle-right text-info'></i></a></sup>"; 
+                    } 
+                    //htmlRes+="</span>"
+                    
+                    return { html: htmlRes}
+                    },
+                    resourceOrder: 'title',
+                filterResourcesWithEvents:settings.filterResourcesWithEvents,
             })
-            calendar.render()
+            calendar.render();
 
             return calendar;
         };

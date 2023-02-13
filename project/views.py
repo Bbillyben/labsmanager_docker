@@ -16,7 +16,7 @@ import pandas as pd
 import json
 
 from labsmanager.pandas_utils import PDUtils
-
+from labsmanager.mixin import CrumbListMixin
 class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_base.html'
     model = Project
@@ -24,10 +24,14 @@ class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     
     
     
-class ProjectView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
+class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_single.html'
     model = Project
     # crumbs = [("Project","project")]
+    # for CrumbListMixin
+    reverseURL="project_single"
+    crumbListQuerySet=Project.objects.filter(status=True)
+    names_val=['name']
     
     @cached_property
     def crumbs(self):
@@ -72,15 +76,21 @@ def get_project_fund_overview(request, pk):
         a=a.annotate(source=Value('Budget'))
         
     # get expense time poitn from related fund
-    b = Expense_point.objects.none()
-    for fu in fund:
-        ExpensePointItems=Expense_point.objects.filter(fund__pk=fu['pk']).annotate(source=Value('Expense'))
-        fuov=Expense_point.get_lastpoint_by_fund_qs(ExpensePointItems)
-        if fuov:
-            b=b.union(fuov)
-    if b:
-        b=b.values_list('fund__funder__short_name','fund__institution__short_name','fund__ref', 'type__name', 'amount', 'source', named=False)
-        # b=b.annotate(source=Value('Expense'))
+    fuov=Expense_point.last.fund(fund)
+    b=None
+    if fuov:
+        b=fuov.values_list('fund__funder__short_name','fund__institution__short_name','fund__ref', 'type__name', 'amount',  named=False).annotate(source=Value('Expense'))
+        
+    # b = Expense_point.objects.none()
+    # for fu in fund:
+    #     # ExpensePointItems=Expense_point.objects.filter(fund__pk=fu['pk']).annotate(source=Value('Expense'))
+    #     # fuov=Expense_point.get_lastpoint_by_fund_qs(ExpensePointItems)
+    #     fuov=Expense_point.last.fund(fu['pk']).annotate(source=Value('Expense'))
+    #     if fuov:
+    #         b=b.union(fuov)
+    # if b:
+    #     b=b.values_list('fund__funder__short_name','fund__institution__short_name','fund__ref', 'type__name', 'amount', 'source', named=False)
+    #     # b=b.annotate(source=Value('Expense'))
   
     if a and b:
         c = a.union(b)

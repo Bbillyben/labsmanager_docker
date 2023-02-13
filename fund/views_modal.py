@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import FundItemModelForm, FundModelForm
+from .forms import FundItemModelForm, FundModelForm, BudgetModelForm
 from expense.forms import ExpenseTimepointModelForm
 from expense.models import Expense_point
     
@@ -125,6 +125,49 @@ class FundDeleteView(LoginRequiredMixin, BSModalDeleteView):
         
     def post(self, *args, **kwargs):
         
+        self.object = self.get_object()
+        self.object.delete()
+        return HttpResponse("okok", status=200)
+    
+################# BUDGET
+class BudgetCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = BudgetModelForm
+    success_message = 'Success: Budget was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.Budget
+
+    def get(self, request, *args, **kwargs):
+        print("BudgetCreateView :"+str(kwargs))
+        initial={}
+        
+        if 'project' in kwargs:
+            initial={'project': kwargs['project']}
+        if 'employee' in kwargs:
+            initial={'employee': kwargs['employee']}
+
+        form = self.form_class(initial=initial)        
+        
+        context = {'form': form}
+        return render(request, self.template_name , context)
+    
+class BudgetUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Budget
+    template_name = 'form_validate_base.html'
+    form_class = BudgetModelForm
+    success_message = 'Success: Employee was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    
+    
+class BudgetDeleteView(LoginRequiredMixin, BSModalDeleteView):
+    model = models.Budget
+    template_name = 'form_delete_base.html'
+    # form_class = EmployeeModelForm
+    success_url = reverse_lazy('project_index')
+        
+    def post(self, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
         return HttpResponse("okok", status=200)

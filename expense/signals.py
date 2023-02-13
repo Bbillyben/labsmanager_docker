@@ -1,7 +1,8 @@
 from expense.models import Expense_point
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+import logging
+logger = logging.getLogger('labsmanager')
 
 @receiver(post_save, sender=Expense_point)
 def save_Expense_point_handler(sender, instance, **kwargs):
@@ -14,4 +15,5 @@ def save_Expense_point_handler(sender, instance, **kwargs):
     # print('         - instance.type :'+str(instance.type))
     # print('         - instance.amount :'+str(instance.amount))
     # print('  - kwargs :'+str(kwargs))
+    logger.debug('[save_Fund_Item_handler] called')
     instance.fund.calculate()

@@ -11,6 +11,21 @@ function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
     updateTeamMateBtnHandler()
     update_team_desc();
 
+    // project table
+    // var filters = loadTableFilters('funditem');
+    // var filterOption={
+    //     download:true,
+    // }
+    var options={
+        //queryParams: {team:team_id},
+        name:'teamProject',
+        //url:Urls['api:team-projects'](team_id)
+        
+    }
+    //setupFilterList('funditem', $('#fund_main_table'), '#filter-list-funditem',filterOption);
+    $('#team_project_table').labTable(options);
+
+
 
 
 }
@@ -33,6 +48,26 @@ function updateTeamMateBtnHandler(){
             addModalFormFunction: update_team_desc,
         }
     })
+    $(".update_teammate").each(function () {
+        $(this).modalForm({
+            modalID: "#create-modal",
+            modalContent: ".modal-content",
+            modalForm: ".modal-content form",
+            formURL: $(this).data("form-url"),
+            isDeleteForm: false,
+            errorClass: ".form-validation-warning",
+            asyncUpdate: true,
+            asyncSettings: {
+                directUpdate: true,
+                closeOnSubmit: true,
+                successMessage: "Employee deleted",
+                dataUrl: '/api/employee/',
+                dataElementId: '#employee_main_table',
+                dataKey: 'table',
+                addModalFormFunction: update_team_desc,
+            }
+        });
+    });
     $(".delete_teammate").each(function () {
         $(this).modalForm({
             modalID: "#create-modal",
@@ -101,8 +136,7 @@ function update_team_desc(){
 
 // for calendar
 function initTeamCalendar(){
-    var canMod=perms.includes("leave.change_leave") || perms.includes("is_staff");
-    const calendarEl = document.getElementById('calendar-team-box')
+    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
     option={
         selectable:canMod,
         editable:canMod,

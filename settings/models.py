@@ -736,7 +736,43 @@ def update_instance_name(setting):
     site_obj.name = setting.value
     site_obj.save()
 
+class LabsManagerSetting(BaseLabsManagerSetting):
+    SETTINGS = {
+         'MAIL_OBJECT_PREFIX': {
+            'name': _('Mail Object Prefix'),
+            'default': '[LabsManager]',
+            'description': _('String added as prefix to mail object'),
+            #'after_save': ,
+        },
+        'AUDIT_LOG_RETENTION': {
+            'name': _('Audit Log Retention'),
+            'description': _('Number of to retain AudiLog history'),
+            'units': _('Days'),
+            'default': 180,
+            'validator': [
+                int,
+                MinValueValidator(1),
+            ]
+        },
+         
+    }
+    class Meta:
+        """Meta options for InvenTreeSetting."""
 
+        verbose_name = "LabsManager Setting"
+        verbose_name_plural = "LabsManager Settings"
+        
+    key = models.CharField(
+        max_length=50,
+        blank=False,
+        unique=True,
+        help_text=_('Settings key (must be unique - case insensitive'),
+    )
+    
+    def to_native_value(self):
+        """Return the "pythonic" value, e.g. convert "True" to True, and "1" to 1."""
+        return self.__class__.get_setting(self.key)
+    
 
 class LMUserSetting(BaseLabsManagerSetting):
     

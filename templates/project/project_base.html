@@ -4,7 +4,7 @@
 {% load customs_tags %}
 
 {% block page_title %}
-{% trans "LabManager Employee" %}
+{% trans "LabManager Project" %}
 {% endblock %}
 
 {% block breadcrumb_list %}
@@ -52,10 +52,10 @@
                         <th data-sortable="true" class="th-inner sortable both" data-field="name" data-sorter="nameSorter" data-formatter="ProjectFormatter">
                             {% trans 'Project' %}
                         </th>
-                        <th data-sortable="true" class="th-inner sortable both" data-field="start_date">
+                        <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
                             {% trans 'Start Date' %}
                         </th>
-                        <th data-sortable="true" class="th-inner sortable both" data-field="end_date">
+                        <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                             {% trans 'End Date' %}
                         </th>
                         <th data-sortable="true" class="th-inner sortable both" data-field="institution" data-formatter="InstitutionParticipantFormatter">

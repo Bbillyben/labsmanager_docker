@@ -12,12 +12,14 @@
 
 {% block sidebar %}
 
+{% include 'fund/fund_finder_sidebar.html' %}
+
 {% endblock %}
 
 {% block content %}
 
 <div id='detail-panels'>
-    <div class="panel" id="panel-stock" style="display: block;">
+    <div class="panel-hidden panel-visible" id="panel-fund" style="display: block;">
         <div class="panel-heading">
             <div class="d-flex flex-wrap">
                 <h4>{% trans 'Fund Finder' %}</h4>
@@ -59,10 +61,10 @@
                                 <th data-sortable="true" class="th-inner sortable both" data-field="fund.institution" data-formatter="InstitutionParticipantFormatter">
                                     {% trans 'Institution' %}
                                 </th>
-                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.start_date" data-formatter="">
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.start_date" data-formatter="baseDateFormatter">
                                     {% trans 'Start Date' %}
                                 </th>
-                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.end_date" data-formatter="">
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.end_date" data-formatter="baseDateFormatter">
                                     {% trans 'End Date' %}
                                 </th>
                                 <th data-sortable="true" class="th-inner sortable both" data-field="type.name" data-formatter="">
@@ -97,6 +99,40 @@
             </div>
         </div>
     </div><!-- panel -->
+
+
+<!-- ######################################    Budget PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-budget" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-budget1" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Budgets Finder' %}</h4>
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content collapse show" id="Budget-details">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div id='tracking-table-toolbar_funditem'>
+                            <div class='btn-group'>
+                                {% include "filter_list.html" with id="budget" %}
+                            </div>
+                        </div>
+                        <div class="card" id="project_budget_table">
+                            {% url 'api:budget-search' as BudgetDataURL %}
+                            {% include "fund/budget_table.html" with datatype="search" dataURL=BudgetDataURL %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </div><!-- detail panel-->
         
 
@@ -107,10 +143,15 @@
 
 {% block js_load %}
 <script type='text/javascript' src="{% static 'js/fund_finder.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
+
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     initFundFinder(user_id);
+    initializeBudgetTable()
+    enableSidebar('fund_finder')
 })
 </script>
 

@@ -1,0 +1,14 @@
+
+
+{% if crumbs_list %}
+<div class="crumb-dropdown">
+    <button type="button" class="btn btn-sm  dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    </button>
+    <div class="dropdown-menu scroll-menu scroll-menu-2x">
+    {% for u, n in crumbs_list %}
+      <a class="dropdown-item" href="{{u}}">{{n}}</a>
+      
+      {%endfor%}
+    </div>
+  </div>
+{%endif%}

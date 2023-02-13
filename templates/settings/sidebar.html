@@ -11,3 +11,15 @@
 
 {% trans "Stale Settings" as text %}
 {% include "sidebar_item.html" with label='stale_setting' text=text icon="fa-gauge" %}
+
+{% if request.user.is_staff %}
+    {% trans "LabsManager Settings" as text %}
+    {% include "sidebar_header.html" with text=text icon='fa-screwdriver-wrench' %}
+
+    {% trans "Mails" as text %}
+    {% include "sidebar_item.html" with label='mail_setting' text=text icon="fa-envelope" %}
+
+    {% trans "Audit Log" as text %}
+    {% include "sidebar_item.html" with label='auditlog_setting' text=text icon="fa-clock-rotate-left" %}
+
+{% endif %}

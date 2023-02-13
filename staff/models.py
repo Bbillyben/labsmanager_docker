@@ -5,10 +5,13 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.db.models import Sum
+
 from django.utils import timezone
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+
+from labsmanager.mixin import ActiveDateMixin
 
 ### Models 
 class Employee(models.Model):
@@ -79,8 +82,7 @@ class Employee(models.Model):
 
 
 
-
-class Employee_Status(models.Model):
+class Employee_Status(ActiveDateMixin):
     
     class Meta:
         """Metaclass defines extra model properties"""
@@ -90,8 +92,6 @@ class Employee_Status(models.Model):
         
     type = models.ForeignKey('Employee_type', on_delete=models.CASCADE, verbose_name=_('Type'))
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
-    start_date=models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
-    end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
     contract_status=(("c",_("Contractual")), 
                 ("s", _("Statutory")),
                 )
@@ -146,18 +146,25 @@ class Team(models.Model):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.name}"
 
-class TeamMate(models.Model):
+
+
+class TeamMate(ActiveDateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("TeamMate")    
         
     team = models.ForeignKey(Team, on_delete=models.CASCADE, verbose_name=_('Team'))
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
+
+    
     history = AuditlogHistoryField()
+    
     
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.team} / {self.employee}"
+    
+    
     
     def clean(self):
         team = self.team

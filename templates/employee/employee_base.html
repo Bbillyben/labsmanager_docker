@@ -59,10 +59,10 @@
                         <th data-sortable="true" class="th-inner sortable both" data-field="first_name" data-formatter="userFormatter" data-allow="{{ perms.staff.can_change }} " data-sorter="nameSorter" data-search-formatter='false'>
                             {% trans 'User Id' %}
                         </th>
-                        <th data-sortable="true" class="th-inner sortable both" data-field="entry_date">
+                        <th data-sortable="true" class="th-inner sortable both" data-field="entry_date" data-formatter="baseDateFormatter">
                             {% trans 'Entry Date' %}
                         </th>
-                        <th data-sortable="true" class="th-inner sortable both" data-field="exit_date">
+                        <th data-sortable="true" class="th-inner sortable both" data-field="exit_date" data-formatter="baseDateFormatter">
                             {% trans 'Exit Date' %}
                         </th>
                         <th data-sortable="true" class="th-inner sortable both" data-field="get_status" data-formatter="statusFormatter">

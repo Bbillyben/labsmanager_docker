@@ -3,7 +3,12 @@ from typing import List
 
 from django.http import JsonResponse
 from django.db import models
+from django.db.models import Q, F
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
+
+from .manager import Current_date_Manager, outof_date_Manager, date_manager
+from datetime import date
 
 from django_tables2 import Column, SingleTableMixin, Table
 
@@ -67,3 +72,79 @@ class LabsManagerBudgetMixin(models.Model):
         if self.cleaned_data['expense']>0:
             self.cleaned_data['expense']=-self.cleaned_data['expense']
         return self.cleaned_data['expense']
+    
+from dateutil.rrule import *
+class DateMixin(models.Model):
+    start_date=models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
+    end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
+    
+        
+    objects = date_manager()
+    current = Current_date_Manager()
+    past = outof_date_Manager()
+    
+    
+    @property
+    def open_days(self):
+        d1=rrule(DAILY, dtstart=self.start_date, until=self.end_date, byweekday=[MO, TU, WE, TH, FR])
+        d2=list(d1)
+        return len(d2)
+    
+    class Meta:
+        abstract = True
+        constraints = [
+            models.CheckConstraint(
+                check=Q(end_date__gte=F('start_date')),
+                name=_("End Date should be greater than start date"),
+            )
+        ]
+    
+     
+    
+    
+class ActiveDateMixin(DateMixin):
+        
+    class Meta:
+        abstract = True
+        
+    @property
+    def is_active(self):
+        if self.end_date:
+            return self.end_date > date.today()
+        return True
+    
+    @classmethod
+    def get_active_filter():
+        query = Q(end_date=None) | Q(end_date__gte=date.today())
+        return query
+    @classmethod
+    def get_inactive_filter():
+        query = Q(end_date__lte=date.today())
+        return query
+
+
+class CrumbListMixin():
+    
+    reverseURL=None
+    crumbListQuerySet=None
+    names_val=None
+    id_name="id"
+    
+    class Meta:
+        abstract = True
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sel=self.crumbListQuerySet.filter(~Q(pk=self.kwargs['pk'])).values() #'pk', self.names_val)
+        li=[]
+        for e in sel:
+            n=""
+            for i in self.names_val:
+                n+=str(e.get(i))+" "
+            li.append([
+                reverse(self.reverseURL, kwargs={'pk':e.get(self.id_name)} ),
+                n
+                ])
+            
+        context['crumbs_list']=li
+        return context

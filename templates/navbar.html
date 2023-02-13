@@ -8,20 +8,11 @@
       <div class="navbar-header clearfix content-heading">
         <a class="navbar-brand" id='logo' href="{% url 'index' %}" style="padding-top: 7px; padding-bottom: 5px;"><img src="{% static 'img/labsmanager/labsmanager_icon.png' %}" width="32" height="32" style="display:block; margin: auto;"/></a>
       </div>
-      <div class="navbar-collapse collapse" id="navbar-objects">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="navbar-collapse collapse" id="navbarNav">
         <ul class="navbar-nav">
-         
-
-          <!-- For Staff-->
-          {% comment %} <li class='nav-item dropdown'>
-            <a class='nav-link dropdown-toggle' href='#' id='buyMenuDropdown' role='button' data-bs-toggle='dropdown'>
-              <span class='fas fa-user-circle icon-header'></span>{% trans "Staff" %}
-            </a>
-            <ul class='dropdown-menu' aria-labelledby="buyMenuDropdown">
-              <li><a class='dropdown-item' href="{% url 'employee_index' %}"><span class='fas fa-user icon-header'></span>{% trans "Employee" %}</a></li>
-              <li><a class='dropdown-item' href="{% url 'contract_index' %}"><span class='fas fa-users icon-header'></span>{% trans "Contracts" %}</a></li>
-            </ul>
-          </li> {% endcomment %}
 
           <!-- For Employee-->
           <li class='nav-item'>
@@ -57,50 +48,46 @@
           
 
         </ul>
+        <span class="flex" style="flex-grow: 1;"></span>
+        <ul class='navbar-nav'>
+  
+           <li class='nav-item'>
+             <a class='nav-link' href="{% url 'calendar_main' %}">
+               <span class='fas fa-calendar-days icon-header'></span>{% trans "Calendar" %}
+             </a>
+           </li>
+           <!-- For Dashboard -->
+           <li class='nav-item'>
+             <a class='nav-link' href="{% url 'dashboard' %}">
+               <span class='fas fa-chart-area icon-header'></span>{% trans "Dashboard" %}
+             </a>
+           </li>
+           {% include 'liste_spacer.html' %}
+           <li class='nav-item dropdown'>
+             <a class='nav-link dropdown-toggle' href='#' id='userMenuDropdown' role='button' data-bs-toggle='dropdown'>
+               <span class='fas fa-user'></span> <strong>{{ user.get_username }}</strong>
+             </a>
+             <ul class='dropdown-menu dropdown-menu-end labsmanager-navbar-menu'>
+               
+               {% if user.is_authenticated %}
+                 <li><a class='dropdown-item' href="{% url 'settings' %}"><span class="fas fa-gear"></span> {% trans "Settings" %}</a></li>
+                 {% if user.is_staff %}
+                   <li><a class='dropdown-item' href="{% url 'admin:index' %}"><span class="fas fa-user-shield"></span> {% trans "Admin" %}</a></li>
+                 {% endif %}
+                 <hr>
+                 <li><a class='dropdown-item' href="{% url 'logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a></li>
+               {% else %}
+                 <li><a class='dropdown-item' href="{% url 'login' %}"><span class="fas fa-sign-in-alt"></span> {% trans "Login" %}</a></li>
+               {% endif %}    
+                 <!-- <hr>     
+                 <li><div class='dropdown-item' ><span class="fas fa-flag"></span>{{LANGUAGE_CODE}}</div></li>    -->
+             </ul>
+   
+           </li>
+         </ul>
 
       </div>
-      <ul class='navbar-nav flex-row'>
-  
-       <!--  <li class='nav-item me-2'>
-          <button data-bs-toggle='offcanvas' data-bs-target="#offcanvas-search" class='btn position-relative' title='{% trans "Search" %}'>
-            <span class='fas fa-search'></span>
-          </button>
-        </li>
-        -->
-        <li class='nav-item'>
-          <a class='nav-link' href="{% url 'calendar_main' %}">
-            <span class='fas fa-calendar-days icon-header'></span>{% trans "Calendar" %}
-          </a>
-        </li>
-        <!-- For Dashboard -->
-        <li class='nav-item'>
-          <a class='nav-link' href="{% url 'dashboard' %}">
-            <span class='fas fa-chart-area icon-header'></span>{% trans "Dashboard" %}
-          </a>
-        </li>
-        {% include 'liste_spacer.html' %}
-        <li class='nav-item dropdown'>
-          <a class='nav-link dropdown-toggle' href='#' id='userMenuDropdown' role='button' data-bs-toggle='dropdown'>
-            <span class='fas fa-user'></span> <strong>{{ user.get_username }}</strong>
-          </a>
-          <ul class='dropdown-menu dropdown-menu-end labsmanager-navbar-menu'>
-            
-            {% if user.is_authenticated %}
-              <li><a class='dropdown-item' href="{% url 'settings' %}"><span class="fas fa-gear"></span> {% trans "Settings" %}</a></li>
-              {% if user.is_staff %}
-                <li><a class='dropdown-item' href="{% url 'admin:index' %}"><span class="fas fa-user-shield"></span> {% trans "Admin" %}</a></li>
-              {% endif %}
-              <hr>
-              <li><a class='dropdown-item' href="{% url 'logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a></li>
-            {% else %}
-              <li><a class='dropdown-item' href="{% url 'login' %}"><span class="fas fa-sign-in-alt"></span> {% trans "Login" %}</a></li>
-            {% endif %}    
-              <!-- <hr>     
-              <li><div class='dropdown-item' ><span class="fas fa-flag"></span>{{LANGUAGE_CODE}}</div></li>    -->
-          </ul>
-
-        </li>
-      </ul>
+      
     
 
     </div>
@@ -113,6 +100,7 @@
       <ol class="breadcrumb" id="breadcrumb-list">
         {% block breadcrumbs %}
           {% render_breadcrumbs %}
+          {% include 'bread_crumb_list.html' %}
         {% endblock %}
       </ol>
     </nav>

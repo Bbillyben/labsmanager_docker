@@ -45,3 +45,35 @@ class UserSettingsList(generics.ListAPIView):
         return queryset
     
     permission_classes = (IsAuthenticated,)
+    
+    
+
+
+class GlobalSettingsList(generics.ListAPIView):
+    """API endpoint for accessing a list of global settings objects."""
+
+    queryset = models.LabsManagerSetting.objects.all()
+    serializer_class = serializers.GlobalSettingsSerializer
+    
+
+class GlobalSettingsDetail(generics.RetrieveUpdateAPIView):
+    """Detail view for an individual "global setting" object.
+    - User must have 'staff' status to view / edit
+    """
+
+    lookup_field = 'key'
+    queryset = models.LabsManagerSetting.objects.all()
+    serializer_class = serializers.GlobalSettingsSerializer
+
+    def get_object(self):
+        """Attempt to find a global setting object with the provided key."""
+        key = self.kwargs['key']
+
+        if key not in models.LabsManagerSetting.SETTINGS.keys():
+            raise NotFound()
+
+        return models.LabsManagerSetting.get_setting_object(key)
+
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]

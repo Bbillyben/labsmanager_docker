@@ -23,8 +23,24 @@
         </tr>
         <tr>
             <td><i class="fa-solid fa-money-bills"></i></td>
-            <td  class="desc_title">{% trans 'Fund Amout Total' %}</td>
-            <td>{% moneyFormat project.get_funds_amount %}</td>
+            <td colspan="2">
+                <table class="table table-sm">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>{% trans 'Budget'  %}</th>
+                            <th>{% trans 'Expense'  %}</th>
+                            <th>{% trans 'Available'  %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{% moneyFormat project.get_funds_amount %}</td>
+                            <td>{% moneyFormat project.get_funds_expense %}</td>
+                            <td>{% moneyFormat project.get_funds_available %}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
         </tr>
         <tr>
             <td><i class="fas fa-users"></i></td>

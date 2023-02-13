@@ -7,6 +7,8 @@ from django.db.models import Q
 from bootstrap_modal_forms.forms import BSModalModelForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from labsmanager.forms import DateInput
+
 
 class TeamMateForm(forms.ModelForm):
     model = TeamMate
@@ -28,6 +30,11 @@ class EmployeeModelForm(BSModalModelForm):
     class Meta:
         model = Employee
         fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', ]
+        widgets = {
+            'birth_date': DateInput(),
+            'entry_date': DateInput(),
+            'exit_date': DateInput(),
+        }
         
     def __init__(self, *args, **kwargs):
         super(EmployeeModelForm, self).__init__(*args, **kwargs)
@@ -45,6 +52,10 @@ class EmployeeStatusForm(BSModalModelForm):
     class Meta:
         model = Employee_Status
         fields = ['type', 'start_date', 'end_date', 'is_contractual', 'employee']
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
     
     def __init__(self, *args, **kwargs): 
         
@@ -71,7 +82,11 @@ class TeamModelForm(BSModalModelForm):
 class TeamMateModelForm(BSModalModelForm):
     class Meta:
         model = TeamMate
-        fields = ['team', 'employee',]
+        fields = ['team', 'employee','start_date','end_date']
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
         
     def __init__(self, *args, **kwargs):
         
@@ -86,7 +101,7 @@ class TeamMateModelForm(BSModalModelForm):
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
-            self.fields['teamp'].widget.attrs['disabled'] = True
+            self.fields['team'].widget.attrs['disabled'] = True
             self.fields['employee'].widget.attrs['disabled'] = True
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             self.fields['team'].widget.attrs['disabled'] = True

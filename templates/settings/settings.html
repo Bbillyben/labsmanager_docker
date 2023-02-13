@@ -3,6 +3,9 @@
 {% load static %}
 {% load customs_tags %}
 
+{% block page_title %}
+{% trans "LabManager Settings" %}
+{% endblock %}
 
 {% block breadcrumb_list %}
 {% endblock %}
@@ -17,8 +20,25 @@
 {% include "settings/dashboard_settings.html" %}
 {% include "settings/stale_calculation_settings.html" %}
 
+
+
+
+{% if request.user.is_staff %}
+
+{% include "settings/mail_settings.html" %}
+{% include "settings/auditlog_settings.html" %}
+{% endif %}
+
+
+
 {{ request.user.id|json_script:"user_id" }}
 {{ project.pk|json_script:"project_id" }}
+
+
+
+
+
+
 {% endblock %}
 
 

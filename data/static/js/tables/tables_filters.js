@@ -187,6 +187,36 @@ function getAvailableTableFilters(tableKey) {
             }
         };
     }
+    if (tableKey == 'budget') {
+        return {
+            
+            active: {
+                type: 'bool',
+                title: 'Active',
+            },
+            type: {
+                title: 'Cost Type',
+                options:cost_type_codes,
+            },
+            contract_type:{
+                title : 'Contract Type',
+                options: contract_type_codes,
+            },
+            emp_name: {
+                title: 'Employee Name',
+                description: 'Employee Name',
+            },
+            project_name: {
+                title: 'Project Name',
+                description: 'Project Name',
+            },
+            institution: {
+                title: 'Institution',
+                description: 'Institution Name',
+                options: institution_codes,
+            },
+        };
+    }
 
 
     // Finally, no matching key

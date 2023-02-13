@@ -5,11 +5,16 @@ from django import forms
 from django.db.models import Q
 from staff.models import TeamMate, Employee, Team
 
+from labsmanager.forms import DateInput
+
 class LeaveItemModelForm(BSModalModelForm):
     class Meta:
         model = models.Leave
         fields = ['employee', 'type','start_date','end_date', 'comment', ]
-        
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
     def __init__(self, *args, **kwargs):
         
         

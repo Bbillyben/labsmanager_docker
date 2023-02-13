@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -39,7 +40,7 @@ urlpatterns = [
     path('staff/', include('staff.urls'), name='staff'),                  # For Staff models
     path('project/', include('project.urls')),              # for project model
     path('fund/', include('fund.urls')),              # for project model
-    path('expense/', include('expense.urls')),              # for project model
+    path('expense/', include('expense.urls'), name='expense'),              # for project model
     path('dashboard/', include('dashboard.urls')),
     path('settings/', include('settings.urls')),
     path('milestones/', include('endpoints.urls')),
@@ -66,7 +67,8 @@ router.register(r'project', projectApiViews.ProjectViewSet, basename='project')
 router.register(r'fund', fundApiViews.FundViewSet, basename='fund')
 router.register(r'funditem', fundApiViews.FundItemViewSet, basename='funditem')
 router.register(r'contract', contractApiViews.ContractViewSet, basename='contract')
-router.register(r'budget', contractApiViews.BudgetPOintViewSet, basename='budget')
+router.register(r'expense', contractApiViews.ExpensePOintViewSet, basename='expense')
+router.register(r'budget', fundApiViews.BudgetViewSet, basename='budget')
 router.register(r'milestones', endPointApiViews.MilestonesViewSet, basename='milestones')
 router.register(r'milestones', endPointApiViews.MilestonesViewSet, basename='milestones')
 router.register(r'leave', leaveApiViews.LeaveViewSet, basename='leave')
@@ -85,3 +87,5 @@ if settings.DEBUG:
     # Media file access
     # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += [path('sendtest', SendTestView, name='testmail'),]
+    from labsmanager.tasks import create_report
+    urlpatterns += [path('testTask', create_report, name='testTask'),]

@@ -13,9 +13,9 @@ def getDashboardTimeSlot(request):
     now = datetime.now()
     slot={}
     if pastMonth:
-        slot["from"] =now + relativedelta(months=-pastMonth)
+        slot["from"] =getDateToStale(-pastMonth) # now + relativedelta(months=-pastMonth)
     if nextMonth and nextMonth > 0:
-        slot["to"]=now + relativedelta(months=+nextMonth)
+        slot["to"]=getDateToStale(nextMonth) # now + relativedelta(months=+nextMonth)
     
     return slot
 
@@ -28,9 +28,20 @@ def getDashboardMilestonesTimeSlot(request):
     now = datetime.now()
     slot={}
     if pastMonth:
-        slot["from"] =now + relativedelta(months=-pastMonth)
+        slot["from"] =getDateToStale(-pastMonth)
     if nextMonth and nextMonth > 0:
-        slot["to"]=now + relativedelta(months=+nextMonth)
+        slot["to"]=getDateToStale(nextMonth)
+    
+    return slot   
+
+def getDashboardContractTimeSlot(request):
+    if not request.user:
+        return {}
+    nextMonth= LMUserSetting.get_setting('DASHBOARD_CONTRACT_STALE_TO_MONTH',user=request.user)
+    now = datetime.now()
+    slot={}
+    if nextMonth and nextMonth > 0:
+        slot["to"]=getDateToStale(nextMonth)
     
     return slot    
 

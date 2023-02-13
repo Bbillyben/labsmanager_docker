@@ -9,6 +9,12 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from settings.models import LMUserSetting
 from dashboard import utils
+
+from labsmanager.mixin import ActiveDateMixin
+
+import logging
+logger = logging.getLogger('labsmanager')
+
 class Institution(models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
@@ -24,14 +30,12 @@ class Institution(models.Model):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.short_name}"
     
-class Project(models.Model):
+class Project(ActiveDateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("project")
         ordering = ['name']
     name = models.CharField(max_length=50, verbose_name=_('Project Name'), unique=True)
-    start_date=models.DateField(null=False, blank=False, verbose_name=_('Start Date'))
-    end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
     status=models.BooleanField(default=True, verbose_name=_('Project Status'))
     history = AuditlogHistoryField()
     
@@ -80,6 +84,30 @@ class Project(models.Model):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.name}"
     
+    def calculate(self, force=False):
+        logger.debug(f'[Project]-calculate :{str(self)} / (force: {force})')
+        from fund.models import Fund
+        fi= Fund.objects.filter(project=self.pk)
+        if fi:
+            self.amount= fi.aggregate(Sum('amount'))["amount__sum"]
+            self.expense= fi.aggregate(Sum('expense'))["expense__sum"]
+        else:
+            self.amount = 0
+            self.expense = 0
+        
+def calculate_project(*arg):
+        logger.debug('[calculate_project] :'+str(arg))
+        pjPk=arg[0]
+        if not pjPk or not isinstance(pjPk, int) or pjPk<=0:
+            raise KeyError(f'No project id submitted for calculate_project')
+        pj=Project.objects.get(pk=pjPk)
+        if not pj:
+            raise ValueError("No Project Found")
+        pj.calculate()
+ 
+ 
+ 
+        
 class Institution_Participant(models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
@@ -98,12 +126,10 @@ class Institution_Participant(models.Model):
     )
     history = AuditlogHistoryField()
 
-class Participant(models.Model):
+class Participant(ActiveDateMixin):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'), related_name='participant_project')
     employee =  models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
-    start_date=models.DateField(null=False, blank=False, verbose_name=_('Start Date'))
-    end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
     type_part=(("l",_("Leader")), ("cl", _("Co Leader")), ("p", _("Participant")))
     status = models.CharField(
         max_length=2,

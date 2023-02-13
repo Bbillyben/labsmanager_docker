@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate
 from expense.models import Expense_point, Contract, Contract_expense, Contract_type
-from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution
+from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget
 from project.models import Project, Institution, Participant,Institution_Participant
 from endpoints.models import Milestones
 from leave.models import Leave, Leave_Type
@@ -116,9 +116,10 @@ class LeaveSerializer1D(serializers.ModelSerializer):
     end=serializers.DateField(source='end_date')
     title=serializers.SerializerMethodField()
     color= serializers.CharField(source='type.color')
+    days= serializers.CharField(source='open_days')
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment',]  
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment', 'days']  
         
     def get_title(self,obj):
         return f'{obj.employee.user_name} - {obj.type.name}'
@@ -126,9 +127,24 @@ class LeaveSerializer1D(serializers.ModelSerializer):
     
 class LeaveSerializer1DCal(LeaveSerializer1D):
     end=serializers.SerializerMethodField()
+    resourceId= serializers.CharField(source='employee.pk')
+    class Meta:
+        model = Leave
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment','resourceId',]  
+        
     
     def get_end(self,obj):
         return obj.end_date +timedelta(days=1)
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    For calendar 
+class EmployeeSerialize_Cal(serializers.ModelSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    id = serializers.CharField(source='pk')
+    title = serializers.CharField(source='user_name')
+    class Meta:
+        model = Employee
+        fields = ['id', 'title', ]  
+        
+     
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #
@@ -182,7 +198,16 @@ class ParticipantSerializer(serializers.ModelSerializer):
     def get_project_pk(self,obj):
         return obj.project.pk
     
-
+class TeamParticipantSerializer(ParticipantSerializer):
+    participant = serializers.SerializerMethodField() 
+    class Meta:
+        model = Participant
+        # fields = ['pk', 'project_pk', 'project_name', 'project_start_date', 'project_end_date', 'project_status', 'status', 'quotity' ]
+        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity', 'participant', ]
+    
+    def get_participant(self,obj):
+        part = Participant.objects.select_related('employee').filter(project = obj.project.pk, employee__is_active= True)
+        return ParticipantProjectSerializer(part , many=True).data
 
 # ------------------------------------------------------------------------------------ #
 # ---------------------------    APP FUND / SERIALISZER    --------------------------- #
@@ -252,8 +277,9 @@ class FundStaleSerializer(serializers.ModelSerializer):
         fields=['pk', 'project', 'funder', 'institution', 'end_date', 'availability', 'amount','expense',]
         
     def get_availability(self,obj):
-        avail=obj.get_available()
-        return avail['amount'].sum(axis=0, skipna=True)
+        # avail=obj.get_available()
+        # return avail['amount'].sum(axis=0, skipna=True)
+        return obj.amount + obj.expense
     def get_project(self,obj):
         return obj.project.name
     def get_funder(self, obj):
@@ -279,7 +305,9 @@ class ExpensePOintSerializer(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Expense_point
-        fields = ['pk', 'entry_date', 'value_date', 'fund', 'type', 'amount']       
+        fields = ['pk', 'entry_date', 'value_date', 'fund', 'type', 'amount']
+        
+        
 # ---------------------------------------------------------------------------------------- #
 # ---------------------------    APP Expense / SERIALISZER    --------------------------- #
 # ---------------------------------------------------------------------------------------- #
@@ -330,7 +358,7 @@ class EmployeeStatusSerialize(serializers.ModelSerializer):
     is_contractual=serializers.SerializerMethodField()
     class Meta:
         model = Employee_Status
-        fields = ['pk', 'type', 'start_date', 'end_date', 'is_contractual']
+        fields = ['pk', 'type', 'start_date', 'end_date', 'is_contractual', 'is_active',]
         
     def get_is_contractual(self,obj):
         return obj.get_is_contractual_display()
@@ -351,7 +379,7 @@ class TeamMateSerializer_min(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many=False, read_only=True)
     class Meta:
         model = TeamMate
-        fields=['pk', 'employee']
+        fields=['pk', 'employee', 'start_date', 'end_date', 'is_active',]
     
     
 class TeamSerializer(serializers.ModelSerializer):
@@ -365,11 +393,6 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 
-
-
-#  For project table
-       
-        
 class ParticipantProjectSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     status_name=serializers.SerializerMethodField()
@@ -379,6 +402,37 @@ class ParticipantProjectSerializer(serializers.ModelSerializer):
     
     def get_status_name(self,obj):
         return obj.get_status_display()
+
+
+
+#  For Team table
+class TeamProjectSerializer(serializers.ModelSerializer):
+    fund=serializers.SerializerMethodField() 
+    participant = serializers.SerializerMethodField() 
+    institution=serializers.SerializerMethodField()
+    class Meta:
+        model = Project
+        fields = ['pk', 'name', 'start_date', 'end_date', 'status', 
+                  'participant',
+                  'institution', 
+                  'fund',
+                  ]
+    def get_fund(self,obj):
+        fund = Fund.objects.select_related('funder', 'institution').filter(project = obj.pk)
+        return FundProjectSerialize(fund , many=True).data
+    def get_participant(self,obj):
+        part = Participant.objects.select_related('employee').filter(project = obj.pk, employee__is_active= True)
+        return ParticipantProjectSerializer(part , many=True).data
+    def get_institution(self,obj):
+        ip = Institution_Participant.objects.filter(project = obj.pk)
+        return Institution_ProjectParticipantSerializer(ip , many=True).data
+    
+    
+    
+#  For project table
+       
+        
+
 
 class ProjectFullSerializer(serializers.ModelSerializer):
     participant = serializers.SerializerMethodField() 
@@ -390,7 +444,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Project
-        fields = ['pk', 'name', 'start_date', 'start_date', 'end_date', 'status', 
+        fields = ['pk', 'name', 'start_date', 'end_date', 'status', 
                   'participant', 'participant_count',
                   'institution', 
                   'fund','get_funds_amount', 'get_funds_expense','get_funds_available',
@@ -416,4 +470,16 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     #     return Fund_Item.objects.filter(fund__in=fund).aggregate(Sum('amount'))["amount__sum"]
     
     
+    
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
+class BudgetSerializer(serializers.ModelSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    cost_type=CostTypeSerialize(many=False, read_only=False)
+    fund=FundSerialize(many=False, read_only=False)
+    emp_type=EmployeeTypeSerialize(many=False, read_only=False)
+    employee=EmployeeSerialize_Min(many=False, read_only=False)
+    contract_type=ContractTypeSerializer(many=True, read_only=True)
+    class Meta:
+        model = Budget
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type']  
     

@@ -4,11 +4,15 @@ from django import forms
 from bootstrap_modal_forms.forms import BSModalModelForm
 
 from project.models import Project
+from labsmanager.forms import DateInput
 
 class MilestonesModelForm(BSModalModelForm):
     class Meta:
         model = Milestones
         fields = ['project', 'name','desc','deadline_date', 'type', 'quotity', 'status',]
+        widgets = {
+            'deadline_date': DateInput(),
+        }
     
     def __init__(self, *args, **kwargs):
         if ('initial' in kwargs and 'project' in kwargs['initial']):

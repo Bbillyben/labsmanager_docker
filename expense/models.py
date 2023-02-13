@@ -7,11 +7,13 @@ from staff.models import Employee
 from django.db.models import Q, Sum
 
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR, NEGATIVE_VALIDATOR    
-
+from labsmanager.manager import LastInManager
 from settings.models import LMUserSetting
 from dashboard import utils
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+
+from labsmanager.mixin import DateMixin
 
 # Create your models here.
 class Expense(models.Model):
@@ -50,7 +52,7 @@ class Expense_point(models.Model):
     class Meta:
         verbose_name = _("Total Expense Timepoint")
         unique_together = ('value_date', 'fund', 'type')
-    
+
     entry_date = models.DateField(null=False, blank=False, verbose_name=_('Entry Date'))
     value_date = models.DateField(null=False, blank=False, verbose_name=_('value Date'))
     fund=models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'))
@@ -58,6 +60,9 @@ class Expense_point(models.Model):
     amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'), validators=NEGATIVE_VALIDATOR,)
     history = AuditlogHistoryField()
     
+    # manager
+    objects = models.Manager()
+    last = LastInManager()
     
     def clean_amount(self):
         if self.cleaned_data['amount']>0:
@@ -102,18 +107,16 @@ class Contract_type(models.Model):
     def __str__(self):
         return f'{self.name}'
     
-class Contract(models.Model):
+class Contract(DateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Contract")
         
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
-    start_date=models.DateField(null=True, blank=True, verbose_name=_('Contract Start Date'))
-    end_date=models.DateField(null=True, blank=True, verbose_name=_('Contract End Date'))
     quotity = models.DecimalField(max_digits=4, decimal_places=3, default=0, validators=PERCENTAGE_VALIDATOR, verbose_name=_('Time quotity'))
     fund=models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'))
     contract_type=models.ForeignKey(Contract_type,null=True, on_delete=models.SET_NULL, verbose_name=_('Contract Type'))
-    is_active=models.BooleanField(default=True, verbose_name=_('Contract is active'))
+    is_active=models.BooleanField(default=True, verbose_name=_('is Active'))
     history = AuditlogHistoryField()
     
     def __str__(self):

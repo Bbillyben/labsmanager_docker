@@ -1,6 +1,7 @@
 
 var user_id = 0;
 var project_id = 0;
+var calendar;
 
 function initProjectSingleView(user_idA, project_idA){
         
@@ -129,10 +130,38 @@ function initProjectSingleView(user_idA, project_idA){
 
 
     update_project();
+    initProjectCalendar();
+    loadProjectGraph();
+    
+
+
+}
+// for calendar
+function initProjectCalendar(){
+    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
+    option={
+        selectable:canMod,
+        editable:canMod,
+        extraParams:{project:project_id},
+    }
+    calendar = $('#calendar-project-box').lab_calendar(option);
+    
+    
+    
     
 
 }
+function updateProjectCalendar(){
+    $('#project_leave_item_table').labTable('refresh');
+    calendar.refetchEvents();  
+    calendar.refetchResources();  
+}
 
+// for dashboard graph
+function loadProjectGraph(){
+    url=Urls['graph_project']({pk:project_id})
+    loadInTemplate(elt=$("#project_expense_graph"),url=url);
+}
 
 // ----------------------  Project Main  ------------------- //
 function updateMainButton(){
@@ -197,6 +226,7 @@ function update_project(){
 
 function updateParticipant(){
     $('#project_participant_table').bootstrapTable('refresh');
+    updateProjectCalendar();
 }
 function updateInstitution(){
     $('#project_institution_table').bootstrapTable('refresh');

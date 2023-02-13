@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
 from django.http import JsonResponse
+from django.db.models import Q
 # from django.views.generic import ListView
 from .models import Employee, Team, TeamMate, Employee_Status, Employee_Type
 from .filters import EmployeeFilter
@@ -12,8 +13,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.functional import cached_property
-from view_breadcrumbs import BaseBreadcrumbMixin
-from labsmanager.mixin import TableViewMixin
+from view_breadcrumbs import BaseBreadcrumbMixin, DetailBreadcrumbMixin 
+from labsmanager.mixin import TableViewMixin, CrumbListMixin
 
 from django.urls import reverse_lazy
 from .forms import EmployeeModelForm, EmployeeStatusForm
@@ -29,16 +30,20 @@ class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
 
 
 
-class EmployeeView(LoginRequiredMixin, BaseBreadcrumbMixin ,  TemplateView):
+class EmployeeView(LoginRequiredMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  TemplateView):
     template_name = 'employee/employee_single.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Employee
+    # for CrumbListMixin
+    reverseURL="employee"
+    crumbListQuerySet=Employee.objects.filter(is_active=True)
+    names_val=['first_name', 'last_name']
     # crumbs = [("Employee","./",),("employees",reverse("employee"))]
 
     @cached_property
     def crumbs(self):
         return [("Employee","./",) ,
-                (str(self.construct_crumb()) ,  reverse("employee_index" ) ),
+                (str(self.construct_crumb()) ,  ("A1","L1")),
                 ]
 
     def construct_crumb(self):
@@ -76,7 +81,8 @@ class EmployeeView(LoginRequiredMixin, BaseBreadcrumbMixin ,  TemplateView):
         contracts = Contract.objects.filter(employee=id)
         if contracts:
             context['contracts']=contracts
-
+         
+        
         # View top-level categories
         return context
 
@@ -166,10 +172,14 @@ class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     
     
 
-class TeamView(LoginRequiredMixin, BaseBreadcrumbMixin ,  TemplateView):
+class TeamView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin ,  TemplateView):
     template_name = 'team/team_single.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Team
+    # for CrumbListMixin
+    reverseURL="team_single"
+    crumbListQuerySet=Team.objects.all()
+    names_val=['name']
     
     @cached_property
     def crumbs(self):

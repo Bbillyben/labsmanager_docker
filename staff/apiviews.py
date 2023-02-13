@@ -8,6 +8,7 @@ from django_filters import rest_framework as filters
 from labsmanager import serializers  # UserSerializer, GroupSerializer, EmployeeSerialize, EmployeeStatusSerialize, ContractEmployeeSerializer, TeamSerializer, ParticipantSerializer, ProjectSerializer
 from staff.models import Employee, Employee_Status, Team, TeamMate
 from expense.models import  Contract
+from project.models import Participant, Project
 
 from labsmanager.utils import str2bool
 from labsmanager.helpers import DownloadFile
@@ -17,6 +18,7 @@ from staff.filters import EmployeeFilter
 
 from .ressources import EmployeeResource, TeamResource
 
+from datetime import datetime
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
@@ -58,7 +60,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = EmployeeResource().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        filename = f"Employee.{export_format}"
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Employee_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
         # return JsonResponse('not a test', safe=False)
     
@@ -90,6 +93,27 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         t1=Participant.objects.filter(employee=emp.pk)
         
         return JsonResponse(serializers.ParticipantSerializer(t1, many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='calendar-resource', url_name='calendar-resource')
+    def employee_calendar(self, request, pk=None):
+        t1=Employee.objects.filter(is_active=True).order_by('first_name')
+        team = request.data.get('team', request.query_params.get('team', None))
+        if team is not None:
+            tm = TeamMate.objects.filter(team=team).values('employee')
+            tl=Team.objects.filter(pk=team).values("leader")
+            t1= t1.filter(Q(pk__in=tm)|Q(pk__in=tl))
+        
+        project = request.data.get('project', request.query_params.get('project', None))
+        if project is not None:
+            pj = Participant.objects.filter(project=project).values('employee')
+            t1= t1.filter(Q(pk__in=pj))
+        
+        emp_status = request.data.get('emp_status', request.query_params.get('emp_status', None))
+        if emp_status is not None and emp_status.isdigit() :
+            empS=Employee_Status.current.filter(type=emp_status).values('employee')
+            t1= t1.filter(pk__in=empS)
+        
+        return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
     
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.select_related('leader').all()
@@ -128,5 +152,21 @@ class TeamViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = TeamResource().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        filename = f"Team.{export_format}"
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Team_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
+    
+    
+    @action(methods=['get'], detail=True, url_path='projects', url_name='projects')
+    def team_projects(self, request, pk=None):
+        if pk is None:
+            raise Exception("/api/team/<pk>/projects/ => No team Pk Found")
+        team=self.queryset.filter(pk=pk).first()
+        mate=TeamMate.objects.filter(team=team).values("employee")
+        parti=Participant.objects.filter(Q(employee__in=mate) | Q(employee=team.leader)).distinct('project') #.values("project")
+        #pjset=Project.objects.filter(pk__in=parti)
+        
+        return JsonResponse(serializers.TeamParticipantSerializer(parti, many=True).data, safe=False)
+        #return JsonResponse(serializers.TeamProjectSerializer(pjset, many=True).data, safe=False) 
+        
+        

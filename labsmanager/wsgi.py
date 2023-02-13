@@ -14,3 +14,7 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'labsmanager.settings')
 
 application = get_wsgi_application()
+
+from .tasks import scheduleBaseTasks
+scheduleBaseTasks()
+

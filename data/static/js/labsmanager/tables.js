@@ -98,6 +98,7 @@ function convertQueryParameters(params, filters) {
 
     // Extract table configuration options
     var table_options = table.bootstrapTable('getOptions');
+    
 
     var url = table_options.url;
 
@@ -321,6 +322,12 @@ function styleAlignMiddle(value, row, index, field){
 
 
 // -------------------- Formatter
+function baseDateFormatter(value, row, index, field){
+    if(value == null || value =="")return value
+    d=new Date(value)
+    if (d == "Invalid Date" )return value;
+    return d.toLocaleDateString()
+}
 
 function basicBoolean(value, row, index, field){
     response = (value ? '<img src="/static/admin/img/icon-yes.svg" alt="True">' : '<img src="/static/admin/img/icon-no.svg" alt="False">');
@@ -362,10 +369,12 @@ function employeeFormatter(value, row, index, field){
     }
     response = "";
     for (const item of value) {
-        //console.log("item :"+JSON.stringify(item));
-
-            tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
-            response+= (response.length > 1 ? ', ' : '') + tm;
+        // console.log("item :"+JSON.stringify(item));
+            if("employee" in item && item.employee!=null){
+                tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
+                response+= (response.length > 1 ? ', ' : '') + tm;
+            }
+            
       }
       return response;
 }
@@ -381,6 +390,7 @@ function teamMateFormatter(value, row, index, field){
         //if (item.employee.is_active == true){
 
             tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
+            if(!item.is_active)tm +='<sup><img src="/static/admin/img/icon-no.svg" alt="False" style="width:1em;"></img></sup>'
             response+= (response.length > 1 ? ', ' : '') + tm;
         //}
       }
@@ -388,8 +398,8 @@ function teamMateFormatter(value, row, index, field){
 }
 
 function ParticipantFormatter(value, row, index, field){
-    //console.log('ParticipantFormatter'+JSON.stringify(value))
-    //console.log('ParticipantFormatter'+JSON.stringify(row))
+    // console.log('ParticipantFormatter'+JSON.stringify(value))
+    // console.log('ParticipantFormatter'+JSON.stringify(row))
 
     if(!isIterable(value)){
         value=[{"employee":value}];
@@ -451,9 +461,23 @@ function ProjectFormatter(value, row, index, field){
 }
 
 
+function SingleFundFormatter(value, row, index, field){
+    
+    response = "";
+    response +=value.funder.short_name;
+    response+=" - "+value.institution.short_name;
+    response+=" ("+value.ref;
+    response+=" - "+moneyDisplay(value.amount)+")"
+    
+      return response;
+}
+
+
 function FundFormatter(value, row, index, field){
+    
+
     if(!isIterable(value)){
-        value=[{"fund":value}];
+        value=[value];
     }
     response = "<ul>";
     for (const item of value) {
@@ -468,7 +492,9 @@ function FundFormatter(value, row, index, field){
 }
 
 
-function projectFormatter(value, row, index, field){
+function projectFormatterDirect(value, row, index, field){
+    // console.log(value)
+    // console.log(row)
     response = '<a href="/project/'+value.pk+'" >'+value.name+"</a>";
     return response;
 }
@@ -490,6 +516,22 @@ function TeamFormatter(value, row, index, field){
     return response;
 }
 
+
+function leaveEmployeeFormatter(value, row, index, field){
+    response =  '<a href="'+Urls['employee'](row.employee_pk)+'" title="/'+row.employee_pk+'/"> '+value+'</a>';
+    return response;
+}
+
+
+function m2mBaseFormatter(value, row, index, field){
+    // console.log("m2mBaseFormatter")
+    // console.log(value)
+    response=value.map(function(elem){
+        return elem.name;
+    }).join(", ");
+
+    return response
+}
 
 // --------------------     Basic Table Sorter    ------------------- // 
 

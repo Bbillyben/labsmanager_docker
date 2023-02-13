@@ -9,7 +9,9 @@ https://github.com/trco/django-bootstrap-modal-forms
 
     // Open modal & load the form at formURL to the modalContent element
     var modalForm = function (settings) {
-        $(settings.modalID).find(settings.modalContent).load(settings.formURL, function () {
+        url=settings.formURL;
+        if(Object.keys(settings.params).length >0 )url+="?"+$.param(settings.params)
+        $(settings.modalID).find(settings.modalContent).load(url, function () {
             $(settings.modalID).modal("show");
             $(settings.modalForm).attr("action", settings.formURL);
             addEventHandlers(settings);
@@ -107,6 +109,7 @@ https://github.com/trco/django-bootstrap-modal-forms
                                 });
                             }
                         }else{
+                            
                             $.ajax({
                                 type: "GET",
                                 url: asyncSettings.dataUrl,
@@ -178,6 +181,7 @@ https://github.com/trco/django-bootstrap-modal-forms
             modalContent: ".modal-content",
             modalForm: ".modal-content form",
             formURL: null,
+            params:{},
             isDeleteForm: false,
             errorClass: ".invalid",
             asyncUpdate: false,
@@ -190,6 +194,7 @@ https://github.com/trco/django-bootstrap-modal-forms
                 addModalFormFunction: null,
                 directUpdate: false,
                 forceExitFunction: false,
+                
             }
         };
 

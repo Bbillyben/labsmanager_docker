@@ -1,0 +1,10 @@
+{% load i18n %}
+{% load static %}
+
+{% trans "Funds" as text %}
+{% include "sidebar_item.html" with label="fund" text=text icon="fa-money-bills" %}
+
+{% trans "Budgets" as text %}
+{% include "sidebar_item.html" with label="budget" text=text icon="fa-sack-dollar" %}
+
+{% include "sidebar_toggle.html" with text="" target='sidebar' %}
