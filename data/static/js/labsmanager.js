@@ -40,6 +40,18 @@ $.fn.isEmpty = function() {
 
 
 
+// params in windows
+$.urlParam = function(name) {
+    // eslint-disable-next-line no-useless-escape
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+
+    if (results == null) {
+        return null;
+    }
+
+    return decodeURI(results[1]) || 0;
+};
+
 // ---------------------- local data storage
 /**
  * Save a key:value pair to local storage

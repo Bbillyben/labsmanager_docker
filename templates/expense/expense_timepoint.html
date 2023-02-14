@@ -34,9 +34,6 @@
                 <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
                     {% trans 'Amount' %}
                 </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="entry_date" data-formatter="baseDateFormatter">
-                    {% trans 'Entry Date' %}
-                </th>
                 {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense %}
                 <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpensePointdItem"
                 data-can-change="{{ perms.expense.change_expense_point }}"

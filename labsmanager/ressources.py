@@ -1,7 +1,7 @@
 from import_export.resources import ModelResource
 from import_export import results, widgets
-
-
+from import_export.fields import Field
+import datetime
 # ressource for import export 
 class SimpleError(results.Error):
     def __init__(self, error, traceback=None, row=None):
@@ -76,7 +76,15 @@ class SkipErrorRessource(ModelResource):
         abstract = True
         
         
-        
+################################ Field COMMON #################################    
+
+class DateField(Field):
+    
+    def get_value(self, obj):
+        val=super().get_value(obj)
+        if isinstance(val, datetime.datetime):
+            return val.date()
+        return val   
 ################################ WIDGETS COMMON #################################
 from staff.models import Employee
 class EmployeeWidget(widgets.CharWidget):

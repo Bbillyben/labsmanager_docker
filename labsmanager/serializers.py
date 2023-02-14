@@ -258,13 +258,13 @@ class FundItemSerialize(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Fund_Item
-        fields = ['pk', 'type', 'fund','amount',  'expense','available',]    
+        fields = ['pk', 'type', 'fund','amount',  'expense','available','value_date', 'entry_date',]    
             
 class FundItemSerialize_min(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Fund_Item
-        fields = ['pk', 'type', 'amount','expense',]  
+        fields = ['pk', 'type', 'amount','expense','value_date', 'entry_date',]  
         
 class FundStaleSerializer(serializers.ModelSerializer):
     availability=serializers.SerializerMethodField()

@@ -8,11 +8,16 @@ from django import forms
 from project.models import Project
 
 from labsmanager.forms import DateInput
+from datetime import date
 
 class FundItemModelForm(BSModalModelForm):
     class Meta:
         model = models.Fund_Item
-        fields = ['fund', 'type','amount',]
+        fields = ['value_date', 'fund', 'type','amount', 'entry_date']
+        widgets = {
+            'value_date': DateInput(),
+            'entry_date': DateInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         if ('initial' in kwargs and 'fund' in kwargs['initial']):
@@ -24,10 +29,14 @@ class FundItemModelForm(BSModalModelForm):
             self.base_fields['fund'] = forms.ModelChoiceField(
                 queryset=models.Fund.objects.all(),
             )
+        # set today as default entrey date
+        self.base_fields['entry_date'].initial = date.today()
+        
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             self.fields['fund'].widget = forms.HiddenInput()
+            self.fields['type'].disabled = True
             
             
 class FundModelForm(BSModalModelForm):

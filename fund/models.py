@@ -15,6 +15,8 @@ from mptt.models import MPTTModel, TreeForeignKey
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+import datetime
+
 import logging
 logger = logging.getLogger('labsmanager')
 
@@ -52,6 +54,8 @@ class Fund_Item(LabsManagerBudgetMixin, CachedModelMixin):
         verbose_name = _("Fund Line")
         unique_together = ('type', 'fund',)
         
+    entry_date = models.DateField(null=False, blank=False, default=datetime.date.today, verbose_name=_('Entry Date'))
+    value_date = models.DateField(null=False, blank=False, default=datetime.date.today, verbose_name=_('value Date'))
     type=models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
     fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('Related Fund'))
     history = AuditlogHistoryField()
