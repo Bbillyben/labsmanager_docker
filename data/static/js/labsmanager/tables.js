@@ -381,8 +381,9 @@ function employeeFormatter(value, row, index, field){
 
 
 function teamMateFormatter(value, row, index, field){
+    
     if(!isIterable(value)){
-        value=[{"employee":value}];
+        value=[{"employee":value, "is_active":value.is_active}];
     }
     response = "";
     for (const item of value) {
