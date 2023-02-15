@@ -63,6 +63,15 @@ function statusFormatter(value, row, index, field){
 
   return response;
 }
+function infoFormatter(value, row, index, field){
+  response = '<ul>';
+  console.log('statusFormatter : '+JSON.stringify(value)); //+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
+  for (const item of value) {
+    response +="<li>"+item.info.name + " : "+item.value+"</li>"
+  }
+  response +="</ul>"
+  return response;
+}
 
 function adminActionFormatter(value, row, index, field){
   action = "<span class='icon-left-cell btn-group'>";

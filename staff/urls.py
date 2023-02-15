@@ -23,13 +23,16 @@ urlpatterns += [
     path('employee/add/', views.EmployeeCreateView.as_view(), name='create_employee'),  # modal creation employee
     path('employee/<pk>/udpate', views.EmployeeUpdateView.as_view(), name='update_employee'),  # modal update employee
     path('employee/<pk>/delete', views.EmployeeRemoveView.as_view(), name='delete_employee'),  # modal delete employee
-    path('employee/<employee>/status/add/', views.EmployeeStatusCreateView.as_view(), name='create_status_employee'),  
+    path('employee/<employee>/status/add/', views.EmployeeStatusCreateView.as_view(), name='create_status_employee'),    
     path('status/<pk>/update/', views.StatusUpdateView.as_view(), name='update_status_employee'),  # specific for status view
     path('status/<pk>/delete/', views.StatusDeleteView.as_view(), name='delete_status_employee'),  # specific for status view
-    
+    # for info
+    path('employee/<employee>/info/add/', views.EmployeeInfoCreateView.as_view(), name='create_info_employee'),
+    path('info/<pk>/update/', views.EmployeeInfoUpdateView.as_view(), name='update_info_employee'),  # specific for status view
+     path('info/<pk>/delete/', views.EmployeeInfoDeleteView.as_view(), name='delete_info_employee'), 
     # for sub template 
     path('ajax/<pk>/activ', views.get_employee_valid, name='user_valid_temp'),  # template for user valid check box
-    
+    path('ajax/<pk>/info', views.get_employee_info_table, name='employee_info_table'), 
     # for team
     path('team/add/', views_modal.TeamCreateView.as_view(), name='create_team'),  # modal creation Team
     path('team/<pk>/udpate', views_modal.TeamUpdateView.as_view(), name='update_team'),  # modal update Team

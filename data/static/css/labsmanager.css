@@ -1286,3 +1286,12 @@ li.list-spacer{
     max-height: 15em;
     overflow-y: auto;
   }
+
+
+  /* for calendar */
+  .fc-timeline-slot-lane.fc-day-sat, .fc-timeline-slot-lane.fc-day-sun {
+    background-color: rgba(211, 211, 211, 0.322);
+  } 
+  .fc-daygrid-day.fc-day-sat, .fc-daygrid-day.fc-day-sun {
+    background-color: rgba(211, 211, 211, 0.322);
+  } 

@@ -37,9 +37,14 @@
                         <li><a class="dropdown-item" href="#" id="edit-employee" title="Edit Employee">
                             <i class='fa fa-edit'></i> {% trans 'Edit Employee' %}
                         </a></li>
-                        <li><a class="dropdown-item" href="#" id="add-status" title="Edit Employee">
+                        <li><a class="dropdown-item" href="#" id="add-status" title="Add Status">
                             <i class='fa fa-user-plus'></i> {% trans 'Add Status' %}
                         </a></li>
+                        {% if perms.staff.add_genericinfo %}
+                        <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
+                            <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
+                        </a></li>
+                        {% endif %}
                     </ul>
                 </div>
                 {% endif %}
@@ -49,15 +54,11 @@
             <div class="container" style="max-width: 100%; padding: 5px;">
                 <div class="row">
                     <div class="col" id="detail-panel-left">
-                    <div class="card  mb-2">
-                        <div class="row">
-                            <div class="col" id="employee_dec_table">
-                                <!-- here is loaded the table description of the user-->
-
-                            </div>
-                        </div>
+                        <div class="card  mb-2" id="employee_dec_table"></div>
+                        <div id="employee_info_table"></div>
+                   
+                    
                     </div>
-                </div>
                 <div class="col" id="detail-panel-right">
                     <div class="card  mb-2">
                         <div class="row">
@@ -107,6 +108,7 @@
                         </div>
 
                     </div>
+                    
                 </div>
                 
                 

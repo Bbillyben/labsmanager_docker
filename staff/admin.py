@@ -1,5 +1,5 @@
 from django.contrib import admin
-from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate
+from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfoType, GenericInfo
 from django.utils.translation import gettext_lazy as _
 from .forms import TeamMateForm
 
@@ -28,7 +28,10 @@ class EmployeeStatusInline(admin.TabularInline):
 class LeaveInline(admin.TabularInline):
     model = Leave
     extra = 0
-    
+
+class GenericInfoInline(admin.TabularInline):
+    model = GenericInfo
+    extra = 0 
     
 class EmployeeAdmin(ImportExportModelAdmin):
     list_display = ('first_name', 'last_name',  'entry_date' , 'exit_date', 'is_active', 'get_user')
@@ -43,7 +46,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
             'fields': ('user',)
         }),
     )
-    inlines = [EmployeeStatusInline, LeaveInline]
+    inlines = [EmployeeStatusInline, LeaveInline, GenericInfoInline]
     list_filter=('entry_date' , 'exit_date')
     resource_classes = [EmployeeResource]
      
@@ -59,6 +62,19 @@ class EmployeeAdmin(ImportExportModelAdmin):
     get_first_name.short_description = _('First Name')
     get_first_name.admin_order_field = 'user__first_name'
     
+    # class Media:
+    #     # css=(
+    #     #     'data/static/fontawesome/css/brands.min.css',
+    #     #     'data/static/fontawesome/css/solid.min.css',
+    #     # )
+    #     js = (
+            
+    #         'data/static/fontawesome/js/solid.min.js',
+    #         'data/static/fontawesome/js/regular.min.js',
+    #         'data/static/fontawesome/js/brands.min.js',
+    #         'data/static/fontawesome/js/fontawesome.min.js',
+    #     )
+    
     
 class EmployeeTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'shortname' )
@@ -73,8 +89,20 @@ class TeamAdmin(admin.ModelAdmin):
     list_display = ('name', 'leader' )
     inlines = [TeamMateInline]
     
+from faicon import widgets
+class GenericInfoTypeAdmin(admin.ModelAdmin):
+    list_display = ( 'name', 'get_icon',)
     
-
+    @admin.display(description='Icon')
+    def get_icon(self, obj):
+        icon=widgets.parse_icon(str(obj.icon))
+        if isinstance(icon, widgets.Icon):
+            return icon.icon_html()
+        return obj.icon
+    class Media:
+        css = {
+            'all':('/static/fontawesome/css/all.css','/static/css/adminsmall.css',), 
+        }
      
 # Register your models here.
 admin.site.register(Employee, EmployeeAdmin)
@@ -83,3 +111,4 @@ admin.site.register(Employee_Type, EmployeeTypeAdmin)
 
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Employee_Status)
+admin.site.register(GenericInfoType, GenericInfoTypeAdmin)

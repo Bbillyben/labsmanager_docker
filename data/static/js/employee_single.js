@@ -83,6 +83,24 @@ function initEmployeeSingleView(user_idA, employee_idA){
             addModalFormFunction: update_status,
         }
     })
+    $('#add-info').modalForm({
+        modalID: "#create-modal",
+        modalContent: ".modal-content",
+        modalForm: ".modal-content form",
+        formURL: Urls['create_info_employee'](employee_id),
+        isDeleteForm: false,
+        errorClass: ".form-validation-warning",
+        asyncUpdate: true,
+        asyncSettings: {
+            directUpdate: true,
+            closeOnSubmit: true,
+            successMessage: "Employee Updated",
+            dataUrl: '/api/employee/'+employee_id,
+            dataElementId: '#employee_dec_table',
+            dataKey: 'table',
+            addModalFormFunction: update_employee_info,
+        }
+    })
 
     $('#add_project').modalForm({
         modalID: "#create-modal",
@@ -142,6 +160,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
     })
 
     update_employee();
+    update_employee_info();
     updateLeaveBtnHandler();
 }
 
@@ -168,6 +187,31 @@ function update_employee(){
         }
     })    
 }
+
+function update_employee_info(){
+    //window.location.reload();
+    csrftoken = getCookie('csrftoken');
+    $.ajax({
+        type:"POST",
+        url: Urls['employee_info_table'](employee_id),
+        data:{
+                pk:employee_id,
+                csrfmiddlewaretoken: csrftoken,
+        },
+        success: function( data )
+        {
+            $('#employee_info_table').html(data);
+            update_info_btn();
+        },
+        error:function( err )
+        {
+             $("body").html(err.responseText)
+            //console.log(JSON.stringify(err));
+        }
+    })    
+}
+
+
 function update_activ_btn(){
     $('.user_action').click(function(){
 
@@ -250,6 +294,48 @@ function update_status_btn(){
     });
 }
 
+function update_info_btn(){
+    $(".update_info").each(function () {
+        $(this).modalForm({
+            modalID: "#create-modal",
+            modalContent: ".modal-content",
+            modalForm: ".modal-content form",
+            formURL: $(this).data("form-url"),
+            isDeleteForm: false,
+            errorClass: ".form-validation-warning",
+            asyncUpdate: true,
+            asyncSettings: {
+                directUpdate: true,
+                closeOnSubmit: true,
+                successMessage: "Employee Updated",
+                dataUrl: '/api/employee/',
+                dataElementId: '#employee_main_table',
+                dataKey: 'table',
+                addModalFormFunction: update_employee_info,
+            }
+        });
+    });
+    $(".delete_info").each(function () {
+        $(this).modalForm({
+            modalID: "#create-modal",
+            modalContent: ".modal-content",
+            modalForm: ".modal-content form",
+            formURL: $(this).data("form-url"),
+            isDeleteForm: true,
+            errorClass: ".form-validation-warning",
+            asyncUpdate: true,
+            asyncSettings: {
+                directUpdate: true,
+                closeOnSubmit: true,
+                successMessage: "Employee Updated",
+                dataUrl: '/api/employee/',
+                dataElementId: '#employee_main_table',
+                dataKey: 'table',
+                addModalFormFunction: update_employee_info,
+            }
+        });
+    });
+}
 function empStatusFormatter(value, row, index, field){
     //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
     action = "<span class='icon-left-cell btn-group'>";

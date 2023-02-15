@@ -68,6 +68,11 @@
                         <th data-sortable="true" class="th-inner sortable both" data-field="get_status" data-formatter="statusFormatter">
                             {% trans 'Status' %}
                         </th>
+                        {% if perms.staff.view_genericinfo %}
+                        <th data-sortable="true" class="th-inner sortable both" data-field="info" data-formatter="infoFormatter">
+                            {% trans 'Infos' %}
+                        </th>
+                        {% endif %}
                         <th data-sortable="true" class="th-inner sortable both" data-field="contracts" data-formatter="contractsFormatter">
                             {% trans 'Contracts' %}
                         </th>

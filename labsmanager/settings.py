@@ -79,8 +79,9 @@ INSTALLED_APPS = [
     'tabular_permissions',          # https://pypi.org/project/django-tabular-permissions/
     'import_export',                # https://django-import-export.readthedocs.io/en/latest/installation.html
     'django_filters',               # https://django-filter.readthedocs.io/en/stable/guide/install.html
-    'colorfield',                  # to get a color field
+    'colorfield',                   # to get a color field
     'django_js_reverse',            # get reverse url in javascript file https://github.com/ierror/django-js-reverse
+    'faicon',                        #https://pypi.org/project/django-faicon/
     
     # App
     'staff.apps.StaffConfig',
@@ -290,4 +291,8 @@ if dj_admins:
         ADMINS.append(ad.split(':'))
 
 logger.debug('ADMINS :'+str(ADMINS))  
- 
+
+
+# for Fa Icon app
+FAICON_YAML_FILE = str(STATICFILES_DIRS[0])+'/fontawesome/metadata/icons.yml'
+# FAICON_CSS_URL = str(STATICFILES_DIRS[0])+'/fontawesome/css/all.css'

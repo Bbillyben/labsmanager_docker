@@ -1,7 +1,7 @@
 from multiprocessing import context
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate
+from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfo, GenericInfoType
 from expense.models import Expense_point, Contract, Contract_expense, Contract_type
 from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget
 from project.models import Project, Institution, Participant,Institution_Participant
@@ -351,8 +351,17 @@ class ContractExpenseSerializer_min(serializers.ModelSerializer):
 # ---------------------------    APP EMPLOYEE / SERIALISZER    --------------------------- #
 # ---------------------------------------------------------------------------------------- #
         
-
+class EmployeeInfoTypeSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = GenericInfoType
+        fields = ['pk', 'name', 'icon', ]
         
+class EmployeeInfoSerialize(serializers.ModelSerializer):
+    info = EmployeeInfoTypeSerialize(many=False, read_only=True)
+    class Meta:
+        model = GenericInfo
+        fields = ['pk', 'info', 'value', ]
+    
 class EmployeeStatusSerialize(serializers.ModelSerializer):
     type = EmployeeTypeSerialize(many=False, read_only=True)
     is_contractual=serializers.SerializerMethodField()
@@ -368,11 +377,13 @@ class EmployeeSerialize(serializers.ModelSerializer):
     get_status =EmployeeStatusSerialize(many=True, read_only=True)
     contracts=ContractSerializer(many=True, read_only=True)
     projects=ParticipantSerializer(many=True, read_only=True)
+    info=EmployeeInfoSerialize(many=True, read_only=True)
     class Meta:
         model = Employee
         fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','is_team_leader','is_team_mate','get_status','is_active',
                   'contracts', 'contracts_quotity',
                   'projects','projects_quotity',
+                  'info',
                   ]
         
 class TeamMateSerializer_min(serializers.ModelSerializer):

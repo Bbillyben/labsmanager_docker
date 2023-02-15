@@ -58,6 +58,15 @@ class ProjectWidget(widgets.CharWidget):
            
         return "\n".join(li)
     
+class InfoWidget(widgets.CharWidget):
+    def render(self, value, obj=None):
+        li=[]
+        for c in value:
+            strC= str(c.info.name) 
+            strC+= " : " +str(c.value)
+            li.append(strC)
+        return "\n".join(li)
+    
 class EmployeeResource(labResource):
     first_name = Field(
         column_name=_('First Name'),
@@ -85,6 +94,12 @@ class EmployeeResource(labResource):
         attribute='get_status', 
         widget=StatusWidget(param='end_date'), readonly=True
         ) 
+    info=Field(
+        column_name=_('Infos'),
+        attribute='info', 
+        widget=InfoWidget(), 
+        readonly=True
+    )
     status_contract = Field(
         column_name=_('Status Contract Type'),
         attribute='get_status', 

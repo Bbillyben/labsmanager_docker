@@ -1,7 +1,7 @@
 from csv import field_size_limit
 from traceback import format_tb
 from django import forms
-from .models import Employee, TeamMate, Employee_Status, Team
+from .models import Employee, TeamMate, Employee_Status, Team, GenericInfo
 from django.contrib.auth.models import User
 from django.db.models import Q
 from bootstrap_modal_forms.forms import BSModalModelForm
@@ -105,3 +105,19 @@ class TeamMateModelForm(BSModalModelForm):
             self.fields['employee'].widget.attrs['disabled'] = True
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             self.fields['team'].widget.attrs['disabled'] = True
+            
+class GenericInfoForm(BSModalModelForm):
+    class Meta:
+        model = GenericInfo
+        fields = ['info', 'employee', 'value',]
+    
+    def __init__(self, *args, **kwargs): 
+        
+        self.base_fields['employee'] = forms.ModelChoiceField(
+            queryset=Employee.objects.all(),
+            widget=forms.HiddenInput
+        )
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['info'].disabled = True

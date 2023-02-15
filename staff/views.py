@@ -6,7 +6,7 @@ from django.views.generic.base import TemplateView
 from django.http import JsonResponse
 from django.db.models import Q
 # from django.views.generic import ListView
-from .models import Employee, Team, TeamMate, Employee_Status, Employee_Type
+from .models import Employee, Team, TeamMate, Employee_Status, Employee_Type, GenericInfo
 from .filters import EmployeeFilter
 from expense.models import Contract
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -17,7 +17,7 @@ from view_breadcrumbs import BaseBreadcrumbMixin, DetailBreadcrumbMixin
 from labsmanager.mixin import TableViewMixin, CrumbListMixin
 
 from django.urls import reverse_lazy
-from .forms import EmployeeModelForm, EmployeeStatusForm
+from .forms import EmployeeModelForm, EmployeeStatusForm,GenericInfoForm
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 # Create your views here.
 
@@ -82,7 +82,10 @@ class EmployeeView(LoginRequiredMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  T
         if contracts:
             context['contracts']=contracts
          
-        
+        #Generic Info
+        info=GenericInfo.objects.filter(employee=id)
+        if info:
+            context['info']=info
         # View top-level categories
         return context
 
@@ -157,11 +160,56 @@ class StatusDeleteView(LoginRequiredMixin, BSModalDeleteView):
         return HttpResponse("okok", status=200)
 
 
+# ===================== For Infos =========================
+class EmployeeInfoCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = GenericInfoForm
+    success_message = 'Success: Employee was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+
+    def get(self, request, *args, **kwargs):
+        if 'employee' in kwargs:
+            form = self.form_class(initial={'employee': kwargs['employee']})
+        else:
+            form = self.form_class()
+        
+        context = {'form': form}
+        return render(request, self.template_name , context)
+
+class EmployeeInfoUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = GenericInfo
+    template_name = 'form_validate_base.html'
+    form_class = GenericInfoForm
+    success_message = 'Success: Info was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+    
+class EmployeeInfoDeleteView(LoginRequiredMixin, BSModalDeleteView):
+    model = GenericInfo
+    template_name = 'form_delete_base.html'
+    # form_class = EmployeeModelForm
+    success_url = reverse_lazy('employee')
+    
+    def get_success_url(self):
+        previous = self.request.META.get('HTTP_REFERER')
+        return previous
+        
+    def post(self, *args, **kwargs):
+        
+        self.object = self.get_object()
+        self.object.delete()
+        return HttpResponse("okok", status=200)
+    
 ## Get the template for activation/ deactivation user
 def get_employee_valid(request, pk):
     emp = Employee.objects.filter(pk=pk).first()
     return render(request, 'staff/employee_desc_table.html', {'employee': emp})
 
+## Get the employee info table
+def get_employee_info_table(request, pk):
+    info=GenericInfo.objects.filter(employee__pk=pk)
+    return render(request, 'employee/employee_info_table.html', {'infoEmployee': info})
 
 # TEAMS views
 class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):

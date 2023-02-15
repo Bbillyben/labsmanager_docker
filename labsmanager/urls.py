@@ -80,6 +80,12 @@ urlpatterns += [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
 
+urlpatterns += [
+    path('faicon/', include('faicon.urls')),
+]
+
+
+
 if settings.DEBUG:
     # Static file access
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
