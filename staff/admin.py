@@ -7,17 +7,17 @@ from leave.models import Leave
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
-
+from .ressources import EmployeeAdminResource
 # ressource for import export 
-class EmployeeResource(resources.ModelResource):
+# class EmployeeResource(resources.ModelResource):
     
 
-    class Meta:
-        model = Employee
-        skip_unchanged = True
-        report_skipped = True
+#     class Meta:
+#         model = Employee
+#         skip_unchanged = True
+#         report_skipped = True
         
-        fields = ('id', 'first_name', 'last_name', 'birth_date','entry_date', 'exit_date', 'is_active',)
+#         fields = ('id', 'first_name', 'last_name', 'birth_date','entry_date', 'exit_date', 'is_active',)
         
         
 # admin class
@@ -34,10 +34,10 @@ class GenericInfoInline(admin.TabularInline):
     extra = 0 
     
 class EmployeeAdmin(ImportExportModelAdmin):
-    list_display = ('first_name', 'last_name',  'entry_date' , 'exit_date', 'is_active', 'get_user')
+    list_display = ('first_name', 'last_name',  'entry_date' , 'exit_date', 'email', 'is_active', 'get_user')
     fieldsets = (
         ('Employee', {
-            'fields': ('first_name', 'last_name', 'birth_date')
+            'fields': ('first_name', 'last_name', 'birth_date', 'email')
         }),
         ('Lab Status', {
             'fields': ('entry_date', 'exit_date', 'is_active')
@@ -48,7 +48,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
     )
     inlines = [EmployeeStatusInline, LeaveInline, GenericInfoInline]
     list_filter=('entry_date' , 'exit_date')
-    resource_classes = [EmployeeResource]
+    resource_classes = [EmployeeAdminResource]
      
     def get_user(self, obj):
         if obj.user:
@@ -61,19 +61,6 @@ class EmployeeAdmin(ImportExportModelAdmin):
         return obj.user.first_name
     get_first_name.short_description = _('First Name')
     get_first_name.admin_order_field = 'user__first_name'
-    
-    # class Media:
-    #     # css=(
-    #     #     'data/static/fontawesome/css/brands.min.css',
-    #     #     'data/static/fontawesome/css/solid.min.css',
-    #     # )
-    #     js = (
-            
-    #         'data/static/fontawesome/js/solid.min.js',
-    #         'data/static/fontawesome/js/regular.min.js',
-    #         'data/static/fontawesome/js/brands.min.js',
-    #         'data/static/fontawesome/js/fontawesome.min.js',
-    #     )
     
     
 class EmployeeTypeAdmin(admin.ModelAdmin):

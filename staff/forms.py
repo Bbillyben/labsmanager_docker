@@ -29,7 +29,7 @@ class TeamMateForm(forms.ModelForm):
 class EmployeeModelForm(BSModalModelForm):
     class Meta:
         model = Employee
-        fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', ]
+        fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', 'email',]
         widgets = {
             'birth_date': DateInput(),
             'entry_date': DateInput(),

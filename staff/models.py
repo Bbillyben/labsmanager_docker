@@ -31,6 +31,7 @@ class Employee(models.Model):
     birth_date = models.DateField(null=True, blank=True, verbose_name=_('Birth Date'))
     entry_date = models.DateField(null=True, blank=True, verbose_name=_('Entry Date'))
     exit_date = models.DateField(null=True, blank=True, verbose_name=_('Exit Date'))
+    email = models.EmailField(null=True, blank=True, verbose_name=_('Email'))
     is_active=models.BooleanField(default=True, null=False)
     history = AuditlogHistoryField()
     

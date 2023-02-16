@@ -17,6 +17,15 @@
             <td>{% firstof employee.birth_date "-"  %}</td>
         </tr>
         <tr>
+            <td><i class="fas fa-at"></i></td>
+            <td  class="desc_title">{% trans 'Email' %}</td>
+            {% if employee.email %}
+            <td><a href="mailto:{{employee.email}}">{{employee.email}}</a></td>
+            {%else%}
+            <td>-</td>
+            {%endif%}
+        </tr>
+        <tr>
             <td><i class="fas fa-calendar-plus"></i></td>
             <td  class="desc_title">{% trans 'Entree Date' %}</td>
             <td>{% firstof employee.entry_date "-"  %}</td>

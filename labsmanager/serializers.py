@@ -380,7 +380,8 @@ class EmployeeSerialize(serializers.ModelSerializer):
     info=EmployeeInfoSerialize(many=True, read_only=True)
     class Meta:
         model = Employee
-        fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','is_team_leader','is_team_mate','get_status','is_active',
+        fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','email',
+                  'is_team_leader','is_team_mate','get_status','is_active',
                   'contracts', 'contracts_quotity',
                   'projects','projects_quotity',
                   'info',

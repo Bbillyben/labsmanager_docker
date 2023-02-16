@@ -1,12 +1,12 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource
+from labsmanager.ressources import labResource, SimpleError, SkipErrorRessource, DateField
 from .models import Employee, Employee_Status, Team, TeamMate
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
 
-
+from django.contrib.auth.models import User   
 
 class StatusWidget(widgets.CharWidget):
     
@@ -67,32 +67,55 @@ class InfoWidget(widgets.CharWidget):
             li.append(strC)
         return "\n".join(li)
     
-class EmployeeResource(labResource):
+class EmployeeResource(labResource, SkipErrorRessource):
     first_name = Field(
         column_name=_('First Name'),
         attribute='first_name', 
-        widget=widgets.CharWidget(), readonly=True
+        widget=widgets.CharWidget(), 
+        readonly=True
         ) 
     last_name = Field(
         column_name=_('Last Name'),
         attribute='last_name', 
-        widget=widgets.CharWidget(), readonly=True
+        widget=widgets.CharWidget(), 
+        readonly=True
+        ) 
+    birth_date= DateField(
+        column_name=_('Birth Date'),
+        attribute='birth_date', 
+        widget=widgets.DateWidget(), 
+        readonly=False,
+        ) 
+    entry_date= DateField(
+        column_name=_('Entry Date'),
+        attribute='entry_date', 
+        widget=widgets.DateWidget(), 
+        readonly=False,
+        ) 
+    exit_date= DateField(
+        column_name=_('Exit Date'),
+        attribute='exit_date', 
+        widget=widgets.DateWidget(), 
+        readonly=False,
         ) 
     
     status = Field(
         column_name=_('Status'),
         attribute='get_status', 
-        widget=StatusWidget(param='type__name'), readonly=True
+        widget=StatusWidget(param='type__name'), 
+        readonly=True
         )
     status_startDate = Field(
         column_name=_('Status Start Date'),
         attribute='get_status', 
-        widget=StatusWidget(param='start_date'), readonly=True
+        widget=StatusWidget(param='start_date'), 
+        readonly=True
         )
     status_endDate = Field(
         column_name=_('Status End Date'),
         attribute='get_status', 
-        widget=StatusWidget(param='end_date'), readonly=True
+        widget=StatusWidget(param='end_date'), 
+        readonly=True
         ) 
     info=Field(
         column_name=_('Infos'),
@@ -103,27 +126,32 @@ class EmployeeResource(labResource):
     status_contract = Field(
         column_name=_('Status Contract Type'),
         attribute='get_status', 
-        widget=StatusWidget(param='is_contractual'), readonly=True
+        widget=StatusWidget(param='is_contractual'), 
+        readonly=True
         ) 
     contract = Field(
         column_name=_('Contracts'),
         attribute='contracts', 
-        widget=ContractWidget(), readonly=True
+        widget=ContractWidget(), 
+        readonly=True
         )
     contracts_quotity = Field(
         column_name=_('contracts quotity'),
         attribute='contracts_quotity', 
-        widget=widgets.CharWidget(), readonly=True
+        widget=widgets.CharWidget(), 
+        readonly=True
         )
     project = Field(
         column_name=_('Projects'),
         attribute='projects', 
-        widget=ProjectWidget(), readonly=True
+        widget=ProjectWidget(),
+        readonly=True
         )  
     projects_quotity = Field(
         column_name=_('projects quotity'),
         attribute='projects_quotity', 
-        widget=widgets.CharWidget(), readonly=True
+        widget=widgets.CharWidget(), 
+        readonly=True
         )    
     class Meta:
         """Metaclass"""
@@ -133,8 +161,77 @@ class EmployeeResource(labResource):
         exclude = [ 'id',
                     'user',
          ]
+  
+class EmployeeAdminResource(labResource, SkipErrorRessource):
+    first_name = Field(
+        column_name=_('First Name'),
+        attribute='first_name', 
+        widget=widgets.CharWidget(), 
+        readonly=False
+        ) 
+    last_name = Field(
+        column_name=_('Last Name'),
+        attribute='last_name', 
+        widget=widgets.CharWidget(), 
+        readonly=False
+        ) 
+    birth_date= DateField(
+        column_name=_('Birth Date'),
+        attribute='birth_date', 
+        widget=widgets.DateWidget(), 
+        readonly=False,
+        ) 
+    entry_date= DateField(
+        column_name=_('Entry Date'),
+        attribute='entry_date', 
+        widget=widgets.DateWidget(), 
+        readonly=False,
+        ) 
+    exit_date= DateField(
+        column_name=_('Exit Date'),
+        attribute='exit_date', 
+        widget=widgets.DateWidget(), 
+        readonly=False,
+        ) 
+    email = Field(
+        column_name=_('Email'),
+        attribute='email', 
+        widget=widgets.CharWidget(), 
+        readonly=False
+        ) 
+    user = Field(
+        column_name=_('User'),
+        attribute='user', 
+        widget=widgets.ForeignKeyWidget(User, 'username'),
+        readonly=True
+        ) 
+    
+    
+    def before_import_row(self, row, row_number=None, **kwargs):
         
+        query = Q()
+        first_name = row.get('First Name', None)
+        if first_name is not None:
+            query = query & Q(first_name__icontains=first_name)
         
+        last_name = row.get('Last Name', None)
+        if last_name is not None:
+            query = query & Q(last_name__icontains=last_name)
+        
+        fu = Employee.objects.filter(query)
+        if fu is not None and fu.count()==1:
+            row["id"] = fu.first().pk
+        else:
+            row["id"] = None
+        return fu
+     
+    class Meta:
+        """Metaclass"""
+        model = Employee
+        skip_unchanged = True
+        clean_model_instances = False
+        exclude = [ ]
+              
         
 class TeamMateWidget(widgets.CharWidget):
     
