@@ -57,6 +57,11 @@ class TeamMateUpdateView(LoginRequiredMixin, BSModalUpdateView):
     # form_class = EmployeeModelForm
     success_url = reverse_lazy('employee_index')
     
+    def get_context_data(self, **kwargs):
+        self.extra_context={'is_update':True}
+        return super().get_context_data(**kwargs)
+    
+    
 # remove
 class TeamMateRemoveView(LoginRequiredMixin, BSModalDeleteView):
     model = models.TeamMate

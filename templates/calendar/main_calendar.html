@@ -83,24 +83,10 @@ $(document).ready(function () {
     initCalendar(user_id);
 
     // modal ajout
-    $('#leave_create').modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
-            formURL: "{% url 'add_leave' %}",
-            isDeleteForm: false,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee Updated",
-                dataUrl: "{% url 'add_leave' %}",
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: calendar_refresh,
-            }
-        });
+    $('#leave_create').labModalForm({
+        formURL: "{% url 'add_leave' %}",
+        addModalFormFunction: calendar_refresh,
+    })
 })
 
 </script>

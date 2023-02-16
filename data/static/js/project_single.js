@@ -11,121 +11,52 @@ function initProjectSingleView(user_idA, project_idA){
 
 
     // MOdal for Project edition
-    $('#edit-project').modalForm({
-        modalID: "#create-modal",
-        modalContent: ".modal-content",
-        modalForm: ".modal-content form",
+    $('#edit-project').labModalForm({
         formURL: '/project/ajax/'+project_id+'/udpate',
-        isDeleteForm: false,
-        errorClass: ".form-validation-warning",
-        asyncUpdate: true,
-        asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
-            successMessage: "Employee Updated",
-            dataUrl: "/staff/ajax/"+project_id+"/activ",
-            dataElementId: '#employee_single_table',
-            dataKey: '0',
-            addModalFormFunction: update_project,
-        }
+        addModalFormFunction: update_project,
     })
 
-    $('#project_participant_table').bootstrapTable({
-        onLoadSuccess: function(){ updateParticipantBtnHandler();},
-        onSearch: function(){ updateParticipantBtnHandler();},
-        onSort: function(){  updateParticipantBtnHandler();},
-        onToggle: function(){ updateParticipantBtnHandler();},
-        onPageChange: function(){ updateParticipantBtnHandler();},
-    });
-    $('#project_institution_table').bootstrapTable();
-    // $('#project_institution_table').labTable({
-    //     disablePagination:true,
-    // })
+    var options={
+        url:$('#project_participant_table').data("url"),
+        name:'participant',
+        disablePagination:true,
+        search:false,
+        showColumns:false,
+        
+    }
+    $('#project_participant_table').labTable(options)
 
 
-    $('#add_participant').modalForm({
-        modalID: "#create-modal",
-        modalContent: ".modal-content",
-        modalForm: ".modal-content form",
+    var options_inst={
+        url:$('#project_institution_table').data("url"),
+        name:'institution',
+        disablePagination:true,
+        search:false,
+        showColumns:false,
+        
+    }
+    $('#project_institution_table').labTable(options_inst)
+
+
+
+    $('#add_participant').labModalForm({
         formURL: '/project/ajax/'+project_id+'/participant/add',
-        isDeleteForm: false,
-        errorClass: ".form-validation-warning",
-        asyncUpdate: true,
-        asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
-            successMessage: "Employee Updated",
-            dataUrl: '/api/employee/',
-            dataElementId: '#employee_dec_table',
-            dataKey: 'table',
-            addModalFormFunction: updateParticipant,
-        }
+        addModalFormFunction: updateParticipant,
     })
-    $('#add_institution_participant').modalForm({
-        modalID: "#create-modal",
-        modalContent: ".modal-content",
-        modalForm: ".modal-content form",
+    $('#add_institution_participant').labModalForm({
         formURL: '/project/ajax/'+project_id+'/institution/add',
-        isDeleteForm: false,
-        errorClass: ".form-validation-warning",
-        asyncUpdate: true,
-        asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
-            successMessage: "Project Updated",
-            dataUrl: '/api/employee/',
-            dataElementId: '#employee_dec_table',
-            dataKey: 'table',
-            addModalFormFunction: updateInstitution,
-        }
+        addModalFormFunction: updateInstitution,
     })
 
 
-    $('#add_fund_temp').modalForm({
-        modalID: "#create-modal",
-        modalContent: ".modal-content",
-        modalForm: ".modal-content form",
-        formURL: '/fund/ajax/add/' + $("#add_fund_temp").data("projectpk"),
-        isDeleteForm: true,
-        errorClass: ".form-validation-warning",
-        asyncUpdate: true,
-        asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
-            successMessage: "Employee Updated",
-            dataUrl: '/api/employee/',
-            dataElementId: '#employee_main_table',
-            dataKey: 'table',
-            addModalFormFunction: updateFund,
-        }
-    });
+    $('#add_fund_temp').labModalForm({
+        formURL:'/fund/ajax/add/' + $("#add_fund_temp").data("projectpk"),
+        addModalFormFunction: updateFund,
+    })
 
-
-    $('#project_contract_table').bootstrapTable({
-        onLoadSuccess: function(){ updateContractBtnHandler();},
-        onSearch: function(){ updateContractBtnHandler();},
-        onSort: function(){  updateContractBtnHandler();},
-        onToggle: function(){ updateFundBtupdateContractBtnHandlernHandler();},
-        onPageChange: function(){ updateContractBtnHandler();},
-    });
-
-    $('#add_contract').modalForm({
-        modalID: "#create-modal",
-        modalContent: ".modal-content",
-        modalForm: ".modal-content form",
-        formURL: '/expense/ajax/contract/add/project/'+project_id,
-        isDeleteForm: false,
-        errorClass: ".form-validation-warning",
-        asyncUpdate: true,
-        asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
-            successMessage: "Employee Updated",
-            dataUrl: '/api/employee/',
-            dataElementId: '#employee_dec_table',
-            dataKey: 'table',
-            addModalFormFunction: updateContract,
-        }
+    $('#add_contract').labModalForm({
+        formURL:'/expense/ajax/contract/add/project/'+project_id,
+        addModalFormFunction: updateContract,
     })
 
 
@@ -231,54 +162,11 @@ function updateParticipant(){
 function updateInstitution(){
     $('#project_institution_table').bootstrapTable('refresh');
 }
-function updateParticipantBtnHandler(){
-    $(".edit_participant").each(function () {
-        //console.log("updateProjectTable :"+this);
-        $(this).modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
-            formURL: $(this).data("form-url"),
-            isDeleteForm: false,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee Updated",
-                dataUrl: '/api/employee/',
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: updateParticipant,
-            }
-        });
-    });
-    $(".delete_participant").each(function () {
-        $(this).modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
-            formURL: $(this).data("form-url"),
-            isDeleteForm: true,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee Updated",
-                dataUrl: '/api/employee/',
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: updateParticipant,
-            }
-        });
-    });
-}
 
 function adminActionParticipant(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
-    if(this.canChange=="True")action += "<button class='icon edit_participant btn btn-success' data-form-url='/project/ajax/participant/"+row.pk+"/udpate' ><i type = 'button' class='fas fa-edit'></i></button>";
-    if(this.canDelete=="True")action += "<button class='icon delete_participant btn btn-danger ' data-form-url='/project/ajax/participant/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
+    if(this.canChange=="True")action += "<button class='icon edit btn btn-success' data-form-url='/project/ajax/participant/"+row.pk+"/udpate' ><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canDelete=="True")action += "<button class='icon delete btn btn-danger ' data-form-url='/project/ajax/participant/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;
 }

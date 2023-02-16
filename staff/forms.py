@@ -89,12 +89,15 @@ class TeamMateModelForm(BSModalModelForm):
         }
         
     def __init__(self, *args, **kwargs):
-        
-        if ('initial' in kwargs and 'team' in kwargs['initial']):
+        if ('initial' in kwargs and 'team' in kwargs['initial'] and not 'is_update' in kwargs):
             team_id=kwargs['initial']['team']
             mateInTeam=TeamMate.objects.filter(team=team_id).values('employee')
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.filter(~Q(pk__in=mateInTeam)),
+            )
+        else:
+             self.base_fields['employee'] = forms.ModelChoiceField(
+                queryset=Employee.objects.all(),
             )
             
         

@@ -1295,3 +1295,10 @@ li.list-spacer{
   .fc-daygrid-day.fc-day-sat, .fc-daygrid-day.fc-day-sun {
     background-color: rgba(211, 211, 211, 0.322);
   } 
+
+
+  /*  Add resizable abilities */
+  .resizable{
+    resize:both;
+    overflow: auto;
+  }

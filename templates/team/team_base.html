@@ -104,27 +104,6 @@
     $(document).ready(function () {
         user_id = JSON.parse(document.getElementById('user_id').textContent);
         initTeam(user_id, perms);
-
-         // modal ajout
-            $('#team_create').modalForm({
-                modalID: "#create-modal",
-                modalContent: ".modal-content",
-                modalForm: ".modal-content form",
-                formURL: "{% url 'create_team' %}",
-                isDeleteForm: false,
-                errorClass: ".form-validation-warning",
-                asyncUpdate: true,
-                asyncSettings: {
-                    directUpdate: true,
-                    closeOnSubmit: true,
-                    successMessage: "Team Added Updated",
-                    dataUrl: "{% url 'create_team' %}",
-                    dataElementId: '#employee_main_table',
-                    dataKey: 'table',
-                    addModalFormFunction: team_refresh,
-                }
-            });
-
     })
 
 

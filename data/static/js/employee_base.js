@@ -65,7 +65,7 @@ function statusFormatter(value, row, index, field){
 }
 function infoFormatter(value, row, index, field){
   response = '<ul>';
-  console.log('statusFormatter : '+JSON.stringify(value)); //+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
+  //console.log('infoFormatter : '+JSON.stringify(value)); //+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
   for (const item of value) {
     response +="<li>"+item.info.name + " : "+item.value+"</li>"
   }
@@ -76,8 +76,8 @@ function infoFormatter(value, row, index, field){
 function adminActionFormatter(value, row, index, field){
   action = "<span class='icon-left-cell btn-group'>";
   if(this.isStaff=='True')action += "<a href='/admin/staff/employee/"+row.pk+"/change/'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
-  if(this.canChange=='True')action += "<button class='icon edit_employee btn btn-success' data-form-url='/staff/employee/"+row.pk+"/udpate' ><i type = 'button' class='fas fa-edit'></i></button>";
-  if(this.canDelete=='True') action += "<button class='icon delete_employee btn btn-danger ' data-form-url='/staff/employee/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
+  if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='/staff/employee/"+row.pk+"/udpate' ><i type = 'button' class='fas fa-edit'></i></button>";
+  if(this.canDelete=='True') action += "<button class='icon delete btn btn-danger ' data-form-url='/staff/employee/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
   action += "</span>"
   return action;
 }

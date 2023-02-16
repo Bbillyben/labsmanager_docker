@@ -30,63 +30,23 @@ function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
 
 }
 function updateTeamMateBtnHandler(){
-    $('#teammate_create').modalForm({
-        modalID: "#create-modal",
-        modalContent: ".modal-content",
-        modalForm: ".modal-content form",
-        formURL: '/staff/teammate/add/?team_pk='+team_id,
-        isDeleteForm: false,
-        errorClass: ".form-validation-warning",
-        asyncUpdate: true,
-        asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
-            successMessage: "TeaMate Updated",
-            dataUrl: '/api/employee/',
-            dataElementId: '#employee_dec_table',
-            dataKey: 'table',
-            addModalFormFunction: update_team_desc,
-        }
+    $('#teammate_create').labModalForm({
+        formURL:'/staff/teammate/add/?team_pk='+team_id,
+        addModalFormFunction: update_team_desc,
     })
+    
     $(".update_teammate").each(function () {
-        $(this).modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
+        $(this).labModalForm({
             formURL: $(this).data("form-url"),
-            isDeleteForm: false,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee deleted",
-                dataUrl: '/api/employee/',
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: update_team_desc,
-            }
-        });
+            addModalFormFunction: update_team_desc,
+        })
     });
     $(".delete_teammate").each(function () {
-        $(this).modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
+        $(this).labModalForm({
             formURL: $(this).data("form-url"),
             isDeleteForm: true,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee deleted",
-                dataUrl: '/api/employee/',
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: update_team_desc,
-            }
-        });
+            addModalFormFunction: update_team_desc,
+        })
     });
     initTeamCalendar();
 

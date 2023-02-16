@@ -194,7 +194,40 @@ function visibleColumnString(columns) {
     return fields.join(',');
 }
 
+function labTableUpdate(table, options){
+    //console.log("labTableUpdate :"+table.attr('id'))
+   // serarch for action button and reload click handler
+   var defaults = {
+        modalID:"#create-modal",
+        modalContent:".modal-content",
+        modalForm:".modal-content form",
+    };
+    settings = $.extend(defaults, options);
 
+    $(table).find('.edit').each(function(){
+        //console.log("edit_employee found :"+$(this).data("form-url"))
+        $(this).labModalForm({
+            modalID: settings.modalID,
+            modalContent: settings.modalContent,
+            modalForm: settings.modalForm,
+            formURL: $(this).data("form-url"),
+            addModalFormFunction: function(){reloadtable(table)},
+        })
+    })
+    $(table).find('.delete').each(function(){
+        $(this).labModalForm({
+            modalID: settings.modalID,
+            modalContent: settings.modalContent,
+            modalForm: settings.modalForm,
+            isDeleteForm: true,
+            formURL: $(this).data("form-url"),
+            addModalFormFunction: function(){reloadtable(table)},
+        })
+    })
+    
+
+    if(options.callback)options.callback();
+}
 $.fn.labTable = function(options) {
 
     var table = this;
@@ -260,14 +293,21 @@ $.fn.labTable = function(options) {
     };
 
     // le call back
-    if (options.callback != null){
-        options.onLoadSuccess=function(){options.callback()};
-        options.onSearch=function(){options.callback()};
-        options.onSort=function(){options.callback()};
-        options.onToggle=function(){options.callback()};
-        options.onPageChange=function(){options.callback()};
-        options.onRefresh=function(){options.callback()};
-    }
+    // if (options.callback != null){
+    //     options.onLoadSuccess=function(){options.callback()};
+    //     options.onSearch=function(){options.callback()};
+    //     options.onSort=function(){options.callback()};
+    //     options.onToggle=function(){options.callback()};
+    //     options.onPageChange=function(){options.callback()};
+    //     options.onRefresh=function(){options.callback()};
+    // }
+    // add call back on some event to refresh button and call calback if needed
+    options.onLoadSuccess=function(){labTableUpdate(table, options)};
+    options.onSearch=function(){labTableUpdate(table, options)};
+    options.onSort=function(){labTableUpdate(table, options)};
+    options.onToggle=function(){labTableUpdate(table, options)};
+    options.onPageChange=function(){labTableUpdate(table, options)};
+    options.onRefresh=function(){labTableUpdate(table, options)};
         
 
     // Standard options for all tables
@@ -297,10 +337,6 @@ $.fn.labTable = function(options) {
         }
     }
 
-    // Optionally, link buttons to the table selection
-    // if (options.buttons) {
-    //     linkButtonsToSelection(table, options.buttons);
-    // }
 
 };
 
