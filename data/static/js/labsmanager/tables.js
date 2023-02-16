@@ -194,7 +194,7 @@ function visibleColumnString(columns) {
     return fields.join(',');
 }
 
-function labTableUpdate(table, options){
+function labTableUpdate(table, options, playCallback=true){
     //console.log("labTableUpdate :"+table.attr('id'))
    // serarch for action button and reload click handler
    var defaults = {
@@ -226,7 +226,7 @@ function labTableUpdate(table, options){
     })
     
 
-    if(options.callback)options.callback();
+    if(options.callback && playCallback)options.callback();
 }
 $.fn.labTable = function(options) {
 
@@ -292,17 +292,7 @@ $.fn.labTable = function(options) {
         labSave(`table_columns_${tableName}`, text);
     };
 
-    // le call back
-    // if (options.callback != null){
-    //     options.onLoadSuccess=function(){options.callback()};
-    //     options.onSearch=function(){options.callback()};
-    //     options.onSort=function(){options.callback()};
-    //     options.onToggle=function(){options.callback()};
-    //     options.onPageChange=function(){options.callback()};
-    //     options.onRefresh=function(){options.callback()};
-    // }
-    // add call back on some event to refresh button and call calback if needed
-    options.onLoadSuccess=function(){labTableUpdate(table, options)};
+    options.onLoadSuccess=function(){labTableUpdate(table, options, options.playCallbackOnLoad)};
     options.onSearch=function(){labTableUpdate(table, options)};
     options.onSort=function(){labTableUpdate(table, options)};
     options.onToggle=function(){labTableUpdate(table, options)};

@@ -72,6 +72,7 @@ function updateFundItem(){
         search:false,
         showColumns:false,
         callback:updateFund,
+        playCallbackOnLoad:false,
         
     }
     $('#project_fund_item_table').labTable(options)
@@ -90,6 +91,7 @@ function updateExpenseTimepoint(){
         search:false,
         showColumns:false,
         callback:updateFullFund,
+        playCallbackOnLoad:false,
         
     }
 
@@ -162,6 +164,15 @@ function updateFundExpenseTimepointTableAjax(fundPk, csrftoken){
         }
     }) 
 }
+function makeFundSelection(){
+    if(!fundPk)return;
+    row=$(".show_fund[data-fund="+fundPk+"]")
+    rows=$(row).closest('tbody');
+    rows.find('tr').each(function(){$(this).removeClass('select-row')});
+    frows=$(row).closest('tr');
+    frows.addClass('select-row');    
+
+}
 function updateFundBtnHandler(){   
 
     $(".show_fund").each(function () {
@@ -175,11 +186,7 @@ function updateFundBtnHandler(){
                 // Fund item
                 if($('#fund_item_detail').exists())updateFundItemTableAjax(fundPk, csrftoken);
                 if($('#fund_expense_timepoint_detail').exists())updateFundExpenseTimepointTableAjax(fundPk, csrftoken);
-                // set the barck grod color
-                rows=$(this).closest('tbody');
-                rows.find('tr').each(function(){$(this).removeClass('select-row')});
-                row=$(this).closest('tr');
-                row.addClass('select-row');
+                makeFundSelection();
 
             })
         
@@ -190,5 +197,6 @@ function updateFundBtnHandler(){
     if(isEmpty( $('#fund_item_detail') )){
         $(".show_fund").eq(0).trigger("click");
     }
+    makeFundSelection();
    
 }
