@@ -194,9 +194,22 @@ function visibleColumnString(columns) {
     return fields.join(',');
 }
 
-function labTableUpdate(table, options, playCallback=true){
-    //console.log("labTableUpdate :"+table.attr('id'))
-   // serarch for action button and reload click handler
+function labTableUpdate(eventName, table, options, playCallback=true){
+
+    switch(eventName){
+
+        case 'load-success.bs.table':
+            if(options.callback && playCallback)options.callback();
+            break;
+        case "refresh.bs.table":
+        case "search.bs.table":
+        case "refresh.bs.table":
+            if(options.callback)options.callback();
+            break;
+    }
+
+    if(eventName!="post-body.bs.table")return;
+
    var defaults = {
         modalID:"#create-modal",
         modalContent:".modal-content",
@@ -223,10 +236,7 @@ function labTableUpdate(table, options, playCallback=true){
             formURL: $(this).data("form-url"),
             addModalFormFunction: function(){reloadtable(table)},
         })
-    })
-    
-
-    if(options.callback && playCallback)options.callback();
+    })    
 }
 $.fn.labTable = function(options) {
 
@@ -292,13 +302,7 @@ $.fn.labTable = function(options) {
         labSave(`table_columns_${tableName}`, text);
     };
 
-    options.onLoadSuccess=function(){labTableUpdate(table, options, options.playCallbackOnLoad)};
-    options.onSearch=function(){labTableUpdate(table, options)};
-    options.onSort=function(){labTableUpdate(table, options)};
-    options.onToggle=function(){labTableUpdate(table, options)};
-    options.onPageChange=function(){labTableUpdate(table, options)};
-    options.onRefresh=function(){labTableUpdate(table, options)};
-        
+    options.onAll=function(e){labTableUpdate(e, table, options, options.playCallbackOnLoad)};
 
     // Standard options for all tables
     table.bootstrapTable(options);
