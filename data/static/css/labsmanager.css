@@ -1,5 +1,6 @@
 :root {
     --primary-color: #335d88;
+    --primary-color-alpha: #335d8862;
     --secondary-color: #eef3f7;
     --highlight-color: #ffffff;
 
@@ -1295,7 +1296,9 @@ li.list-spacer{
   .fc-daygrid-day.fc-day-sat, .fc-daygrid-day.fc-day-sun {
     background-color: rgba(211, 211, 211, 0.322);
   } 
-
+  .fc-timeline-slot-lane.fc-day-today, .fc-daygrid-day.fc-day-today{
+    background-color: var(--primary-color-alpha) !important;
+  }
 
   /*  Add resizable abilities */
   .resizable{
