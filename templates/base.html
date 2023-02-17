@@ -159,6 +159,7 @@
 <script type='text/javascript' src="{% static 'js/tables/tables_filters.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager/filters.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager/calendar.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/favorites.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager/panel_collapse.js' %}"></script>
 
@@ -176,6 +177,8 @@
             advancedSearchIcon: 'fa-chevron-down',
         });
         initialiseCollapsePanel();  
+        loadInTemplate($('#favorites'), '{% url "nav_favorites"%}')
+        initFavorites()
     })
 
     

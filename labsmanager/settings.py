@@ -90,7 +90,8 @@ INSTALLED_APPS = [
     'expense.apps.ExpenseConfig',
     'settings.apps.SettingsConfig',
     'endpoints.apps.EndpointsConfig',
-    'leave.apps.LeaveConfig'
+    'leave.apps.LeaveConfig',
+    'common.apps.CommonConfig',
     
 ]
 

@@ -1,0 +1,18 @@
+{% load i18n %}
+{% if favorites %}
+<li class='nav-item dropdown'>
+    <a class='nav-link dropdown-toggle' href='#' id='favoritesMenuDropdown' role='button' data-bs-toggle='dropdown'>
+      <span class='fas fa-star'></span>{% trans "Favorites" %}
+    </a>
+    <ul class='dropdown-menu labsmanager-navbar-menu small' style="width:max-content;">    
+        {% for f in favorites %}
+        <li >
+            <a class='nav-link' href="{{f.object_url}}">
+               {{f.content_type.model}} / {{f.object_name}}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</li>
+
+{% endif %}

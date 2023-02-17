@@ -1305,3 +1305,12 @@ li.list-spacer{
     resize:both;
     overflow: auto;
   }
+
+
+    /* for Favorites */
+    .isFavorite{
+        color:orange;
+    }
+    .notFavorite{
+        color:blue;
+    }

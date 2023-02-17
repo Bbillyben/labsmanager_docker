@@ -24,11 +24,16 @@
             <div class="d-flex flex-wrap">
                 <h4  role="button" data-bs-toggle="collapse" data-bs-target="#employee_details">{% trans 'Employee' %} : {{ employee }}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
+                
                 {% if perms.staff.change_employee %}
                 <div class="btn-group" role="group">
+                    
                     {% if request.user.is_staff %}
                     <a href='{% url "admin:staff_employee_change" employee.pk %}'><button class='icon admin_employee btn btn-secondary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>
                     {% endif %}
+                    {% if perms.common.change_favorite %}
+                    <div class="favorite" data-type="staff.employee" data-pk='{{employee.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
+                    {%endif%}
 
                     <button id="employee-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Employee Actions" aria-expanded="false">
                         <i class="fas fa-flask"></i>

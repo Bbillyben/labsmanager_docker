@@ -7,6 +7,7 @@ from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget
 from project.models import Project, Institution, Participant,Institution_Participant
 from endpoints.models import Milestones
 from leave.models import Leave, Leave_Type
+from common.models import  favorite
 from django.db.models import Sum
 
 
@@ -144,7 +145,37 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'title', ]  
         
-     
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Common
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+class ContentTypeSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = ContentType
+        fields = ['id', 'app_label', 'model',] 
+
+    
+class FavoriteSerialize(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    content_type=ContentTypeSerialize(many=False, read_only=True)
+    object_name=serializers.SerializerMethodField()
+    object_url=serializers.SerializerMethodField()
+    class Meta:
+        model = favorite
+        fields = ['pk', 'user', 'content_type', 'object_id', 'object_name','object_url',] 
+        
+    def get_object_name(self,obj):
+        return obj.content_object.__str__()
+    
+    def get_object_url(self,obj):
+        if obj.content_type.model == 'project':
+            return reverse('project_single', args=[obj.object_id])
+        if obj.content_type.model == 'employee':
+            return reverse('employee', args=[obj.object_id])
+        if obj.content_type.model == 'team':
+            return reverse('team_single', args=[obj.object_id])
+
+        return "-"
+    
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #

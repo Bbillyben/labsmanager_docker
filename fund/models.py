@@ -9,6 +9,8 @@ from project.models import Project, Institution
 
 from labsmanager.mixin import LabsManagerBudgetMixin, ActiveDateMixin, CachedModelMixin
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -202,9 +204,6 @@ class Budget(models.Model):
     def __str__(self):
         return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
         
-
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 
 class AmountHistory(models.Model):
     content_type = models.ForeignKey(ContentType, related_name="content_type_amountHistory", on_delete=models.CASCADE, )
