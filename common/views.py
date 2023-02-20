@@ -40,7 +40,7 @@ def get_nav_favorites(request):
 def get_nav_favorites_accordion(request):
     
     data=get_user_favorite(request)
-    return render(request, 'favorite_accordion.html', {"datas":data})
+    return render(request, 'labmanager/index_card_favorite.html', {"datas":data})
 
 def toggle_favorites(request):
     if request.method != 'POST':

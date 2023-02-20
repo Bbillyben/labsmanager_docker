@@ -94,7 +94,7 @@
 
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
 
-                {% include 'labmanager/index_card_favorite.html' %}
+                <div id="favorites" style="display: contents;"></div>
 
                 {% url 'settings' as urlCard %}
                 {% trans 'Settings' as txtCard %}
