@@ -1314,3 +1314,51 @@ li.list-spacer{
     .notFavorite{
         color:blue;
     }
+
+    .dropdown-menu li {
+        position: relative;
+    }
+    .dropdown-menu .dropdown-submenu {
+        display: none;
+        position: absolute;
+        left: 100%;
+        top: -7px;
+    }
+    .dropdown-menu .dropdown-submenu-left {
+        right: 100%;
+        left: auto;
+    }
+    .dropdown-menu > li:hover > .dropdown-submenu {
+        display: block;
+    }
+    
+    .dropdown-hover:hover>.dropdown-menu {
+        display: inline-block;
+    }
+    
+    .dropdown-hover>.dropdown-toggle:active {
+        /*Without this, clicking will make it sticky*/
+        pointer-events: none;
+    }
+
+    .favoriteAccordion .dropdown-item{
+        overflow: hidden;
+        white-space: inherit;
+
+    }
+
+    .favoriteAccordion a.dropdown-item:not(:last-child)::after {
+        /* border-bottom: 1px solid var(--icon-index-color); */
+        display:block;
+        clear:both;
+        content : "";
+        position: relative;
+        left    : 0;
+        bottom  : 0;
+        max-width:250px;
+        height  : 1px;
+        width   : 70%;  /* or 100px */
+        border-bottom:1px solid var(--icon-index-color);
+        margin:0 auto;
+        padding:4px 0px
+    }

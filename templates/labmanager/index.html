@@ -94,6 +94,8 @@
 
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
 
+                {% include 'labmanager/index_card_favorite.html' %}
+
                 {% url 'settings' as urlCard %}
                 {% trans 'Settings' as txtCard %}
                 {% static 'img/icons/settings.png' as imgURL%}
@@ -122,11 +124,21 @@
 
 <!-- Scripts -->
 <!-- base jquery -->
+<script type="text/javascript" src="{% static 'script/jquery-3.6.1.min.js' %}"></script>
 
 <script type='text/javascript' src="{% static 'fontawesome/js/solid.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'fontawesome/js/regular.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'fontawesome/js/brands.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'fontawesome/js/fontawesome.min.js' %}"></script>
 
+
+<script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager.js' %}"></script>
+
+<script type='text/javascript'>
+         $(document).ready(function () {
+            loadInTemplate($('#favorites'), '{% url "nav_favorites_accordion" %}')
+         })
+</script>
 </body>
 </html>

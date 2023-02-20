@@ -1,0 +1,20 @@
+{% load static %}
+{% load i18n %}
+
+<div class="col-sm-2 lab-card-col">
+        <div class="card lab-card" style="">
+            <img class="card-img-top" src="{% static 'img/icons/favorite.png' %}" alt="Card image cap">
+            <div class="lab-card-body">
+            
+                <div class="lab-card-link">
+                    <span data-bs-toggle="collapse" data-bs-target="#favorites">
+                        {% trans "Favorites" %}
+                    </span> 
+                </div>
+                <div class='nav-item collapse' id="favorites">
+
+                </div>
+                
+            </div>
+        </div>
+</div>
