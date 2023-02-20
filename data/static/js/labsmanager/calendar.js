@@ -206,7 +206,7 @@
                 locale:settings.local,
                 initialView: 'resourceTimelineMonth',
                 headerToolbar: {
-                    left: 'prev,next today',
+                    left: 'prev,next today datePickerButton',
                     center: 'title',
                     right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
                 },
@@ -248,6 +248,44 @@
                     },
                     resourceOrder: 'title',
                 filterResourcesWithEvents:settings.filterResourcesWithEvents,
+                // -------------------------------
+                customButtons: {
+                    datePickerButton: {
+                        text:'select',
+                        click: function () {      
+                            var $btnCustom = $('.fc-datePickerButton-button'); // name of custom  button in the generated code
+                            $btnCustom.after('<input type="hidden" id="hiddenDate" class="datepicker"/>');
+        
+                            $("#hiddenDate").datepicker({
+                                showOn: "button",
+        
+                                dateFormat:"yy-mm-dd",
+                                onSelect: function (dateText, inst) {
+                                    //$(this).fullCalendar('gotoDate', dateText);
+                                    calendar.gotoDate(dateText);
+                                },
+                                beforeShow: function() {
+                                    setTimeout(function(){
+                                        $('.ui-datepicker').css('z-index', 99999999999999);
+                                    }, 0);
+                                },
+                            });
+        
+                            var $btnDatepicker = $(".ui-datepicker-trigger"); // name of the generated datepicker UI 
+                            //Below are required for manipulating dynamically created datepicker on custom button click
+                            $("#hiddenDate").show().focus().hide();
+                            $btnDatepicker.trigger("click"); //dynamically generated button for datepicker when clicked on input textbox
+                            $btnDatepicker.hide();
+                            $btnDatepicker.remove();
+                            $("input.datepicker").not(":first").remove();//dynamically appended every time on custom button click
+        
+                        }
+                    }
+                },
+
+                // -------------------------------
+
+
             })
             calendar.render();
 
