@@ -15,16 +15,18 @@ def get_user_fav_obj(request):
     fav=favorite.objects.filter(user=request.user, content_type=ct, object_id=pk)
     return render(request, 'favorite_star.html', {"fav":fav})
 
-
+from django.apps import apps
 def get_user_favorite(request):
     fav=favorite.objects.filter(user=request.user).order_by("content_type")
     
     data={} #'favorites':FavoriteSerialize(fav, many=True).data}
     
     for el in fav:
-        if not str(el.content_type.model) in data:
-            data[str(el.content_type.model)]=[]
-        data[str(el.content_type.model)].append(el)
+        id = apps.get_model(el.content_type.app_label, el.content_type.model)
+        id=id._meta.verbose_name.title()
+        if not id in data:
+            data[id]=[]
+        data[id].append(el)
         
     for els in data:
           data[els]=FavoriteSerialize(data[els], many=True).data
