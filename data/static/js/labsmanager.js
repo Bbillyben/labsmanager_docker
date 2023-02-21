@@ -86,7 +86,8 @@ function labLoad(name, defaultValue) {
 
   // ------------------  ajax load direct --------------  //
 
-  function loadInTemplate(elt, url, data={}, callback=null,type="GET"){
+  function loadInTemplate(elt, url, data={}, callback=null,type="GET", replace=false){
+
     csrftoken = getCookie('csrftoken');
     defaults={
         csrfmiddlewaretoken: csrftoken
@@ -98,7 +99,14 @@ function labLoad(name, defaultValue) {
         data:datas,
         success: function( data )
         {
-            elt.html(data);
+            if(replace){
+                console.log("replace")
+                elt.replaceWith(data);
+            }else{
+                console.log("NOT replace")
+                elt.html(data);
+            }
+            
             if(callback)callback();
         },
         error:function( err )

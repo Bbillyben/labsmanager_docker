@@ -249,6 +249,7 @@
                     resourceOrder: 'title',
                 filterResourcesWithEvents:settings.filterResourcesWithEvents,
                 // -------------------------------
+
                 customButtons: {
                     datePickerButton: {
                         text:'select',
@@ -280,7 +281,7 @@
                             $("input.datepicker").not(":first").remove();//dynamically appended every time on custom button click
         
                         }
-                    }
+                    },
                 },
 
                 // -------------------------------
