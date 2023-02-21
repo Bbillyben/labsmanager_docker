@@ -11,7 +11,7 @@ from labsmanager.forms import DateInput
 class ProjectModelForm(BSModalModelForm):
     class Meta:
         model = models.Project
-        fields = ['name', 'start_date', 'end_date',]
+        fields = ['name', 'start_date', 'end_date','status',]
         widgets = {
             'start_date': DateInput(),
             'end_date': DateInput(),

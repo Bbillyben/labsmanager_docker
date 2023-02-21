@@ -3,13 +3,7 @@ function simpleFormatter(value, row, index, field){
     response="";
     switch(field) {
         case 'is_active':
-          if(this.allow == 'True'){
-            response=(value ? '<i class="fa fa-toggle-off" aria-hidden="true" style="color:green"></i>' : '<i class="fa fa-toggle-on" aria-hidden="true" style="color:red"></i>');
-            response = '<span type="button" class="user_action" data-action-type="activate_user_'+(!value)+'" data-pk="'+row.pk+'">'+response+'</span>';
-            response += '<span style="display:none">'+ value+"</span>";
-          }else{
             response=(value ? '<img src="/static/admin/img/icon-yes.svg" alt="True">' : '<img src="/static/admin/img/icon-no.svg" alt="False">');
-          }
             break;
         default:
           // code block
