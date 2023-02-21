@@ -100,10 +100,8 @@ function labLoad(name, defaultValue) {
         success: function( data )
         {
             if(replace){
-                console.log("replace")
                 elt.replaceWith(data);
             }else{
-                console.log("NOT replace")
                 elt.html(data);
             }
             

@@ -48,7 +48,7 @@ function initializeBudgetTable(callback=null){
 
 }
 function updateFullBudget(){
-    $('#budget_table').labTable('refresh');
+    $('#budget_table').bootstrapTable('refresh');
 }
 
 function adminActionBudget(value, row, index, field){

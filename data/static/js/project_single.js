@@ -83,7 +83,7 @@ function initProjectCalendar(){
 
 }
 function updateProjectCalendar(){
-    $('#project_leave_item_table').labTable('refresh');
+    $('#project_leave_item_table').bootstrapTable('refresh');
     calendar.refetchEvents();  
     calendar.refetchResources();  
 }

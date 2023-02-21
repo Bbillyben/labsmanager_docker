@@ -203,7 +203,7 @@ function adminActionParticipant(value, row, index, field){
 // ----------------------  table Leave  ------------------- //
 
 function updateLeave(){
-    $('#employee_leave_table').labTable('refresh');
+    $('#employee_leave_table').bootstrapTable('refresh');
     //updateLeaveBtnHandler();
 }
 

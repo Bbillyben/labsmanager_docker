@@ -28,7 +28,7 @@ function initTeam(userId,  perms){
 
 
 function team_refresh(){
-    $('#team_main_table').labTable('refresh');
+    $('#team_main_table').bootstrapTable('refresh');
 }
 
 

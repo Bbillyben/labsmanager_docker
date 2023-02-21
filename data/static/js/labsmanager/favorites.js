@@ -1,5 +1,5 @@
 function initFavorites(){
-    console.log("initFavorites")
+    // console.log("initFavorites")
     $('.favorite').each(function(){
         fType=$(this).data('type')
         fPk=$(this).data('pk')
