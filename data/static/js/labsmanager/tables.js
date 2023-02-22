@@ -194,7 +194,50 @@ function visibleColumnString(columns) {
     return fields.join(',');
 }
 
+function labTableUpdate(eventName, table, options, playCallback=true){
 
+    switch(eventName){
+
+        case 'load-success.bs.table':
+            if(options.callback && playCallback)options.callback();
+            break;
+        case "refresh.bs.table":
+        case "search.bs.table":
+        case "refresh.bs.table":
+            if(options.callback)options.callback();
+            break;
+    }
+
+    if(eventName!="post-body.bs.table")return;
+
+   var defaults = {
+        modalID:"#create-modal",
+        modalContent:".modal-content",
+        modalForm:".modal-content form",
+    };
+    settings = $.extend(defaults, options);
+
+    $(table).find('.edit').each(function(){
+        //console.log("edit_employee found :"+$(this).data("form-url"))
+        $(this).labModalForm({
+            modalID: settings.modalID,
+            modalContent: settings.modalContent,
+            modalForm: settings.modalForm,
+            formURL: $(this).data("form-url"),
+            addModalFormFunction: function(){reloadtable(table)},
+        })
+    })
+    $(table).find('.delete').each(function(){
+        $(this).labModalForm({
+            modalID: settings.modalID,
+            modalContent: settings.modalContent,
+            modalForm: settings.modalForm,
+            isDeleteForm: true,
+            formURL: $(this).data("form-url"),
+            addModalFormFunction: function(){reloadtable(table)},
+        })
+    })    
+}
 $.fn.labTable = function(options) {
 
     var table = this;
@@ -259,16 +302,7 @@ $.fn.labTable = function(options) {
         labSave(`table_columns_${tableName}`, text);
     };
 
-    // le call back
-    if (options.callback != null){
-        options.onLoadSuccess=function(){options.callback()};
-        options.onSearch=function(){options.callback()};
-        options.onSort=function(){options.callback()};
-        options.onToggle=function(){options.callback()};
-        options.onPageChange=function(){options.callback()};
-        options.onRefresh=function(){options.callback()};
-    }
-        
+    options.onAll=function(e){labTableUpdate(e, table, options, options.playCallbackOnLoad)};
 
     // Standard options for all tables
     table.bootstrapTable(options);
@@ -297,10 +331,6 @@ $.fn.labTable = function(options) {
         }
     }
 
-    // Optionally, link buttons to the table selection
-    // if (options.buttons) {
-    //     linkButtonsToSelection(table, options.buttons);
-    // }
 
 };
 
@@ -381,8 +411,9 @@ function employeeFormatter(value, row, index, field){
 
 
 function teamMateFormatter(value, row, index, field){
+    
     if(!isIterable(value)){
-        value=[{"employee":value}];
+        value=[{"employee":value, "is_active":value.is_active}];
     }
     response = "";
     for (const item of value) {
@@ -446,12 +477,13 @@ function InstitutionParticipantFormatter(value, row, index, field){
 
 
 function ProjectFormatter(value, row, index, field){
+    // console.log("ProjectFormatter :"+JSON.stringify(value))
     if(!isIterable(value)){
         value=[{"project":value}];
     }
     response = "";
     for (const item of value) {
-        //console.log("item :"+JSON.stringify(item));
+        // console.log("item :"+JSON.stringify(item));
 
             tm ="<a href='/project/"+item.project.pk+"'>"+item.project.name;
             tm+="</a>";

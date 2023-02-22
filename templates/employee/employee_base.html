@@ -68,6 +68,11 @@
                         <th data-sortable="true" class="th-inner sortable both" data-field="get_status" data-formatter="statusFormatter">
                             {% trans 'Status' %}
                         </th>
+                        {% if perms.staff.view_genericinfo %}
+                        <th data-sortable="true" class="th-inner sortable both" data-field="info" data-formatter="infoFormatter">
+                            {% trans 'Infos' %}
+                        </th>
+                        {% endif %}
                         <th data-sortable="true" class="th-inner sortable both" data-field="contracts" data-formatter="contractsFormatter">
                             {% trans 'Contracts' %}
                         </th>
@@ -148,47 +153,6 @@ function SetCliCListenerStaff(){
         })
     });
 
-    $(".edit_employee").each(function () {
-        $(this).modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
-            formURL: $(this).data("form-url"),
-            isDeleteForm: false,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee Updated",
-                dataUrl: '/api/employee/',
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: update_windows_function,
-            }
-        });
-    });
-    $(".delete_employee").each(function () {
-        $(this).modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
-            formURL: $(this).data("form-url"),
-            isDeleteForm: true,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee deleted",
-                dataUrl: '/api/employee/',
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: update_windows_function,
-            }
-        });
-    });
-
 }
 
 
@@ -197,36 +161,13 @@ function update_windows_function(){
     $('#employee_main_table').bootstrapTable('refresh');
 
     // initialise Modal Form Employee add
-    $("#employee_create").modalForm({
-        modalID: "#create-modal",
-        modalContent: ".modal-content",
-        modalForm: ".modal-content form",
-        formURL: "{% url 'create_employee' %}",
-        isDeleteForm: false,
-        errorClass: ".form-validation-warning",
-        asyncUpdate: true,
-        asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
-            successMessage: "Employee Created",
-            dataUrl: '/api/employee/',
-            dataElementId: '#employee_main_table',
-            dataKey: 'table',
-            addModalFormFunction: update_windows_function,
-        }
-    });
-
+    $("#employee_create").labModalForm({
+        formURL:  "{% url 'create_employee' %}",
+        addModalFormFunction: update_windows_function,
+    })
 
 }
-// data-search="true"
-//                 data-id-table="advancedTable"
-//                 data-show-export="true"
-//                 data-show-refresh="true"
-//                 data-show-columns="true"
-//                 data-pagination="true"
-//                 data-show-pagination-switch="true"
-//                 data-page-list="[10, 25, 50, 100, all]"
-//                 data-advanced-search="true"
+
 
 $(document).ready(function () {
     // $.extend($.fn.bootstrapTable.defaults.icons, {
@@ -238,12 +179,6 @@ $(document).ready(function () {
     }
     var options={
         callback: SetCliCListenerStaff,
-        // exportTypes: ['json', 'xml', 'csv', 'txt', 'excel'],
-        // exportOptions: {
-        //     fileName:"Employees_Export", 
-        //     ignoreColumn: ["admin_action"]
-        // },
-        // showExport: 'true', 
         url:"/api/employee/",
         queryParams: filters,
         name:'employee',

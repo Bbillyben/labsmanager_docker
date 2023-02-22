@@ -1,16 +1,6 @@
-{% load i18n %}
-{% if perms.Employee.can_change %}
-    <span type="button" class="user_action" data-action-type="activate_user_{{ employee.is_active|yesno:'false,true' }}" data-pk="{{ employee.pk }}" data-url="{% url 'ajax_staff' %}" >
-        {% if employee.is_active %}
-            <i class="fa fa-toggle-off" aria-hidden="true" style="color:green"></i>
-        {% else %}
-            <i class="fa fa-toggle-on" aria-hidden="true" style="color:red"></i>
-        {% endif %}
-    </span>
-{% else %}
+
         {% if employee.is_active %}
             <img src="/static/admin/img/icon-yes.svg" alt="True">
         {% else %}
             <img src="/static/admin/img/icon-no.svg" alt="False">
         {% endif %}
-{% endif %}

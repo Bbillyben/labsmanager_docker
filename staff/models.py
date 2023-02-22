@@ -11,6 +11,8 @@ from django.utils import timezone
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from faicon.fields import FAIconField
+
 from labsmanager.mixin import ActiveDateMixin
 
 ### Models 
@@ -29,6 +31,7 @@ class Employee(models.Model):
     birth_date = models.DateField(null=True, blank=True, verbose_name=_('Birth Date'))
     entry_date = models.DateField(null=True, blank=True, verbose_name=_('Entry Date'))
     exit_date = models.DateField(null=True, blank=True, verbose_name=_('Exit Date'))
+    email = models.EmailField(null=True, blank=True, verbose_name=_('Email'))
     is_active=models.BooleanField(default=True, null=False)
     history = AuditlogHistoryField()
     
@@ -75,7 +78,9 @@ class Employee(models.Model):
     def projects_quotity(self):
         from project.models import Participant
         return Participant.objects.filter(Q(employee=self.pk) & Q(project__status=True) &  Q(start_date__lte=timezone.now())  & ( Q(end_date__gte=timezone.now()) | Q(end_date=None)) ).aggregate(Sum('quotity'))["quotity__sum"]
-    
+    @property
+    def info(self):
+        return GenericInfo.objects.filter(employee=self.pk)
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""
         return  f"{self.first_name} {self.last_name}"
@@ -115,8 +120,8 @@ class Employee_Type(models.Model):
         verbose_name = _("Employee Type")
         ordering = ['name']
         
-    shortname = models.CharField(max_length=10, verbose_name=_('Abbreviation'), unique=True)
-    name = models.CharField(max_length=50, verbose_name=_('Name'), unique=True)
+    shortname = models.CharField(max_length=30, verbose_name=_('Abbreviation'), unique=True)
+    name = models.CharField(max_length=70, verbose_name=_('Name'), unique=True)
     
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""
@@ -127,7 +132,7 @@ class Team(models.Model):
         """Metaclass defines extra model properties"""
         verbose_name = _("Team")
     
-    name = models.CharField(max_length=50, verbose_name=_('Team Name'))
+    name = models.CharField(max_length=70, verbose_name=_('Team Name'))
     leader = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Team Leader'))
     history = AuditlogHistoryField()
     
@@ -175,8 +180,33 @@ class TeamMate(ActiveDateMixin):
         if isLeader:
             raise ValidationError(_('Is Team leader'))
         
-        
+
+class GenericInfoType(models.Model):
+    class Meta:
+        """Metaclass defines extra model properties"""
+        verbose_name = _("Type of Generic Info")
+    
+    name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
+    icon = FAIconField(null=True,)
+    
+    def __str__(self):
+        """Return a string representation of the Status (for use in the admin interface)"""
+        return self.name
+
+class GenericInfo(models.Model):
+    class Meta:
+        """Metaclass defines extra model properties"""
+        verbose_name = _("Generic Info")
+    
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
+    info =  models.ForeignKey(GenericInfoType, on_delete=models.CASCADE, verbose_name=_('Info Type'))
+    value = models.CharField(max_length=150, blank=True, null=True, verbose_name=_('Info Value'))
+    history = AuditlogHistoryField()
+    
+    
+    
 auditlog.register(Employee)
 auditlog.register(Employee_Status)
 auditlog.register(Team)
 auditlog.register(TeamMate)
+auditlog.register(GenericInfo)

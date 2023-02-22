@@ -1,7 +1,7 @@
 from csv import field_size_limit
 from traceback import format_tb
 from django import forms
-from .models import Employee, TeamMate, Employee_Status, Team
+from .models import Employee, TeamMate, Employee_Status, Team, GenericInfo
 from django.contrib.auth.models import User
 from django.db.models import Q
 from bootstrap_modal_forms.forms import BSModalModelForm
@@ -29,7 +29,7 @@ class TeamMateForm(forms.ModelForm):
 class EmployeeModelForm(BSModalModelForm):
     class Meta:
         model = Employee
-        fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', ]
+        fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', 'email','is_active',]
         widgets = {
             'birth_date': DateInput(),
             'entry_date': DateInput(),
@@ -89,12 +89,15 @@ class TeamMateModelForm(BSModalModelForm):
         }
         
     def __init__(self, *args, **kwargs):
-        
-        if ('initial' in kwargs and 'team' in kwargs['initial']):
+        if ('initial' in kwargs and 'team' in kwargs['initial'] and not 'is_update' in kwargs):
             team_id=kwargs['initial']['team']
             mateInTeam=TeamMate.objects.filter(team=team_id).values('employee')
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.filter(~Q(pk__in=mateInTeam)),
+            )
+        else:
+             self.base_fields['employee'] = forms.ModelChoiceField(
+                queryset=Employee.objects.all(),
             )
             
         
@@ -105,3 +108,19 @@ class TeamMateModelForm(BSModalModelForm):
             self.fields['employee'].widget.attrs['disabled'] = True
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             self.fields['team'].widget.attrs['disabled'] = True
+            
+class GenericInfoForm(BSModalModelForm):
+    class Meta:
+        model = GenericInfo
+        fields = ['info', 'employee', 'value',]
+    
+    def __init__(self, *args, **kwargs): 
+        
+        self.base_fields['employee'] = forms.ModelChoiceField(
+            queryset=Employee.objects.all(),
+            widget=forms.HiddenInput
+        )
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['info'].disabled = True

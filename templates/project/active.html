@@ -1,16 +1,6 @@
-{% load i18n %}
-{% if perms.user.can_change %}
-    <span type="button" class="project_action" data-action-type="activate_project_{{ project.status|yesno:'false,true' }}" data-pk="{{ project.pk }}" data-url="{% url 'ajax_project' %}" >
-        {% if project.status %}
-            <i class="fa fa-toggle-off" aria-hidden="true" style="color:green"></i>
-        {% else %}
-            <i class="fa fa-toggle-on" aria-hidden="true" style="color:red"></i>
-        {% endif %}
-    </span>
-{% else %}
+
         {% if project.status %}
             <img src="/static/admin/img/icon-yes.svg" alt="True">
         {% else %}
             <img src="/static/admin/img/icon-no.svg" alt="False">
         {% endif %}
-{% endif %}

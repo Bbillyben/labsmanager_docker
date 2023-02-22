@@ -28,6 +28,7 @@ from fund import apiviews as fundApiViews
 from staff import apiviews as staffApiViews
 from endpoints import apiviews as endPointApiViews
 from leave import apiviews as leaveApiViews
+from common import apiviews as commonApiViews
 from django.conf.urls.i18n import i18n_patterns
 from django_js_reverse import views as jsrev_views
 
@@ -45,6 +46,7 @@ urlpatterns = [
     path('settings/', include('settings.urls')),
     path('milestones/', include('endpoints.urls')),
     path('calendar/', include('leave.urls')),
+    path('common/', include('common.urls')),
 ]
 #  Authentications : 
 urlpatterns += [
@@ -72,13 +74,20 @@ router.register(r'budget', fundApiViews.BudgetViewSet, basename='budget')
 router.register(r'milestones', endPointApiViews.MilestonesViewSet, basename='milestones')
 router.register(r'milestones', endPointApiViews.MilestonesViewSet, basename='milestones')
 router.register(r'leave', leaveApiViews.LeaveViewSet, basename='leave')
+router.register(r'favorite', commonApiViews.favoriteViewSet, basename='favorite')
 # router.register(r'settings', UserSettingsDetail.as_view(), basename='settings')
 
 urlpatterns += [
     path('api/', include((router.urls, 'api_app'), namespace='api')),
     path('api/settings/', include('settings.urls_api')),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
+
+urlpatterns += [
+    path('faicon/', include('faicon.urls')),
+]
+
+
 
 if settings.DEBUG:
     # Static file access

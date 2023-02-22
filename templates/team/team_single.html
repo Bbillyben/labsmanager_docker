@@ -29,6 +29,9 @@
                     {% if request.user.is_staff %}
                     <a href='{% url "admin:staff_team_change" team.pk %}'><button class='icon admin_employee btn btn-secondary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>
                     {% endif %}
+                    {% if perms.common.change_favorite %}
+                    <div class="favorite" data-type="staff.team" data-pk='{{team.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
+                    {%endif%}
 
                 </div>
                 

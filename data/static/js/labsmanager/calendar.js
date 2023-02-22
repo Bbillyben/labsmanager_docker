@@ -64,46 +64,19 @@
     function updateLeaveButtonHandler(){
         $("#popover_close").click(function(){$('.popover').popover('dispose');})
         $(".edit_leave").each(function () {
-            $(this).modalForm({
-                modalID: "#create-modal",
-                modalContent: ".modal-content",
-                modalForm: ".modal-content form",
-                formURL: $(this).data("form-url"),
-                isDeleteForm: false,
-                errorClass: ".form-validation-warning",
-                asyncUpdate: true,
-                asyncSettings: {
-                    directUpdate: true,
-                    closeOnSubmit: true,
-                    successMessage: "Employee deleted",
-                    dataUrl: '/api/employee/',
-                    dataElementId: '#employee_main_table',
-                    dataKey: 'table',
-                    addModalFormFunction: calendar_refresh,
-                }
-            });
+            $(this).labModalForm({
+                formURL:  $(this).data("form-url"),
+                addModalFormFunction: calendar_refresh,
+            })
             $(this).click(function(){$('.popover').popover('dispose');})
         });
         $(".delete_leave").each(function () {
             
-            $(this).modalForm({
-                modalID: "#create-modal",
-                modalContent: ".modal-content",
-                modalForm: ".modal-content form",
-                formURL: $(this).data("form-url"),
+            $(this).labModalForm({
+                formURL:  $(this).data("form-url"),
                 isDeleteForm: true,
-                errorClass: ".form-validation-warning",
-                asyncUpdate: true,
-                asyncSettings: {
-                    directUpdate: true,
-                    closeOnSubmit: true,
-                    successMessage: "Employee deleted",
-                    dataUrl: '/api/employee/',
-                    dataElementId: '#employee_main_table',
-                    dataKey: 'table',
-                    addModalFormFunction: calendar_refresh,
-                }
-            });
+                addModalFormFunction: calendar_refresh,
+            })
             $(this).click(function(){$('.popover').popover('dispose');})
         });
     }
@@ -144,10 +117,6 @@
         if(resource){
             modURL+="&employee="+resource.id
         }
-       
-
-
-
         try{
             //$('#detail-panels').unbind('click');
             $(elts).modal('dispose');
@@ -155,25 +124,11 @@
             console.log(error);
         }
         
-        $(elts).modalForm({
-            modalID: "#create-modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
+        $(elts).labModalForm({
             formURL: modURL,
-            isDeleteForm: false,
-            errorClass: ".form-validation-warning",
-            asyncUpdate: true,
-            asyncSettings: {
-                directUpdate: true,
-                closeOnSubmit: true,
-                successMessage: "Employee deleted",
-                dataUrl: '/api/employee/',
-                dataElementId: '#employee_main_table',
-                dataKey: 'table',
-                addModalFormFunction: calendar_refresh,
-                forceExitFunction: true,
-            }
-        });
+            addModalFormFunction: calendar_refresh,
+            forceExitFunction: true,
+        })
         
     }
 
@@ -251,7 +206,7 @@
                 locale:settings.local,
                 initialView: 'resourceTimelineMonth',
                 headerToolbar: {
-                    left: 'prev,next today',
+                    left: 'prev,next today datePickerButton',
                     center: 'title',
                     right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
                 },
@@ -293,6 +248,45 @@
                     },
                     resourceOrder: 'title',
                 filterResourcesWithEvents:settings.filterResourcesWithEvents,
+                // -------------------------------
+
+                customButtons: {
+                    datePickerButton: {
+                        text:'select',
+                        click: function () {      
+                            var $btnCustom = $('.fc-datePickerButton-button'); // name of custom  button in the generated code
+                            $btnCustom.after('<input type="hidden" id="hiddenDate" class="datepicker"/>');
+        
+                            $("#hiddenDate").datepicker({
+                                showOn: "button",
+        
+                                dateFormat:"yy-mm-dd",
+                                onSelect: function (dateText, inst) {
+                                    //$(this).fullCalendar('gotoDate', dateText);
+                                    calendar.gotoDate(dateText);
+                                },
+                                beforeShow: function() {
+                                    setTimeout(function(){
+                                        $('.ui-datepicker').css('z-index', 99999999999999);
+                                    }, 0);
+                                },
+                            });
+        
+                            var $btnDatepicker = $(".ui-datepicker-trigger"); // name of the generated datepicker UI 
+                            //Below are required for manipulating dynamically created datepicker on custom button click
+                            $("#hiddenDate").show().focus().hide();
+                            $btnDatepicker.trigger("click"); //dynamically generated button for datepicker when clicked on input textbox
+                            $btnDatepicker.hide();
+                            $btnDatepicker.remove();
+                            $("input.datepicker").not(":first").remove();//dynamically appended every time on custom button click
+        
+                        }
+                    },
+                },
+
+                // -------------------------------
+
+
             })
             calendar.render();
 

@@ -13,7 +13,7 @@ from dashboard import utils
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
-from labsmanager.mixin import DateMixin
+from labsmanager.mixin import DateMixin, CachedModelMixin
 
 # Create your models here.
 class Expense(models.Model):
@@ -48,10 +48,10 @@ class Contract_expense(Expense):
     contract= models.ForeignKey('Contract', on_delete=models.CASCADE, verbose_name=_('Related Contract'))
     
 
-class Expense_point(models.Model):
+class Expense_point(CachedModelMixin):
     class Meta:
         verbose_name = _("Total Expense Timepoint")
-        unique_together = ('value_date', 'fund', 'type')
+        unique_together = ('fund', 'type')
 
     entry_date = models.DateField(null=False, blank=False, verbose_name=_('Entry Date'))
     value_date = models.DateField(null=False, blank=False, verbose_name=_('value Date'))
@@ -63,6 +63,8 @@ class Expense_point(models.Model):
     # manager
     objects = models.Manager()
     last = LastInManager()
+    
+    cached_vars=["amount"]
     
     def clean_amount(self):
         if self.cleaned_data['amount']>0:

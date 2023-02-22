@@ -1,12 +1,13 @@
 from multiprocessing import context
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate
+from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfo, GenericInfoType
 from expense.models import Expense_point, Contract, Contract_expense, Contract_type
 from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget
 from project.models import Project, Institution, Participant,Institution_Participant
 from endpoints.models import Milestones
 from leave.models import Leave, Leave_Type
+from common.models import  favorite
 from django.db.models import Sum
 
 
@@ -144,7 +145,37 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'title', ]  
         
-     
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Common
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+class ContentTypeSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = ContentType
+        fields = ['id', 'app_label', 'model',] 
+
+    
+class FavoriteSerialize(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    content_type=ContentTypeSerialize(many=False, read_only=True)
+    object_name=serializers.SerializerMethodField()
+    object_url=serializers.SerializerMethodField()
+    class Meta:
+        model = favorite
+        fields = ['pk', 'user', 'content_type', 'object_id', 'object_name','object_url',] 
+        
+    def get_object_name(self,obj):
+        return obj.content_object.__str__()
+    
+    def get_object_url(self,obj):
+        if obj.content_type.model == 'project':
+            return reverse('project_single', args=[obj.object_id])
+        if obj.content_type.model == 'employee':
+            return reverse('employee', args=[obj.object_id])
+        if obj.content_type.model == 'team':
+            return reverse('team_single', args=[obj.object_id])
+
+        return "-"
+    
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #
@@ -258,13 +289,13 @@ class FundItemSerialize(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Fund_Item
-        fields = ['pk', 'type', 'fund','amount',  'expense','available',]    
+        fields = ['pk', 'type', 'fund','amount',  'expense','available','value_date', 'entry_date',]    
             
 class FundItemSerialize_min(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Fund_Item
-        fields = ['pk', 'type', 'amount','expense',]  
+        fields = ['pk', 'type', 'amount','expense','value_date', 'entry_date',]  
         
 class FundStaleSerializer(serializers.ModelSerializer):
     availability=serializers.SerializerMethodField()
@@ -351,8 +382,17 @@ class ContractExpenseSerializer_min(serializers.ModelSerializer):
 # ---------------------------    APP EMPLOYEE / SERIALISZER    --------------------------- #
 # ---------------------------------------------------------------------------------------- #
         
-
+class EmployeeInfoTypeSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = GenericInfoType
+        fields = ['pk', 'name', 'icon', ]
         
+class EmployeeInfoSerialize(serializers.ModelSerializer):
+    info = EmployeeInfoTypeSerialize(many=False, read_only=True)
+    class Meta:
+        model = GenericInfo
+        fields = ['pk', 'info', 'value', ]
+    
 class EmployeeStatusSerialize(serializers.ModelSerializer):
     type = EmployeeTypeSerialize(many=False, read_only=True)
     is_contractual=serializers.SerializerMethodField()
@@ -368,11 +408,14 @@ class EmployeeSerialize(serializers.ModelSerializer):
     get_status =EmployeeStatusSerialize(many=True, read_only=True)
     contracts=ContractSerializer(many=True, read_only=True)
     projects=ParticipantSerializer(many=True, read_only=True)
+    info=EmployeeInfoSerialize(many=True, read_only=True)
     class Meta:
         model = Employee
-        fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','is_team_leader','is_team_mate','get_status','is_active',
+        fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','email',
+                  'is_team_leader','is_team_mate','get_status','is_active',
                   'contracts', 'contracts_quotity',
                   'projects','projects_quotity',
+                  'info',
                   ]
         
 class TeamMateSerializer_min(serializers.ModelSerializer):

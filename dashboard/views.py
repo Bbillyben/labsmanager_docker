@@ -170,7 +170,7 @@ class MilestonesCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
             'url':reverse_lazy("api:milestones-milestones_stale"),
             'title':_('Stale Milestones'),
             'columns':[
-                {'name':_('Project'),'item':'project',  'formatter':'projectFormatter'},
+                {'name':_('Project'),'item':'project',  'formatter':'projectFormatterDirect'},
                 {'name':_('Name'),'item':'name'},
                 {'name':_('Description'),'item':'desc'},
                 {'name':_('Type'),'item':'get_type_display'},

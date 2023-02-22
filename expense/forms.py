@@ -120,7 +120,7 @@ class ExpenseTimepointModelForm(BSModalModelForm):
         if instance and instance.pk:
             self.fields['fund'].widget = forms.HiddenInput()
             self.fields['type'].disabled = True
-            self.fields['value_date'].disabled = True
+            #self.fields['value_date'].disabled = True
             
             
     def clean_amount(self):

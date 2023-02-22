@@ -38,7 +38,7 @@ class FundViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=True, url_path='expense_timepoint', url_name='expense_timepoint')
     def fundBudgetPOint(self, request, pk=None):
         # BP = Expense_point.get_lastpoint_by_fund(pk)
-        BP = Expense_point.last.fund(pk)
+        BP = Expense_point.objects.filter(fund=pk) #last.fund(pk)
         return JsonResponse(serializers.ExpensePOintSerializer(BP, many=True).data, safe=False) 
     
     @action(methods=['get'], detail=False, url_path='stale', url_name='stale_fund')

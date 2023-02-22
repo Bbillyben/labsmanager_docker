@@ -1,0 +1,26 @@
+{% load i18n %}
+{% if datas %}
+
+<div class="accordion accordion-flush favoriteAccordion" id="accordionFlushFavorite">
+    {% for fM, fMS in datas.items  %}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="flush-headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fav-{{fM}}" aria-expanded="false" aria-controls="fav-{{Fm}}">
+                {{fM}}
+            </button>
+        </h2>
+        <div id="fav-{{fM}}" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushFavorite">
+            {% for f in fMS%}
+                <a class='dropdown-item small' href="{{f.object_url}}">
+                {{f.object_name}}
+                </a>
+            {%endfor%}  
+        </div>
+    </div>
+    {%endfor%} 
+</div>
+
+
+
+
+{% endif %}

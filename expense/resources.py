@@ -11,7 +11,8 @@ import import_export.widgets as widgets
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
 from import_export import resources, results
-from labsmanager.ressources import SimpleError, SkipErrorRessource
+
+from labsmanager.ressources import SimpleError, SkipErrorRessource, DateField
 from fund.resources import FundField
 
 class ContractResource(labResource):
@@ -62,10 +63,8 @@ class ContractResource(labResource):
                    ''
          ]
 
-
-
-
-class ExpensePointResource(SkipErrorRessource):
+    
+class ExpensePointResource(labResource, SkipErrorRessource):
     
     @classmethod
     def get_error_result_class(self):
@@ -77,22 +76,26 @@ class ExpensePointResource(SkipErrorRessource):
     fund=FundField(
         column_name='Ref',
         attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'ref')
+        widget=ForeignKeyWidget(Fund, 'ref'),
+        readonly=True
         )
     type=Field(
         column_name='type',
         attribute='type',
-        widget=ForeignKeyWidget(Cost_Type, 'short_name')
+        widget=ForeignKeyWidget(Cost_Type, 'short_name'),
+        readonly=True
         )
     project=FundField(
         column_name='project',
         attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'project__name')
+        widget=ForeignKeyWidget(Fund, 'project__name'),
+        readonly=True
         )
     institiution=FundField(
         column_name='institution',
         attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'institution__short_name')
+        widget=ForeignKeyWidget(Fund, 'institution__short_name'),
+        readonly=True
         )
     amount=Field(
         column_name=_('expense'),
@@ -100,12 +103,62 @@ class ExpensePointResource(SkipErrorRessource):
         widget=widgets.DecimalWidget(),
         readonly=False
     )
+    entry_date=DateField(
+        column_name=_('entry_date'),
+        attribute='entry_date', 
+        widget=widgets.DateWidget(),
+        readonly=False
+    )
+    value_date=DateField(
+        column_name=_('value_date'),
+        attribute='value_date',
+        widget=widgets.DateWidget(),
+        readonly=False
+    )
+    
+    # def skip_row(self, instance, original, row, import_validation_errors=None):
+    #     print("------------ skip_row")
+    #     print("  - instance :"+str(instance))
+    #     print("  - original :"+str(original))
+    #     print("  - row :"+str(row))
+    #     print("  - import_validation_errors :"+str(import_validation_errors))
+        
+    #     for field in self.get_import_fields():
+    #         print("  - field :"+str(field))
+    #         print("     -> field.get_value(instance) :"+str(field.get_value(instance)))
+    #         print("     -> field.get_value(instance) :"+str(field.get_value(original)))
+    #     return super().skip_row(instance, original, row, import_validation_errors)
+        
+        
+    def before_import_row(self, row, row_number=None, **kwargs):
+        
+        query = Q()
+        project_name = row.get('project', None)
+        if project_name is not None:
+            query = query & Q(fund__project__name__icontains=project_name)
+        
+        refI = row.get('Ref', None)
+        if refI is not None:
+            query = query & Q(fund__ref=refI)
+            
+        typeC = row.get('type', None)
+        if typeC is not None:
+            query = query & Q(type__short_name=typeC)            
+        
+        
+        fu = Expense_point.objects.filter(query).first()
+
+        if fu is not None:
+            row["id"] = fu.pk
+        else:
+            row["id"] = None
+        return fu
+    
+    
+    
     
     class Meta:
         model = Expense_point
-        skip_unchanged = False
-        report_skipped = True
-        collect_failed_rows=False
-        rollback_on_validation_errors=True
-        use_transactions=True
-        export_order  = ('project','institiution', 'fund','type', 'entry_date', 'value_date',  'amount', )
+        skip_unchanged = True
+        clean_model_instances = False
+        export_order  = ['project','institiution', 'fund','type', 'entry_date', 'value_date',  'amount', ]

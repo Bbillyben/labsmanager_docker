@@ -1,0 +1,32 @@
+{% load customs_tags %}
+{% load i18n %}
+{% if infoEmployee %}
+<div class="card mb-2">
+    <table class="table table-striped table-condensed table-desc" id="employee_infos_table">
+        <colgroup>
+            <col width="2">
+        </colgroup>
+        <tbody>
+            
+        {% for i in infoEmployee %}
+        <tr>
+            <td>{% get_faIcon i.info.icon %}</i></td>
+            <td  class="desc_title">{{i.info}}</td>
+            <td>{{i.value}}</td>
+            <td>
+                <span class="icon-left-cell btn-group">
+                    {% if perms.staff.change_genericinfo %}
+                    <button class='icon update_info btn btn-success ' data-form-url='/staff/info/{{i.pk}}/update/' ><i type = 'button' class='fas fa-pen-to-square'></i></button>
+                    {% endif %}
+                    {% if perms.staff.delete_genericinfo %}
+                    <button class='icon delete_info btn btn-danger ' data-form-url='/staff/info/{{i.pk}}/delete/' ><i type = 'button' class='fas fa-trash'></i></button>
+                    {% endif %}
+                </span>
+            </td>
+
+        </tr>
+        {%endfor%}
+        </tbody>
+    </table>
+</div>
+{% endif %}

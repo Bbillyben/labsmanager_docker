@@ -158,9 +158,11 @@ class Participant(ActiveDateMixin):
         if inuser:
             raise ValidationError(_('Already in Team'))
         # user already in but has finished but date between
-        q = (Q(start_date__lte=self.start_date) & Q(end_date__gte=self.start_date))
-        if self.end_date:
-            q= q | (Q(start_date__lte=self.end_date) & Q(end_date__gte=self.end_date))
+        q =Q()
+        if self.start_date:
+            q = (Q(start_date__lte=self.start_date) & Q(end_date__gte=self.start_date))
+            if self.end_date:
+                q= q | (Q(start_date__lte=self.end_date) & Q(end_date__gte=self.end_date))
         
         inuser = Participant.objects.filter(Q(employee=self.employee), Q(project=project), ~Q(pk=self.pk),
                                             

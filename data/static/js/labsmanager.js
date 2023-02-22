@@ -40,6 +40,18 @@ $.fn.isEmpty = function() {
 
 
 
+// params in windows
+$.urlParam = function(name) {
+    // eslint-disable-next-line no-useless-escape
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+
+    if (results == null) {
+        return null;
+    }
+
+    return decodeURI(results[1]) || 0;
+};
+
 // ---------------------- local data storage
 /**
  * Save a key:value pair to local storage
@@ -74,7 +86,8 @@ function labLoad(name, defaultValue) {
 
   // ------------------  ajax load direct --------------  //
 
-  function loadInTemplate(elt, url, data={}, callback=null,type="GET"){
+  function loadInTemplate(elt, url, data={}, callback=null,type="GET", replace=false){
+
     csrftoken = getCookie('csrftoken');
     defaults={
         csrfmiddlewaretoken: csrftoken
@@ -86,7 +99,12 @@ function labLoad(name, defaultValue) {
         data:datas,
         success: function( data )
         {
-            elt.html(data);
+            if(replace){
+                elt.replaceWith(data);
+            }else{
+                elt.html(data);
+            }
+            
             if(callback)callback();
         },
         error:function( err )

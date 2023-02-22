@@ -6,9 +6,12 @@ from django.db import models
 from django.db.models import Q, F
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
+import django.dispatch
+
 
 from .manager import Current_date_Manager, outof_date_Manager, date_manager
 from datetime import date
+import copy
 
 from django_tables2 import Column, SingleTableMixin, Table
 
@@ -55,7 +58,24 @@ class TableViewMixin(SingleTableMixin):
         else:
             return response
         
-        
+
+#    Cached Model Mixin and Signals
+cmm_postsave = django.dispatch.Signal()
+class CachedModelMixin(models.Model):
+    cached_vars = []
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.var_cache = {}
+        for var in self.cached_vars:
+            self.var_cache[var] = copy.copy(getattr(self, var))
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cmm_postsave.send(sender=self.__class__, instance=self)
+    
+    class Meta:
+        abstract = True
+                   
         
 class LabsManagerBudgetMixin(models.Model):
     class Meta:

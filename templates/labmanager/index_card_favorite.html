@@ -1,0 +1,25 @@
+{% load static %}
+{% load i18n %}
+{% if datas %}
+<div class="col-sm-2 lab-card-col">
+        <div class="card lab-card" style="">
+            <img class="card-img-top" src="{% static 'img/icons/favorite.png' %}" alt="Card image cap"
+            type="button" data-bs-toggle="collapse" data-bs-target="#favorites_acc"
+            >
+            <div class="lab-card-body">
+            
+                <div class="lab-card-link">
+                    <span data-bs-toggle="collapse" data-bs-target="#favorites_acc">
+                        {% trans "Favorites" %}
+                    </span> 
+                </div>
+                <div class='nav-item collapse' id="favorites_acc">
+                    {% include 'favorite_accordion.html' %}
+
+                </div>
+                
+            </div>
+        </div>
+</div>
+
+{% endif %}
