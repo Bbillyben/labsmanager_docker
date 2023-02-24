@@ -21,7 +21,7 @@
     <thead class="">
         <tr>
             {% if datatype == 'employee' or datatype == 'all' %}
-            <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="ProjectFormatter">
+            <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="ProjectFormatter" data-sorter="projectNameSorter" data-search-formatter='false'>
                 {% trans 'Project' %}
             </th>
             {% endif %}

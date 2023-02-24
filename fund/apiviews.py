@@ -48,7 +48,7 @@ class FundViewSet(viewsets.ModelViewSet):
             
         fund=Fund.current.timeframe(slot).select_related('project', 'funder', 'institution').filter(q_objects).order_by('-end_date')
         
-        return JsonResponse(serializers.FundStaleSerializer(fund, many=True).data, safe=False) 
+        return JsonResponse(serializers.FundStaleSerializer(fund, many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='noconsumption_fund', url_name='noconsumption_fund')
     def noConsumationFunds(self, request, pk=None):
@@ -64,7 +64,7 @@ class FundViewSet(viewsets.ModelViewSet):
         if userStalePeriod:
             slot = utils.getDashboardTimeSlot(request)
        
-        f=Fund.objects.timeframe(slot)
+        f=Fund.current.timeframe(slot)
         
         if typeReport == 'linear' or typeReport =='both':
             f=f.annotate(duration_quotity=Extract(Now()-F('start_date'), 'epoch') / Extract(F('end_date')-F('start_date'), 'epoch'))

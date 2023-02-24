@@ -63,6 +63,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django_q',
+    
+    
+    'django_extensions',
 
     # Installed Package
     'crispy_forms',                 # https://django-crispy-forms.readthedocs.io/en/latest/install.html
@@ -144,7 +147,7 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'data' / 'dbs' / 'db.sqlite3',
     # },
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': get_setting('SQL_ENGINE', 'sql_engine', 'django.db.backends.postgresql'),
         'NAME': get_setting('LAB_DB_NAME', 'lab_db_name', 'labsmanager'),
         'USER': get_setting('LAB_DB_USER', 'lab_db_user', 'labsmanager'), 
         'PASSWORD': get_setting('LAB_DB_PASSWORD', 'lab_db_password', 'labsManagerPass'),

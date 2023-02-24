@@ -13,7 +13,7 @@ data-pk="{{ datapk }}"
 <thead class="">
     <tr>
         {% if datatype != "project" %}
-        <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="projectFormatterDirect">
+        <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="projectFormatterDirect" data-sorter="projectNameSorter">
             {% trans 'Project' %}
         </th>
         {%endif%}

@@ -575,6 +575,14 @@ function nameSorter(fieldA, fieldB){
       if (A > B) return 1;
       return 0;
   }
+function projectNameSorter(fieldA, fieldB, q){
+    //console.log('[projectNameSorter] '+JSON.stringify(fieldA)+" / "+JSON.stringify(fieldB)+" / "+JSON.stringify(q));
+    A =  fieldA.name;
+    B = fieldB.name;
+    if (A <B) return -1;
+      if (A > B) return 1;
+      return 0;
+  }
 function leaderSorter(fA, fB){
     //console.log( "[leaderSorter] :"+fA.employee.user_name+"("+fA.status+")  "+fB.employee.user_name+"("+fB.status+")");
     A=fA.status;
