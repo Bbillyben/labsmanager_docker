@@ -98,3 +98,11 @@ if settings.DEBUG:
     urlpatterns += [path('sendtest', SendTestView, name='testmail'),]
     from labsmanager.tasks import create_report
     urlpatterns += [path('testTask', create_report, name='testTask'),]
+
+
+
+# Admin Site Customisation
+from labsmanager import settings
+admin.site.site_header  =  settings.ADMIN_HEADER
+admin.site.site_title  =  settings.ADMIN_SITE_TITLE
+admin.site.index_title  =  settings.ADMIN_INDEX_TITLE

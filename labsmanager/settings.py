@@ -300,3 +300,14 @@ logger.debug('ADMINS :'+str(ADMINS))
 # for Fa Icon app
 FAICON_YAML_FILE = str(STATICFILES_DIRS[0])+'/fontawesome/metadata/icons.yml'
 # FAICON_CSS_URL = str(STATICFILES_DIRS[0])+'/fontawesome/css/all.css'
+
+
+ADMIN_HEADER =  get_setting('ADMIN_HEADER', 'admin_header', "LabsManager Admin")
+ADMIN_SITE_TITLE =  get_setting('ADMIN_SITE_TITLE', 'admin_site_title', "LabsManager Admin")
+ADMIN_INDEX_TITLE =  get_setting('ADMIN_INDEX_TITLE', 'admin_index_title', "Menu")
+
+logger.debug('ADMIN_HEADER :'+str(ADMIN_HEADER))
+
+logger.debug('ADMIN_SITE_TITLE :'+str(ADMIN_SITE_TITLE))
+
+logger.debug('ADMIN_INDEX_TITLE :'+str(ADMIN_INDEX_TITLE))

@@ -25,3 +25,8 @@ csrf_trusted_origins: ''
 # lab_db_password: ''
 # lab_db_host: ''
 # lab_db_port: ''
+
+## admin site customisation
+admin_header: "LabsManager"
+admin_site_title: "LabsManager"
+admin_index_title: "Menu"
