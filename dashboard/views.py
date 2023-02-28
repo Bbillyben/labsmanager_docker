@@ -122,8 +122,11 @@ class FundConsumptionCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':_('Availability'),'item':'available', 'formatter':'moneyFormatter'},
             ], 
             'action':[
-                {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'}
-            ]        
+                {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'},
+            ],        
+            'options':{
+                'download':1,
+            },
         }
         
         return render(request, self.template_general, context)

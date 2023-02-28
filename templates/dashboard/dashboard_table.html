@@ -4,7 +4,17 @@
 {% load customs_tags %}
 
 {% block 'dash-content' %}
+
+
 <div class="col chart_card  mb-2" id="c_chart">
+    <div id='tracking-table-toolbar'>
+        <div class='btn-group'>
+            {% makeId title as idT%}
+            {% with "dashboard_filter_"|add:idT as idTitle %}
+            {% include "filter_list.html" with id=idTitle %}
+            {%endwith%}
+        </div>
+    </div>
     <table
         class='table table-striped table-condensed'
         id="dashboard_card_{% makeId title %}"
@@ -27,7 +37,36 @@
     </table>
         
 </div>
+
+
+
 <script>
-        $('#dashboard_card_{% makeId title %}').bootstrapTable();
+
+       var card_option={{options|safe}};
+
+        var idTable="dashboard_card_{% makeId title %}";
+        $( document ).ready(function(){
+            var options={};
+
+            if(card_option["download"]){
+                var filters = loadTableFilters('{% makeId title %}');
+                var filterOption={
+                    download:true,
+                };
+                var options={
+                    url:"{{url}}",
+                    queryParams: filters,
+                    name:idTable,
+                    
+                };
+                setupFilterList('dashboarcart', $("#dashboard_card_{% makeId title %}"), '#filter-list-dashboard_filter_{% makeId title %}',  filterOption);
+            }
+           
+            
+            
+            $('#dashboard_card_{% makeId title %}').bootstrapTable(options);
+        });
+
+       
 </script>
 {% endblock %}

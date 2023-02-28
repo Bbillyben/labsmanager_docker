@@ -14,7 +14,8 @@ from expense.models import Expense_point
 from staff.models import Team, TeamMate
 from project.filters import ProjectFilter
 from project.models import Participant
-from .resources import FundItemResource, BudgetResource
+from .resources import FundItemResource, BudgetResource, FundConsumptionResource
+
 from labsmanager.helpers import DownloadFile
 from labsmanager.utils import str2bool
 
@@ -85,8 +86,23 @@ class FundViewSet(viewsets.ModelViewSet):
         
         fund=f.select_related('project', 'funder', 'institution').filter(q_objects)
         
+        
+        export = request.GET.get('export', None)
+        if export is not None:
+            #qs = self.filter_queryset(self.get_queryset())
+            return self.download_queryset(fund, export)
+        
         return JsonResponse(serializers.FundConsumptionSerialize(fund, many=True).data, safe=False) 
-
+    
+    
+    def download_queryset(self, queryset, export_format):
+        """Download the filtered queryset as a data file"""
+        dataset = FundConsumptionResource().export(queryset=queryset)
+        filedata = dataset.export(export_format)
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"FundItemsConsumption_{dateSuffix}.{export_format}"
+        return DownloadFile(filedata, filename)
+    
 class FundItemViewSet(viewsets.ModelViewSet):
     queryset = Fund_Item.objects.select_related('fund').all()
     serializer_class = serializers.FundItemSerialize

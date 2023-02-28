@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource, SkipErrorRessource
+from labsmanager.ressources import labResource, SkipErrorRessource, percentageWidget
 from .models import Fund_Item, Fund, Cost_Type, Budget
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
@@ -283,4 +283,57 @@ class BudgetResource(labResource):
                       'employee',
                       'quotity',
                       'is_active',
+                      ]
+        
+
+class FundConsumptionResource(labResource):
+    project=Field(
+        column_name=_('Project'),
+        attribute='project', 
+        widget=widgets.ForeignKeyWidget(Fund, 'name'), readonly=True
+    )
+    funder=FundField(
+        column_name=_('funder'),
+        attribute='funder', 
+        widget=widgets.ForeignKeyWidget(Fund, 'short_name'), 
+        readonly=False
+    )
+    institution=Field(
+        column_name=_('institution'),
+        attribute='institution', 
+        widget=widgets.ForeignKeyWidget(Fund, 'short_name'), readonly=True
+    )
+    available=Field(
+        column_name=_('available'),
+        attribute='available', 
+         widget=widgets.DecimalWidget(), readonly=True
+    )
+    consumption_ratio=Field(
+        column_name=_('Consumption Ration'),
+        attribute='get_consumption_ratio', 
+         widget=percentageWidget(max_num=2), readonly=True
+    )
+    time_ratio=Field(
+        column_name=_('Time Ratio'),
+        attribute='get_time_ratio', 
+        widget=percentageWidget(), readonly=True
+    )
+
+    class Meta:
+        """Metaclass"""
+        model = Fund
+        skip_unchanged = False
+        clean_model_instances = False
+        exclude = [ 'id' ]
+        export_order=['project', 
+                      'funder',
+                      'institution',
+                      'ref',
+                      'consumption_ratio',
+                      'time_ratio',
+                      'start_date',
+                      'end_date',
+                      'amount',
+                      'expense',
+                      'available',
                       ]

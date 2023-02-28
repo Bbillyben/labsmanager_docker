@@ -7,10 +7,11 @@ from django.db.models import Q, F
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 import django.dispatch
+from dateutil.rrule import *
 
 
 from .manager import Current_date_Manager, outof_date_Manager, date_manager
-from datetime import date
+from datetime import date, datetime
 import copy
 
 from django_tables2 import Column, SingleTableMixin, Table
@@ -88,12 +89,18 @@ class LabsManagerBudgetMixin(models.Model):
     def available(self):
         return self.amount + self.expense
     
+    def get_consumption_ratio(self):
+        if self.amount != 0:
+            return abs(self.expense/self.amount)
+        else:
+            return "-"
+    
     def clean_expense(self):
         if self.cleaned_data['expense']>0:
             self.cleaned_data['expense']=-self.cleaned_data['expense']
         return self.cleaned_data['expense']
     
-from dateutil.rrule import *
+
 class DateMixin(models.Model):
     start_date=models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
     end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
@@ -110,6 +117,19 @@ class DateMixin(models.Model):
         d2=list(d1)
         return len(d2)
     
+    def get_time_ratio(self):
+        try:
+            sn=date.today()
+            sd = self.start_date
+            se = self.end_date
+            d1=sn-sd
+            d2=se-sd
+            r = (d1.days)/(d2.days)
+        except:
+            r="-"
+        return r
+        
+        
     class Meta:
         abstract = True
         constraints = [

@@ -102,3 +102,17 @@ class FundWidget(widgets.CharWidget):
         strC+=' - '+str(value.amount)+")"
        
         return strC  
+
+class percentageWidget(widgets.DecimalWidget):
+    max_num=4
+    def __init__(self, max_num=False):
+        self.max_num = max_num
+    
+    def render (self, value, obj=None,  **kwargs):
+        #val=super().render(value, obj)
+        try:
+            val = round(value*100, self.max_num)
+            val = str(val)+"%"
+        except:
+            val="-"            
+        return val

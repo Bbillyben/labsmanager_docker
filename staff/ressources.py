@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource, SimpleError, SkipErrorRessource, DateField
+from labsmanager.ressources import labResource, SimpleError, SkipErrorRessource, DateField, percentageWidget
 from .models import Employee, Employee_Status, Team, TeamMate
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
@@ -138,7 +138,7 @@ class EmployeeResource(labResource, SkipErrorRessource):
     contracts_quotity = Field(
         column_name=_('contracts quotity'),
         attribute='contracts_quotity', 
-        widget=widgets.CharWidget(), 
+        widget=percentageWidget(), 
         readonly=True
         )
     project = Field(
@@ -150,7 +150,7 @@ class EmployeeResource(labResource, SkipErrorRessource):
     projects_quotity = Field(
         column_name=_('projects quotity'),
         attribute='projects_quotity', 
-        widget=widgets.CharWidget(), 
+        widget=percentageWidget(), 
         readonly=True
         )    
     class Meta:
