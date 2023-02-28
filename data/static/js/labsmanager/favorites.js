@@ -47,6 +47,7 @@ function initFavorites(){
                 success : function(response, textStatus, jqXhr) {
                     
                     $(this).html(response)
+                    loadInTemplate($('#favorites'),Urls['nav_favorites']());
                 },
                 error : function(jqXHR, textStatus, errorThrown) {
                     // log the error to the console
