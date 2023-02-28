@@ -20,7 +20,7 @@ class ContractIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
 
 
 class ExpenseGraphView(LoginRequiredMixin, View):
-    template_general="project/project_consumption_graph.html" 
+    template_general="project/amount_graph.html" 
     
     def get(self, request, *args, **kwargs):
         pj_pk=kwargs.get("pk", None)
@@ -40,30 +40,7 @@ class ExpenseGraphView(LoginRequiredMixin, View):
         
         datas=[]
         
-        # for ep in qset:
-        #     en_item=ep.fund.pk
-        #     type_item=ep.type.pk
-        #     tid=str(en_item)+"-"+str(type_item)
-        #     # if tid in counter:
-        #     #     expense=ep.amount-counter[tid]
-        #     # else:
-        #     #     expense=ep.amount
-                
-        #     # counter[tid]=ep.amount
-        #     datas.append(
-        #         {
-        #             'tid':tid,
-        #             'date':ep.value_date.isoformat(),
-        #             'funder':ep.fund.funder.short_name,
-        #             'institution':ep.fund.institution.short_name,
-        #             'type':ep.type.short_name,
-        #             'ref':ep.fund.ref,
-        #             'amount':'',
-        #             'total':ep.amount,
-                    
-        #         }
-        #     )
-        # from history
+ 
         ct = ContentType.objects.get_for_model(Expense_point)
         qsetH=AmountHistory.objects.filter(content_type=ct, object_id__in=qset.values("pk")).order_by("value_date")
         for e in qsetH:
@@ -105,6 +82,7 @@ class ExpenseGraphView(LoginRequiredMixin, View):
         context={'data':dataTosend,
                  'type':'line',
                  'title':_("Project Expense Overview"),
+                 'domid':"expense",
                  }  
         return render(request, self.template_general, context)
 

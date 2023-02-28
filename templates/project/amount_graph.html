@@ -1,0 +1,47 @@
+{% extends 'dashboard/dashboard_card.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block 'dash-content' %}
+<div id="{{domid}}_graph">
+    <div class="d-flex db_graph_radio_type">
+        <input class="radiotab" name="{{domid}}-tabs" tabindex="1" type="radio" id="{{domid}}-tabType" checked>
+        <label class="radiolabel" for="{{domid}}-tabType">{% trans 'by Type' %}</label>
+        <input class="radiotab" tabindex="1" name="{{domid}}-tabs" type="radio" id="{{domid}}-tabFunder">
+        <label class="radiolabel" for="{{domid}}-tabFunder" >{% trans 'by Funder' %}</label>
+        <input class="radiotab" tabindex="1" name="{{domid}}-tabs" type="radio" id="{{domid}}-tabRef">
+        <label class="radiolabel" for="{{domid}}-tabRef" >{% trans 'by Fund' %}</label>
+        <input class="radiotab" tabindex="1" name="{{domid}}-tabs" type="radio" id="{{domid}}-tabInstitution">
+        <label class="radiolabel" for="{{domid}}-tabInstitution" >{% trans 'by Institution' %}</label>
+    </div>
+    <div class="d-flex db_graph_radio_type">
+        <input class="radiotab" name="{{domid}}-graph" tabindex="1" type="radio" id="{{domid}}-tabStacked" checked>
+        <label class="radiolabel" for="{{domid}}-tabStacked">{% trans 'Stacked' %}</label>
+        <input class="radiotab" tabindex="2" name="{{domid}}-graph" type="radio" id="{{domid}}-tabLine">
+        <label class="radiolabel" for="{{domid}}-tabLine" >{% trans 'Line' %}</label>
+    </div>
+
+    <div class="col chart_card" id="{{domid}}-c_chart">
+        <canvas id="{{domid}}-canvas">this is canvas</canvas>
+    </div>
+</div>
+
+
+
+<script type='text/javascript' src="{% static 'chart/chart.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'chart/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/palette.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/labsmanager/graph_utils.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/project_graph.js' %}"></script>
+
+<script>
+var datas{{domid}}_graph = {{data|safe}};
+
+$( document ).ready(function(){
+  // project_graph_initCard(datas);
+  $("#{{domid}}_graph").amountGraph("#{{domid}}_graph", datas{{domid}}_graph, "{{domid}}")
+})
+</script>
+
+{% endblock %}    

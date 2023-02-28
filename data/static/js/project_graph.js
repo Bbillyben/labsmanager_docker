@@ -1,65 +1,75 @@
-var dataFrameProject;
-var projectChart;
+
+(function() {
+  var datasFrame;
+  var target;
+  var projectChart;
+  var domId;
+  $.fn.amountGraph = function(sel, datas, id=""){
+    datasFrame = datas;
+    target=sel; //document.getElementById(sel);
+    domId=id;
+    
+    updateGraph();
+    addBtnListener();
 
 
-function project_graph_initCard(dataF){
-    dataFrameProject=dataF;
+    return this;
+    
 
-    // add listener
-    //dblosscard_addBtnListener();
+  };
+  function addBtnListener(){
+      $(target).find('.db_graph_radio_type .radiotab').each(function(){
+          $(this).on('change, click', updateGraph);
+      })
+  };
 
-    projectgraph_updateGraph();
-    projectgraph_addBtnListener();
-}
+  function updateGraph(e=null){
+  
 
-function projectgraph_addBtnListener(){
-    $('.db_graph_radio_type .radiotab').each(function(){
-        $(this).on('change, click', projectgraph_updateGraph);
-    })
-}
-
-function projectgraph_updateGraph(e=null){
-    var typeD= $("input[name='tabs']:checked").attr('id').replace('tab', '').toLowerCase();
-    var typeG= $("input[name='graph']:checked").attr('id').replace('tab', '').toLowerCase();
+    var typeD= $(target).find("input[name='"+domId+"-tabs']:checked").attr('id').replace(domId+'-tab', '').toLowerCase();
+    var typeG= $(target).find("input[name='"+domId+"-graph']:checked").attr('id').replace(domId+'-tab', '').toLowerCase();
 
     isStacked=(typeG=="stacked")
     //$(this).attr('id').replace('tab', '').toLowerCase();
 
     var csrftoken = getCookie('csrftoken');
-    datasets=createDataSet(dataFrameProject, typeD, "date", "amount", isStacked, true);
+    datasets=createDataSet(datasFrame, typeD, "date", "amount", isStacked, true);
 
     
     if(projectChart)projectChart.destroy();
     const dataset = {
         datasets: datasets
       };
+    var ctx = $(target).find("#"+domId+'-canvas')[0].getContext('2d');
+    projectChart = new Chart(ctx , {
+        type: "line",
+        data: dataset, 
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              type:'time',
+              parsing:'false',
+              time: {
+                unit:'month',
+                unitStepSize: 1,
+                displayFormats: {
+                  'month': 'MMM yy'
+                }
+              }      
+            },
+            y: {
+                stacked: isStacked,
+                title: {
+                  display: true,
+                  text: 'Value'
+                }
+              },    
+          }
+        }
+      });
+  }
 
-var ctx = document.getElementById('canvas').getContext('2d');
-projectChart = new Chart(ctx , {
-    type: "line",
-    data: dataset, 
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          type:'time',
-          parsing:'false',
-          time: {
-            unit:'month',
-            unitStepSize: 1,
-            displayFormats: {
-              'month': 'MMM yy'
-            }
-          }      
-        },
-        y: {
-            stacked: isStacked,
-            title: {
-              display: true,
-              text: 'Value'
-            }
-          },    
-      }
-    }
-  });
-}
+})();
+
+

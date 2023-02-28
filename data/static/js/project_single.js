@@ -90,8 +90,11 @@ function updateProjectCalendar(){
 
 // for dashboard graph
 function loadProjectGraph(){
-    url=Urls['graph_project']({pk:project_id})
+    url=Urls['graph_expense_project']({pk:project_id})
     loadInTemplate(elt=$("#project_expense_graph"),url=url);
+
+    url=Urls['graph_recette_project']({pk:project_id})
+    loadInTemplate(elt=$("#project_recette_graph"),url=url);
 }
 
 // ----------------------  Project Main  ------------------- //
