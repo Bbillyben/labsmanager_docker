@@ -93,8 +93,8 @@ function loadProjectGraph(){
     url=Urls['graph_expense_project']({pk:project_id})
     loadInTemplate(elt=$("#project_expense_graph"),url=url);
 
-    url=Urls['graph_recette_project']({pk:project_id})
-    loadInTemplate(elt=$("#project_recette_graph"),url=url);
+    url2=Urls['graph_recette_project']({pk:project_id})
+    loadInTemplate(elt=$("#project_recette_graph"),url=url2);
 }
 
 // ----------------------  Project Main  ------------------- //

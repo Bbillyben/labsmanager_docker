@@ -487,6 +487,18 @@
 <script type='text/javascript' src="{% static 'js/tables/fund_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+
+
+<!-- For dashboard graph -->
+<script type='text/javascript' src="{% static 'chart/chart.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'chart/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/labsmanager/graph_utils.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/project_graph.js' %}"></script>
+
+
+
+
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);

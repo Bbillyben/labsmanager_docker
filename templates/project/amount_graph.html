@@ -28,20 +28,14 @@
 
 
 
-<script type='text/javascript' src="{% static 'chart/chart.min.js' %}"></script>
-<script type='text/javascript' src="{% static 'chart/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
-<script type='text/javascript' src="{% static 'js/palette.js' %}"></script>
-
-<script type='text/javascript' src="{% static 'js/labsmanager/graph_utils.js' %}"></script>
-<script type='text/javascript' src="{% static 'js/project_graph.js' %}"></script>
-
 <script>
 var datas{{domid}}_graph = {{data|safe}};
 
 $( document ).ready(function(){
   // project_graph_initCard(datas);
   $("#{{domid}}_graph").amountGraph("#{{domid}}_graph", datas{{domid}}_graph, "{{domid}}")
-})
+});
+
 </script>
 
 {% endblock %}    
