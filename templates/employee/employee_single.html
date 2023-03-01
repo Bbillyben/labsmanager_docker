@@ -183,6 +183,11 @@
                 <div class="panel-content">
                     <div class="row" style=" padding-top: 5px;">
                         <div class="col">
+                            <div id='tracking-table-toolbar_funditem'>
+                                <div class='btn-group'>
+                                    {% include "filter_list.html" with id="budget" %}
+                                </div>
+                            </div>
                             <div class="card  mb-2" id="project_budget_table">
                                 {% url 'api:budget-employee' emp_pk=employee.pk as BudgetDataURL %}
                                 {% include "fund/budget_table.html" with datatype="employee" dataURL=BudgetDataURL datapk=employee.pk %}
