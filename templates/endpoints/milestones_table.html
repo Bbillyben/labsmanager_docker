@@ -1,6 +1,5 @@
 {% load i18n %}
 {% load customs_tags %}
-
 {% if datatype == 'all' %}
 <div id='tracking-table-toolbar_milestones'>
     <div class='btn-group'>
@@ -44,8 +43,8 @@
                 {% trans 'Desc' %}
             </th>
             <th data-sortable="false" data-searchable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionMilestones"
-            data-can-change="{{ perms.expense.change_milestones }}"
-            data-can-delete="{{ perms.expense.delete_milestones }}"
+            data-can-change="{{ perms.endpoints.change_milestones }}"
+            data-can-delete="{{ perms.endpoints.delete_milestones }}"
             >
                 {% trans 'Action' %}
             </th>
