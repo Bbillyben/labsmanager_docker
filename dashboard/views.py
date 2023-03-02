@@ -96,7 +96,9 @@ class fundStaleCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
             ], 
             'action':[
                 {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'}
-            ]        
+            ],
+            'options':{
+            },         
         }
         
         return render(request, self.template_general, context)
@@ -155,7 +157,9 @@ class contractstaleCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
             ], 
             'action':[
                 {'name':"", 'url':reverse('contract_index'), 'icon':'fa-eye'}
-            ]        
+            ],
+            'options':{
+            },        
         }
         
         return render(request, self.template_general, context)
@@ -180,9 +184,7 @@ class MilestonesCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':_('Quotity'),'item':'quotity', 'formatter':'quotityFormatter'},
                 {'name':_('Deadline'),'item':'deadline_date', 'formatter':'dueDatePassed'},
                 
-            ], 
-            'action':[
-            ]        
+            ]  
         }
         
         return render(request, self.template_general, context)

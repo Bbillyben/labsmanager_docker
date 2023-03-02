@@ -41,8 +41,11 @@
 
 
 <script>
-
+    {% if options %}
        var card_option={{options|safe}};
+    {%else%}
+        var card_option={};
+    {%endif%}
 
         var idTable="dashboard_card_{% makeId title %}";
         $( document ).ready(function(){
