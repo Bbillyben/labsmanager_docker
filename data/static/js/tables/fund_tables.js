@@ -14,14 +14,33 @@ function initializeFundTable(callback_fund=null, callback_funditem=null){
         disablePagination:true,
         search:false,
         showColumns:false,
-        callback:updateFundBtnHandler,
+        onClickRow:fundRowclick, 
+        callback:updateFundSelection,
+
         
     }
 
     $('#project_fund_table').labTable(options);
 
 }
-
+function fundRowclick( row, element, field){
+    fundPk=row["pk"];
+    csrftoken = getCookie('csrftoken');
+    // fund overview
+    if($('#fund_overview').exists())updateFundOverviewTableAjax(fundPk, csrftoken);
+    // Fund item
+    if($('#fund_item_detail').exists())updateFundItemTableAjax(fundPk, csrftoken);
+    if($('#fund_expense_timepoint_detail').exists())updateFundExpenseTimepointTableAjax(fundPk, csrftoken);
+    makeTableRowSelect(element);
+}
+function updateFundSelection(){
+    if(fundPk!=0){
+        elt=getRowOrderByProperty('#project_fund_table', 'pk', fundPk);
+        if (elt && elt[0]){
+            makeTableRowSelect($('#project_fund_table tr').eq(elt[0]+1))
+        }
+    }
+}
 function updateFund(){
     $('#project_fund_table').bootstrapTable('refresh');
     if(callbackFund!=null)callbackFund();
@@ -43,7 +62,7 @@ function adminActionFund(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
     if(this.isStaff=='True')action += "<a href='/admin/fund/fund/"+row.pk+"/change/'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
     if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='/fund/ajax/"+row.pk+"/update' ><i type = 'button' class='fas fa-edit'></i></button>";
-    action += "<button class='icon show_fund btn btn-secondary' data-fund='"+row.pk+"' ><i type = 'button' class='fas fa-toolbox'></i></button>";
+    //action += "<button class='icon show_fund btn btn-secondary' data-fund='"+row.pk+"' ><i type = 'button' class='fas fa-toolbox'></i></button>";
     if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='/fund/ajax/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;
@@ -163,40 +182,4 @@ function updateFundExpenseTimepointTableAjax(fundPk, csrftoken){
             //console.log(JSON.stringify(err));
         }
     }) 
-}
-function makeFundSelection(){
-    if(!fundPk)return;
-    row=$(".show_fund[data-fund="+fundPk+"]")
-    rows=$(row).closest('tbody');
-    rows.find('tr').each(function(){$(this).removeClass('select-row')});
-    frows=$(row).closest('tr');
-    frows.addClass('select-row');    
-
-}
-function updateFundBtnHandler(){   
-
-    $(".show_fund").each(function () {
-        
-            $(this).click(function(e){
-                e.preventDefault();
-                fundPk=$(this).data("fund");
-                csrftoken = getCookie('csrftoken');
-                // fund overview
-                if($('#fund_overview').exists())updateFundOverviewTableAjax(fundPk, csrftoken);
-                // Fund item
-                if($('#fund_item_detail').exists())updateFundItemTableAjax(fundPk, csrftoken);
-                if($('#fund_expense_timepoint_detail').exists())updateFundExpenseTimepointTableAjax(fundPk, csrftoken);
-                makeFundSelection();
-
-            })
-        
-
-    });
-
-    
-    if(isEmpty( $('#fund_item_detail') )){
-        $(".show_fund").eq(0).trigger("click");
-    }
-    makeFundSelection();
-   
 }

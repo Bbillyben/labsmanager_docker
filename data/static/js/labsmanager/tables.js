@@ -335,6 +335,27 @@ $.fn.labTable = function(options) {
 };
 
 
+/*  --------------------------------------------------
+                  Table Row Selection          
+------------------------------------------------------- */
+function makeTableRowSelect(row, className='select-row'){
+    console.log(row)
+    if(!row)return;
+    rows=$(row).closest('tbody');
+    rows.find('tr').each(function(){$(this).removeClass(className)});
+    $(row).addClass(className);    
+}
+
+function getRowOrderByProperty(selector, key, value) {
+    var data = $(selector).bootstrapTable("getData");
+    var result = [];
+    data.filter(function (o, i) {
+      if (o[key] === value) {
+        result.push(i);
+      }
+    });
+    return result;
+  }
 
 
 /*  --------------------------------------------------
