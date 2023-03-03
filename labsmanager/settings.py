@@ -35,6 +35,8 @@ SECRET_KEY = get_setting('SECRET_KEY', 'secret_key', 'django-insecure,klsdh0989Ã
 
 DEBUG = get_boolean_setting("DEBUG", "debug", default_value=False)  
 
+
+
 # Configure logging settings
 log_level = get_setting('LABS_LOG_LEVEL', 'log_level', 'WARNING')
 

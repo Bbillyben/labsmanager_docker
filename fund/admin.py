@@ -12,17 +12,7 @@ class FundTypeInline(admin.TabularInline):
     extra=0
 
 class FundItemAdmin(ImportExportModelAdmin):
-    # fields = ('project', 
-    #                   'funder',
-    #                   'institution',
-    #                   'start_date',
-    #                   'end_date',
-    #                   'type',
-    #                   'ref',
-    #                   'amount',
-    #                   'expense',
-    #                   'available',
-    #                   )
+
     list_display = ('get_funder_name','get_proj_name', 'get_institution', 'type', 'amount',)
     list_filter = ('fund__funder', 'fund__project', 'fund__institution', 'type',)
     resource_classes = [FundItemAdminResource]  

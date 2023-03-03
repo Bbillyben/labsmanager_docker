@@ -146,10 +146,10 @@ class ExpensePointResource(labResource, SkipErrorRessource):
             query = query & Q(type__short_name=typeC)            
         
         
-        fu = Expense_point.objects.filter(query).first()
+        fu = Expense_point.objects.filter(query)
 
-        if fu is not None:
-            row["id"] = fu.pk
+        if fu is not None and fu.count()==1:
+            row["id"] = fu.first().pk
         else:
             row["id"] = None
         return fu

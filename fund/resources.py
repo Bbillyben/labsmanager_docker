@@ -39,12 +39,14 @@ class FundItemResource(labResource):
     start_date=Field(
         column_name=_('Start Date'),
         attribute='fund', 
-        widget=widgets.ForeignKeyWidget(Fund, 'start_date'), readonly=False
+        widget=widgets.ForeignKeyWidget(Fund, 'start_date'), 
+        readonly=False
     )
     end_date=Field(
         column_name=_('End Date'),
         attribute='fund', 
-        widget=widgets.ForeignKeyWidget(Fund, 'end_date'), readonly=False
+        widget=widgets.ForeignKeyWidget(Fund, 'end_date'), 
+        readonly=False
     )
     fund=Field(
         column_name=_('Ref'),
@@ -100,6 +102,19 @@ class FundField(Field):
         fu = Fund.objects.filter(query).first()
         return fu
    
+
+class FundDateField(FundField):
+    def clean(self, data, **kwargs):   
+        fu = super().clean(data, **kwargs)
+        field = self.widget.field
+        attr =getattr(fu, field, None)
+        nAttr=data.get(self.column_name)
+        if attr!=nAttr:
+            setattr(fu, field, nAttr)
+            fu.save()
+        print(" - fu : "+str(fu))
+        
+        return fu
     
 class FundItemAdminResource(labResource, SkipErrorRessource):
     fund=FundField(
@@ -132,13 +147,13 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
         widget=widgets.ForeignKeyWidget(Fund, 'institution__short_name'), 
         readonly=False
     )
-    start_date=FundField(
+    start_date=FundDateField(
         column_name=_('Start Date'),
         attribute='fund', 
         widget=widgets.ForeignKeyWidget(Fund, 'start_date'), 
         readonly=False
     )
-    end_date=FundField(
+    end_date=FundDateField(
         column_name=_('End Date'),
         attribute='fund', 
         widget=widgets.ForeignKeyWidget(Fund, 'end_date'),
@@ -187,12 +202,13 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
         if typeC is not None:
             query = query & Q(type__short_name=typeC)            
         
-        fu = Fund_Item.objects.filter(query).first()
-        if fu is not None:
-            row["id"] = fu.pk
+        fu = Fund_Item.objects.filter(query)
+        if fu is not None and fu.count()==1:
+            row["id"] = fu.first().pk
         else:
             row["id"] = None
         return fu
+    
         
     class Meta:
         """Metaclass"""
@@ -224,11 +240,7 @@ class BudgetResource(labResource):
         attribute='cost_type', 
         widget=widgets.ForeignKeyWidget(Cost_Type, 'name'), readonly=True
     )
-    # fund=Field(
-    #     column_name=_('Fund'),
-    #     attribute='fund', 
-    #     widget=FundWidget(), readonly=True
-    # )
+
     funder=Field(
         column_name=_('Funder'),
         attribute='fund', 
