@@ -56,7 +56,13 @@ urlpatterns += [
 urlpatterns += [
     re_path(r'^jsreverse.json$', jsrev_views.urls_json, name='js_reverse'),
 ]
-    
+
+# reports generation and download
+#  django_js_reverse
+urlpatterns += [
+    path('report/', include('reports.urls')),
+]
+
 
 #  Django Rest Framework
 
