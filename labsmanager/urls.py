@@ -36,7 +36,7 @@ from django_js_reverse import views as jsrev_views
 urlpatterns = [
     path('filter_code_list', get_filters_lists, name='filter_code_list'),
     path('admin/', admin.site.urls),
-    re_path(r'^index/', IndexView.as_view(), name='index'),
+    re_path(r'^index/', IndexView.as_view(), name='index_explicit'),
     path('', IndexView.as_view(), name='index'),
     path('staff/', include('staff.urls'), name='staff'),                  # For Staff models
     path('project/', include('project.urls')),              # for project model

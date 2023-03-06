@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
-
+{% html_message true %}
 <style>
     #header_bar{
       width:100%;
@@ -32,7 +32,7 @@
   <body>
     <div id="header_bar"> 
       <img src="{% static 'img/labsmanager/labsmanager_icon.png' %}"> 
-      <span class="inline">LabsManager Report</span>
+      <span class="inline">{% bloc title %} LabsManager Report {% endblock %}</span>
     </div>
 
 {% block content %}
