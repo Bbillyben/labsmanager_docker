@@ -30,3 +30,7 @@ csrf_trusted_origins: ''
 admin_header: "LabsManager"
 admin_site_title: "LabsManager"
 admin_index_title: "Menu"
+
+
+static_root: '/home/labsmanager/data/static/'
+media_root: "/home/labsmanager/data/static/media/"

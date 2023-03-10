@@ -23,6 +23,30 @@ ________________________________________
 
 
 
+## Reports
+
+Models to upload and store Word template. It uses (docxtpl)[https://docxtpl.readthedocs.io/en/latest/] to generate word documents.
+Each model is specific of it's reported models (aka employee, projects, ...)
+
+#### General tags
+
+* date : AAAA-MM-DD
+* datetime :
+* report_description : 
+* report_name
+* report_revision
+* request
+* user : username of the user that has requests the report
+
+
+#### Employee tags
+
+* employee : instance of Employee
+* info : Generic Info if available - iterable
+* status : Employee Status if available - iterable
+* contract : Contract linked to the user - iterable
+* project : Projects linked to the user - iterable
+* leave : Leaves linked to the user - iterable 
 
 
 

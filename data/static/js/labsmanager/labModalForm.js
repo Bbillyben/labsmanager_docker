@@ -6,6 +6,14 @@ $.fn.labModalForm = function(options) {
         isDeleteForm: false,
         addModalFormFunction:null,
         forceExitFunction: false,
+        asyncSettings:{
+            directUpdate: true,
+            closeOnSubmit: true,
+            successMessage: "no mess",
+            dataUrl: 'no url',
+            dataElementId: 'no data elt',
+            dataKey: 'table',
+        }
     };
     settings = $.extend(defaults, options);
 
@@ -20,8 +28,8 @@ $.fn.labModalForm = function(options) {
         errorClass: ".form-validation-warning",
         asyncUpdate: true,
         asyncSettings: {
-            directUpdate: true,
-            closeOnSubmit: true,
+            directUpdate: settings.asyncSettings.directUpdate,
+            closeOnSubmit: settings.asyncSettings.closeOnSubmit,
             successMessage: "no mess",
             dataUrl: 'no url',
             dataElementId: 'no data elt',

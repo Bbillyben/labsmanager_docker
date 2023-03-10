@@ -89,6 +89,7 @@ https://github.com/trco/django-bootstrap-modal-forms
                     contentType: false,
                     processData: false,
                     success: function (response) {
+
                         var body = $("body");
                         if (body.length === 0) {
                             console.error("django-bootstrap-modal-forms: <body> element missing in your html.");
@@ -109,7 +110,6 @@ https://github.com/trco/django-bootstrap-modal-forms
                                 });
                             }
                         }else{
-                            
                             $.ajax({
                                 type: "GET",
                                 url: asyncSettings.dataUrl,
@@ -134,6 +134,11 @@ https://github.com/trco/django-bootstrap-modal-forms
                                     }
                                 }
                             });
+                        }
+                        if(isJson(response)){
+                            if(response.hasOwnProperty('navigate')){
+                                window.location.href=response['navigate'];
+                            }
                         }
                         // Update page without refresh  
                     }
@@ -161,10 +166,10 @@ https://github.com/trco/django-bootstrap-modal-forms
             missingSettings.push("dataKey");
             console.error("django-bootstrap-modal-forms: 'dataKey' in asyncSettings is missing.");
         }
-        if (!settings.addModalFormFunction) {
-            missingSettings.push("addModalFormFunction");
-            console.error("django-bootstrap-modal-forms: 'addModalFormFunction' in asyncSettings is missing.");
-        }
+        // if (!settings.addModalFormFunction) {
+        //     missingSettings.push("addModalFormFunction");
+        //     console.error("django-bootstrap-modal-forms: 'addModalFormFunction' in asyncSettings is missing.");
+        // }
 
         if (missingSettings.length > 0) {
             return false;

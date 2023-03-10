@@ -69,6 +69,10 @@ function initEmployeeSingleView(user_idA, employee_idA){
         formURL:'/calendar/add/employee/'+employee_id+"/",
         addModalFormFunction: updateLeave,
     })
+    $('#export_word').labModalForm({
+        formURL: Urls['employee_report_generate'](employee_id),
+        asyncSettings: {directUpdate:true,closeOnSubmit:true,},
+    })
 
     update_employee();
     update_employee_info();

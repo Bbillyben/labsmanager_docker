@@ -47,6 +47,7 @@ urlpatterns = [
     path('milestones/', include('endpoints.urls')),
     path('calendar/', include('leave.urls')),
     path('common/', include('common.urls')),
+    path('report/', include('reports.urls')),
 ]
 #  Authentications : 
 urlpatterns += [
@@ -57,11 +58,6 @@ urlpatterns += [
     re_path(r'^jsreverse.json$', jsrev_views.urls_json, name='js_reverse'),
 ]
 
-# reports generation and download
-#  django_js_reverse
-urlpatterns += [
-    path('report/', include('reports.urls')),
-]
 
 
 #  Django Rest Framework
