@@ -47,7 +47,7 @@ urlpatterns = [
     path('milestones/', include('endpoints.urls')),
     path('calendar/', include('leave.urls')),
     path('common/', include('common.urls')),
-    path('report/', include('reports.urls')),
+    path('reports/', include('reports.urls')),
 ]
 #  Authentications : 
 urlpatterns += [

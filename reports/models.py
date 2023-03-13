@@ -201,6 +201,7 @@ class WordReport(BaseReport):
     
     
 class EmployeeWordReport(WordReport):
+    
     @classmethod
     def getSubdir(cls):
         return 'employee'
