@@ -19,7 +19,7 @@ from django.http import FileResponse
 from docxtpl import DocxTemplate
 import jinja2
 
-from staff.models import Employee,Employee_Status, GenericInfo
+from staff.models import Employee,Employee_Status, GenericInfo, Team, TeamMate
 from expense.models import Contract
 from project.models import Project, Participant
 from leave.models import Leave
@@ -28,11 +28,7 @@ from leave.models import Leave
 
 from labsmanager import settings
 
-
-
 logger = logging.getLogger("labsmanager")
-
-
 
 def rename_template(instance, filename):
     """Helper function for 'renaming' uploaded report files.
@@ -211,8 +207,7 @@ class EmployeeWordReport(WordReport):
         if not pk:
             return {}
         context={'request': request,}
-        
-        
+
         emp = Employee.objects.get(pk=pk)
         if not emp:
             return HttpResponse("not found", code=404)
@@ -227,12 +222,14 @@ class EmployeeWordReport(WordReport):
         context["contract"]=contract
         
         partProj = Participant.objects.filter(employee=emp)
-        # project = Project.objects.filter(pk__in=partProj)
         context["project"]=partProj
         
         leave = Leave.objects.filter(employee=emp)
-        # project = Project.objects.filter(pk__in=partProj)
         context["leave"]=leave
+        
+        tm = TeamMate.objects.filter(employee=emp).values("team")
+        teams = Team.objects.filter(models.Q(leader=emp) | models.Q(pk__in=tm))
+        context["teams"]=teams
         
         return context
         
