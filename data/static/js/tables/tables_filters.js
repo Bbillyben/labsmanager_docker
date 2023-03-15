@@ -1,16 +1,6 @@
 // {% load i18n %}
-/* globals
-    global_settings
-*/
-
-/* exported
-    buildStatusDisplay,
-    getAvailableTableFilters,
-    purchaseOrderStatusDisplay,
-    salesOrderStatusDisplay,
-    stockHistoryStatusDisplay,
-    stockStatusDisplay,
-    
+/*  Credit : Inventree https://github.com/inventree/InvenTree
+* for the overall process of bootstraptable filter
 */
 // {% include "status_codes.html" with label='build' options=BuildStatus.list %}
 

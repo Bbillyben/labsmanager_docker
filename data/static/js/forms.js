@@ -1,3 +1,5 @@
+//  Credit : Inventree https://github.com/inventree/InvenTree
+
 // Set global default theme for select2
 $.fn.select2.defaults.set('theme', 'bootstrap-5');
 

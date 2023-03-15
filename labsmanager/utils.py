@@ -12,6 +12,7 @@ def str2bool(text, test=True):
         test (default = True): Set which boolean value to look for
     Returns:
         True if the text looks like the selected boolean value
+         Credit : Inventree https://github.com/inventree/InvenTree
     """
     if test:
         return str(text).lower() in ['1', 'y', 'yes', 't', 'true', 'ok', 'on', ]
@@ -20,7 +21,9 @@ def str2bool(text, test=True):
     
 
 def is_bool(text):
-    """Determine if a string value 'looks' like a boolean."""
+    """Determine if a string value 'looks' like a boolean.
+     Credit : Inventree https://github.com/inventree/InvenTree
+     """
     if str2bool(text, True):
         return True
     elif str2bool(text, False):
@@ -37,7 +40,6 @@ def getDateFilter():
 
 ## send an email with specified parameters
 def send_email(subject, body, recipients, from_email=None, html_message=None):
-    """Send an email with the specified subject and body, to the specified recipients list."""
     from settings.models import LabsManagerSetting
     
     if type(recipients) == str:

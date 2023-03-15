@@ -28,9 +28,10 @@ from project.views import get_project_fund_overview
 from leave.models import Leave
 from fund.models import Budget, Fund, Fund_Item
 from endpoints.models import Milestones
+from project.views import get_project_fund_overviewReport
 
 from . import serializers
-
+from labsmanager.helpers import DownloadFile
 from labsmanager import settings
 
 logger = logging.getLogger("labsmanager")
@@ -172,13 +173,12 @@ class WordReport(BaseReport):
         doc_io = BytesIO()
         doc.save(doc_io)
         doc_io.seek(0)
-        response = HttpResponse(doc_io.read())
+        
         filename = self.generate_filename(request, options)
-        response["Content-Disposition"] = "attachment; filename="+filename
-
-        # Set the appropriate Content-Type for docx file
-        response["Content-Type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-
+        response = DownloadFile(doc_io.read(), 
+                                filename, 
+                                content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                )
         return response
     
     filename_pattern = models.CharField(
@@ -239,7 +239,6 @@ class EmployeeWordReport(WordReport):
         return context
 
 
-from project.views import get_project_fund_overviewReport
 class ProjectWordReport(WordReport):
     
     @classmethod

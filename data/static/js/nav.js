@@ -1,4 +1,4 @@
-
+//  Credit : Inventree https://github.com/inventree/InvenTree
 /*
  * Activate (display) the selected panel
  */

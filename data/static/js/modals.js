@@ -1,4 +1,6 @@
-/* globals
+/*  Credit : Inventree https://github.com/inventree/InvenTree
+
+globals
     labsmanagerGet,
     showAlertOrCache,
 */

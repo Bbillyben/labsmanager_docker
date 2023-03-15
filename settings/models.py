@@ -1,3 +1,7 @@
+
+"""  Credit : Inventree https://github.com/inventree/InvenTree 
+### Largely copyed from Inventree : https://github.com/Inventree/Inventree/blob/b50a6826efd8a8e832da43fed0239558fd473e17/LabsManager/common/models.py
+"""
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Group, User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -19,7 +23,7 @@ from django.contrib.auth.models import User
 import labsmanager.utils
 import labsmanager.ready
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR
-### Largely copyed from Inventree : https://github.com/Inventree/Inventree/blob/b50a6826efd8a8e832da43fed0239558fd473e17/LabsManager/common/models.py#L102
+
 from decimal import Decimal
 
 class BaseLabsManagerSetting(models.Model):
@@ -36,14 +40,9 @@ class BaseLabsManagerSetting(models.Model):
         """Enforce validation and clean before saving."""
         self.key = str(self.key).upper()
 
-        # do_cache = kwargs.pop('cache', True)
 
         self.clean(**kwargs)
         self.validate_unique(**kwargs)
-
-        # Update this setting in the cache
-        # if do_cache:
-        #     self.save_to_cache()
 
         super().save()
 
@@ -54,44 +53,6 @@ class BaseLabsManagerSetting(models.Model):
         # Execute if callable
         if callable(after_save):
             after_save(self)
-
-    # @property
-    # def cache_key(self):
-    #     """Generate a unique cache key for this settings object"""
-    #     return self.__class__.create_cache_key(self.key, **self.get_kwargs())
-
-    # def save_to_cache(self):
-    #     """Save this setting object to cache"""
-
-    #     ckey = self.cache_key
-
-    #     # logger.debug(f"Saving setting '{ckey}' to cache")
-
-    #     try:
-    #         cache.set(
-    #             ckey,
-    #             self,
-    #             timeout=3600
-    #         )
-    #     except TypeError:
-    #         # Some characters cause issues with caching; ignore and move on
-    #         pass
-
-    # @classmethod
-    # def create_cache_key(cls, setting_key, **kwargs):
-    #     """Create a unique cache key for a particular setting object.
-    #     The cache key uses the following elements to ensure the key is 'unique':
-    #     - The name of the class
-    #     - The unique KEY string
-    #     - Any key:value kwargs associated with the particular setting type (e.g. user-id)
-    #     """
-
-    #     key = f"{str(cls.__name__)}:{setting_key}"
-
-    #     for k, v in kwargs.items():
-    #         key += f"_{k}:{v}"
-
-    #     return key.replace(" ", "")
 
     @classmethod
     def allValues(cls, user=None, exclude_hidden=False):
@@ -262,22 +223,6 @@ class BaseLabsManagerSetting(models.Model):
         if method is not None:
             filters['method'] = method
 
-        # # Perform cache lookup by default
-        # do_cache = kwargs.pop('cache', True)
-
-        # ckey = cls.create_cache_key(key, **kwargs)
-
-        # if do_cache:
-        #     try:
-        #         # First attempt to find the setting object in the cache
-        #         cached_setting = cache.get(ckey)
-
-        #         if cached_setting is not None:
-        #             return cached_setting
-
-        #     except AppRegistryNotReady:
-        #         # Cache is not ready yet
-        #         do_cache = False
 
         try:
             settings = cls.objects.all()
@@ -313,9 +258,6 @@ class BaseLabsManagerSetting(models.Model):
                     # It might be the case that the database isn't created yet
                     pass
 
-        # if setting and do_cache:
-        #     # Cache this setting object
-        #     setting.save_to_cache()
 
         return setting
 

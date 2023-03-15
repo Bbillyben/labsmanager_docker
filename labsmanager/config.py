@@ -1,4 +1,6 @@
-"""Helper functions for loading LABSMANAGER configuration options."""
+"""Helper functions for loading LABSMANAGER configuration options.
+ Credit : Inventree https://github.com/inventree/InvenTree
+"""
 
 import logging
 import os
@@ -174,72 +176,6 @@ def get_backup_dir(create=True):
 
     return bd
 
-
-def get_plugin_file():
-    """Returns the path of the LABSMANAGER plugins specification file.
-
-    Note: It will be created if it does not already exist!
-    """
-
-    # Check if the plugin.txt file (specifying required plugins) is specified
-    plugin_file = get_setting('LABSMANAGER_PLUGIN_FILE', 'plugin_file')
-
-    if not plugin_file:
-        # If not specified, look in the same directory as the configuration file
-        config_dir = get_config_file().parent
-        plugin_file = config_dir.joinpath('plugins.txt')
-    else:
-        # Make sure we are using a modern Path object
-        plugin_file = Path(plugin_file)
-
-    if not plugin_file.exists():
-        logger.warning("Plugin configuration file does not exist - creating default file")
-        logger.info(f"Creating plugin file at '{plugin_file}'")
-        ensure_dir(plugin_file.parent)
-
-        # If opening the file fails (no write permission, for example), then this will throw an error
-        plugin_file.write_text("# LABSMANAGER Plugins (uses PIP framework to install)\n\n")
-
-    return plugin_file
-
-
-def get_secret_key():
-    """Return the secret key value which will be used by django.
-
-    Following options are tested, in descending order of preference:
-
-    A) Check for environment variable LABSMANAGER_SECRET_KEY => Use raw key data
-    B) Check for environment variable LABSMANAGER_SECRET_KEY_FILE => Load key data from file
-    C) Look for default key file "secret_key.txt"
-    D) Create "secret_key.txt" if it does not exist
-    """
-
-    # Look for environment variable
-    if secret_key := get_setting('LABSMANAGER_SECRET_KEY', 'secret_key'):
-        logger.info("SECRET_KEY loaded by LABSMANAGER_SECRET_KEY")  # pragma: no cover
-        return secret_key
-
-    # Look for secret key file
-    if secret_key_file := get_setting('LABSMANAGER_SECRET_KEY_FILE', 'secret_key_file'):
-        secret_key_file = Path(secret_key_file).resolve()
-    else:
-        # Default location for secret key file
-        secret_key_file = get_base_dir().joinpath("secret_key.txt").resolve()
-
-    if not secret_key_file.exists():
-        logger.info(f"Generating random key file at '{secret_key_file}'")
-        ensure_dir(secret_key_file.parent)
-
-        # Create a random key file
-        options = string.digits + string.ascii_letters + string.punctuation
-        key = ''.join([random.choice(options) for i in range(100)])
-        secret_key_file.write_text(key)
-
-    logger.info(f"Loading SECRET_KEY from '{secret_key_file}'")
-
-    key_data = secret_key_file.read_text().strip()
-
-    return key_data
 
 
 def get_custom_file(env_ref: str, conf_ref: str, log_ref: str, lookup_media: bool = False):

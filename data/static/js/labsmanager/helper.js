@@ -4,6 +4,7 @@
  *
  * - Remove leading / trailing whitespace
  * - Remove hidden control characters
+ *  Credit : Inventree https://github.com/inventree/InvenTree
  */
 function sanitizeInputString(s, options={}) {
 

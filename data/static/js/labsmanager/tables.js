@@ -1,4 +1,8 @@
 // {% load i18n %}
+/*  Credit : Inventree https://github.com/inventree/InvenTree
+* for jQueryTable wrapper
+* 
+*/
 
 function reloadtable(table) {
     $(table).bootstrapTable('refresh');
