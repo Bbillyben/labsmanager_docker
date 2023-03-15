@@ -38,7 +38,7 @@ def manage(c, cmd, pty: bool = False):
         cmd=cmd
     ), pty=pty)
     
-    
+
 @task
 def superuser(c):
     """Create a superuser/admin account for the database."""
@@ -78,7 +78,7 @@ def migrate(c):
 
     manage(c, "makemigrations")
     manage(c, "migrate --noinput")
-    manage(c, "migrate --run-syncdb")
+    # manage(c, "migrate --run-syncdb")
     manage(c, "check")
 
     print("-------------------------------------")
@@ -88,8 +88,27 @@ def migrate(c):
 def update(c):
     migrate(c)
     static(c)
-    
-    
+ 
+@task
+def etpmigrate(c):
+    """Migrate older Expense Point ."""
+    manage(c, "etp_migrate --delete")
+
+@task
+def updatefund(c):
+    """Update Exepnse calculation ."""
+    manage(c, "update_fund --force")   
+
+@task
+def removeduplicate(c):
+    """Remove Duplicate from AmountHistory ."""
+    manage(c, "remove_duplicate")   
+
+@task
+def fimigrate(c):
+    """Add fund item to base AmountHistory ."""
+    manage(c, "fi_history")   
+  
     
 # Data tasks
 @task(help={
