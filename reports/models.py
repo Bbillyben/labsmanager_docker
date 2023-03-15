@@ -2,7 +2,7 @@ from django.db import models
 from django.core.cache import cache
 from django.core.validators import FileExtensionValidator
 from django.template import Context, Template
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 
 from django.utils.translation import gettext_lazy as _
@@ -15,16 +15,21 @@ import sys
 
 
 from io import BytesIO
-from django.http import FileResponse
+from django.http import FileResponse, JsonResponse
 from docxtpl import DocxTemplate
 import jinja2
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 from staff.models import Employee,Employee_Status, GenericInfo, Team, TeamMate
 from expense.models import Contract
-from project.models import Project, Participant
+from project.models import Project, Participant, Institution_Participant
+from project.views import get_project_fund_overview
 from leave.models import Leave
+from fund.models import Budget, Fund, Fund_Item
+from endpoints.models import Milestones
 
-
+from . import serializers
 
 from labsmanager import settings
 
@@ -232,4 +237,50 @@ class EmployeeWordReport(WordReport):
         context["teams"]=teams
         
         return context
+
+
+from project.views import get_project_fund_overviewReport
+class ProjectWordReport(WordReport):
+    
+    @classmethod
+    def getSubdir(cls):
+        return 'project'
+    
+    def get_context_data(self, request, options):
+        print("[ProjectWordReport] get_context_data")
+        pk=options.get('pk', None)
+        if not pk:
+            return {}
+        context={'request': request,}
         
+        proj = Project.objects.get(pk=pk)
+        if not proj:
+            return HttpResponse("not found", code=404)
+        context["project"]=proj
+        
+        context["institution"] = Institution_Participant.objects.filter(project=pk)
+        
+        context["participant"] = Participant.objects.filter(project=pk)
+        
+        context["contract"] = Contract.objects.filter(fund__project=pk)
+        
+        context["budget"] = Budget.objects.filter(fund__project=pk)
+        
+        context["milestone"] = Milestones.objects.filter(project=pk)
+        
+        # generating from html template for fund overview        
+        # context["fundoverview"]=get_project_fund_overviewReport(pk)
+        
+        # Fund and related items
+        fi = Fund.objects.filter(project=pk)
+        # d=json.dumps(serializers.FundProjectReportSerializer(fi, many=True).data, cls=DjangoJSONEncoder)
+        d=json.loads(json.dumps(serializers.FundProjectReportSerializer(fi, many=True).data, cls=DjangoJSONEncoder))
+        context["fund"]=d
+        
+        return context 
+    
+    def render(self, request, options):
+        print("[ProjectWordReport] render")
+        # rendering    
+        # self.template_name = "/templates/reports/Project_report.docx"
+        return super().render(request, options)

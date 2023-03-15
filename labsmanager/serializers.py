@@ -11,7 +11,8 @@ from common.models import  favorite
 from django.db.models import Sum
 
 
-from datetime import timedelta
+from datetime import timedelta, datetime
+
 
  # User and Group Serailizer ########### ------------------------------------ ###########
        
@@ -244,7 +245,6 @@ class TeamParticipantSerializer(ParticipantSerializer):
 # ---------------------------    APP FUND / SERIALISZER    --------------------------- #
 # ------------------------------------------------------------------------------------ #
 
-from datetime import datetime
 
 class FundSerialize(serializers.ModelSerializer):
     funder=Fund_InstitutionSerializer(many=False, read_only=True)

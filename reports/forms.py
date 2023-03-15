@@ -1,20 +1,37 @@
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
-from .models import EmployeeWordReport
+from .models import WordReport, EmployeeWordReport, ProjectWordReport
 
-
-class EmployeeWordReportForm(BSModalForm):
+class WordReportBaseForm(BSModalForm):
     class Meta:
-        fields = ['Template','employee_pk',]
+        fields = ['Template','pk',]
+        #abstract = True
+        model = WordReport
+        
+    Template = forms.ModelChoiceField(None)
+    pk = forms.IntegerField(widget=forms.HiddenInput)
     
-    queryset = EmployeeWordReport.objects.all()
-    Template = forms.ModelChoiceField(queryset)
-    employee_pk = forms.IntegerField(widget=forms.HiddenInput)
+    def get_queryset(self):
+        print("[WordReportBaseForm] - get_queryset :")
+        qset = self.Meta.model.objects.all()
+        return qset
     
     def __init__(self, *args, **kwargs):
-        if self.queryset.count()>0:
-            self.base_fields['Template'] = forms.ModelChoiceField(self.queryset, initial=self.queryset.first())
+        print("[WordReportBaseForm] - init :")
+        qset= self.get_queryset()
+        print(" set : "+str(qset))
+        if qset.count()>0:
+            self.base_fields['Template'] = forms.ModelChoiceField(qset, initial=qset.first())
         else:
-             self.base_fields['Template'] = forms.ModelChoiceField(self.queryset)
+             self.base_fields['Template'] = forms.ModelChoiceField(qset)
         super().__init__(*args, **kwargs)
     
+    
+class EmployeeWordReportForm(WordReportBaseForm):
+    class Meta:
+        model = EmployeeWordReport
+    
+ 
+class ProjectWordReportForm(WordReportBaseForm):
+    class Meta:
+        model = ProjectWordReport

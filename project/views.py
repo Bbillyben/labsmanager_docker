@@ -66,9 +66,10 @@ def get_project_resume(request, pk):
     
     return render(request, 'project/project_desc_table.html', data)
 
-def get_project_fund_overview(request, pk):
+
+
+def get_project_fund_panda(pk):
     fund=Fund.objects.filter(project=pk)#.values("pk")
-    print(fund)
     
     # get funitem related to funds
     a=Fund_Item.objects.filter(fund__in=fund)
@@ -88,8 +89,7 @@ def get_project_fund_overview(request, pk):
     elif a:
         c = a.all()
     else:
-        resp='<i>'+_('No Matching Fund Item')+'</i>'
-        return HttpResponse(resp)   
+        return None
     
     cpd=pd.DataFrame.from_records(c, columns=['funder','institution', 'ref', "type","amount","source"])
     cpd["fund"]=cpd['funder']+" - "+cpd['institution']+ " ("+cpd['ref']+')'
@@ -112,6 +112,30 @@ def get_project_fund_overview(request, pk):
     # out.loc['Column_Total']= out.sum(numeric_only=True, axis=0)
     # out.loc[:,'Row_Total'] = out.sum(numeric_only=True, axis=1)
     out = out[sorted(out.columns)]
+    return out
+    
+    
+    
+    
+def get_project_fund_overviewReport(pk):
+    out = get_project_fund_panda(pk)
+    if out is None:
+        return '<i>'+_('No Matching Fund Item')+'</i>'
+
+    PDUtils.applyColumnFormat(out, PDUtils.moneyFormat)
+    # out.style.apply(PDUtils.highlight_max)
+    out.style.applymap(PDUtils.style_negative, props='color:red;')
+    
+    return out.to_json()
+    
+    
+    
+def get_project_fund_overview(request, pk):
+    
+    out = get_project_fund_panda(pk)
+    if out is None:
+        resp='<i>'+_('No Matching Fund Item')+'</i>'
+        return HttpResponse(resp)   
     
     # out.loc['Column_Total']= out.sum(numeric_only=True, axis=0)
     # out.loc[:,'Row_Total'] = out.sum(numeric_only=True, axis=1)

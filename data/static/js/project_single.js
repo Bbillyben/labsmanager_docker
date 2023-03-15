@@ -59,6 +59,11 @@ function initProjectSingleView(user_idA, project_idA){
         addModalFormFunction: updateContract,
     })
 
+    $('#export_word').labModalForm({
+        formURL: Urls['project_report_generate'](project_id),
+        asyncSettings: {directUpdate:true,closeOnSubmit:true,},
+    })
+
 
     update_project();
     initProjectCalendar();

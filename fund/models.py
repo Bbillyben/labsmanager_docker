@@ -59,7 +59,7 @@ class Fund_Item(LabsManagerBudgetMixin, CachedModelMixin):
     entry_date = models.DateField(null=False, blank=False, default=datetime.date.today, verbose_name=_('Entry Date'))
     value_date = models.DateField(null=False, blank=False, default=datetime.date.today, verbose_name=_('value Date'))
     type=models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
-    fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('Related Fund'))
+    fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('Related Fund'), related_name='fund_item')
     history = AuditlogHistoryField()
     
     cached_vars=["amount"]
