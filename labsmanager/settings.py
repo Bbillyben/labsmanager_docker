@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
 import os
-from .config import get_setting, get_boolean_setting
+from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir
 import logging
 
 logger = logging.getLogger('labsmanager')
@@ -96,7 +96,9 @@ INSTALLED_APPS = [
     'settings.apps.SettingsConfig',
     'endpoints.apps.EndpointsConfig',
     'leave.apps.LeaveConfig',
+    'reports.apps.ReportsConfig',
     'common.apps.CommonConfig',
+    
     
 ]
 
@@ -209,7 +211,7 @@ LANGUAGES = [
 
 # Static files (CSS, JavaScript, Images)
 
-STATIC_ROOT = '/home/labsmanager/data/static/'
+STATIC_ROOT = get_static_dir() # '/home/labsmanager/data/static/'
 
 STATIC_URL = 'static/'
 
@@ -219,6 +221,11 @@ STATICFILES_DIRS = [
 
 # Color Themes Directory
 STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_URL, 'css', 'color-themes')
+
+
+MEDIA_ROOT = get_media_dir()
+
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

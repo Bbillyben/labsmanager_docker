@@ -1,63 +1,54 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.urls import reverse, reverse_lazy
 
-import os
-from io import BytesIO
-from django.http import FileResponse
-from docxtpl import DocxTemplate
-import jinja2
+from bootstrap_modal_forms.generic import BSModalFormView
+from .models import EmployeeWordReport, ProjectWordReport
+from .forms import WordReportBaseForm, EmployeeWordReportForm, ProjectWordReportForm
 
-from labsmanager.settings import BASE_DIR
-from staff.models import Employee,Employee_Status, GenericInfo
-from expense.models import Contract
-from project.models import Project, Participant
-import datetime
-
-def userReport(request, pk):
+class WordBaseReportView(BSModalFormView):
+    template_name = 'form_base.html'
+    form_class = WordReportBaseForm
+    nav_url='to_be_defined'
+    success_url = reverse_lazy('employee_index')
     
-    template_path= os.path.join(BASE_DIR, 'templates/', 'reports/employee_report.docx')
+    def get(self, request, *args, **kwargs):
+        if 'pk' in kwargs:
+            form = self.form_class(initial={'pk': kwargs['pk']})
+        else:
+            form = self.form_class()
+        
+        context = {'form': form}
+        return render(request, self.template_name , context)
     
-    # context building
-    context={'request': request,}
-    context["current_date"]=datetime.datetime.utcnow()
-    
-    emp = Employee.objects.get(pk=pk)
-    if not emp:
-        return HttpResponse("not found", code=404)
-    context["employee"]=emp
-    
-    info = GenericInfo.objects.filter(employee__pk=pk)
-    context["info"]=info
-    status = Employee_Status.objects.filter(employee__pk=pk)
-    context["status"]=status
-    
-    contract = Contract.objects.filter(employee__pk=pk)
-    context["contract"]=contract
-    
-    partProj = Participant.objects.filter(employee=emp)
-    # project = Project.objects.filter(pk__in=partProj)
-    context["project"]=partProj
+    def post(self, request, *args, **kwargs):
+        
+        template_id=request.POST.get("Template", None)
+        emp_id=request.POST.get("pk", None)
+        
+        # self.success_url = reverse('employee_report', kwargs={'pk':emp_id, 'template':template_id,})
+        urlP = reverse(self.nav_url, kwargs={'pk':emp_id, 'template':template_id,})
+        urlP = request.build_absolute_uri(urlP)
+                
+        return  JsonResponse({'navigate':urlP})
     
     
-    
-    
-    # rendering    
-    doc = DocxTemplate(template_path)
-    jinja_env = jinja2.Environment(autoescape=True)
-    doc.render(context, autoescape=True)
+class EmployeeReportView(WordBaseReportView):
+    form_class = EmployeeWordReportForm
+    nav_url='employee_report'
     
 
-    doc_io = BytesIO() # create a file-like object
-    doc.save(doc_io) # save data to file-like object
-    doc_io.seek(0) # go to the beginning of the file-like object
+class ProjectReportView(WordBaseReportView):
+    form_class = ProjectWordReportForm
+    nav_url='project_report'
+    
 
-    response = HttpResponse(doc_io.read())
+def userReport(request, pk, template):
+    rep = EmployeeWordReport.objects.get(pk=template)
+    return rep.render(request, {"pk":int(pk),})
 
-    # Content-Disposition header makes a file downloadable
-    filename = "Employee_"+str(emp.first_name)+"_"+str(emp.last_name)+".docx"
-    response["Content-Disposition"] = "attachment; filename="+filename
-
-    # Set the appropriate Content-Type for docx file
-    response["Content-Type"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-
-    return response
+def projectReport(request, pk, template):
+    rep = ProjectWordReport.objects.get(pk=template)
+    return rep.render(request, {"pk":int(pk),})
+    
+    

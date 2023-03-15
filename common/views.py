@@ -6,9 +6,9 @@ from django.contrib.contenttypes.models import ContentType
 # Create your views here.
 
 def get_user_fav_obj(request):
-    if request.method != 'POST':
+    if request.method != 'POST' or request.POST.get('type', None) == None:
         return HttpResponse("okoko", 400)
-    type=request.POST.get('type').split('.')
+    type=request.POST.get('type', "").split('.')
     pk=request.POST.get('pk')
     
     ct= ContentType.objects.get(app_label=type[0], model=type[1])
