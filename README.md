@@ -79,6 +79,7 @@ ________________________________
 #### credits
 
 inspired by [Inventree](https://github.com/inventree/InvenTree)
+(some code come directly from them)
 
 using [fullcalendar](https://fullcalendar.io/)
 
