@@ -81,6 +81,7 @@ def get_generic_foreign_key_filter(title, parameter_name=u'', separator='-', con
                 .order_by(content_type_id_field, object_id_field)\
                 .distinct(content_type_id_field, object_id_field)\
                 .values_list(content_type_id_field, object_id_field)
+
             return [
                 (
                     '{1}{0.separator}{2}'.format(self, *content_type_and_obj_id_pair),
@@ -106,9 +107,41 @@ def get_generic_foreign_key_filter(title, parameter_name=u'', separator='-', con
 
     return GenericForeignKeyFilter
 
+def get_content_type_filter(title, parameter_name=u'', separator='-', content_type_id_field='content_type') :
+    
+    class ContentTypeFilter(admin.SimpleListFilter):
+        def __init__(self, request, params, model, model_admin):
+            self.title = title
+            self.parameter_name = u'content_type_' + parameter_name
+            super(ContentTypeFilter, self).__init__(request, params, model, model_admin)
+            
+        def lookups(self, request, model_admin):
+            qs = model_admin.model.objects.all().distinct(content_type_id_field).values(content_type_id_field)
+            ctIn=ContentType.objects.filter(id__in=qs)
+            print("  - qs:"+str(qs)) 
+            return [
+                (
+                    str(ct.app_label)+"."+str(ct.model),
+                    ct.model_class().__str__()
+                )
+                for ct
+                in qs
+            ]
+        
+        
+        
+        def queryset(self, request, queryset):
+            try :
+                return queryset.filter(**({
+                    content_type_id_field:self.value(),
+                }))
+            except:
+                return queryset
+    return ContentTypeFilter
 
 class AmountHistoryAdmin(admin.ModelAdmin):
-    list_filter = (get_generic_foreign_key_filter(u'content_type'),)
+    #list_filter = (get_generic_foreign_key_filter(u'content_type'),)
+    list_filter = ('value_date',get_content_type_filter(u'content_type'))
     list_display = ('created_at', 'content_type', 'object_id', 'content_object', 'amount', 'delta', 'value_date')   
 
 admin.site.register(Fund, FundAdmin)
