@@ -92,7 +92,8 @@ class fundStaleCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':_('funder'),'item':'funder'},
                 {'name':_('Institution'),'item':'institution'},
                 {'name':_('end date'),'item':'end_date', 'formatter':'dueDatePassed'},
-                {'name':_('Availability'),'item':'availability', 'formatter':'moneyFormatter'},
+                {'name':_('Availability'),'item':'available', 'formatter':'moneyFormatter'},
+                {'name':_('Availability Focus'),'item':'available_f', 'formatter':'moneyFormatter'},
             ], 
             'action':[
                 {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'}
@@ -119,9 +120,9 @@ class FundConsumptionCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':_('Time Ratio'),'item':'time_ratio','formatter':'quotityFormatter'},
                 {'name':_('start date'),'item':'start_date'},
                 {'name':_('end date'),'item':'end_date', 'formatter':'dueDatePassed'},
-                {'name':_('Total Fund'),'item':'amount', 'formatter':'moneyFormatter'},
-                {'name':_('Total Expense'),'item':'expense', 'formatter':'moneyFormatter'},
-                {'name':_('Availability'),'item':'available', 'formatter':'moneyFormatter'},
+                {'name':_('Total Fund'),'item':'amount', 'formatter':'moneyFocusFormatter','custom_param': 'amount_f'},
+                {'name':_('Total Expense'),'item':'expense', 'formatter':'moneyFocusFormatter','custom_param': 'expense_f'},
+                {'name':_('Availability'),'item':'available', 'formatter':'moneyFocusFormatter','custom_param': 'available_f'},
             ], 
             'action':[
                 {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'},

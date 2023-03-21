@@ -47,10 +47,22 @@ class Project(ActiveDateMixin):
     def get_funds_amount(self):
         from fund.models import Fund
         return Fund.objects.filter(project=self.pk).aggregate(Sum('amount'))["amount__sum"]
+    
+    @property
+    def get_funds_amount_f(self):
+        from fund.models import Fund
+        return Fund.objects.filter(project=self.pk).aggregate(Sum('amount_f'))["amount_f__sum"]
+    
     @property
     def get_funds_expense(self):
         from fund.models import Fund
         return Fund.objects.filter(project=self.pk).aggregate(Sum('expense'))["expense__sum"]
+    
+    @property
+    def get_funds_expense_f(self):
+        from fund.models import Fund
+        return Fund.objects.filter(project=self.pk).aggregate(Sum('expense_f'))["expense_f__sum"]
+    
     @property
     def get_funds_available(self):
         from fund.models import Fund
@@ -58,6 +70,16 @@ class Project(ActiveDateMixin):
         sumA=0
         for f in fs:
             sumA+= f.available
+            
+        return sumA
+    
+    @property
+    def get_funds_available_f(self):
+        from fund.models import Fund
+        fs = Fund.objects.filter(project=self.pk)
+        sumA=0
+        for f in fs:
+            sumA+= f.available_f
             
         return sumA
     

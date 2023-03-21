@@ -52,7 +52,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 class CostTypeSerialize(serializers.ModelSerializer):
      class Meta:
         model = Cost_Type
-        fields = ['pk', 'short_name', 'name'] 
+        fields = ['pk', 'short_name', 'name', 'in_focus',] 
         
 class Fund_InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
@@ -252,7 +252,8 @@ class FundSerialize(serializers.ModelSerializer):
     project=ProjectSerializer(many=False, read_only=True)
     class Meta:
         model = Fund
-        fields = ['pk', 'project', 'funder', 'institution', 'ref','start_date', 'end_date', 'is_active','amount', 'expense','available',] 
+        fields = ['pk', 'project', 'funder', 'institution', 'ref','start_date', 'end_date',
+                  'is_active','amount', 'expense', 'available', 'amount_f', 'expense_f', 'available_f',] 
 
 class FundConsumptionSerialize(serializers.ModelSerializer):
     funder=Fund_InstitutionSerializer(many=False, read_only=True)
@@ -262,7 +263,10 @@ class FundConsumptionSerialize(serializers.ModelSerializer):
     time_ratio=serializers.SerializerMethodField()
     class Meta:
         model = Fund
-        fields = ['pk', 'project', 'funder', 'institution', 'ref','start_date', 'end_date', 'is_active','amount', 'expense','available','ratio', 'time_ratio'] 
+        fields = ['pk', 'project', 'funder', 'institution', 'ref','start_date', 'end_date', 'is_active',
+                  'amount', 'expense','available',
+                  'amount_f', 'expense_f', 'available_f',
+                  'ratio', 'time_ratio',] 
     
     def get_ratio(self,obj):
         if obj.amount  and int(obj.amount)>0:
@@ -305,7 +309,10 @@ class FundStaleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Fund
-        fields=['pk', 'project', 'funder', 'institution', 'end_date', 'availability', 'amount','expense',]
+        fields=['pk', 'project', 'funder', 'institution', 'end_date', 'availability', 
+                'amount','expense','available',
+                'amount_f', 'expense_f', 'available_f',
+                ]
         
     def get_availability(self,obj):
         # avail=obj.get_available()
@@ -326,7 +333,10 @@ class FundProjectSerialize(serializers.ModelSerializer):
     
     class Meta:
         model = Fund
-        fields = ['pk', 'funder', 'institution', 'start_date', 'end_date', 'ref', 'amount', 'is_active', 'expense', 'available'] 
+        fields = ['pk', 'funder', 'institution', 'start_date', 'end_date', 'ref', 
+                  'amount', 'is_active', 'expense', 'available',
+                   'amount_f', 'expense_f', 'available_f',
+                   ] 
         
     # def get_amount(self,obj):
     #     return Fund_Item.objects.filter(fund=obj.pk).aggregate(Sum('amount'))["amount__sum"]
@@ -491,6 +501,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
                   'participant', 'participant_count',
                   'institution', 
                   'fund','get_funds_amount', 'get_funds_expense','get_funds_available',
+                  'get_funds_amount_f', 'get_funds_expense_f','get_funds_available_f',
                   ]
     def get_participant(self,obj):
         part = Participant.objects.select_related('employee').filter(project = obj.pk, employee__is_active= True)

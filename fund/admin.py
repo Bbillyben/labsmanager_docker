@@ -5,8 +5,11 @@ from import_export.admin import ImportExportModelAdmin
 from .resources import FundItemAdminResource
 
 class CostTypeAdmin(admin.ModelAdmin):
-    list_display = ('name','short_name')
+    list_display = ('name','short_name', 'in_focus',)
 
+class FundInstitutionAdmin(admin.ModelAdmin):
+    list_display = ('name','short_name',)
+    
 class FundTypeInline(admin.TabularInline):
     model=Fund_Item
     extra=0
@@ -145,7 +148,7 @@ class AmountHistoryAdmin(admin.ModelAdmin):
     list_display = ('created_at', 'content_type', 'object_id', 'content_object', 'amount', 'delta', 'value_date')   
 
 admin.site.register(Fund, FundAdmin)
-admin.site.register(Fund_Institution, CostTypeAdmin)
+admin.site.register(Fund_Institution, FundInstitutionAdmin)
 admin.site.register(Fund_Item, FundItemAdmin)
 admin.site.register(Cost_Type, CostTypeAdmin)
 admin.site.register(Budget, BudgetAdmin)

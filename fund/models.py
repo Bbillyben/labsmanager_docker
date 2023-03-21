@@ -7,7 +7,7 @@ from django.db.models import Sum, Q, F
 
 from project.models import Project, Institution
 
-from labsmanager.mixin import LabsManagerBudgetMixin, ActiveDateMixin, CachedModelMixin
+from labsmanager.mixin import LabsManagerBudgetMixin, LabsManagerFocusBudgetMixin, LabsManagerFocusTypeMixin,  ActiveDateMixin, CachedModelMixin
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -34,6 +34,7 @@ class Cost_Type(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     short_name= models.CharField(max_length=10, verbose_name=_('Abbreviation'))
     name = models.CharField(max_length=60, verbose_name=_('Type name'))
+    in_focus = models.BooleanField(null=False, blank=False, default=True, verbose_name=_('In Focus'))
     
     def __str__(self):
         return f'{self.name}'
@@ -50,7 +51,7 @@ class Fund_Institution(models.Model):
     def __str__(self):
         return f'{self.short_name}'
     
-class Fund_Item(LabsManagerBudgetMixin, CachedModelMixin):
+class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund Line")
@@ -58,7 +59,7 @@ class Fund_Item(LabsManagerBudgetMixin, CachedModelMixin):
         
     entry_date = models.DateField(null=False, blank=False, default=datetime.date.today, verbose_name=_('Entry Date'))
     value_date = models.DateField(null=False, blank=False, default=datetime.date.today, verbose_name=_('value Date'))
-    type=models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
+    # type=models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
     fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('Related Fund'), related_name='fund_item')
     history = AuditlogHistoryField()
     
@@ -69,7 +70,7 @@ class Fund_Item(LabsManagerBudgetMixin, CachedModelMixin):
     
     
     
-class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
+class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund")
@@ -97,14 +98,18 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
         fi= Fund_Item.objects.filter(fund=self.pk)
         if fi:
             self.amount= fi.aggregate(Sum('amount'))["amount__sum"]
+            self.amount_f= fi.filter(type__in_focus=True).aggregate(Sum('amount'))["amount__sum"]
         else:
             self.amount=0
+            self.amount_f=0
         
         exp=Expense_point.objects.filter(fund=self.pk) #.last.fund(self.pk)
         if exp:
             self.expense = exp.aggregate(Sum('amount'))["amount__sum"]
+            self.expense_f = exp.filter(type__in_focus=True).aggregate(Sum('amount'))["amount__sum"]
         else:
             self.expense = 0
+
             
         self.save()
         
@@ -117,6 +122,7 @@ class Fund(LabsManagerBudgetMixin, ActiveDateMixin):
             fiS=fi.filter(type=etp.type)
             if fiS:
                 fiS.update(expense=etp.amount)  # update the corresponding Fund_item
+                    
             else: # create a new one
                 logger.debug(f'[Fund]- create {etp.type} Fund Item')
                 fiS=Fund_Item(

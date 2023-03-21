@@ -25,7 +25,13 @@
         <thead class="">
             <tr>
                 {% for c in columns %}
-                <th data-sortable="true" class="th-inner sortable both" data-field="{{c.item}}" data-formatter="{{c.formatter}}">
+                <th data-sortable="true" 
+                class="th-inner sortable both" 
+                data-field="{{c.item}}"
+                data-formatter="{{c.formatter}}"
+                {% if c.custom_param %}data-custom_param="{{c.custom_param}}" {% endif %}
+                
+                 >
                     {{c.name}}
                 </th>
                 {% endfor %}
@@ -37,6 +43,7 @@
     </table>
         
 </div>
+
 
 
 
@@ -60,6 +67,7 @@
                     url:"{{url}}",
                     queryParams: filters,
                     name:idTable,
+                    
                     
                 };
                 setupFilterList('dashboarcart', $("#dashboard_card_{% makeId title %}"), '#filter-list-dashboard_filter_{% makeId title %}',  filterOption);

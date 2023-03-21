@@ -47,3 +47,4 @@ function ProjectFormatter(value, row, index, field){
     response =  '<span class="icon-right-cell"><a href="'+row.pk+'" title="/'+row.ipkd+'/"> '+value+'</a>';
     return response;
 }
+

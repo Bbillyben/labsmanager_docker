@@ -13,16 +13,16 @@ from dashboard import utils
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
-from labsmanager.mixin import DateMixin, CachedModelMixin
+from labsmanager.mixin import DateMixin, CachedModelMixin, LabsManagerFocusTypeMixin
 
 # Create your models here.
-class Expense(models.Model):
+class Expense(LabsManagerFocusTypeMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Expense")
         
     date = models.DateField(null=False, blank=False, verbose_name=_('Expense Date'))
-    type = models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
+    # type = models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
     amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
     status_mod=(("e",_("Engaged")), 
                 ("r", _("Realised")),
@@ -48,7 +48,7 @@ class Contract_expense(Expense):
     contract= models.ForeignKey('Contract', on_delete=models.CASCADE, verbose_name=_('Related Contract'))
     
 
-class Expense_point(CachedModelMixin):
+class Expense_point(LabsManagerFocusTypeMixin, CachedModelMixin):
     class Meta:
         verbose_name = _("Total Expense Timepoint")
         unique_together = ('fund', 'type')
@@ -56,7 +56,7 @@ class Expense_point(CachedModelMixin):
     entry_date = models.DateField(null=False, blank=False, verbose_name=_('Entry Date'))
     value_date = models.DateField(null=False, blank=False, verbose_name=_('value Date'))
     fund=models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'))
-    type = models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
+    # type = models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
     amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'), validators=NEGATIVE_VALIDATOR,)
     history = AuditlogHistoryField()
     

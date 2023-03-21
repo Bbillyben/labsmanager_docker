@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-06 13:22+0100\n"
+"POT-Creation-Date: 2023-03-21 11:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: common/models.py:10 settings/models.py:868 settings/models.py:869
+#: common/models.py:10 settings/models.py:810 settings/models.py:811
 #: staff/models.py:30 staff/ressources.py:203
 msgid "User"
 msgstr "Utilisateur"
@@ -30,84 +30,84 @@ msgstr "Aperçu des pertes de projets"
 msgid "Stale Fund"
 msgstr "Fond Périmés"
 
-#: dashboard/views.py:91 dashboard/views.py:115 project/models.py:36
+#: dashboard/views.py:91 dashboard/views.py:116 project/models.py:36
 msgid "project"
 msgstr "projet"
 
-#: dashboard/views.py:92 dashboard/views.py:116 fund/resources.py:30
+#: dashboard/views.py:92 dashboard/views.py:117 fund/resources.py:30
 #: fund/resources.py:139 fund/resources.py:308
 #: templates/fund/fund_finder.html:59
 msgid "funder"
 msgstr "financeur"
 
-#: dashboard/views.py:93 dashboard/views.py:117 dashboard/views.py:153
-#: expense/resources.py:35 fund/admin.py:33 fund/resources.py:250
-#: project/models.py:118 project/resources.py:61
+#: dashboard/views.py:93 dashboard/views.py:118 dashboard/views.py:154
+#: expense/resources.py:35 fund/admin.py:36 fund/resources.py:250
+#: project/models.py:140 project/resources.py:61
 #: templates/expense/contract_table.html:43 templates/fund/fund_finder.html:62
 #: templates/fund/fund_table.html:16 templates/project/project_base.html:62
 msgid "Institution"
 msgstr "Institution"
 
-#: dashboard/views.py:94 dashboard/views.py:121 dashboard/views.py:155
+#: dashboard/views.py:94 dashboard/views.py:122 dashboard/views.py:156
 msgid "end date"
 msgstr "date de fin"
 
-#: dashboard/views.py:95 dashboard/views.py:124
+#: dashboard/views.py:95 dashboard/views.py:125
 msgid "Availability"
 msgstr "Disponibilité"
 
-#: dashboard/views.py:113
+#: dashboard/views.py:96
+msgid "Availability Focus"
+msgstr "Disponibilité Focus"
+
+#: dashboard/views.py:114
 msgid "No-Consumption Fund"
 msgstr "Pas de Fond consommé"
 
-#: dashboard/views.py:118
+#: dashboard/views.py:119
 msgid "Consumption Ratio"
 msgstr "Taux de Consommation"
 
-#: dashboard/views.py:119 fund/resources.py:329
-#, fuzzy
-#| msgid "Time quotity"
+#: dashboard/views.py:120 fund/resources.py:329
 msgid "Time Ratio"
 msgstr "Quotité de temps"
 
-#: dashboard/views.py:120
-#, fuzzy
-#| msgid "Start Date"
+#: dashboard/views.py:121
 msgid "start date"
 msgstr "Date de Début"
 
-#: dashboard/views.py:122 project/resources.py:71
+#: dashboard/views.py:123 project/resources.py:71
 #: templates/project/project_base.html:71
 msgid "Total Fund"
 msgstr "Fonds Totaux"
 
-#: dashboard/views.py:123 project/resources.py:76
+#: dashboard/views.py:124 project/resources.py:76
 #: templates/fund/fund_table.html:32 templates/project/project_base.html:74
 msgid "Total Expense"
 msgstr "Dépenses Totales"
 
-#: dashboard/views.py:149
+#: dashboard/views.py:150
 msgid "Stale Contract"
 msgstr "Contrat Périmé"
 
-#: dashboard/views.py:151 expense/models.py:117 expense/resources.py:20
+#: dashboard/views.py:152 expense/models.py:117 expense/resources.py:20
 #: fund/resources.py:265 leave/models.py:38 leave/resources.py:83
-#: project/models.py:132 staff/models.py:23 staff/models.py:24
+#: project/models.py:154 staff/models.py:23 staff/models.py:24
 #: staff/models.py:99 staff/models.py:162 staff/models.py:201
 #: templates/employee/employee_single.html:25
 #: templates/expense/contract_table.html:30 templates/fund/budget_table.html:41
 #: templates/labmanager/index.html:44 templates/navbar.html:20
-#: templates/project/project_single.html:124
-#: templates/project/project_single.html:369
+#: templates/project/project_single.html:130
+#: templates/project/project_single.html:375
 msgid "Employee"
 msgstr "Employé"
 
-#: dashboard/views.py:152 dashboard/views.py:180 endpoints/models.py:31
-#: expense/admin.py:38 expense/resources.py:25 fund/admin.py:22
-#: fund/admin.py:43 fund/resources.py:25 fund/resources.py:133
-#: fund/resources.py:303 project/models.py:117 project/models.py:131
+#: dashboard/views.py:153 dashboard/views.py:181 endpoints/models.py:31
+#: expense/admin.py:38 expense/resources.py:25 fund/admin.py:25
+#: fund/admin.py:46 fund/resources.py:25 fund/resources.py:133
+#: fund/resources.py:303 project/models.py:139 project/models.py:153
 #: templates/employee/employee_sidebar.html:10
-#: templates/employee/employee_single.html:234
+#: templates/employee/employee_single.html:240
 #: templates/endpoints/milestones_table.html:26
 #: templates/expense/contract_table.html:25 templates/fund/budget_table.html:17
 #: templates/fund/fund_finder.html:56 templates/labmanager/index.html:66
@@ -116,64 +116,58 @@ msgstr "Employé"
 msgid "Project"
 msgstr "Projet"
 
-#: dashboard/views.py:154 expense/models.py:105 expense/models.py:120
+#: dashboard/views.py:155 expense/models.py:105 expense/models.py:120
 #: fund/resources.py:276 templates/expense/contract_table.html:46
 #: templates/fund/budget_table.html:34
 msgid "Contract Type"
 msgstr "Type de Contrat"
 
-#: dashboard/views.py:178
-#, fuzzy
-#| msgid "Stale Settings"
+#: dashboard/views.py:179
 msgid "Stale Milestones"
-msgstr "Paramètre de péremption"
+msgstr "Jalons en péremption"
 
-#: dashboard/views.py:181 staff/models.py:124 staff/models.py:189
-#: templates/endpoints/milestones_table.html:30
+#: dashboard/views.py:182 reports/models.py:110 staff/models.py:124
+#: staff/models.py:189 templates/endpoints/milestones_table.html:30
 msgid "Name"
 msgstr "Nom"
 
-#: dashboard/views.py:182
+#: dashboard/views.py:183 reports/models.py:123
 msgid "Description"
 msgstr "Description"
 
-#: dashboard/views.py:183 endpoints/models.py:19 expense/models.py:25
-#: expense/models.py:59 fund/models.py:61 fund/models.py:185 leave/models.py:37
-#: staff/models.py:98 templates/employee/employee_single.html:367
+#: dashboard/views.py:184 endpoints/models.py:19 fund/models.py:191
+#: labsmanager/mixin.py:130 leave/models.py:37 staff/models.py:98
+#: templates/employee/employee_single.html:373
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
 #: templates/expense/expense_timepoint.html:32
 #: templates/fund/fund_finder.html:71 templates/fund/fund_item_table.html:31
-#: templates/project/project_single.html:378
+#: templates/project/project_single.html:384
 msgid "Type"
 msgstr "Type"
 
-#: dashboard/views.py:184 templates/employee/employee_single.html:255
+#: dashboard/views.py:185 templates/employee/employee_single.html:261
 #: templates/endpoints/milestones_table.html:37
 #: templates/expense/contract_table.html:52 templates/fund/budget_table.html:45
-#: templates/project/project_single.html:130
+#: templates/project/project_single.html:136
 msgid "Quotity"
 msgstr "Quotité"
 
-#: dashboard/views.py:185
+#: dashboard/views.py:186
 msgid "Deadline"
 msgstr "Date Limite"
 
 #: endpoints/models.py:9
-#, fuzzy
-#| msgid "First Name"
 msgid "endpoint Name"
-msgstr "Prénom"
+msgstr "Nom Endpoint"
 
 #: endpoints/models.py:10
 msgid "endpoint desc"
 msgstr "Desc. point"
 
 #: endpoints/models.py:11
-#, fuzzy
-#| msgid "value Date"
 msgid "Deadline Date"
-msgstr "Date de Valeur"
+msgstr "Date limite"
 
 #: endpoints/models.py:13
 msgid "one-time"
@@ -184,16 +178,12 @@ msgid "quantifiable"
 msgstr "quantifiable"
 
 #: endpoints/models.py:21
-#, fuzzy
-#| msgid "Time quotity"
 msgid "Completion quotity"
-msgstr "Quotité de temps"
+msgstr "Quotité d'achèvement"
 
 #: endpoints/models.py:23
-#, fuzzy
-#| msgid "Add Status"
 msgid "Endpoints Status"
-msgstr "Ajout Statut"
+msgstr "Statut Endpoint"
 
 #: endpoints/models.py:35
 msgid "Milestone"
@@ -205,13 +195,13 @@ msgstr "Jalon"
 msgid "Milestones"
 msgstr "Jalons"
 
-#: expense/admin.py:44 expense/resources.py:30 fund/admin.py:28
-#: fund/admin.py:48 fund/resources.py:245
+#: expense/admin.py:44 expense/resources.py:30 fund/admin.py:31
+#: fund/admin.py:51 fund/resources.py:245
 #: templates/expense/contract_table.html:34 templates/fund/fund_table.html:13
 msgid "Funder"
 msgstr "Financeur"
 
-#: expense/forms.py:53 fund/models.py:134 project/forms.py:28
+#: expense/forms.py:53 fund/models.py:140 project/forms.py:28
 #: project/forms.py:74 staff/forms.py:48
 #, python-format
 msgid "Exit Date (%s) should be later than entry date (%s) "
@@ -221,9 +211,9 @@ msgstr "La date de départ (%s) doit être postérieur à la date de fin (%s)"
 msgid "If A Contract is turn inactive, it should have a end Date"
 msgstr "Si un contrat devient inactif, il doit avoir une date de fin."
 
-#: expense/models.py:22 labsmanager/mixin.py:86
+#: expense/models.py:22 labsmanager/mixin.py:87
 #: templates/fund/fund_finder.html:81
-#: templates/project/project_desc_table.html:31
+#: templates/project/project_desc_table.html:32
 msgid "Expense"
 msgstr "Dépense"
 
@@ -231,8 +221,8 @@ msgstr "Dépense"
 msgid "Expense Date"
 msgstr "Date de la Dépense"
 
-#: expense/models.py:26 expense/models.py:60 fund/models.py:186
-#: fund/models.py:212 labsmanager/mixin.py:85
+#: expense/models.py:26 expense/models.py:60 fund/models.py:192
+#: fund/models.py:218 labsmanager/mixin.py:86
 #: templates/expense/contract_item_expense.html:37
 #: templates/expense/expense_timepoint.html:35
 #: templates/fund/budget_table.html:48 templates/fund/fund_finder.html:78
@@ -252,20 +242,20 @@ msgstr "Réalisé"
 msgid "Projected"
 msgstr "Planifié"
 
-#: expense/models.py:35 project/models.py:125 project/models.py:139
+#: expense/models.py:35 project/models.py:147 project/models.py:161
 #: staff/models.py:94 staff/models.py:95 staff/ressources.py:103
 #: templates/employee/employee_base.html:69
-#: templates/employee/employee_single.html:81
+#: templates/employee/employee_single.html:87
 #: templates/endpoints/milestones_table.html:40
 #: templates/expense/contract_item_expense.html:34
-#: templates/project/project_base.html:80
-#: templates/project/project_single.html:96
-#: templates/project/project_single.html:127
+#: templates/project/project_base.html:92
+#: templates/project/project_single.html:102
+#: templates/project/project_single.html:133
 msgid "Status"
 msgstr "Statut"
 
 #: expense/models.py:37 expense/models.py:58 expense/models.py:119
-#: fund/models.py:62
+#: fund/models.py:63
 msgid "Related Fund"
 msgstr "Fonds connexe"
 
@@ -281,13 +271,13 @@ msgstr "Contrat Connexe"
 msgid "Total Expense Timepoint"
 msgstr "Dépense Totale du point"
 
-#: expense/models.py:56 fund/models.py:59 staff/models.py:32
+#: expense/models.py:56 fund/models.py:60 staff/models.py:32
 #: staff/ressources.py:90 staff/ressources.py:185
 #: templates/employee/employee_base.html:63
 msgid "Entry Date"
 msgstr "Date d'entrée"
 
-#: expense/models.py:57 fund/models.py:60
+#: expense/models.py:57 fund/models.py:61
 msgid "value Date"
 msgstr "Date de Valeur"
 
@@ -297,11 +287,11 @@ msgstr "Nom du Type"
 
 #: expense/models.py:115 templates/dashboard/global_dashboard.html:88
 #: templates/employee/employee_sidebar.html:4
-#: templates/labmanager/index.html:58 templates/project/project_single.html:443
+#: templates/labmanager/index.html:58 templates/project/project_single.html:449
 msgid "Contract"
 msgstr "Contrat"
 
-#: expense/models.py:118 project/models.py:141
+#: expense/models.py:118 project/models.py:163
 msgid "Time quotity"
 msgstr "Quotité de temps"
 
@@ -323,46 +313,34 @@ msgid "Total Amount"
 msgstr "Montant Total"
 
 #: expense/resources.py:101 fund/resources.py:170
-#, fuzzy
-#| msgid "Expense"
 msgid "expense"
 msgstr "Dépense"
 
 #: expense/resources.py:107
-#, fuzzy
-#| msgid "Entry Date"
 msgid "entry_date"
 msgstr "Date d'entrée"
 
 #: expense/resources.py:113
-#, fuzzy
-#| msgid "value Date"
 msgid "value_date"
 msgstr "Date de Valeur"
 
 #: expense/views.py:29 fund/views.py:67
-#, fuzzy
-#| msgid "Total Expense"
 msgid "Project Expense"
-msgstr "Dépenses Totales"
+msgstr "Dépenses Projet"
 
 #: expense/views.py:33 fund/views.py:71
-#, fuzzy
-#| msgid "Project Stale month"
 msgid "Project Not Found"
-msgstr "Nombre de mois pour considérer périmé les projets"
+msgstr "Projet introuvable"
 
 #: expense/views.py:39
 msgid "No expense found for that project"
 msgstr "Aucune dépense trouvé pour ce projet"
 
 #: expense/views.py:84
-#, fuzzy
-#| msgid "Project Loss Overview"
 msgid "Project Expense Overview"
-msgstr "Aperçu des pertes de projets"
+msgstr "Vue d'ensemble dépenses projet"
 
-#: fund/admin.py:53
+#: fund/admin.py:56
 msgid "Manager"
 msgstr "Manager"
 
@@ -373,8 +351,6 @@ msgid "Exit Date (%s) should be later than entry date (%s)"
 msgstr "La date de départ (%s) doit être postérieur à la date de fin (%s)"
 
 #: fund/forms.py:79
-#, fuzzy
-#| msgid "If A Contract is turn inactive, it should have a end Date"
 msgid "If A Contract is turn inactive, it should have a end Dat "
 msgstr "Si un contrat devient inactif, il doit avoir une date de fin."
 
@@ -386,81 +362,75 @@ msgstr "Type de Coût"
 msgid "Abbreviation"
 msgstr "Abréviation"
 
-#: fund/models.py:44
+#: fund/models.py:37
+msgid "In Focus"
+msgstr "Dans le Focus"
+
+#: fund/models.py:45
 msgid "Funder Institution"
 msgstr "Institution du financeur"
 
-#: fund/models.py:47
+#: fund/models.py:48
 msgid "Funder abbreviation"
 msgstr "Abréviation du financeur"
 
-#: fund/models.py:48
+#: fund/models.py:49
 msgid "Funder Name"
 msgstr "Nom du financeur"
 
-#: fund/models.py:56
+#: fund/models.py:57
 msgid "Fund Line"
 msgstr "Ligne de Fond"
 
-#: fund/models.py:75 project/resources.py:66
+#: fund/models.py:76 project/resources.py:66
 #: templates/fund/budget_table.html:21 templates/labmanager/index.html:75
 #: templates/project/project_base.html:68
-#: templates/project/project_single.html:239
+#: templates/project/project_single.html:245
 msgid "Fund"
 msgstr "Fond"
 
-#: fund/models.py:80 labsmanager/mixin.py:138
-#, fuzzy
-#| msgid "End Date (%s) should be later than start date (%s) "
+#: fund/models.py:81 labsmanager/mixin.py:169
 msgid "End Date should be greater than start date"
-msgstr "La date de fin (%s) doit être postérieure à la date de début (%s) "
+msgstr "La date de fin doit être postérieure à la date de début"
 
-#: fund/models.py:83
+#: fund/models.py:84
 msgid "Funded Project"
 msgstr "Projet Financé"
 
-#: fund/models.py:84
+#: fund/models.py:85
 msgid "Fund Instituition"
 msgstr "Institution Financeur"
 
-#: fund/models.py:85
+#: fund/models.py:86
 msgid "Manager Institution"
 msgstr "Institution Gestionnaire"
 
-#: fund/models.py:86 templates/fund/fund_table.html:26
+#: fund/models.py:87 templates/fund/fund_table.html:26
 msgid "Reference"
 msgstr "Référence"
 
-#: fund/models.py:183 fund/resources.py:164
-#: templates/project/project_desc_table.html:30
+#: fund/models.py:189 fund/resources.py:164
+#: templates/project/project_desc_table.html:31
 msgid "Budget"
 msgstr "Budget"
 
-#: fund/models.py:187
-#, fuzzy
-#| msgid "funder"
+#: fund/models.py:193
 msgid "fund"
-msgstr "financeur"
+msgstr "Fond"
 
-#: fund/models.py:188
-#, fuzzy
-#| msgid "Employee Type"
+#: fund/models.py:194
 msgid "employee type"
 msgstr "Type d'employé"
 
-#: fund/models.py:190
-#, fuzzy
-#| msgid "Employee"
+#: fund/models.py:196
 msgid "employee"
 msgstr "Employé"
 
-#: fund/models.py:191
-#, fuzzy
-#| msgid "Quotity"
+#: fund/models.py:197
 msgid "quotity"
 msgstr "Quotité"
 
-#: fund/models.py:202
+#: fund/models.py:208
 msgid ""
 "Employee Type, Contract Type and employee can not be defined if Cost Type is "
 "not of RH or descendant "
@@ -468,26 +438,22 @@ msgstr ""
 "Type d'employée, de contrat et l'employée ne peuvent pas être définis si le "
 "type de coûtn'est pas RH ou ses déscendants"
 
-#: fund/models.py:213
+#: fund/models.py:219
 msgid "Delta"
 msgstr "Delta"
 
-#: fund/models.py:214
-#, fuzzy
-#| msgid "End Date"
+#: fund/models.py:220
 msgid "Date"
-msgstr "Date de Fin"
+msgstr "Date"
 
-#: fund/models.py:215 templates/expense/expense_timepoint.html:29
+#: fund/models.py:221 templates/expense/expense_timepoint.html:29
 #: templates/fund/fund_item_table.html:28
 msgid "Value Date"
 msgstr "Date de Valeur"
 
-#: fund/models.py:219
-#, fuzzy
-#| msgid "Amount"
+#: fund/models.py:225
 msgid "Amount History"
-msgstr "Montant"
+msgstr "Historique Montant"
 
 #: fund/resources.py:15 project/resources.py:81
 #: templates/project/project_base.html:77
@@ -503,28 +469,28 @@ msgstr "type"
 msgid "institution"
 msgstr "institution"
 
-#: fund/resources.py:40 fund/resources.py:151 labsmanager/mixin.py:105
-#: templates/employee/employee_single.html:87
-#: templates/employee/employee_single.html:249
-#: templates/employee/employee_single.html:370
+#: fund/resources.py:40 fund/resources.py:151 labsmanager/mixin.py:136
+#: templates/employee/employee_single.html:93
+#: templates/employee/employee_single.html:255
+#: templates/employee/employee_single.html:376
 #: templates/expense/contract_table.html:37 templates/fund/budget_table.html:24
 #: templates/fund/fund_finder.html:65 templates/fund/fund_table.html:20
 #: templates/project/project_base.html:56
 #: templates/project/project_desc_table.html:16
-#: templates/project/project_single.html:133
+#: templates/project/project_single.html:139
 msgid "Start Date"
 msgstr "Date de Début"
 
-#: fund/resources.py:46 fund/resources.py:157 labsmanager/mixin.py:106
-#: templates/employee/employee_single.html:90
-#: templates/employee/employee_single.html:252
-#: templates/employee/employee_single.html:373
+#: fund/resources.py:46 fund/resources.py:157 labsmanager/mixin.py:137
+#: templates/employee/employee_single.html:96
+#: templates/employee/employee_single.html:258
+#: templates/employee/employee_single.html:379
 #: templates/endpoints/milestones_table.html:34
 #: templates/expense/contract_table.html:40 templates/fund/budget_table.html:27
 #: templates/fund/fund_finder.html:68 templates/fund/fund_table.html:23
 #: templates/project/project_base.html:59
 #: templates/project/project_desc_table.html:21
-#: templates/project/project_single.html:136
+#: templates/project/project_single.html:142
 msgid "End Date"
 msgstr "Date de Fin"
 
@@ -534,8 +500,6 @@ msgid "Ref"
 msgstr "Ref"
 
 #: fund/resources.py:176 fund/resources.py:319
-#, fuzzy
-#| msgid "Available"
 msgid "available"
 msgstr "Disponible"
 
@@ -543,40 +507,40 @@ msgstr "Disponible"
 msgid "Employee Type"
 msgstr "Type d'employé"
 
-#: fund/resources.py:271 templates/employee/employee_single.html:96
+#: fund/resources.py:271 templates/employee/employee_single.html:102
 #: templates/fund/fund_table.html:38
-#: templates/project/project_desc_table.html:57
+#: templates/project/project_desc_table.html:65
 #: templates/staff/employee_desc_table.html:50
 msgid "Active"
 msgstr "Actif"
 
 #: fund/resources.py:324
-#, fuzzy
-#| msgid "Consumption Ratio"
 msgid "Consumption Ration"
 msgstr "Taux de Consommation"
 
-#: fund/views.py:50 project/views.py:91
+#: fund/views.py:50 project/views.py:123 project/views.py:137
 msgid "No Matching Fund Item"
 msgstr "Aucun Item de Fond correspondante"
 
 #: fund/views.py:77
-#, fuzzy
-#| msgid "No expense found for that project"
 msgid "No Fund found for that project"
-msgstr "Aucune dépense trouvé pour ce projet"
+msgstr "Aucun fonds trouvé pour ce projet"
 
 #: fund/views.py:122
-#, fuzzy
-#| msgid "project Funds Overview"
 msgid "Project Fund Overview"
 msgstr "Aperçu des fonds du projet"
 
+#: labsmanager/mixin.py:108
+msgid "Focus Amount"
+msgstr "Montant Focus"
+
+#: labsmanager/mixin.py:109
+msgid "Focus Expense"
+msgstr "Dépenses Focus"
+
 #: leave/models.py:18
-#, fuzzy
-#| msgid "Employee Type"
 msgid "Leave Type"
-msgstr "Type d'employé"
+msgstr "Type de congé"
 
 #: leave/models.py:34 templates/employee/employee_sidebar.html:16
 #: templates/team/team_sidebar.html:5
@@ -584,8 +548,6 @@ msgid "Leave"
 msgstr "Congé"
 
 #: leave/resources.py:24
-#, fuzzy
-#| msgid "First Name"
 msgid "first_name"
 msgstr "Prénom"
 
@@ -601,44 +563,44 @@ msgstr "Institution du Laboratoire"
 msgid "Project Name"
 msgstr "Nom du Projet"
 
-#: project/models.py:39 templates/employee/employee_single.html:243
+#: project/models.py:39 templates/employee/employee_single.html:249
 #: templates/team/team_single.html:172
 msgid "Project Status"
 msgstr "Statut du Projet"
 
-#: project/models.py:114
+#: project/models.py:136
 msgid "Partner Institution"
 msgstr "Institution Partenaire"
 
-#: project/models.py:119
+#: project/models.py:141
 msgid "Coordinator"
 msgstr "Coordinateur"
 
-#: project/models.py:119 project/models.py:133 project/models.py:145
+#: project/models.py:141 project/models.py:155 project/models.py:167
 #: templates/project/project_base.html:65
-#: templates/project/project_single.html:113
+#: templates/project/project_single.html:119
 #: templates/team/team_single.html:169
 msgid "Participant"
 msgstr "Participant"
 
-#: project/models.py:133 staff/ressources.py:259
-#: templates/employee/employee_single.html:310 templates/team/team_base.html:64
+#: project/models.py:155 staff/ressources.py:259
+#: templates/employee/employee_single.html:316 templates/team/team_base.html:64
 msgid "Leader"
 msgstr "Responsable"
 
-#: project/models.py:133
+#: project/models.py:155
 msgid "Co Leader"
 msgstr "Co-responsable"
 
-#: project/models.py:146
+#: project/models.py:168
 msgid "Participants"
 msgstr "Participants"
 
-#: project/models.py:159 staff/models.py:178
+#: project/models.py:181 staff/models.py:178
 msgid "Already in Team"
 msgstr "Déjà dans l'équipe"
 
-#: project/models.py:173
+#: project/models.py:195
 msgid "Already in Team At That Date"
 msgstr "Déjà dans l'équipe à cette date"
 
@@ -646,137 +608,169 @@ msgstr "Déjà dans l'équipe à cette date"
 msgid "participant"
 msgstr "participant"
 
-#: settings/models.py:398 settings/models.py:861
+#: reports/models.py:111
+msgid "Template name"
+msgstr "Nom du Template"
+
+#: reports/models.py:116 reports/models.py:198
+msgid "Template"
+msgstr "Template"
+
+#: reports/models.py:117 reports/models.py:199
+msgid "Report template file"
+msgstr "Fichier template de rapport"
+
+#: reports/models.py:124
+msgid "Report template description"
+msgstr "Description du Template"
+
+#: reports/models.py:129
+msgid "Revision"
+msgstr "Revision"
+
+#: reports/models.py:130
+msgid "Report revision number (auto-increments)"
+msgstr "Numéro de révision du rapport (auto-incrémentation)"
+
+#: reports/models.py:186
+msgid "Filename Pattern"
+msgstr "Motif du nom de fichier"
+
+#: reports/models.py:187
+msgid "Pattern for generating report filenames"
+msgstr "Modèle de génération de noms de fichiers de rapport"
+
+#: reports/models.py:193
+msgid "Enabled"
+msgstr "Activé"
+
+#: reports/models.py:194
+msgid "Report template is enabled"
+msgstr "Le Template de rapport est activé"
+
+#: settings/models.py:340 settings/models.py:803
 msgid "Settings key (must be unique - case insensitive)"
 msgstr "Clé des paramètres (doit être unique - insensible à la casse)"
 
-#: settings/models.py:400
+#: settings/models.py:342
 msgid "Settings value"
 msgstr "Valeur des paramètres"
 
-#: settings/models.py:441
+#: settings/models.py:383
 msgid "Chosen value is not a valid option"
 msgstr "La valeur choisie n'est pas une option valide"
 
-#: settings/models.py:458
+#: settings/models.py:400
 msgid "Value must be a boolean value"
 msgstr "La valeur doit être une valeur booléenne"
 
-#: settings/models.py:469
+#: settings/models.py:411
 msgid "Value must be an integer value"
 msgstr "La valeur doit être un entier"
 
-#: settings/models.py:477
-#, fuzzy
-#| msgid "Value must be a boolean value"
+#: settings/models.py:419
 msgid "Value must be an Decimal value"
-msgstr "La valeur doit être une valeur booléenne"
+msgstr "La valeur doit être une valeur décimale"
 
-#: settings/models.py:521
+#: settings/models.py:463
 msgid "Key string must be unique"
 msgstr "La chaine de la clé doit être unique"
 
-#: settings/models.py:723
+#: settings/models.py:665
 msgid "No group"
 msgstr "Pas de groupe"
 
-#: settings/models.py:742
+#: settings/models.py:684
 msgid "Mail Object Prefix"
 msgstr "Préfix Objet du mail"
 
-#: settings/models.py:744
+#: settings/models.py:686
 msgid "String added as prefix to mail object"
 msgstr "Chaine ajoutée comme préfix à l'object du mail"
 
-#: settings/models.py:748
+#: settings/models.py:690
 msgid "Audit Log Retention"
 msgstr "Rétention de l'audit log"
 
-#: settings/models.py:749
+#: settings/models.py:691
 msgid "Number of to retain AudiLog history"
 msgstr "Nombre de jour de rétention pour l'historique de l'auditlog"
 
-#: settings/models.py:750
+#: settings/models.py:692
 msgid "Days"
 msgstr "Jours"
 
-#: settings/models.py:769
-#, fuzzy
-#| msgid "Settings key (must be unique - case insensitive)"
+#: settings/models.py:711
 msgid "Settings key (must be unique - case insensitive"
 msgstr "Clé des paramètres (doit être unique - insensible à la casse)"
 
-#: settings/models.py:781
+#: settings/models.py:723
 msgid "Dashboard Stale From Calculation"
 msgstr "Tableau de bord périmé par le calcul"
 
-#: settings/models.py:782
+#: settings/models.py:724
 msgid "Number of previous month to get in stale scope from now"
 msgstr ""
 "Nombre de mois pour rentré dans l'état éventéNombre de mois précédents pour "
 "considérer comme éventé à partir de maintenant.Nombre de mois précédent pour "
 "entrer dans le champs de péremption à partir de maintenant"
 
-#: settings/models.py:787
+#: settings/models.py:729
 msgid "Dashboard Stale To Calculation"
 msgstr "Tableau de bord des éléments périmés"
 
-#: settings/models.py:788 settings/models.py:794 settings/models.py:800
-#: settings/models.py:807 settings/models.py:813
+#: settings/models.py:730 settings/models.py:736 settings/models.py:742
+#: settings/models.py:749 settings/models.py:755
 msgid "Number of month to get in stale scope from now"
 msgstr ""
 "Nombre de mois pour considérer comme éventé à partir de maintenantNombre de "
 "mois futur pour entrer dans le champs de péremption à partir de maintenant"
 
-#: settings/models.py:793
+#: settings/models.py:735
 msgid "Contract Stale month"
 msgstr "Nombre de mois pour considérer périmé les contrats"
 
-#: settings/models.py:799
+#: settings/models.py:741
 msgid "Project Stale month"
 msgstr "Nombre de mois pour considérer périmé les projets"
 
-#: settings/models.py:806
-#, fuzzy
-#| msgid "Project Stale month"
+#: settings/models.py:748
 msgid "Milestones Stale to month"
-msgstr "Nombre de mois pour considérer périmé les projets"
+msgstr "Nombre de mois pour considérer périmé les jalons"
 
-#: settings/models.py:812
-#, fuzzy
-#| msgid "Project Stale month"
+#: settings/models.py:754
 msgid "Milestones Stale from month"
-msgstr "Nombre de mois pour considérer périmé les projets"
+msgstr "Nombre de mois pour considérer périmé les jalons"
 
-#: settings/models.py:819
+#: settings/models.py:761
 msgid "Fund ratio consumption report type"
 msgstr "Type de rapport sur la consommation des fonds"
 
-#: settings/models.py:820 settings/models.py:830
+#: settings/models.py:762 settings/models.py:772
 msgid "Fund ratio consumption to report project in dahsboard"
 msgstr ""
 "Ratio de consommation de fonds pour rapporter le projet dans le tableau "
 "dahsboard"
 
-#: settings/models.py:829
+#: settings/models.py:771
 msgid "Fund ratio consumption threshold"
 msgstr "Seuil de consommation du ratio du fonds"
 
-#: settings/models.py:835
+#: settings/models.py:777
 msgid "Use project Stale period for Consumption"
 msgstr "Utiliser le projet Période de blocage pour la consommation"
 
-#: settings/models.py:836
+#: settings/models.py:778
 msgid "use Project Stale month scope period for under consommation calculation"
 msgstr ""
 "utiliser la période de la portée du mois du projet Stale pour le calcul de "
 "la sous-consommation"
 
-#: settings/models.py:841
+#: settings/models.py:783
 msgid "Margin to detect linear ratio"
 msgstr "Marge pour détecter la déviation par rapport au linéaire"
 
-#: settings/models.py:842
+#: settings/models.py:784
 msgid ""
 "margin in % to identifyed deviation in budget consumption from linear ratio"
 msgstr ""
@@ -831,7 +825,7 @@ msgid "Team"
 msgstr "Equipe"
 
 #: staff/models.py:135 staff/ressources.py:254
-#: templates/employee/employee_single.html:307 templates/team/team_base.html:61
+#: templates/employee/employee_single.html:313 templates/team/team_base.html:61
 #: templates/team/team_desc_table.html:11
 msgid "Team Name"
 msgstr "Nom d'Equipe"
@@ -857,10 +851,8 @@ msgid "Generic Info"
 msgstr "Info Generic"
 
 #: staff/models.py:202
-#, fuzzy
-#| msgid "Cost Type"
 msgid "Info Type"
-msgstr "Type de Coût"
+msgstr "Type d'info"
 
 #: staff/models.py:203
 msgid "Info Value"
@@ -888,9 +880,9 @@ msgstr "Type de Statut de contrat"
 
 #: staff/ressources.py:133 templates/dashboard/dashboard_sidebar.html:10
 #: templates/employee/employee_base.html:77
-#: templates/employee/employee_single.html:130 templates/navbar.html:32
+#: templates/employee/employee_single.html:136 templates/navbar.html:32
 #: templates/project/project_sidebar.html:12
-#: templates/project/project_single.html:432
+#: templates/project/project_single.html:438
 msgid "Contracts"
 msgstr "Contrat"
 
@@ -907,7 +899,7 @@ msgstr "Projets"
 msgid "projects quotity"
 msgstr "Quotité de Projet"
 
-#: staff/ressources.py:264 templates/employee/employee_single.html:313
+#: staff/ressources.py:264 templates/employee/employee_single.html:319
 #: templates/team/team_base.html:67
 msgid "Team Mate"
 msgstr "Equipier"
@@ -945,10 +937,8 @@ msgid "Leave Type Filter"
 msgstr "Filtre de type de congé"
 
 #: templates/calendar/calendar_filters.html:58
-#, fuzzy
-#| msgid "Employee Active"
 msgid "Employee Status Filter"
-msgstr "Employé Actif"
+msgstr "Filtre Statut Employé"
 
 #: templates/calendar/calendar_filters.html:67
 msgid "All"
@@ -963,10 +953,8 @@ msgid "Show Only Resource with event"
 msgstr "Afficher uniquement les ressource avec évènement"
 
 #: templates/calendar/main_calendar.html:9
-#, fuzzy
-#| msgid "LabManager Dashboard"
 msgid "LabManager Calendar"
-msgstr "Tableau de bord LabManager"
+msgstr "Calendrier LabManager"
 
 #: templates/calendar/main_calendar.html:25
 #: templates/calendar/main_calendar.html:45 templates/labmanager/index.html:86
@@ -1005,7 +993,7 @@ msgstr "par Institution"
 #: templates/dashboard/dashboard_sidebar.html:7
 #: templates/fund/fund_finder_sidebar.html:4
 #: templates/project/project_sidebar.html:6
-#: templates/project/project_single.html:229
+#: templates/project/project_single.html:235
 msgid "Funds"
 msgstr "Fonds"
 
@@ -1021,16 +1009,12 @@ msgid "Dashboard"
 msgstr "Tableau de bord"
 
 #: templates/dashboard/global_dashboard.html:39
-#, fuzzy
-#| msgid "Fund Instituition"
 msgid "Fund Consumption"
-msgstr "Institution Financeur"
+msgstr "Consommation Fond"
 
 #: templates/dashboard/global_dashboard.html:60
-#, fuzzy
-#| msgid "Funds"
 msgid "Fund Loss"
-msgstr "Fonds"
+msgstr "Pertes Fonds"
 
 #: templates/employee/employee_base.html:7
 #: templates/employee/employee_single.html:7
@@ -1054,27 +1038,25 @@ msgid "Projects Quotity"
 msgstr "Quotité de Projet"
 
 #: templates/employee/employee_base.html:105
-#: templates/employee/employee_single.html:104
-#: templates/employee/employee_single.html:262
-#: templates/employee/employee_single.html:317
-#: templates/employee/employee_single.html:384
+#: templates/employee/employee_single.html:110
+#: templates/employee/employee_single.html:268
+#: templates/employee/employee_single.html:323
+#: templates/employee/employee_single.html:390
 #: templates/endpoints/milestones_table.html:49
 #: templates/expense/contract_item_expense.html:44
 #: templates/expense/contract_table.html:62
 #: templates/expense/expense_timepoint.html:42
 #: templates/fund/budget_table.html:59 templates/fund/fund_item_table.html:41
-#: templates/fund/fund_table.html:45 templates/project/project_base.html:89
-#: templates/project/project_single.html:146 templates/team/team_base.html:76
+#: templates/fund/fund_table.html:45 templates/project/project_base.html:101
+#: templates/project/project_single.html:152 templates/team/team_base.html:76
 msgid "Action"
 msgstr "Action"
 
 #: templates/employee/employee_sidebar.html:7
-#: templates/employee/employee_single.html:172
+#: templates/employee/employee_single.html:178
 #: templates/fund/fund_finder_sidebar.html:7
 #: templates/project/project_sidebar.html:9 templates/team/team_sidebar.html:11
 #: templates/team/team_single.html:102
-#, fuzzy
-#| msgid "Budget"
 msgid "Budgets"
 msgstr "Budget"
 
@@ -1087,47 +1069,50 @@ msgid "Add Status"
 msgstr "Ajout Statut"
 
 #: templates/employee/employee_single.html:50
-#, fuzzy
-#| msgid "Add Institution"
 msgid "Add Info"
-msgstr "Ajout Institution"
+msgstr "Ajout Info"
 
-#: templates/employee/employee_single.html:84
+#: templates/employee/employee_single.html:56
+#: templates/project/project_single.html:61
+msgid "Export Word"
+msgstr "Export Word"
+
+#: templates/employee/employee_single.html:90
 msgid "Status abb"
 msgstr "Abbréviation Statut"
 
-#: templates/employee/employee_single.html:93
+#: templates/employee/employee_single.html:99
 msgid "Job type"
 msgstr "Type d'emploi"
 
-#: templates/employee/employee_single.html:208
+#: templates/employee/employee_single.html:214
 msgid "Projects Participation"
 msgstr "Participation aux projets"
 
-#: templates/employee/employee_single.html:237
+#: templates/employee/employee_single.html:243
 #: templates/team/team_single.html:162
 msgid "Project Start Date"
 msgstr "Date début Projet"
 
-#: templates/employee/employee_single.html:240
+#: templates/employee/employee_single.html:246
 #: templates/team/team_single.html:165
 msgid "Project End Date"
 msgstr "Date Fin Projet"
 
-#: templates/employee/employee_single.html:246
+#: templates/employee/employee_single.html:252
 msgid "Participant Status"
 msgstr "Statut du Participant"
 
-#: templates/employee/employee_single.html:284 templates/navbar.html:26
+#: templates/employee/employee_single.html:290 templates/navbar.html:26
 msgid "Teams"
 msgstr "Equipes"
 
-#: templates/employee/employee_single.html:336
+#: templates/employee/employee_single.html:342
 #: templates/project/project_sidebar.html:18
 msgid "Leaves"
 msgstr "Congés"
 
-#: templates/employee/employee_single.html:376
+#: templates/employee/employee_single.html:382
 msgid "Nb Days"
 msgstr "Nb Jours"
 
@@ -1136,10 +1121,8 @@ msgid "Desc"
 msgstr "Desc"
 
 #: templates/expense/contract_base.html:7
-#, fuzzy
-#| msgid "LabManager Dashboard"
 msgid "LabManager Contracts"
-msgstr "Tableau de bord LabManager"
+msgstr "Contrat LabManager"
 
 #: templates/expense/contract_base.html:25
 msgid "Contract List"
@@ -1188,10 +1171,8 @@ msgid "Delete"
 msgstr "Supprimer"
 
 #: templates/fund/budget_table.html:37
-#, fuzzy
-#| msgid "Employee Active"
 msgid "Employee Status"
-msgstr "Employé Actif"
+msgstr "Statut Employé"
 
 #: templates/fund/fund_finder.html:7
 msgid "LabManager Fund Finder"
@@ -1202,15 +1183,13 @@ msgid "Fund Finder"
 msgstr "Explorateur de Fonds"
 
 #: templates/fund/fund_finder.html:84 templates/fund/fund_table.html:35
-#: templates/project/project_desc_table.html:32
+#: templates/project/project_desc_table.html:33
 msgid "Available"
 msgstr "Disponible"
 
 #: templates/fund/fund_finder.html:112
-#, fuzzy
-#| msgid "Funds Finder"
 msgid "Budgets Finder"
-msgstr "Explorateur de Fonds"
+msgstr "Explorateur de Budget"
 
 #: templates/fund/fund_item_table.html:6
 msgid "Fund Items"
@@ -1241,27 +1220,21 @@ msgid "Login"
 msgstr "Connexion"
 
 #: templates/project/amount_graph.html:13
-#, fuzzy
-#| msgid "by Funder"
 msgid "by Fund"
-msgstr "par Financeur"
+msgstr "par Fond"
 
 #: templates/project/amount_graph.html:19
 msgid "Stacked"
 msgstr "Empilé"
 
 #: templates/project/amount_graph.html:21
-#, fuzzy
-#| msgid "Fund Line"
 msgid "Line"
-msgstr "Ligne de Fond"
+msgstr "Ligne"
 
 #: templates/project/project_base.html:7
 #: templates/project/project_single.html:7
-#, fuzzy
-#| msgid "LabManager Employee"
 msgid "LabManager Project"
-msgstr "Employé LabManager"
+msgstr "Projets LabManager"
 
 #: templates/project/project_base.html:26
 msgid "Project List"
@@ -1271,11 +1244,31 @@ msgstr "Liste des Projets"
 msgid "Add Project"
 msgstr "Ajout Projet"
 
-#: templates/project/project_desc_table.html:47
+#: templates/project/project_base.html:82
+msgid "Total Fund Focus"
+msgstr "Fonds Totaux Focus"
+
+#: templates/project/project_base.html:85
+msgid "Total Expense Focus"
+msgstr "Dépenses Totales Focus"
+
+#: templates/project/project_base.html:88
+msgid "Total Available Focus"
+msgstr "Total Disponible Focus"
+
+#: templates/project/project_desc_table.html:38
+msgid "global"
+msgstr "global"
+
+#: templates/project/project_desc_table.html:44
+msgid "focus"
+msgstr "focus"
+
+#: templates/project/project_desc_table.html:55
 msgid "Total Participant Quotity"
 msgstr "Quotité Total Participant"
 
-#: templates/project/project_desc_table.html:52
+#: templates/project/project_desc_table.html:60
 msgid "Total Contract Quotity"
 msgstr "Quotité Total Contrat"
 
@@ -1291,60 +1284,46 @@ msgstr "Ajout Participant"
 msgid "Add Institution"
 msgstr "Ajout Institution"
 
-#: templates/project/project_single.html:82
-#: templates/project/project_single.html:93
+#: templates/project/project_single.html:88
+#: templates/project/project_single.html:99
 msgid "Institutions"
 msgstr "Institutions"
 
-#: templates/project/project_single.html:139
+#: templates/project/project_single.html:145
 msgid "Employee Active"
 msgstr "Employé Actif"
 
-#: templates/project/project_single.html:176
-#, fuzzy
-#| msgid "Project List"
+#: templates/project/project_single.html:182
 msgid "project Milestones"
-msgstr "Liste des Projets"
+msgstr "Liste des Jalons"
 
-#: templates/project/project_single.html:209
+#: templates/project/project_single.html:215
 msgid "project Funds Overview"
 msgstr "Aperçu des fonds du projet"
 
-#: templates/project/project_single.html:289
-#, fuzzy
-#| msgid "Projects"
+#: templates/project/project_single.html:295
 msgid "Project Budgets"
-msgstr "Projets"
+msgstr "Budgets de Projets"
 
-#: templates/project/project_single.html:328 templates/team/team_single.html:74
-#, fuzzy
-#| msgid "TeamMate"
+#: templates/project/project_single.html:334 templates/team/team_single.html:74"
 msgid "TeamMate leaves"
-msgstr "Equipier"
+msgstr "Congés Equipier"
 
-#: templates/project/project_single.html:349
-#, fuzzy
-#| msgid "Leaves"
+#: templates/project/project_single.html:355
 msgid "Leaves Lists"
-msgstr "Congés"
+msgstr "Liste des Congés"
 
-#: templates/project/project_single.html:372
-#, fuzzy
-#| msgid "Start Date"
+#: templates/project/project_single.html:378
 msgid "Start"
-msgstr "Date de Début"
+msgstr "Début"
 
-#: templates/project/project_single.html:375
-#, fuzzy
-#| msgid "Engaged"
+#: templates/project/project_single.html:381
 msgid "End"
-msgstr "Engagé"
+msgstr "Fin"
 
-#: templates/project/project_single.html:402
-#, fuzzy
-#| msgid "Dashboard"
+#: templates/project/project_single.html:408
 msgid "project Dashboard"
-msgstr "Tableau de bord"
+msgstr "Tableau de bord Projet"
 
 #: templates/registration/login.html:16
 msgid "Connexion"
@@ -1374,10 +1353,8 @@ msgid "Back to login page"
 msgstr "Retour à la page de connexion"
 
 #: templates/registration/password_reset_confirm.html:15
-#, fuzzy
-#| msgid "Forgot Password?"
 msgid "Reset Password"
-msgstr "Password oublié?"
+msgstr "Réinitialiser le mot de passe"
 
 #: templates/registration/password_reset_done.html:9
 msgid "Password reset done ?"
@@ -1429,8 +1406,6 @@ msgid "The %(site)s team."
 msgstr "L'équipe de %(site)s."
 
 #: templates/registration/password_reset_form.html:9
-#, fuzzy
-#| msgid "Forgot Password?"
 msgid "Forgot Your Password ?"
 msgstr "Password oublié?"
 
@@ -1456,10 +1431,8 @@ msgid "Edit setting"
 msgstr "Edition Paramètre"
 
 #: templates/settings/settings.html:7
-#, fuzzy
-#| msgid "Dashboard Settings"
 msgid "LabManager Settings"
-msgstr "Paramètre Tableau de bord"
+msgstr "Paramètres LabsManager"
 
 #: templates/settings/sidebar.html:6
 msgid "User Settings"
@@ -1474,10 +1447,8 @@ msgid "Stale Settings"
 msgstr "Paramètre de péremption"
 
 #: templates/settings/sidebar.html:16
-#, fuzzy
-#| msgid "User Settings"
 msgid "LabsManager Settings"
-msgstr "Paramètre Utilisateur"
+msgstr "Paramètre LabsManager"
 
 #: templates/settings/sidebar.html:19
 msgid "Mails"
@@ -1504,40 +1475,28 @@ msgid "Project Quotity"
 msgstr "Quotité Projet"
 
 #: templates/team/team_base.html:7 templates/team/team_single.html:7
-#, fuzzy
-#| msgid "LabManager Employee"
 msgid "LabManager Team"
-msgstr "Employé LabManager"
+msgstr "Equipe LabManager"
 
 #: templates/team/team_base.html:26
-#, fuzzy
-#| msgid "Teams"
 msgid "Team List"
-msgstr "Equipes"
+msgstr "Liste Equipes"
 
 #: templates/team/team_base.html:32
-#, fuzzy
-#| msgid "Add Leave"
 msgid "Add Team"
-msgstr "Ajout Congé"
+msgstr "Ajout Equipe"
 
 #: templates/team/team_mate_table.html:14
-#, fuzzy
-#| msgid "TeamMate"
 msgid "Mate"
 msgstr "Equipier"
 
 #: templates/team/team_mate_table.html:44
-#, fuzzy
-#| msgid "TeamMate"
 msgid "Add TeamMate"
-msgstr "Equipier"
+msgstr "Ajout Equipier"
 
 #: templates/team/team_single.html:141
-#, fuzzy
-#| msgid "TeamMate"
 msgid "TeamMate Projects"
-msgstr "Equipier"
+msgstr "Projets Equipier"
 
 #~ msgid "Contract Start Date"
 #~ msgstr "Date de début du Contrat"

@@ -343,7 +343,7 @@ $.fn.labTable = function(options) {
                   Table Row Selection          
 ------------------------------------------------------- */
 function makeTableRowSelect(row, className='select-row'){
-    console.log(row)
+    //console.log(row)
     if(!row)return;
     rows=$(row).closest('tbody');
     rows.find('tr').each(function(){$(this).removeClass(className)});
@@ -416,6 +416,17 @@ function moneyFormatter_alert(value, row, index, field){
     response+=moneyDisplay(value);
     response+='</span>';
     return response;
+}
+
+function moneyFocusFormatter(value, row, index, field){
+    //console.log("[moneyFocusFormatter] custom data :"+this.custom_param)
+    str = moneyFormatter(value, row, index, field)
+    focusItem = row[this.custom_param]
+    if(focusItem != undefined && focusItem != value){
+        str += "<small> ("+moneyDisplay(focusItem)+") </small>"
+    }
+    return str
+
 }
 
 function employeeFormatter(value, row, index, field){
@@ -548,6 +559,23 @@ function FundFormatter(value, row, index, field){
       return response;
 }
 
+
+function FocusItemFormatter(value, row, index, field){
+    // console.log("[FocusItemFormatter]")
+    // console.log(JSON.stringify(row))
+    response = value;
+    if(row.type != undefined){
+        type=row.type;
+    }else if(row.cost_type != undefined){
+        type=row.cost_type;
+    }
+    if(type!=undefined && !type.in_focus){
+        response+='<sup class="out-focus"><small><i class="fas fa-eye-slash"></i></small></sup>'
+    }
+
+    return response;
+    
+}
 
 function projectFormatterDirect(value, row, index, field){
     // console.log(value)
