@@ -1,23 +1,22 @@
-{% extends 'dashboard/dashboard_card.html' %}
+{% extends 'settings/setting_card.html' %}
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
 
-{% block 'dash-content' %}
+{% makeId title as idT%}
 
 
-<div class="col chart_card  mb-2" id="c_chart">
+<div class="col chart_card  mb-2" id="card_container_{{idT}}">
     <div id='tracking-table-toolbar'>
         <div class='btn-group'>
-            {% makeId title as idT%}
-            {% with "dashboard_filter_"|add:idT as idTitle %}
+            {% with "setting_filter_"|add:idT as idTitle %}
             {% include "filter_list.html" with id=idTitle %}
             {%endwith%}
         </div>
     </div>
     <table
         class='table table-striped table-condensed'
-        id="dashboard_card_{% makeId title %}"
+        id="setting_card_{{idT}}"
         data-id-table="stalefundTable"
         data-url="{{url}}"
 
@@ -30,8 +29,7 @@
                 data-field="{{c.item}}"
                 data-formatter="{{c.formatter}}"
                 {% if c.custom_param %}data-custom_param="{{c.custom_param}}" {% endif %}
-                
-                 >
+                >
                     {{c.name}}
                 </th>
                 {% endfor %}
@@ -54,7 +52,7 @@
         var card_option={};
     {%endif%}
 
-        var idTable="dashboard_card_{% makeId title %}";
+        var idTable="setting_card_{% makeId title %}";
         $( document ).ready(function(){
             var options={};
 
@@ -70,12 +68,9 @@
                     
                     
                 };
-                setupFilterList('dashboarcart', $("#dashboard_card_{% makeId title %}"), '#filter-list-dashboard_filter_{% makeId title %}',  filterOption);
+                setupFilterList('dashboarcart', $("#setting_card_{% makeId title %}"), '#filter-list-setting_filter_{% makeId title %}',  filterOption);
             }
 
-            $('#dashboard_card_{% makeId title %}').bootstrapTable(options);
-        });
-
-       
+            $('#setting_card_{{idT}}').labTable(options);
+        });     
 </script>
-{% endblock %}
