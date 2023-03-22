@@ -149,3 +149,24 @@ def get_project_fund_overview(request, pk):
     data = {'table':table}
     
     return render(request, 'pandas/panda_table_cpx.html', data)
+
+from django.db.models import Sum
+from django.db.models import F  
+
+def get_project_fund_overviewReport_bytType(pk):
+    print("[get_project_fund_overviewReport_bytType]")
+    print(pk)
+    fund=Fund.objects.filter(project=pk)
+    a=Fund_Item.objects.filter(fund__in=fund)
+    if not a:
+        return None
+    
+    a = a.values('type').annotate(
+        type_name=F('type__name'), 
+        type_focus=F('type__in_focus'), 
+        type_count=Count('type'), 
+        total_amount=Sum('amount'),
+        total_expense=Sum('expense'),
+        total_available = F("total_amount")+F("total_expense"),
+        )
+    return a
