@@ -10,7 +10,8 @@ import django.dispatch
 from dateutil.rrule import *
 
 
-from .manager import Current_date_Manager, outof_date_Manager, date_manager
+from .manager import Current_date_Manager, outof_date_Manager, date_manager, focus_manager
+
 from datetime import date, datetime
 import copy
 
@@ -99,8 +100,38 @@ class LabsManagerBudgetMixin(models.Model):
         if self.cleaned_data['expense']>0:
             self.cleaned_data['expense']=-self.cleaned_data['expense']
         return self.cleaned_data['expense']
-    
 
+class LabsManagerFocusBudgetMixin(LabsManagerBudgetMixin):
+    class Meta:
+        abstract = True
+    
+    amount_f=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Focus Amount'), default=0, null=True)
+    expense_f=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Focus Expense'), default=0, null=True)
+      
+    @property
+    def available_f(self):
+        return (self.amount_f or 0) + (self.expense_f or 0)
+    
+    def get_consumption_ratio_f(self):
+        if self.amount_f != 0:
+            return abs((self.expense_f or 0)/self.amount_f)
+        else:
+            return "-"
+    
+    def clean_expense_f(self):
+        if self.cleaned_data['expense_f']>0:
+            self.cleaned_data['expense_f']=-self.cleaned_data['expense_f']
+        return self.cleaned_data['expense_f']
+
+
+class LabsManagerFocusTypeMixin(models.Model):
+    class Meta:
+        abstract = True
+    type = models.ForeignKey('fund.Cost_Type', on_delete=models.CASCADE, verbose_name=_('Type'))
+    
+    objects = models.Manager() 
+    in_focus = focus_manager()
+    
 class DateMixin(models.Model):
     start_date=models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
     end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))

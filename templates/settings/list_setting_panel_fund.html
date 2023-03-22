@@ -1,0 +1,32 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load customs_tags %}
+
+{% block label %}fund_list{% endblock %}
+
+{% block heading %}{% trans 'List Settings - Fund' %}{% endblock %}
+
+{% block content %}
+
+
+<div class="card  mb-2 loadingCard" data-url="{% url 'setting_cost_type' %}">
+</div>
+
+
+<script>
+function loadSettingsListCards(){
+    // console.log("start loadDashboardCards");
+    $('.loadingCard').each(function(){
+        url=$(this).data('url');
+        if(url==undefined)return;
+        // console.log('start load : '+url);
+        loadInTemplate(elt=$(this),url=url);
+    });
+}
+
+$(document).ready(function () {
+    loadSettingsListCards();
+} 
+</script>
+
+{% endblock %}

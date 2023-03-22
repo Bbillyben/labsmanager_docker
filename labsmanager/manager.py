@@ -60,3 +60,8 @@ class LastInManager(models.Manager):
     
     def fund(self, sel_fund):
         return self.get_queryset(sel_fund)
+    
+    
+class focus_manager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(type__in_focus=True)

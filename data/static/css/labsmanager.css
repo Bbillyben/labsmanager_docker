@@ -1366,3 +1366,10 @@ li.list-spacer{
         margin:0 auto;
         padding:4px 0px
     }
+
+
+     /* for Focus / out focus cost type */
+
+    .out-focus{
+        color: var(--label-yellow);
+    }

@@ -238,7 +238,7 @@ class EmployeeWordReport(WordReport):
         
         return context
 
-
+from project.views import get_project_fund_overviewReport_bytType
 class ProjectWordReport(WordReport):
     
     @classmethod
@@ -275,6 +275,10 @@ class ProjectWordReport(WordReport):
         # d=json.dumps(serializers.FundProjectReportSerializer(fi, many=True).data, cls=DjangoJSONEncoder)
         d=json.loads(json.dumps(serializers.FundProjectReportSerializer(fi, many=True).data, cls=DjangoJSONEncoder))
         context["fund"]=d
+        
+        # fund overvieww by type
+        fuT = get_project_fund_overviewReport_bytType(pk)
+        context["fund_overview"]=fuT
         
         return context 
     
