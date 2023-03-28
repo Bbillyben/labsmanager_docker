@@ -3,20 +3,16 @@
 {% load static %}
 {% load customs_tags %}
 
-{% block label %}fund_list{% endblock %}
+{% block label %}leave_list{% endblock %}
 
-{% block heading %}{% trans 'List Settings - Fund' %}{% endblock %}
+{% block heading %}{% trans 'List Settings - Leaves' %}{% endblock %}
 
 {% block content %}
 
 <div class="container" style="max-width: 100%; padding: 5px;">
     <div class="row">
         <div class="col col-6">
-            <div class="card  mb-2 loadingCard" data-url="{% url 'setting_cost_type' %}">
-            </div>
-        </div>
-        <div class="col col-6">
-            <div class="card  mb-2 loadingCard" data-url="{% url 'setting_fund_institution' %}">
+            <div class="card  mb-2 loadingCard" data-url="{% url 'setting_leave_type' %}">
             </div>
         </div>
     </div><!-- end row -->
@@ -24,7 +20,4 @@
 {% endblock %}
 
 {% block panel_js %}
-
-
-
 {% endblock %}

@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import ProjectModelForm, ParticipantModelForm, InstitutionModelForm
+from .forms import ProjectModelForm, ParticipantModelForm, InstitutionModelForm, InstitutionModelFormDirect
 
 
 # Update
@@ -92,3 +92,19 @@ class InstitutionCreateView(LoginRequiredMixin, BSModalCreateView):
         
         context = {'form': form}
         return render(request, self.template_name , context)
+
+class InstitutionDirectCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = InstitutionModelFormDirect
+    success_message = 'Success: Project was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.Institution
+     
+class InstitutionUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Institution
+    template_name = 'form_validate_base.html'
+    form_class = InstitutionModelFormDirect
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"

@@ -29,6 +29,7 @@ from staff import apiviews as staffApiViews
 from endpoints import apiviews as endPointApiViews
 from leave import apiviews as leaveApiViews
 from common import apiviews as commonApiViews
+from settings import apiviews as settingAppiViews
 from django.conf.urls.i18n import i18n_patterns
 from django_js_reverse import views as jsrev_views
 
@@ -69,6 +70,8 @@ router.register(r'employee', staffApiViews.EmployeeViewSet, basename='employee')
 router.register(r'team', staffApiViews.TeamViewSet, basename='team')
 router.register(r'project', projectApiViews.ProjectViewSet, basename='project')
 router.register(r'fund', fundApiViews.FundViewSet, basename='fund')
+#router.register(r'fundlist', fundApiViews.FundListViewSet, basename='fundlist')
+router.register(r'settinglist', settingAppiViews.SettingListViewSet, basename='settinglist')
 router.register(r'funditem', fundApiViews.FundItemViewSet, basename='funditem')
 router.register(r'contract', contractApiViews.ContractViewSet, basename='contract')
 router.register(r'expense', contractApiViews.ExpensePOintViewSet, basename='expense')

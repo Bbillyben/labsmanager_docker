@@ -123,7 +123,6 @@
 
 <script type="text/javascript" src="{% static 'script/jquery-3.6.1.min.js' %}"></script>
 
-<!-- <script type="text/javascript" src="{% static 'script/jquery_3.3.1_jquery.min.js' %}"></script> -->
 <script type='text/javascript' src="{% static 'script/jquery.form.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'script/jquery-ui/jquery-ui.1.13.1.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'script/select2/js/select2.min.js' %}"></script>
@@ -138,8 +137,6 @@
 <script type="text/javascript" src="{% static 'bootstrap-table/extensions/export/bootstrap-table-export.js' %}"></script>
 
 <script type='text/javascript' src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
-
-
 <script type='text/javascript' src="{% static 'fontawesome/js/solid.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'fontawesome/js/regular.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'fontawesome/js/brands.min.js' %}"></script>
@@ -182,6 +179,8 @@
         $.extend($.fn.bootstrapTable.defaults.icons, {
             advancedSearchIcon: 'fa-chevron-down',
         });
+        
+
         initialiseCollapsePanel();  
         loadInTemplate($('#favorites'), '{% url "nav_favorites"%}')
         initFavorites()

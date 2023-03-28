@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import FundItemModelForm, FundModelForm, BudgetModelForm
+from .forms import FundItemModelForm, FundModelForm, BudgetModelForm, CostTypeModelForm, FundInstitutionModelForm
 from expense.forms import ExpenseTimepointModelForm
 from expense.models import Expense_point
     
@@ -171,3 +171,37 @@ class BudgetDeleteView(LoginRequiredMixin, BSModalDeleteView):
         self.object = self.get_object()
         self.object.delete()
         return HttpResponse("okok", status=200)
+    
+    
+############# Cost Type
+class CostTypeCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = CostTypeModelForm
+    success_message = 'Success: Cost TYpe was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.Cost_Type
+    
+class CostTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Cost_Type
+    template_name = 'form_validate_base.html'
+    form_class = CostTypeModelForm
+    success_message = 'Success: Cost TYpe was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    
+class FundInstitutionCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = FundInstitutionModelForm
+    success_message = 'Success: Cost TYpe was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.Fund_Institution
+    
+class FundInstitutionUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Fund_Institution
+    template_name = 'form_validate_base.html'
+    form_class = FundInstitutionModelForm
+    success_message = 'Success: Cost TYpe was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"

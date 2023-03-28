@@ -38,7 +38,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
         model = Institution
-        fields = ['pk', 'short_name', 'name']  
+        fields = ['pk', 'short_name', 'name', 'adress',]  
         
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -94,7 +94,17 @@ class MilestonesSerializer(serializers.ModelSerializer):
 class LeaveTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Leave_Type
-        fields = ['pk', 'short_name', 'name', 'parent',]  
+        fields = ['pk', 'short_name', 'name', 'parent','color',]  
+        
+class LeaveTypeSerializer_tree(serializers.ModelSerializer):
+    ancestors_count=serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Leave_Type
+        fields = ['pk', 'short_name', 'name', 'parent','color', 'ancestors_count']  
+        
+    def get_ancestors_count(self,obj):
+        return obj.get_ancestors(ascending=False, include_self=False).count()
         
         
 class LeaveSerializerBasic(serializers.ModelSerializer):
@@ -396,6 +406,19 @@ class EmployeeInfoTypeSerialize(serializers.ModelSerializer):
     class Meta:
         model = GenericInfoType
         fields = ['pk', 'name', 'icon', ]
+
+from faicon.widgets import parse_icon
+
+class EmployeeInfoTypeIconSerialize(serializers.ModelSerializer):
+    icon_val=serializers.SerializerMethodField()
+    class Meta:
+        model = GenericInfoType
+        fields = ['pk', 'name', 'icon_val', ]
+        
+    def get_icon_val(self,obj):
+        ic =parse_icon(str(obj.icon))
+        return {'style':ic.style, "icon":ic.icon}
+    
         
 class EmployeeInfoSerialize(serializers.ModelSerializer):
     info = EmployeeInfoTypeSerialize(many=False, read_only=True)

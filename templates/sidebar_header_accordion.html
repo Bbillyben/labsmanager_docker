@@ -1,0 +1,26 @@
+{% load i18n %}
+{% load customs_tags %}
+
+
+    <span title='{{ text }}' class="list-group-item sidebar-list-group-item border-end d-inline-block text-truncate bg-light
+    accordion accordion-flush {{id}}Accordion
+    accordion-button collapsed
+    "
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#side-{{Id}}"
+    aria-expanded="false" aria-controls="fav-{{Id}}"
+    data-bs-parent="#sidebar"
+    id="accordionFlush{{Id}}"
+    >
+        <h6>
+            <span class="bi bi-bootstrap"></span>
+            {% if icon %}<span class='sidebar-item-icon fas {{ icon }}'></span>{% endif %}
+            {% if text %}<span class='sidebar-item-text' style='display: none;'><strong>{{ text }}</strong></span>{% endif %}
+        </h6>
+    </span>
+    <span id="side-{{Id}}" class="accordion-collapse collapse  
+    " aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlush{{Id}}">
+
+
+

@@ -1242,6 +1242,14 @@ li.list-spacer{
     height: 0;
   }
 
+/* for Table Formatter */
+.color-dot {
+    width: 2em;
+    height: 1em;
+    border-radius: 1em;
+    display: block;
+    margin: auto;
+}
 
   /* for index card */
 .lab-card-col a:link {text-decoration: none;}

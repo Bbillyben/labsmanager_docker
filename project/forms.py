@@ -102,3 +102,7 @@ class InstitutionModelForm(BSModalModelForm):
         # if instance and instance.pk:
         #     self.fields['employee'].widget = forms.HiddenInput()
         #     self.fields['project'].widget = forms.HiddenInput()
+class InstitutionModelFormDirect(BSModalModelForm):
+    class Meta:
+        model = models.Institution
+        fields = ['name','short_name','adress',]

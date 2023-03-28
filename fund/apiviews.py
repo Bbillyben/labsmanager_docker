@@ -8,9 +8,9 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from labsmanager import serializers 
 
-from .models import Fund, Fund_Item, Budget, Cost_Type
+from .models import Fund, Fund_Item, Budget, Cost_Type, Fund_Institution
 from dashboard import utils
-from expense.models import Expense_point
+from expense.models import Expense_point, Contract_type
 from staff.models import Team, TeamMate
 from project.filters import ProjectFilter
 from project.models import Participant
@@ -307,3 +307,11 @@ class BudgetViewSet(viewsets.ModelViewSet):
         if export is not None:
             return self.download_queryset(qset, export)
         return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
+    
+
+class CostTypeViewSet(viewsets.ModelViewSet):
+    queryset = Cost_Type.objects.all()
+    serializer_class = serializers.CostTypeSerialize
+    permission_classes = [permissions.IsAuthenticated]        
+    filter_backends = (filters.DjangoFilterBackend,)
+    

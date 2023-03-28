@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import LeaveItemModelForm
+from .forms import LeaveItemModelForm, LeaveTypeModelForm
 
 class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
     template_name = 'form_base.html'
@@ -69,3 +69,20 @@ class LeaveItemDeleteView(LoginRequiredMixin, BSModalDeleteView):
         self.object = self.get_object()
         self.object.delete()
         return HttpResponse("okok", status=200)
+    
+    
+class LeaveTypeCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = LeaveTypeModelForm
+    success_message = 'Success: Fund Item was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+    model = models.Leave_Type
+    
+class LeaveTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Leave_Type
+    template_name = 'form_validate_base.html'
+    form_class = LeaveTypeModelForm
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
