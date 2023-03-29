@@ -635,7 +635,9 @@ function m2mBaseFormatter(value, row, index, field){
 function treeNameFormatter(value, row, index, field){
     response = ""
     for(i=0; i<row.ancestors_count; i++){
-        response +="-";
+        if(i==0)response +="┝"
+        response +="━";
+        if(i==row.ancestors_count-1)response +=" "
     }
     response+=value
     return response
