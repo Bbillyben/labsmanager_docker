@@ -27,7 +27,7 @@ class SettingList_cost_type(LoginRequiredMixin, TemplateView):
             'url':reverse_lazy("api:settinglist-costtype"),
             'title':_('Cost Type'),
             'columns':[
-                {'name':_('name'),'item':'name',},
+                {'name':_('name'),'item':'name','formatter':'treeNameFormatter',},
                 {'name':_('Short name'),'item':'short_name'},
                 {'name':_('In Focus'),'item':'in_focus', 'formatter':'basicBoolean'},
             ], 

@@ -96,7 +96,7 @@ class SettingListViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='costtype', url_name='costtype')
     def costtype(self, request):
-        return JsonResponse(labserializers.CostTypeSerialize(fund_model.Cost_Type.objects.all(), many=True).data, safe=False)
+        return JsonResponse(labserializers.CostTypeSerialize_tree(fund_model.Cost_Type.objects.all(), many=True).data, safe=False)
     
     
     @action(methods=['get'], detail=False, url_path='fundinstitution', url_name='fundinstitution')

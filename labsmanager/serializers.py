@@ -54,6 +54,15 @@ class CostTypeSerialize(serializers.ModelSerializer):
         model = Cost_Type
         fields = ['pk', 'short_name', 'name', 'in_focus',] 
         
+class CostTypeSerialize_tree(serializers.ModelSerializer):
+    ancestors_count=serializers.SerializerMethodField()
+    class Meta:
+        model = Cost_Type
+        fields = ['pk', 'short_name', 'name', 'in_focus', 'ancestors_count',] 
+        
+    def get_ancestors_count(self,obj):
+        return obj.get_ancestors(ascending=False, include_self=False).count()
+        
 class Fund_InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
         model = Fund_Institution
