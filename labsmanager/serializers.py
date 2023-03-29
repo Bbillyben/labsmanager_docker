@@ -134,7 +134,7 @@ class LeaveSerializer1D(serializers.ModelSerializer):
         fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment', 'days']  
         
     def get_title(self,obj):
-        return f'{obj.employee.user_name} - {obj.type.name}'
+        return f'{obj.type.name} - {obj.employee.user_name}'
     
     
 class LeaveSerializer1DCal(LeaveSerializer1D):
