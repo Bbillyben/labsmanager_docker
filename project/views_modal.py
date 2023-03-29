@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import ProjectModelForm, ParticipantModelForm, InstitutionModelForm, InstitutionModelFormDirect
+from .forms import ProjectModelForm, ParticipantModelForm, InstitutionModelForm, InstitutionModelFormDirect, GenericInfoProjectForm, GenericInfoTypeProjectForm
 
 
 # Update
@@ -105,6 +105,66 @@ class InstitutionUpdateView(LoginRequiredMixin, BSModalUpdateView):
     model = models.Institution
     template_name = 'form_validate_base.html'
     form_class = InstitutionModelFormDirect
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+
+# ===================== For Infos =========================
+class ProjectInfoCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = GenericInfoProjectForm
+    success_message = 'Success: Employee was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+    model = models.GenericInfoProject
+
+    def get(self, request, *args, **kwargs):
+        if 'project' in kwargs:
+            form = self.form_class(initial={'project': kwargs['project']})
+        else:
+            form = self.form_class()
+        
+        context = {'form': form}
+        return render(request, self.template_name , context)
+
+class ProjectInfoUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.GenericInfoProject
+    template_name = 'form_validate_base.html'
+    form_class = GenericInfoProjectForm
+    success_message = 'Success: Info was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+    
+class ProjectInfoDeleteView(LoginRequiredMixin, BSModalDeleteView):
+    model = models.GenericInfoProject
+    template_name = 'form_delete_base.html'
+    # form_class = EmployeeModelForm
+    success_url = reverse_lazy('employee')
+    
+    def get_success_url(self):
+        previous = self.request.META.get('HTTP_REFERER')
+        return previous
+        
+    def post(self, *args, **kwargs):
+        
+        self.object = self.get_object()
+        self.object.delete()
+        return HttpResponse("okok", status=200)
+    
+    
+class GenericInfoTypeProjectCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = GenericInfoTypeProjectForm
+    success_message = 'Success: Project was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.GenericInfoTypeProject
+    
+    
+class GenericInfoTypeProjectUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.GenericInfoTypeProject    
+    template_name = 'form_validate_base.html'
+    form_class = GenericInfoTypeProjectForm
     success_message = 'Success: Leave was updated.'
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"

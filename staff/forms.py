@@ -134,16 +134,6 @@ class GenericInfoTypeForm(BSModalModelForm):
     class Meta:
         model = GenericInfoType
         fields = ['name', 'icon',]
-    # class Media:
-    #     css = {
-    #         'all': (
-    #             'faicon/css/faicon.css',
-    #         ),
-    #     } 
-    #     js = (
-    #        'faicon/js/list.min.js',
-    #         'faicon/js/faicon.js',
-    #     )
 
     @property
     def media(self):
@@ -152,8 +142,4 @@ class GenericInfoTypeForm(BSModalModelForm):
         response._js_lists.append(['js/faicon_in/list.min.js'])
         response._js_lists.append(['js/faicon_in/faicon.js'])
         return response
-    # def __init__(self, *args, **kwargs): 
-    #     print("[GenericInfoTypeForm]")
-    #     print(self.template_name)
-    #     super().__init__(*args, **kwargs)
     

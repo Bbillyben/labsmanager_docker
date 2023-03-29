@@ -10,5 +10,6 @@ urlpatterns = [
     path('setting_institution', views.SettingList_Institution.as_view(), name='setting_institution'),
     path('setting_employee_type', views.SettingList_Employee_Type.as_view(), name='setting_employee_type'),
     path('setting_genericinfo_type', views.SettingList_GenericInfo.as_view(), name='setting_genericinfo_type'),
+    path('setting_genericinfoproject_type', views.SettingList_GenericInfoProject.as_view(), name='setting_genericinfoproject_type'),
 ]
 

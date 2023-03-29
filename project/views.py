@@ -2,7 +2,8 @@ from http.client import HTTPResponse
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from .models import Project
+from .models import Project, GenericInfoProject
+from .forms import GenericInfoProjectForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.utils.translation import gettext_lazy as _
@@ -17,6 +18,7 @@ import json
 
 from labsmanager.pandas_utils import PDUtils
 from labsmanager.mixin import CrumbListMixin
+
 class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_base.html'
     model = Project
@@ -58,6 +60,8 @@ class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, Templ
 
         # View top-level categories
         return context
+    
+
 
 
 def get_project_resume(request, pk):
@@ -170,3 +174,11 @@ def get_project_fund_overviewReport_bytType(pk):
         total_available = F("total_amount")+F("total_expense"),
         )
     return a
+
+
+
+
+## Get the project info table
+def get_project_info_table(request, pk):
+    info=GenericInfoProject.objects.filter(project__pk=pk)
+    return render(request, 'project/project_info_table.html', {'infoProject': info})

@@ -22,7 +22,13 @@ urlpatterns += [
 urlpatterns += [
     path('ajax/add/', views_modal.ProjectCreateView.as_view(), name='create_project'), 
     path('ajax/<pk>/udpate',views_modal.ProjectUpdateView.as_view(), name='update_project'),  
-    path('ajax/<pk>/delete', views_modal.ProjectRemoveView.as_view(), name='delete_project'),  
+    path('ajax/<pk>/delete', views_modal.ProjectRemoveView.as_view(), name='delete_project'), 
+    
+    path('<project>/info/add/', views_modal.ProjectInfoCreateView.as_view(), name='create_info_project'),
+    path('info/<pk>/update/', views_modal.ProjectInfoUpdateView.as_view(), name='update_info_project'),  # specific for status view
+     path('info/<pk>/delete/', views_modal.ProjectInfoDeleteView.as_view(), name='delete_info_project'),  
+    
+    path('ajax/<pk>/info', views.get_project_info_table, name='project_info_table'), 
     
     path('ajax/<pk>/participant/add', views_modal.ParticipantCreateView.as_view(), name='add_participant'),
     path('ajax/participant/add/<employee>', views_modal.ParticipantCreateView.as_view(), name='add_participant_open'),  
@@ -34,5 +40,8 @@ urlpatterns += [
     
     path('institution/add', views_modal.InstitutionDirectCreateView.as_view(), name='add_institution_direct'),
     path('institution/<pk>/update/', views_modal.InstitutionUpdateView.as_view(), name='update_institution_direct'),
+    
+    path('genericinfotype/add/', views_modal.GenericInfoTypeProjectCreateView.as_view(), name='add_genericinfotypeproject'),
+    path('genericinfotype/<pk>/update/', views_modal.GenericInfoTypeProjectUpdateView.as_view(), name='update_genericinfotypeproject'), 
 
 ]

@@ -85,7 +85,7 @@ class GlobalSettingsDetail(generics.RetrieveUpdateAPIView):
 from fund import models as fund_model
 from expense import models as expense_model
 from leave import models as leave_model
-from project.models import Institution
+from project.models import Institution, GenericInfoTypeProject
 from staff import models as staff_model
 
 class SettingListViewSet(viewsets.ModelViewSet):
@@ -123,3 +123,7 @@ class SettingListViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='genericinfotype', url_name='genericinfotype')
     def genericinfotype(self, request):
         return JsonResponse(labserializers.EmployeeInfoTypeIconSerialize(staff_model.GenericInfoType.objects.all(), many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='genericinfotypeproject', url_name='genericinfotypeproject')
+    def genericinfotypeproject(self, request):
+        return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(GenericInfoTypeProject.objects.all(), many=True).data, safe=False)

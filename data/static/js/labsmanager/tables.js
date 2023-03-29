@@ -633,11 +633,11 @@ function m2mBaseFormatter(value, row, index, field){
 }
 
 function treeNameFormatter(value, row, index, field){
-    console.log("treeNameFormatter")
-    console.log(value)
-    console.log(JSON.stringify(row))
-    response=value
-
+    response = ""
+    for(i=0; i<row.ancestors_count; i++){
+        response +="-";
+    }
+    response+=value
     return response
 }
 // --------------------     Basic Table Sorter    ------------------- // 

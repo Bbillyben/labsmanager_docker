@@ -8,6 +8,8 @@ from django.urls import reverse, reverse_lazy
 from .models import LMUserSetting
 
 from fund.models import Cost_Type, Fund_Institution
+from staff.models import Employee_Type, GenericInfoType
+from project.models import Institution, GenericInfoTypeProject
 
 class SettingsView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'settings/settings.html'
@@ -125,7 +127,7 @@ class SettingList_Leave_type(LoginRequiredMixin, TemplateView):
         return render(request=request,template_name=self.template_name,context=context)
     
        
-from project.models import Institution
+
 class SettingList_Institution(LoginRequiredMixin, TemplateView):
     template_name = 'settings/setting_table.html'
     model = Institution
@@ -154,7 +156,7 @@ class SettingList_Institution(LoginRequiredMixin, TemplateView):
         return render(request=request,template_name=self.template_name,context=context)
     
     
-from staff.models import Employee_Type, GenericInfoType
+
 class SettingList_Employee_Type(LoginRequiredMixin, TemplateView):
     template_name = 'settings/setting_table.html'
     model = Employee_Type
@@ -188,7 +190,7 @@ class SettingList_GenericInfo(LoginRequiredMixin, TemplateView):
     def get(self,request):
         context={
             'url':reverse_lazy("api:settinglist-genericinfotype"),
-            'title':_('Generic Info'),
+            'title':_('Generic Info Employee'),
             'columns':[
                 {'name':_('name'),'item':'name',},
                 {'name':_('Icon'),'item':'icon_val', 'formatter':'iconFormatter'},
@@ -204,5 +206,31 @@ class SettingList_GenericInfo(LoginRequiredMixin, TemplateView):
             context["action"]["add"] = reverse('add_genericinfotype')
         if request.user.is_staff :
             context["action"]["admin"] = 'admin:staff_genericinfotype_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+    
+class SettingList_GenericInfoProject(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = GenericInfoTypeProject
+    
+    def get(self,request):
+        context={
+            'url':reverse_lazy("api:settinglist-genericinfotypeproject"),
+            'title':_('Generic Info Project'),
+            'columns':[
+                {'name':_('name'),'item':'name',},
+                {'name':_('Icon'),'item':'icon_val', 'formatter':'iconFormatter'},
+            ], 
+            'action':{
+            },
+            'options':{
+            },         
+        }
+        if request.user.has_perm("project.change_genericinfotypeproject"):
+            context["action"]["update"] = "update_genericinfotypeproject"
+        if request.user.has_perm("project.add_genericinfotypeproject"):
+            context["action"]["add"] = reverse('add_genericinfotypeproject')
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:project_genericinfotypeproject_change'
         
         return render(request=request,template_name=self.template_name,context=context)

@@ -64,8 +64,14 @@ function initProjectSingleView(user_idA, project_idA){
         asyncSettings: {directUpdate:true,closeOnSubmit:true,},
     })
 
+    $('#add-info').labModalForm({
+        formURL:  Urls['create_info_project'](project_id),
+        addModalFormFunction: update_project_info,
+    })
+
 
     update_project();
+    update_project_info();
     initProjectCalendar();
     loadProjectGraph();
     
@@ -160,6 +166,45 @@ function update_project(){
     updateGeneralFundOverview();
 }
 
+
+function update_project_info(){
+    //window.location.reload();
+    csrftoken = getCookie('csrftoken');
+    $.ajax({
+        type:"POST",
+        url: Urls['project_info_table'](project_id),
+        data:{
+                pk:project_id,
+                csrfmiddlewaretoken: csrftoken,
+        },
+        success: function( data )
+        {
+            $('#project_info_table').html(data);
+            update_info_btn();
+        },
+        error:function( err )
+        {
+             $("body").html(err.responseText)
+            //console.log(JSON.stringify(err));
+        }
+    })    
+}
+
+function update_info_btn(){
+    $(".update_info").each(function () {
+        $(this).labModalForm({
+            formURL: $(this).data("form-url"),
+            addModalFormFunction: update_project_info,
+        })
+    });
+    $(".delete_info").each(function () {
+        $(this).labModalForm({
+            formURL: $(this).data("form-url"),
+            isDeleteForm: true,
+            addModalFormFunction: update_project_info,
+        })
+    });
+}
 
 // ----------------------  Participant  ------------------- //
 
