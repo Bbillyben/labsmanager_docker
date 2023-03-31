@@ -116,3 +116,12 @@ class percentageWidget(widgets.DecimalWidget):
         except:
             val="-"            
         return val
+
+class InfoWidget(widgets.CharWidget):
+    def render(self, value, obj=None):
+        li=[]
+        for c in value:
+            strC= str(c.info.name) 
+            strC+= " : " +str(c.value)
+            li.append(strC)
+        return "\n".join(li)

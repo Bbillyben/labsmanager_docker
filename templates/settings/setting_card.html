@@ -1,18 +1,25 @@
 {% load i18n %}
 {% load static %}
+{% load customs_tags %}
 
-<div class="d-flex flex-wrap subheading">
-    <h4>{{title}}</h4>
+{% makeId title as idT%}
+<div class="setting_card_cont" id="setting_card_cont_{{idT}}">
+  <div class="d-flex flex-wrap subheading">
+      <h4>{{title}}</h4>
 
-    {% if action %}
-    <span class="flex" style="flex-grow: 1;"></span>
-    <div class="button-group">
-        
-    {% endif%}
-
+      {% if action %}
+      <span class="flex" style="flex-grow: 1;"></span>
+      <div class="button-group" role="group">
+        {% if action.add %}
+        <button type="button" class="btn btn-secondary setting_add" title="Create New" data-form-url="{{action.add}}">
+          <span class='fa fa-plus'></span>
+        </button>
+        {% endif%}
+      </div>
+      {% endif%}
     </div>
-  </div>
 
 
-  {% block 'set-content' %}
-  {% endblock %}
+    {% block 'set-content' %}
+    {% endblock %}
+</div>

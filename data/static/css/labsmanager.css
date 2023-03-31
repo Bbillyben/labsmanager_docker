@@ -959,7 +959,18 @@ input[type="date"].form-control, input[type="time"].form-control, input[type="da
 .sidebar-nav a {
     color: var(--bs-body-color);
 }
+/* for side bar accordion */
+.sidebar-list-group-item.accordion .arrow {
+    -webkit-transform: rotate(270deg);
+    -moz-transform: rotate(270deg);
+    transform: rotate(270deg);
+    margin-left: 1em;
+}
+.sidebar-list-group-item.accordion.collapsed .arrow {
+    
+}
 
+/* end sidebar accordion */
 .row.full-height {
     display: flex;
     flex-wrap: wrap;
@@ -1242,6 +1253,14 @@ li.list-spacer{
     height: 0;
   }
 
+/* for Table Formatter */
+.color-dot {
+    width: 2em;
+    height: 1em;
+    border-radius: 1em;
+    display: block;
+    margin: auto;
+}
 
   /* for index card */
 .lab-card-col a:link {text-decoration: none;}

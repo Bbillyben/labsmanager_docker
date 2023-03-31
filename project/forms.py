@@ -102,3 +102,36 @@ class InstitutionModelForm(BSModalModelForm):
         # if instance and instance.pk:
         #     self.fields['employee'].widget = forms.HiddenInput()
         #     self.fields['project'].widget = forms.HiddenInput()
+class InstitutionModelFormDirect(BSModalModelForm):
+    class Meta:
+        model = models.Institution
+        fields = ['name','short_name','adress',]
+        
+class GenericInfoProjectForm(BSModalModelForm):
+    class Meta:
+        model = models.GenericInfoProject
+        fields = ['info', 'project', 'value',]
+    
+    def __init__(self, *args, **kwargs): 
+        
+        self.base_fields['project'] = forms.ModelChoiceField(
+            queryset=models.Project.objects.all(),
+            widget=forms.HiddenInput
+        )
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['info'].disabled = True
+            
+class GenericInfoTypeProjectForm(BSModalModelForm):
+    class Meta:
+        model = models.GenericInfoTypeProject
+        fields = ['name', 'icon',]
+
+    @property
+    def media(self):
+        response = super().media
+        response._js_lists.clear()
+        response._js_lists.append(['js/faicon_in/list.min.js'])
+        response._js_lists.append(['js/faicon_in/faicon.js'])
+        return response

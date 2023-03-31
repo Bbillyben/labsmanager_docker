@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-
+{% include 'modals.html' with modal_id='create-modal' modal_title='Settings' %}
 
 {% include "settings/dashboard_settings.html" %}
 {% include "settings/stale_calculation_settings.html" %}
@@ -23,7 +23,10 @@
 
 {% include "settings/list_setting_panel_fund.html" %}
 
-
+{% include "settings/list_setting_panel_contract.html" %}
+{% include "settings/list_setting_panel_leave.html" %}
+{% include "settings/list_setting_panel_project.html" %}
+{% include "settings/list_setting_panel_staff.html" %}
 
 {% if request.user.is_staff %}
 
@@ -45,15 +48,29 @@
 
 
 {% block js_load %}
-<script type='text/javascript' src="{% static 'js/labsmanager.js' %}"></script>
+<!--<script type="text/javascript" src="{% static 'script/jquery-3.6.1.min.js' %}"></script> -->
+
 <script type='text/javascript' src="{% static 'js/api.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<!-- <script type='text/javascript' src="{% static 'faicon/js/faicon.js' %}"></script> -->
 <script type='text/javascript' src="{% static 'js/settings/settings.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/settings/setting_list.js' %}"></script>
+
 
 <script>
+    function loadSettingsListCards(){
+        $('.loadingCard').each(function(){
+            url=$(this).data('url');
+            if(url==undefined)return;
+            loadInTemplate(elt=$(this),url=url);
+            
+        });
+    }
+
     $(document).ready(function () {
         enableSidebar('settings');
         initSettingsPage();
+        loadSettingsListCards();
     })
 </script>
 {% endblock %}

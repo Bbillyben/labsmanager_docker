@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource
+from labsmanager.ressources import labResource, InfoWidget
 from .models import Project, Participant, Institution_Participant
 from fund.models import Fund
 from import_export.fields import Field
@@ -81,6 +81,12 @@ class ProjectResource(labResource):
         column_name=_('Total Available'),
         attribute='get_funds_available', 
         widget=widgets.DecimalWidget(), readonly=True
+    )
+    info=Field(
+        column_name=_('Infos'),
+        attribute='info', 
+        widget=InfoWidget(), 
+        readonly=True
     )
     class Meta:
         """Metaclass"""

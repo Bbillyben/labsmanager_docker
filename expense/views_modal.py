@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import ContractModelForm, ContractExpenseModelForm
+from .forms import ContractModelForm, ContractExpenseModelForm, ContractTypeModelForm
 
 
 class ContractCreateView(LoginRequiredMixin, BSModalCreateView):
@@ -92,3 +92,20 @@ class ContractExpenseDeleteView(LoginRequiredMixin, BSModalDeleteView):
         self.object = self.get_object()
         self.object.delete()
         return HttpResponse("okok", status=200)
+    
+
+class ContractTypeCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = ContractTypeModelForm
+    success_message = 'Success: Cost TYpe was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.Contract_type
+    
+class ContractTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Contract_type
+    template_name = 'form_validate_base.html'
+    form_class = ContractTypeModelForm
+    success_message = 'Success: Cost TYpe was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"

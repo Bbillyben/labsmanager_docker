@@ -3,20 +3,14 @@
 {% load static %}
 {% load customs_tags %}
 
+
+
+{% block 'set-content' %}
 {% makeId title as idT%}
-
-
-<div class="col chart_card  mb-2" id="card_container_{{idT}}">
-    <div id='tracking-table-toolbar'>
-        <div class='btn-group'>
-            {% with "setting_filter_"|add:idT as idTitle %}
-            {% include "filter_list.html" with id=idTitle %}
-            {%endwith%}
-        </div>
-    </div>
+<div class="col chart_card  mb-2" id="cardtable_container_{{idT}}">
     <table
         class='table table-striped table-condensed'
-        id="setting_card_{{idT}}"
+        id="setting_cardtable_{{idT}}"
         data-id-table="stalefundTable"
         data-url="{{url}}"
 
@@ -27,12 +21,23 @@
                 <th data-sortable="true" 
                 class="th-inner sortable both" 
                 data-field="{{c.item}}"
-                data-formatter="{{c.formatter}}"
+                {% if c.formatter %}data-formatter="{{c.formatter}}"{% endif %}
+                {% if c.cellstyle %}data-cell-style="{{c.cellstyle}}"{% endif %}
                 {% if c.custom_param %}data-custom_param="{{c.custom_param}}" {% endif %}
                 >
                     {{c.name}}
                 </th>
                 {% endfor %}
+                {% if  action.update or action.admin %}
+                 <th data-sortable="true" 
+                 class="th-inner sortable both" 
+                 data-urlupdate="{{action.update}}"
+                 data-urladmin="{{action.admin}}"
+                 data-formatter="settingListActionFormatter"
+                 >
+                 {% trans 'Action' %}
+                </th>
+                {% endif %}
             
         </thead>
         <tbody>
@@ -55,22 +60,15 @@
         var idTable="setting_card_{% makeId title %}";
         $( document ).ready(function(){
             var options={};
+            options["table"]=card_option
+            // options["table_id"]='setting_cardtable_{{idT}}'
+            //options["card_id"]="setting_card_cont_{{idT}}"
+            $("#setting_card_cont_{{idT}}").lab_settinglist(options)
+            // options['search']=false;
+            // options['showColumns']=false;
+            // options['disablePagination']=true;
 
-            if(card_option["download"]){
-                var filters = loadTableFilters('{% makeId title %}');
-                var filterOption={
-                    download:true,
-                };
-                var options={
-                    url:"{{url}}",
-                    queryParams: filters,
-                    name:idTable,
-                    
-                    
-                };
-                setupFilterList('dashboarcart', $("#setting_card_{% makeId title %}"), '#filter-list-setting_filter_{% makeId title %}',  filterOption);
-            }
-
-            $('#setting_card_{{idT}}').labTable(options);
+            // $('#setting_cardtable_{{idT}}').bootstrapTable(options);
         });     
 </script>
+{% endblock %}

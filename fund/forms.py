@@ -120,3 +120,36 @@ class BudgetModelForm(BSModalModelForm):
             else:
                 self.fields['employee'].disabled = False
         #     self.fields['institution'].widget = forms.HiddenInput()
+        
+        
+class CostTypeModelForm(BSModalModelForm):
+    class Meta:
+        model = models.Cost_Type
+        fields = ['parent', 'short_name','name','in_focus',]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['parent'].disabled = True
+            self.fields['short_name'].disabled = True
+            self.fields['name'].disabled = True
+        else:
+            self.fields['parent'].disabled = False
+            self.fields['short_name'].disabled = False
+            self.fields['name'].disabled = False
+            
+class FundInstitutionModelForm(BSModalModelForm):
+    class Meta:
+        model = models.Fund_Institution
+        fields = ['short_name','name',]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['short_name'].disabled = True
+            self.fields['name'].disabled = True
+        else:
+            self.fields['short_name'].disabled = False
+            self.fields['name'].disabled = False

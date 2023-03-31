@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import TeamModelForm, TeamMateModelForm
+from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm
 
 
 # Update
@@ -68,3 +68,37 @@ class TeamMateRemoveView(LoginRequiredMixin, BSModalDeleteView):
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm
     success_url = reverse_lazy('employee_index')
+    
+class EmployeeTypeCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = EmployeeTypeModelForm
+    success_message = 'Success: Project was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.Employee_Type
+     
+class EmployeeTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Employee_Type    
+    template_name = 'form_validate_base.html'
+    form_class = EmployeeTypeModelForm
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    
+    
+class GenericInfoTypeCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = GenericInfoTypeForm
+    success_message = 'Success: Project was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.GenericInfoType
+    
+    
+class GenericInfoTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.GenericInfoType    
+    template_name = 'form_validate_base.html'
+    form_class = GenericInfoTypeForm
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"

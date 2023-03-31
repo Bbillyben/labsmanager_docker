@@ -14,7 +14,7 @@ function initFullCalendar(){
     option={
         selectable:canMod,
         editable:canMod,
-        extraParams:getCalenderFilters,
+        extraParams:getCalenderParams,
         filterResourcesWithEvents:$("#resource_event_cb").is(":checked"),
     }
     calendar = $('#calendar-box').lab_calendar(option);
@@ -27,7 +27,7 @@ function initFullCalendar(){
 
 
 // ---------------------- filtering function --------------------- //
-function getCalenderFilters(){
+function getCalenderParams(){
     var leaveList = $.map($('#leave_type :checkbox:checked'), function(n, i){
                 return n.value;
         }).join(',');
@@ -42,17 +42,41 @@ function getCalenderFilters(){
     };
     return filters
 }
+function getCalenderFilters(){
+    var leaveList = $.map($('#leave_type :checkbox'), function(n, i){
+                return '"leave_'+n.value+'":' + n.checked ;
+        }).join(',');
+    
+    var emp_status=$('#employee_status_selector').val();
+    if(isNaN(emp_status))emp_status=null
+    var showResEvent=$("#resource_event_cb").is(":checked");
+    filters={
+        type:"{"+leaveList+"}",
+        emp_status:emp_status,
+        showResEvent:showResEvent,
+    };
+    return filters
+}
 
 // load & Save
 function Calendar_loadFilters(){
     // load filters values => see in js.labsmanager.filters.loadTableFilters
     var filters=loadTableFilters("calendar-filter");
-
     // types filters
     if ('type' in filters){
-        var types =filters['type'].split(",");
+        try {
+            var types =JSON.parse(filters['type']);
+          } catch (error) {
+            console.error(error);
+            types={}
+          }
         $('#leave_type :checkbox').each(function(){
-            $(this).prop("checked", types.includes(this.value))
+            if(types["leave_"+this.value]!=undefined && types["leave_"+this.value] ==false ){
+                $(this).prop("checked", false)
+            }else{
+                $(this).prop("checked", true)
+            }
+            
         });
     }
     // employee status

@@ -607,6 +607,20 @@ function leaveEmployeeFormatter(value, row, index, field){
     return response;
 }
 
+function colorFormatter(value, row, index, field){
+    response = "<span class='color-dot'style=' background-color:"+value+";'></span>"
+    return response;
+}   
+
+function iconFormatter(value, row, index, field){
+    // console.log("[iconFormatter]")
+    // console.log(value)
+    // console.log(JSON.stringify(row))
+    response = "<i class='"+value.style+" fa-"+value.icon+"'></i>"
+    // console.log(response)
+    return response;
+}   
+
 
 function m2mBaseFormatter(value, row, index, field){
     // console.log("m2mBaseFormatter")
@@ -618,6 +632,16 @@ function m2mBaseFormatter(value, row, index, field){
     return response
 }
 
+function treeNameFormatter(value, row, index, field){
+    response = ""
+    for(i=0; i<row.ancestors_count; i++){
+        if(i==0)response +="┝"
+        response +="━";
+        if(i==row.ancestors_count-1)response +=" "
+    }
+    response+=value
+    return response
+}
 // --------------------     Basic Table Sorter    ------------------- // 
 
 function nameSorter(fieldA, fieldB){

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfo, GenericInfoType
 from expense.models import Expense_point, Contract, Contract_expense, Contract_type
 from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget
-from project.models import Project, Institution, Participant,Institution_Participant
+from project.models import Project, Institution, Participant,Institution_Participant, GenericInfoProject, GenericInfoTypeProject
 from endpoints.models import Milestones
 from leave.models import Leave, Leave_Type
 from common.models import  favorite
@@ -38,7 +38,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
         model = Institution
-        fields = ['pk', 'short_name', 'name']  
+        fields = ['pk', 'short_name', 'name', 'adress',]  
         
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -53,6 +53,15 @@ class CostTypeSerialize(serializers.ModelSerializer):
      class Meta:
         model = Cost_Type
         fields = ['pk', 'short_name', 'name', 'in_focus',] 
+        
+class CostTypeSerialize_tree(serializers.ModelSerializer):
+    ancestors_count=serializers.SerializerMethodField()
+    class Meta:
+        model = Cost_Type
+        fields = ['pk', 'short_name', 'name', 'in_focus', 'ancestors_count',] 
+        
+    def get_ancestors_count(self,obj):
+        return obj.get_ancestors(ascending=False, include_self=False).count()
         
 class Fund_InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
@@ -94,7 +103,17 @@ class MilestonesSerializer(serializers.ModelSerializer):
 class LeaveTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Leave_Type
-        fields = ['pk', 'short_name', 'name', 'parent',]  
+        fields = ['pk', 'short_name', 'name', 'parent','color',]  
+        
+class LeaveTypeSerializer_tree(serializers.ModelSerializer):
+    ancestors_count=serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Leave_Type
+        fields = ['pk', 'short_name', 'name', 'parent','color', 'ancestors_count']  
+        
+    def get_ancestors_count(self,obj):
+        return obj.get_ancestors(ascending=False, include_self=False).count()
         
         
 class LeaveSerializerBasic(serializers.ModelSerializer):
@@ -124,7 +143,7 @@ class LeaveSerializer1D(serializers.ModelSerializer):
         fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment', 'days']  
         
     def get_title(self,obj):
-        return f'{obj.employee.user_name} - {obj.type.name}'
+        return f'{obj.type.name} - {obj.employee.user_name}'
     
     
 class LeaveSerializer1DCal(LeaveSerializer1D):
@@ -396,6 +415,19 @@ class EmployeeInfoTypeSerialize(serializers.ModelSerializer):
     class Meta:
         model = GenericInfoType
         fields = ['pk', 'name', 'icon', ]
+
+from faicon.widgets import parse_icon
+
+class EmployeeInfoTypeIconSerialize(serializers.ModelSerializer):
+    icon_val=serializers.SerializerMethodField()
+    class Meta:
+        model = GenericInfoType
+        fields = ['pk', 'name', 'icon_val', ]
+        
+    def get_icon_val(self,obj):
+        ic =parse_icon(str(obj.icon))
+        return {'style':ic.style, "icon":ic.icon}
+    
         
 class EmployeeInfoSerialize(serializers.ModelSerializer):
     info = EmployeeInfoTypeSerialize(many=False, read_only=True)
@@ -484,8 +516,27 @@ class TeamProjectSerializer(serializers.ModelSerializer):
     
 #  For project table
        
-        
+class ProjectInfoTypeSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = GenericInfoTypeProject
+        fields = ['pk', 'name', 'icon', ] 
 
+class ProjectInfoTypeIconSerialize(serializers.ModelSerializer):
+    icon_val=serializers.SerializerMethodField()
+    class Meta:
+        model = GenericInfoTypeProject
+        fields = ['pk', 'name', 'icon_val', ]
+        
+    def get_icon_val(self,obj):
+        ic =parse_icon(str(obj.icon))
+        return {'style':ic.style, "icon":ic.icon}    
+    
+       
+class ProjectInfoSerialize(serializers.ModelSerializer):
+    info = ProjectInfoTypeSerialize(many=False, read_only=True)
+    class Meta:
+        model = GenericInfoProject
+        fields = ['pk', 'info', 'value', ]
 
 class ProjectFullSerializer(serializers.ModelSerializer):
     participant = serializers.SerializerMethodField() 
@@ -493,6 +544,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     fund=serializers.SerializerMethodField() 
     institution=serializers.SerializerMethodField()
     # total_amount= serializers.SerializerMethodField()
+    info=ProjectInfoSerialize(many=True, read_only=True)
     
     
     class Meta:
@@ -502,6 +554,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
                   'institution', 
                   'fund','get_funds_amount', 'get_funds_expense','get_funds_available',
                   'get_funds_amount_f', 'get_funds_expense_f','get_funds_available_f',
+                  'info',
                   ]
     def get_participant(self,obj):
         part = Participant.objects.select_related('employee').filter(project = obj.pk, employee__is_active= True)

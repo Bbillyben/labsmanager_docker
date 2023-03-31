@@ -11,6 +11,7 @@ from settings.models import LMUserSetting
 from dashboard import utils
 
 from labsmanager.mixin import ActiveDateMixin
+from faicon.fields import FAIconField
 
 import logging
 logger = logging.getLogger('labsmanager')
@@ -96,6 +97,9 @@ class Project(ActiveDateMixin):
         cont=Contract.objects.filter(Q(fund__in = fundP) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
         return cont.aggregate(Sum('quotity'))["quotity__sum"]   
     
+    @property
+    def info(self):
+        return GenericInfoProject.objects.filter(project=self.pk)
     @classmethod
     def staleFilter(cls):
         monthToGo=LMUserSetting.get_setting('DASHBOARD_PROJECT_STALE_TO_MONTH')
@@ -201,6 +205,29 @@ class Participant(ActiveDateMixin):
     # def get_absolute_url(self):
     #     return reverse("_detail", kwargs={"pk": self.pk})
     
+class GenericInfoTypeProject(models.Model):
+    class Meta:
+        """Metaclass defines extra model properties"""
+        verbose_name = _("Type of Generic Info")
+    
+    name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
+    icon = FAIconField(null=True,)
+    
+    def __str__(self):
+        """Return a string representation of the Status (for use in the admin interface)"""
+        return self.name
+
+class GenericInfoProject(models.Model):
+    class Meta:
+        """Metaclass defines extra model properties"""
+        verbose_name = _("Generic Info")
+    
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'))
+    info =  models.ForeignKey(GenericInfoTypeProject, on_delete=models.CASCADE, verbose_name=_('Info Type'))
+    value = models.CharField(max_length=150, blank=True, null=True, verbose_name=_('Info Value'))
+    history = AuditlogHistoryField()
+    
 auditlog.register(Project)
 auditlog.register(Institution_Participant)
 auditlog.register(Participant)
+auditlog.register(GenericInfoProject)

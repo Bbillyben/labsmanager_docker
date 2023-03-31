@@ -41,5 +41,11 @@ urlpatterns += [
     # for teamMate
     path('teammate/add/', views_modal.TeamMateCreateView.as_view(), name='create_teammate'), 
     path('teammate/<pk>/delete', views_modal.TeamMateRemoveView.as_view(), name='delete_teammate'), 
-    path('teammate/<pk>/update', views_modal.TeamMateUpdateView.as_view(), name='update_teammate'), 
+    path('teammate/<pk>/update', views_modal.TeamMateUpdateView.as_view(), name='update_teammate'),
+    
+    path('employeetype/add/', views_modal.EmployeeTypeCreateView.as_view(), name='add_employeetype'),
+    path('employeetype/<pk>/update/', views_modal.EmployeeTypeUpdateView.as_view(), name='update_employeetype'),
+    
+    path('genericinfotype/add/', views_modal.GenericInfoTypeCreateView.as_view(), name='add_genericinfotype'),
+    path('genericinfotype/<pk>/update/', views_modal.GenericInfoTypeUpdateView.as_view(), name='update_genericinfotype'),  
 ]

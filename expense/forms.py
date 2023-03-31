@@ -125,3 +125,16 @@ class ExpenseTimepointModelForm(BSModalModelForm):
             
     def clean_amount(self):
         return -abs(self.cleaned_data['amount'])
+
+class ContractTypeModelForm(BSModalModelForm):
+    class Meta:
+        model = models.Contract_type
+        fields = ['name',]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['name'].disabled = True
+        else:
+            self.fields['name'].disabled = False

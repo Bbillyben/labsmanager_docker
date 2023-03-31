@@ -1,7 +1,7 @@
 from csv import field_size_limit
 from traceback import format_tb
 from django import forms
-from .models import Employee, TeamMate, Employee_Status, Team, GenericInfo
+from .models import Employee, TeamMate, Employee_Status, Team,GenericInfoType, GenericInfo, Employee_Type
 from django.contrib.auth.models import User
 from django.db.models import Q
 from bootstrap_modal_forms.forms import BSModalModelForm
@@ -124,3 +124,22 @@ class GenericInfoForm(BSModalModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             self.fields['info'].disabled = True
+            
+class EmployeeTypeModelForm(BSModalModelForm):
+    class Meta:
+        model = Employee_Type
+        fields = ['name','shortname',]
+        
+class GenericInfoTypeForm(BSModalModelForm):
+    class Meta:
+        model = GenericInfoType
+        fields = ['name', 'icon',]
+
+    @property
+    def media(self):
+        response = super().media
+        response._js_lists.clear()
+        response._js_lists.append(['js/faicon_in/list.min.js'])
+        response._js_lists.append(['js/faicon_in/faicon.js'])
+        return response
+    

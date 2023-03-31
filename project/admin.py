@@ -1,5 +1,6 @@
 from django.contrib import admin
-from project.models import Project, Institution, Institution_Participant, Participant
+from labsmanager.admin import GenericInfoTypeAdmin
+from project.models import Project, Institution, Institution_Participant, Participant, GenericInfoTypeProject, GenericInfoProject
 from django.contrib.sessions.models import Session
 import pprint
 
@@ -11,8 +12,12 @@ class ParticipantInLine(admin.TabularInline):
     model=Participant
     extra=0
     
+class GenericInfoInline(admin.TabularInline):
+    model = GenericInfoProject
+    extra = 0 
+    
 class ProjectAdmin(admin.ModelAdmin):
-    inlines = [InstitutionParticipantInLine, ParticipantInLine]
+    inlines = [GenericInfoInline, InstitutionParticipantInLine, ParticipantInLine]
     list_display = ('name', 'start_date', 'end_date', 'status')
     list_filter=('status' ,'start_date', 'end_date')
     
@@ -41,5 +46,7 @@ admin.site.register(Session, SessionAdmin)
 # Register your models here.
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Institution, InstitutionAdmin)
+
+admin.site.register(GenericInfoTypeProject, GenericInfoTypeAdmin)
 
 

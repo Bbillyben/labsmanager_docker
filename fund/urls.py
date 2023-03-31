@@ -39,4 +39,10 @@ urlpatterns += [
     path('ajax/budget/<pk>/update', views_modal.BudgetUpdateView.as_view(), name='update_budget'),
     path('ajax/budget/<pk>/delete', views_modal.BudgetDeleteView.as_view(), name='delete_budget'),
     
+    
+    path('ajax/costtype/add', views_modal.CostTypeCreateView.as_view(), name="add_costtype"),
+    path('ajax/costtype/<pk>/update', views_modal.CostTypeUpdateView.as_view(), name="update_costtype"),
+    
+    path('ajax/fundinstitution/add', views_modal.FundInstitutionCreateView.as_view(), name="add_fundinstitution"),
+    path('ajax/fundinstitution/<pk>/update', views_modal.FundInstitutionUpdateView.as_view(), name="update_fundinstitution"),
 ]

@@ -55,6 +55,11 @@
                             <i class='fa fa-building-columns'></i> {% trans 'Add Institution' %}
                         </a></li>
                         {% endif %}
+                        {% if perms.project.add_genericinfoproject %}
+                        <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
+                            <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
+                        </a></li>
+                        {% endif %}
                         {% if perms.reports.view_projectwordreport %}
                         <div class="dropdown-divider"></div>
                         <li><a class="dropdown-item" href="#" id="export_word" title="Export Word">
@@ -77,6 +82,7 @@
                                     <!-- project description table inserted here -->
 
                                 </div>
+                                <div id="project_info_table"></div>
                             </div>
                         </div>
                     </div>

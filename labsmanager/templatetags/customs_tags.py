@@ -48,11 +48,14 @@ def etpFormat(context, dynvarname):
          val="-" 
     return mark_safe(val)
 
+import re
+
 @register.simple_tag(name='makeId')
 def makeID(dynvarname):
     """ Returns the value of dynvarname into the context """
-    strV=str(dynvarname).replace(" ", "_")
-    return strV.upper()
+    # strV=str(dynvarname).replace(" ", "_")
+    return re.sub("[^a-zA-Z0-9]", "", str(dynvarname), count=0, flags=0)
+    #return strV.upper()
 
 
 @register.simple_tag(name='unikId')

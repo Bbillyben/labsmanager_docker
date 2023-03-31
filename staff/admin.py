@@ -2,7 +2,7 @@ from django.contrib import admin
 from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfoType, GenericInfo
 from django.utils.translation import gettext_lazy as _
 from .forms import TeamMateForm
-
+from labsmanager.admin import GenericInfoTypeAdmin
 from leave.models import Leave
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
@@ -76,20 +76,7 @@ class TeamAdmin(admin.ModelAdmin):
     list_display = ('name', 'leader' )
     inlines = [TeamMateInline]
     
-from faicon import widgets
-class GenericInfoTypeAdmin(admin.ModelAdmin):
-    list_display = ( 'name', 'get_icon',)
-    
-    @admin.display(description='Icon')
-    def get_icon(self, obj):
-        icon=widgets.parse_icon(str(obj.icon))
-        if isinstance(icon, widgets.Icon):
-            return icon.icon_html()
-        return obj.icon
-    class Media:
-        css = {
-            'all':('/static/fontawesome/css/all.css','/static/css/adminsmall.css',), 
-        }
+
      
 # Register your models here.
 admin.site.register(Employee, EmployeeAdmin)

@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource, SimpleError, SkipErrorRessource, DateField, percentageWidget
+from labsmanager.ressources import labResource, SimpleError, SkipErrorRessource, DateField, percentageWidget, InfoWidget
 from .models import Employee, Employee_Status, Team, TeamMate
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
@@ -58,14 +58,7 @@ class ProjectWidget(widgets.CharWidget):
            
         return "\n".join(li)
     
-class InfoWidget(widgets.CharWidget):
-    def render(self, value, obj=None):
-        li=[]
-        for c in value:
-            strC= str(c.info.name) 
-            strC+= " : " +str(c.value)
-            li.append(strC)
-        return "\n".join(li)
+
     
 class EmployeeResource(labResource, SkipErrorRessource):
     first_name = Field(

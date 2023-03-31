@@ -5,7 +5,7 @@ from django import forms
 from django.db.models import Q
 from staff.models import TeamMate, Employee, Team
 
-from labsmanager.forms import DateInput
+from labsmanager.forms import DateInput,ColorInput
 
 class LeaveItemModelForm(BSModalModelForm):
     class Meta:
@@ -38,3 +38,22 @@ class LeaveItemModelForm(BSModalModelForm):
             self.fields['type'].widget.attrs['disabled'] = True
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.fields['employee'].widget.attrs['disabled'] = True
+    
+class LeaveTypeModelForm(BSModalModelForm):
+    class Meta:
+        model = models.Leave_Type
+        fields = ['parent','name','short_name','color',]
+    
+    color = forms.CharField(
+        widget = ColorInput,
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['short_name'].disabled = True
+            self.fields['name'].disabled = True
+        else:
+            self.fields['short_name'].disabled = False
+            self.fields['name'].disabled = False
