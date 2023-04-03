@@ -1,4 +1,3 @@
-
 (function ($) {
     var elts;
     var settings;
@@ -177,7 +176,7 @@
         });
     }
 
-    function callEventCallback(){
+    function callEventCallback(settings){
         if(undefined != settings.eventCallback)settings.eventCallback();
     }
 
