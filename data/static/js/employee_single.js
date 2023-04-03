@@ -76,7 +76,23 @@ function initEmployeeSingleView(user_idA, employee_idA){
 
     update_employee();
     update_employee_info();
+    initEmployeeCalendar();
     //updateLeaveBtnHandler();
+}
+
+// for calendar
+function initEmployeeCalendar(){
+    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
+    option={
+        selectable:canMod,
+        editable:canMod,
+        initialView:"dayGridMonth",
+        extraParams:{employee:employee_id},
+        eventCallback: function(){ $('#employee_leave_table').bootstrapTable('refresh')},
+    }
+    calendar = $('#calendar-employee-box').lab_calendar(option);
+    
+
 }
 
 // ----------------------  Employee  ------------------- //
@@ -208,6 +224,7 @@ function adminActionParticipant(value, row, index, field){
 
 function updateLeave(){
     $('#employee_leave_table').bootstrapTable('refresh');
+    calendar.refetchEvents();
     //updateLeaveBtnHandler();
 }
 
