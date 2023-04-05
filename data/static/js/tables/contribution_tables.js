@@ -15,7 +15,9 @@ function initializeContribTable(callback=null){
         queryParams: filters,
         name:'contrib',
         
-    } 
+    }
+    if(callbackContrib!=null)options['callback']=callbackContrib;
+
     setupFilterList('contrib', $('#contrib_table'), '#filter-list-contrib',filterOption);
     $('#contrib_table').labTable(options);
 
@@ -49,6 +51,7 @@ function initializeContribTable(callback=null){
 }
 function updateFullContrib(){
     $('#contrib_table').bootstrapTable('refresh');
+    if(callbackContrib!=null)callbackContrib();
 }
 
 function adminActioncontrib(value, row, index, field){

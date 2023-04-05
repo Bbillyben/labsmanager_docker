@@ -16,6 +16,8 @@ function initializeBudgetTable(callback=null){
         name:'budget',
         
     } 
+    if(callbackBudget!=null)options['callback']=callbackBudget;
+
     setupFilterList('budget', $('#budget_table'), '#filter-list-budget',filterOption);
     $('#budget_table').labTable(options);
 

@@ -51,6 +51,11 @@
             </td>
         </tr>
         <tr>
+            <td><i class="fas fa-wallet"></i></td>
+            <td  class="desc_title">{% trans 'Total Contribution Amount' %}</td>
+            <td>{% moneyFormat project.contribution_amount %}</td>
+        </tr>
+        <tr>
             <td><i class="fas fa-users"></i></td>
             <td  class="desc_title">{% trans 'Total Participant Quotity' %}</td>
             <td>{% etpFormat project.get_total_participant_quotity %}</td>

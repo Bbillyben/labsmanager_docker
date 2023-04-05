@@ -474,7 +474,7 @@ $(document).ready(function () {
     initEmployeeSingleView(user_id, employee_id);
     initializeContractsTable(tableurl="{% url 'api:employee-contracts' pk=employee.pk %}", update_employee);
     initializeBudgetTable();
-    initializeContribTable();
+    initializeContribTable(update_employee);
     enableSidebar('employee');
 })
 </script>
