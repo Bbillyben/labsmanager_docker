@@ -26,7 +26,7 @@ from expense.models import Contract
 from project.models import Project, Participant, Institution_Participant
 from project.views import get_project_fund_overview
 from leave.models import Leave
-from fund.models import Budget, Fund, Fund_Item
+from fund.models import Budget, Fund, Fund_Item, Contribution
 from endpoints.models import Milestones
 from project.views import get_project_fund_overviewReport
 
@@ -232,6 +232,8 @@ class EmployeeWordReport(WordReport):
         leave = Leave.objects.filter(employee=emp)
         context["leave"]=leave
         
+        context["Contribution"] = Contribution.objects.filter(employee=emp)
+        
         tm = TeamMate.objects.filter(employee=emp).values("team")
         teams = Team.objects.filter(models.Q(leader=emp) | models.Q(pk__in=tm))
         context["teams"]=teams
@@ -265,7 +267,10 @@ class ProjectWordReport(WordReport):
         
         context["budget"] = Budget.objects.filter(fund__project=pk)
         
+        context["Contribution"] = Contribution.objects.filter(fund__project=pk)
+        
         context["milestone"] = Milestones.objects.filter(project=pk)
+        
         
         # generating from html template for fund overview        
         # context["fundoverview"]=get_project_fund_overviewReport(pk)

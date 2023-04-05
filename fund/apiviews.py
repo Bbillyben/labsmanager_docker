@@ -8,13 +8,13 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from labsmanager import serializers 
 
-from .models import Fund, Fund_Item, Budget, Cost_Type, Fund_Institution
+from .models import Fund, Fund_Item, Budget, Cost_Type, Fund_Institution, Contribution
 from dashboard import utils
 from expense.models import Expense_point, Contract_type
 from staff.models import Team, TeamMate
 from project.filters import ProjectFilter
 from project.models import Participant
-from .resources import FundItemResource, BudgetResource, FundConsumptionResource
+from .resources import FundItemResource, BudgetResource, FundConsumptionResource, ContributionResource
 
 from labsmanager.helpers import DownloadFile
 from labsmanager.utils import str2bool
@@ -180,13 +180,30 @@ class FundItemViewSet(viewsets.ModelViewSet):
         return queryset
     
     
-class BudgetViewSet(viewsets.ModelViewSet):
+class BudgetAbstractViewSet(viewsets.ModelViewSet):
+    class Meta:
+        model = Budget
+        ressourceClass = BudgetResource
+        filenameSuffix = "Budget"
+        abstract = True
     
-    queryset = Budget.objects.select_related('fund', 'employee', 'cost_type').all()
+    # queryset = __class__.
     serializer_class = serializers.BudgetSerializer
     permission_classes = [permissions.IsAuthenticated]        
     filter_backends = (filters.DjangoFilterBackend,)
     
+    def get_params(self, request):
+        params={}
+        if request.data:
+            params.update(request.data)
+        if request.query_params:
+            for key in request.query_params:
+                params[key]=request.query_params.get(key)
+        return params
+        
+    def get_queryset(self):
+        return self.__class__.Meta.model.objects.select_related('fund', 'employee', 'cost_type').all()
+        
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
         if export is not None:
@@ -197,23 +214,17 @@ class BudgetViewSet(viewsets.ModelViewSet):
         
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
-        dataset = BudgetResource().export(queryset=queryset)
+        dataset =  self.__class__.Meta.ressourceClass().export(queryset=queryset)
         filedata = dataset.export(export_format)
         dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
-        filename = f"Budget_{dateSuffix}.{export_format}"
+        filename = f"{self.__class__.Meta.filenameSuffix}_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
     
     
     def filter_queryset(self, queryset):
-        params={}
-        if self.request.data:
-            params.update(self.request.data)
-        if self.request.query_params:
-            for key in self.request.query_params:
-                params[key]=self.request.query_params.get(key)
+        params=self.get_params(self.request)                
                 
-                
-        queryset = super().filter_queryset(queryset)
+        queryset = super().filter_queryset(self.get_queryset())
         
         
         active = params.get('active', None)
@@ -265,9 +276,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
             query = queryT | queryF
             queryset = queryset.filter(query)
         
-        return queryset
-    
-    
+        return queryset        
     
     @action(methods=['get'], detail=False, url_path='project/(?P<proj_pk>[0-9]+)', url_name='project')
     def project(self, request, proj_pk=None):
@@ -307,8 +316,45 @@ class BudgetViewSet(viewsets.ModelViewSet):
         if export is not None:
             return self.download_queryset(qset, export)
         return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
-    
 
+class BudgetViewSet(BudgetAbstractViewSet):
+    class Meta:
+        model=Budget
+        ressourceClass=BudgetResource
+        filenameSuffix="Budget"
+    
+       
+class ContributionViewSet(BudgetAbstractViewSet):
+    class Meta:
+        model=Contribution
+        ressourceClass=ContributionResource
+        filenameSuffix="Contributions"
+        
+    serializer_class = serializers.ContribSerializer
+    
+    def get_queryset(self):
+        params=self.get_params(self.request) 
+        active = params.get('active', None)
+        if active is not None:
+            if str2bool(active):
+                queryset = self.__class__.Meta.model.current.select_related('fund', 'employee', 'cost_type').all()
+            else:
+                queryset = self.__class__.Meta.model.past.select_related('fund', 'employee', 'cost_type').all()
+        else:
+            queryset = self.__class__.Meta.model.objects.select_related('fund', 'employee', 'cost_type').all()
+        return queryset
+        return self.__class__.Meta.model.objects.select_related('fund', 'employee', 'cost_type').all()
+        
+    # queryset = Contribution.objects.select_related('fund', 'employee', 'cost_type').all()
+    
+    # def download_queryset(self, queryset, export_format):
+    #     """Download the filtered queryset as a data file"""
+    #     dataset = ContributionResource().export(queryset=queryset)
+    #     filedata = dataset.export(export_format)
+    #     dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+    #     filename = f"Contributions_{dateSuffix}.{export_format}"
+    #     return DownloadFile(filedata, filename)
+    
 class CostTypeViewSet(viewsets.ModelViewSet):
     queryset = Cost_Type.objects.all()
     serializer_class = serializers.CostTypeSerialize

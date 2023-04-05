@@ -120,7 +120,26 @@ class BudgetModelForm(BSModalModelForm):
             else:
                 self.fields['employee'].disabled = False
         #     self.fields['institution'].widget = forms.HiddenInput()
-        
+
+class ContributionModelForm(BudgetModelForm):     
+    class Meta(BudgetModelForm.Meta):
+        model = models.Contribution
+        fields = ['fund', 'start_date', 'end_date', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity',]
+        widgets = {
+            'start_date': DateInput(),
+            'end_date': DateInput(),
+        }
+    def __init__(self, *args, **kwargs):
+        if ('initial' in kwargs and 'project' in kwargs['initial']):
+            proj = Project.objects.get(pk=kwargs['initial']['project'])
+            if proj:
+                self.base_fields['start_date'].initial = proj.start_date
+                self.base_fields['end_date'].initial = proj.end_date
+        else:
+            self.base_fields['start_date'].initial = None
+            self.base_fields['end_date'].initial = None
+                
+        super().__init__(*args, **kwargs)
         
 class CostTypeModelForm(BSModalModelForm):
     class Meta:

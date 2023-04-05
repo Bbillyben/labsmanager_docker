@@ -196,7 +196,7 @@
                             </div>
                             <div class="card  mb-2" id="project_budget_table">
                                 {% url 'api:budget-employee' emp_pk=employee.pk as BudgetDataURL %}
-                                {% include "fund/budget_table.html" with datatype="employee" dataURL=BudgetDataURL datapk=employee.pk %}
+                                {% include "fund/budget_table.html" with datatype="employee" dataURL=BudgetDataURL datapk=employee.pk idTable="budget" %}
                                 
                             </div>
                         </div>
@@ -205,6 +205,46 @@
                 </div>
             </div>
         </div> <!-- END OF PANEL-->
+<!-- ######################################    Conbtribution PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-contribution" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-contribution" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Employee Contributions' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>
+                    <div class="btn-group" role="group">
+    
+                        {% if perms.fund.add_contribution %}
+                        <button type="button" class="btn btn-secondary" id="add_contrib" title="Add Item" data-pk="{{ project.pk }}" data-form-url="" >
+                            <span class='fa fas fa-plus'></span>
+                        </button>
+                        {% endif %}
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content collapse show" id="Contribution-details">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div id='tracking-table-toolbar_funditem'>
+                            <div class='btn-group'>
+                                {% include "filter_list.html" with id="contrib" %}
+                            </div>
+                        </div>
+                        <div class="card" id="project_budget_table">
+                            {% url 'api:contribution-employee' emp_pk=employee.pk as ContribDataURL %}
+                            {% include "fund/contrib_table.html" with datatype="employee" dataURL=ContribDataURL datapk=employee.pk idTable="contrib" %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- ######################################    PROJECT PANEL ############################################### -->
     <div id='detail-panels'>
@@ -425,6 +465,7 @@
 <script type='text/javascript' src="{% static 'js/employee_single.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/contract_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/contribution_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script>
 $(document).ready(function () {
@@ -433,6 +474,7 @@ $(document).ready(function () {
     initEmployeeSingleView(user_id, employee_id);
     initializeContractsTable(tableurl="{% url 'api:employee-contracts' pk=employee.pk %}", update_employee);
     initializeBudgetTable();
+    initializeContribTable();
     enableSidebar('employee');
 })
 </script>

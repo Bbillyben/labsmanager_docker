@@ -20,10 +20,10 @@ data-pk="{{ datapk }}"
         <th data-sortable="true" class="th-inner sortable both" data-field="fund" data-formatter="SingleFundFormatter">
             {% trans 'Fund' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="fund.start_date" data-formatter="baseDateFormatter">
+        <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
             {% trans 'Start Date' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="fund.end_date" data-formatter="baseDateFormatter">
+        <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
             {% trans 'End Date' %}
         </th>
 
@@ -47,7 +47,7 @@ data-pk="{{ datapk }}"
         <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
             {% trans 'Amount' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="fund.is_active" data-formatter="basicBoolean">
+        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
             {% trans 'Is Active' %}
         </th>
         {% if datatype != "search" and datatype != "team" %}

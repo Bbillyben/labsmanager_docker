@@ -170,9 +170,6 @@ class DateMixin(models.Model):
             )
         ]
     
-     
-    
-    
 class ActiveDateMixin(DateMixin):
         
     class Meta:

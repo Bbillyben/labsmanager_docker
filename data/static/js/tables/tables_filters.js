@@ -207,7 +207,14 @@ function getAvailableTableFilters(tableKey) {
             },
         };
     }
-
+    if (tableKey == 'contrib') {
+        return{
+            active: {
+                type: 'bool',
+                title: 'Active',
+            },
+        }
+    };
 
     // Finally, no matching key
     return {};

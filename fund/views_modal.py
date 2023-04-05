@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import FundItemModelForm, FundModelForm, BudgetModelForm, CostTypeModelForm, FundInstitutionModelForm
+from .forms import FundItemModelForm, FundModelForm, BudgetModelForm, CostTypeModelForm, FundInstitutionModelForm, ContributionModelForm
 from expense.forms import ExpenseTimepointModelForm
 from expense.models import Expense_point
     
@@ -172,6 +172,17 @@ class BudgetDeleteView(LoginRequiredMixin, BSModalDeleteView):
         self.object.delete()
         return HttpResponse("okok", status=200)
     
+################# Contribution
+class ContributionCreateView(BudgetCreateView):
+    form_class = ContributionModelForm
+    model = models.Contribution
+    
+class ContributionUpdateView(BudgetUpdateView): 
+    form_class = ContributionModelForm
+    model = models.Contribution
+    
+class ContributionDeleteView(BudgetDeleteView):
+    model = models.Contribution
     
 ############# Cost Type
 class CostTypeCreateView(LoginRequiredMixin, BSModalCreateView):

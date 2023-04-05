@@ -183,13 +183,14 @@ def calculate_fund(*arg):
         pj.calculate()
         
 
-class Budget(models.Model):
+class BudgetAbstract(models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
-        verbose_name = _("Budget")
+        verbose_name = _("BudgetAbstract")
+        abstract = True
         
     cost_type=models.ForeignKey(Cost_Type, on_delete=models.SET_NULL, verbose_name=_('Type'), null=True)
-    amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
+    amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'), default=0)
     fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('fund'))
     emp_type=models.ForeignKey('staff.Employee_Type', on_delete=models.SET_NULL, verbose_name=_('employee type'), null=True,blank=True)
     contract_type=models.ManyToManyField('expense.Contract_type', blank=True)
@@ -209,8 +210,16 @@ class Budget(models.Model):
             
     def __str__(self):
         return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
-        
 
+class Budget(BudgetAbstract):
+    class Meta:
+        verbose_name = _("Budget")
+        
+class Contribution(BudgetAbstract, ActiveDateMixin):
+    class Meta:
+        verbose_name = _("Contribution")
+    
+        
 class AmountHistory(models.Model):
     content_type = models.ForeignKey(ContentType, related_name="content_type_amountHistory", on_delete=models.CASCADE, )
     object_id = models.PositiveIntegerField()
@@ -227,3 +236,4 @@ class AmountHistory(models.Model):
 auditlog.register(Fund_Item)
 auditlog.register(Fund)
 auditlog.register(Budget)
+auditlog.register(Contribution)
