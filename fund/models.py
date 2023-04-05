@@ -196,7 +196,7 @@ class BudgetAbstract(models.Model):
     contract_type=models.ManyToManyField('expense.Contract_type', blank=True)
     employee=models.ForeignKey('staff.Employee', on_delete=models.SET_NULL, verbose_name=_('employee'), null=True,blank=True)
     quotity = models.DecimalField(max_digits=4, decimal_places=3, default=0, validators=PERCENTAGE_VALIDATOR, verbose_name=_('quotity'),  null=True,blank=True)
-    
+    desc = models.CharField(max_length=150, verbose_name=_('Description'), blank=True, null=True)
     history = AuditlogHistoryField()
     
     

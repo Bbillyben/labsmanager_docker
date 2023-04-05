@@ -83,7 +83,7 @@ class FundModelForm(BSModalModelForm):
 class BudgetModelForm(BSModalModelForm):
     class Meta:
         model = models.Budget
-        fields = ['fund', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity',]
+        fields = ['fund', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity', 'desc']
         
     # def clean_contract_type(self,  *args, **kwargs): 
     #     print(self.cleaned_data)
@@ -124,7 +124,7 @@ class BudgetModelForm(BSModalModelForm):
 class ContributionModelForm(BudgetModelForm):     
     class Meta(BudgetModelForm.Meta):
         model = models.Contribution
-        fields = ['fund', 'start_date', 'end_date', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity',]
+        fields = ['fund', 'start_date', 'end_date', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity','desc']
         widgets = {
             'start_date': DateInput(),
             'end_date': DateInput(),

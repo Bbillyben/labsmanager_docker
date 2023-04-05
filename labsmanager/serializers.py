@@ -588,7 +588,7 @@ class BudgetSerializer(serializers.ModelSerializer):
     contract_type=ContractTypeSerializer(many=True, read_only=True)
     class Meta:
         model = Budget
-        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type']  
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type', 'desc',]  
     
 class ContribSerializer(BudgetSerializer):
     # user = UserSerializer(many=False, read_only=True)
@@ -599,5 +599,5 @@ class ContribSerializer(BudgetSerializer):
     contract_type=ContractTypeSerializer(many=True, read_only=True)
     class Meta:
         model = Contribution
-        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type',
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type','desc',
                   'start_date', 'end_date', 'is_active'] 

@@ -290,6 +290,7 @@ class BudgetResource(labResource):
                       'institution',
                       'ref',
                       'amount',
+                        'desc',
                       'emp_type',
                       'contract_type',
                       'employee',

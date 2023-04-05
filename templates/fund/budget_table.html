@@ -26,7 +26,9 @@ data-pk="{{ datapk }}"
         <th data-sortable="true" class="th-inner sortable both" data-field="fund.end_date" data-formatter="baseDateFormatter">
             {% trans 'End Date' %}
         </th>
-
+        <th data-sortable="true" class="th-inner sortable both" data-field="desc" data-formatter="" >
+            {% trans 'Description' %}
+        </th>
         <th data-sortable="true" class="th-inner sortable both" data-field="cost_type.name" data-formatter="FocusItemFormatter" >
             {% trans 'Cost Type' %}
         </th>
