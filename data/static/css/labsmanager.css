@@ -967,7 +967,10 @@ input[type="date"].form-control, input[type="time"].form-control, input[type="da
     margin-left: 1em;
 }
 .sidebar-list-group-item.accordion.collapsed .arrow {
-    
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    transform: rotate(0deg);
+    margin-left: 1em;
 }
 
 /* end sidebar accordion */

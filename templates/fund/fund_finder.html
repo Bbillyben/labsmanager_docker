@@ -124,7 +124,7 @@
                         </div>
                         <div class="card" id="project_budget_table">
                             {% url 'api:budget-search' as BudgetDataURL %}
-                            {% include "fund/budget_table.html" with datatype="search" dataURL=BudgetDataURL %}
+                            {% include "fund/budget_table.html" with datatype="search" dataURL=BudgetDataURL idTable="budget"%}
                             
                         </div>
                     </div>

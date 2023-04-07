@@ -105,6 +105,7 @@ class Project(ActiveDateMixin):
     def contribution_amount(self):
         from fund.models import Contribution
         return Contribution.objects.filter(fund__project=self.pk).aggregate(Sum('amount'))["amount__sum"]
+    
     @classmethod
     def staleFilter(cls):
         monthToGo=LMUserSetting.get_setting('DASHBOARD_PROJECT_STALE_TO_MONTH')
