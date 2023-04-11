@@ -34,3 +34,7 @@ admin_index_title: "Menu"
 
 static_root: '/home/labsmanager/data/static/'
 media_root: "/home/labsmanager/data/static/media/"
+
+# CSP policy
+admin_use_csp: 'true'
+#admin_csp_default: "192.168.1.145, 192.168.1.145:7000"
