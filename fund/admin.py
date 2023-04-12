@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
-from fund.models import Cost_Type, Fund_Institution, Fund_Item, Fund, Budget, AmountHistory
+from fund.models import Cost_Type, Fund_Institution, Fund_Item, Fund, Budget, Contribution, AmountHistory
 from import_export.admin import ImportExportModelAdmin
 from .resources import FundItemAdminResource
 
@@ -152,4 +152,5 @@ admin.site.register(Fund_Institution, FundInstitutionAdmin)
 admin.site.register(Fund_Item, FundItemAdmin)
 admin.site.register(Cost_Type, CostTypeAdmin)
 admin.site.register(Budget, BudgetAdmin)
+admin.site.register(Contribution, BudgetAdmin)
 admin.site.register(AmountHistory, AmountHistoryAdmin)

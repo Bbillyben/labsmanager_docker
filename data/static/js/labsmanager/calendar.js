@@ -1,4 +1,3 @@
-
 (function ($) {
     var elts;
     var settings;
@@ -6,7 +5,8 @@
         //console.log("calendar_refresh")
         $('#calendar-box').unbind('click');
         calendar.refetchEvents(); 
-        calendar.refetchResources();  
+        calendar.refetchResources();
+        callEventCallback();
     }
 
     function eventClicked(info){
@@ -171,8 +171,13 @@
             },
             complete : function() {
                 calendar.refetchEvents();
+                callEventCallback();
             }
         });
+    }
+
+    function callEventCallback(settings){
+        if(undefined != settings.eventCallback)settings.eventCallback();
     }
 
 
@@ -192,6 +197,7 @@
                 local: language,
                 height:"auto",
                 filterResourcesWithEvents:false,
+                initialView: 'resourceTimelineMonth',
             };
 
             // Extend default settings with provided options
@@ -204,7 +210,7 @@
                 
                 timeZone: 'UTC',
                 locale:settings.local,
-                initialView: 'resourceTimelineMonth',
+                initialView: settings.initialView,
                 headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',

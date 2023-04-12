@@ -81,6 +81,14 @@ class Employee(models.Model):
     @property
     def info(self):
         return GenericInfo.objects.filter(employee=self.pk)
+    
+    
+    @property
+    def contribution_quotity(self):
+        from fund.models import Contribution
+        return Contribution.current.filter(employee=self.pk).aggregate(Sum('quotity'))["quotity__sum"]
+    
+    
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""
         return  f"{self.first_name} {self.last_name}"

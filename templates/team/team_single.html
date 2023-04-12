@@ -120,7 +120,7 @@
                     </div>
                     <div class="card  mb-2" id="project_budget_table">
                         {% url 'api:budget-team' team_pk=team.pk as BudgetDataURL %}
-                        {% include "fund/budget_table.html" with datatype="team" dataURL=BudgetDataURL datapk=team.pk %}
+                        {% include "fund/budget_table.html" with datatype="team" dataURL=BudgetDataURL datapk=team.pk idTable="budget" %}
                         
                     </div>
                 </div>

@@ -96,7 +96,17 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='calendar-resource', url_name='calendar-resource')
     def employee_calendar(self, request, pk=None):
-        t1=Employee.objects.filter(is_active=True).order_by('first_name')
+        emp = request.data.get('employee', request.query_params.get('employee', None))
+        if emp is not None:
+            if isinstance(emp, str):
+                emp=emp.split(',')
+            elif not isinstance(emp, Iterable):
+                emp=[emp,]
+            t1=Employee.objects.filter(pk__in=emp).order_by('first_name')
+        else:
+            t1=Employee.objects.filter(is_active=True).order_by('first_name')
+            
+            
         team = request.data.get('team', request.query_params.get('team', None))
         if team is not None:
             tm = TeamMate.objects.filter(team=team).values('employee')

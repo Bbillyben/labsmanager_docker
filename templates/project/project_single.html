@@ -321,7 +321,47 @@
                         </div>
                         <div class="card" id="project_budget_table">
                             {% url 'api:budget-project' proj_pk=project.pk as BudgetDataURL %}
-                            {% include "fund/budget_table.html" with datatype="project" dataURL=BudgetDataURL datapk=project.pk %}
+                            {% include "fund/budget_table.html" with datatype="project" dataURL=BudgetDataURL datapk=project.pk idTable="budget" %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ######################################    Conbtribution PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-contribution" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-contribution" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Project Contributions' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>
+                    <div class="btn-group" role="group">
+    
+                        {% if perms.fund.add_contribution %}
+                        <button type="button" class="btn btn-secondary" id="add_contrib" title="Add Item" data-pk="{{ project.pk }}" data-form-url="" >
+                            <span class='fa fas fa-plus'></span>
+                        </button>
+                        {% endif %}
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content collapse show" id="Contribution-details">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div id='tracking-table-toolbar_funditem'>
+                            <div class='btn-group'>
+                                {% include "filter_list.html" with id="contrib" %}
+                            </div>
+                        </div>
+                        <div class="card" id="project_budget_table">
+                            {% url 'api:contribution-project' proj_pk=project.pk as ContribDataURL %}
+                            {% include "fund/contrib_table.html" with datatype="project" dataURL=ContribDataURL datapk=project.pk idTable="contrib" %}
                             
                         </div>
                     </div>
@@ -498,6 +538,7 @@
 <script type='text/javascript' src="{% static 'js/tables/contract_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/fund_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/contribution_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 
 
@@ -538,7 +579,7 @@ $(document).ready(function () {
     
     $('#project_leave_item_table').labTable(options);
     initializeBudgetTable();
-
+    initializeContribTable(update_project);
 
 })
 function projectleavequeryParams(params) {

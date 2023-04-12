@@ -1,7 +1,7 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
 from labsmanager.ressources import labResource, SkipErrorRessource, percentageWidget
-from .models import Fund_Item, Fund, Cost_Type, Budget
+from .models import Fund_Item, Fund, Cost_Type, Budget, Contribution
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
@@ -290,6 +290,7 @@ class BudgetResource(labResource):
                       'institution',
                       'ref',
                       'amount',
+                        'desc',
                       'emp_type',
                       'contract_type',
                       'employee',
@@ -297,6 +298,11 @@ class BudgetResource(labResource):
                       'is_active',
                       ]
         
+        
+class ContributionResource(BudgetResource):
+     class Meta(BudgetResource.Meta):
+        """Metaclass"""
+        model = Contribution
 
 class FundConsumptionResource(labResource):
     project=Field(
