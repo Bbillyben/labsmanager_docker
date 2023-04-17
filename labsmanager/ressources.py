@@ -125,3 +125,22 @@ class InfoWidget(widgets.CharWidget):
             strC+= " : " +str(c.value)
             li.append(strC)
         return "\n".join(li)
+    
+class ContenTypeObjectWidget(Field):
+    fieldnames="name"
+    def __init__(self, fieldnames=False):
+        self.fieldnames = fieldnames
+    
+    def render (self, value, obj=None,  **kwargs):
+        md_class=value.model_class()
+        ob=md_class.objects.get(id = obj.object_id)
+        attrs = self.fieldnames.split("__")
+        val=ob
+        for x in attrs:
+            val= getattr(val, x)
+            if not val:
+                return None
+        if val is not None:
+            return val
+                
+        return None

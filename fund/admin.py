@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from fund.models import Cost_Type, Fund_Institution, Fund_Item, Fund, Budget, Contribution, AmountHistory
-from import_export.admin import ImportExportModelAdmin
-from .resources import FundItemAdminResource
+from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin, ExportMixin
+from .resources import FundItemAdminResource, HistoryAmountResource
 
 class CostTypeAdmin(admin.ModelAdmin):
     list_display = ('name','short_name', 'in_focus',)
@@ -18,7 +18,7 @@ class FundItemAdmin(ImportExportModelAdmin):
 
     list_display = ('get_funder_name','get_proj_name', 'get_institution', 'type', 'amount',)
     list_filter = ('fund__funder', 'fund__project', 'fund__institution', 'type',)
-    resource_classes = [FundItemAdminResource]  
+    resource_classes = [FundItemAdminResource] 
     
     def get_proj_name(self, obj):
         return obj.fund.project.name
@@ -142,9 +142,11 @@ def get_content_type_filter(title, parameter_name=u'', separator='-', content_ty
                 return queryset
     return ContentTypeFilter
 
-class AmountHistoryAdmin(admin.ModelAdmin):
+class AmountHistoryAdmin(ExportActionModelAdmin):
+    resource_classes = [HistoryAmountResource] 
+    
     #list_filter = (get_generic_foreign_key_filter(u'content_type'),)
-    list_filter = ('value_date',get_content_type_filter(u'content_type'))
+    # list_filter = ('value_date',get_content_type_filter(u'content_type'))
     list_display = ('created_at', 'content_type', 'object_id', 'content_object', 'amount', 'delta', 'value_date')   
 
 admin.site.register(Fund, FundAdmin)
