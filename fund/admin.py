@@ -142,11 +142,114 @@ def get_content_type_filter(title, parameter_name=u'', separator='-', content_ty
                 return queryset
     return ContentTypeFilter
 
+
+from project.models import Project, Institution
+from expense.models import Expense_point
+from django.db.models import Q
+class ProjectListFitler(admin.SimpleListFilter):
+    title = _("Projects")
+    parameter_name = "project"
+    
+    def lookups(self, request, model_admin):
+        pjl = Project.objects.all().values('pk', 'name')
+        return [
+                (
+                    ct['pk'],
+                    ct['name']
+                )
+                for ct
+                in pjl
+            ]
+    
+    def queryset(self, request, queryset):
+        
+        if self.value()==None:
+            return queryset
+
+        ep = Expense_point.objects.filter(fund__project = self.value())
+        fl = Fund_Item.objects.filter(fund__project = self.value())
+        query = (Q(content_type__model = "fund_item") & Q(object_id__in=fl)) | (Q(content_type__model = "expense_point") & Q(object_id__in=ep))
+        return queryset.filter(query)
+
+class InstitutionListFitler(admin.SimpleListFilter):
+    title = _("Institution")
+    parameter_name = "institution" 
+    
+    def lookups(self, request, model_admin):
+        pjl = Institution.objects.all().values('pk', 'short_name')
+        return [
+                (
+                    ct['pk'],
+                    ct['short_name']
+                )
+                for ct
+                in pjl
+            ]   
+    def queryset(self, request, queryset):
+        
+        if self.value()==None:
+            return queryset
+
+        ep = Expense_point.objects.filter(fund__institution = self.value())
+        fl = Fund_Item.objects.filter(fund__institution = self.value())
+        query = (Q(content_type__model = "fund_item") & Q(object_id__in=fl)) | (Q(content_type__model = "expense_point") & Q(object_id__in=ep))
+        return queryset.filter(query)  
+    
+class FunderListFitler(admin.SimpleListFilter):
+    title = _("Funder")
+    parameter_name = "funder" 
+    
+    def lookups(self, request, model_admin):
+        pjl = Fund_Institution.objects.all().values('pk', 'short_name')
+        return [
+                (
+                    ct['pk'],
+                    ct['short_name']
+                )
+                for ct
+                in pjl
+            ]   
+    def queryset(self, request, queryset):
+        
+        if self.value()==None:
+            return queryset
+
+        ep = Expense_point.objects.filter(fund__funder = self.value())
+        fl = Fund_Item.objects.filter(fund__funder = self.value())
+        query = (Q(content_type__model = "fund_item") & Q(object_id__in=fl)) | (Q(content_type__model = "expense_point") & Q(object_id__in=ep))
+        return queryset.filter(query) 
+    
+class CostTypeListFitler(admin.SimpleListFilter):
+    title = _("Cost Type")
+    parameter_name = "costtype" 
+    
+    def lookups(self, request, model_admin):
+        pjl = Cost_Type.objects.all().values('pk', 'short_name')
+        return [
+                (
+                    ct['pk'],
+                    ct['short_name']
+                )
+                for ct
+                in pjl
+            ]   
+        
+    def queryset(self, request, queryset):
+       
+        if self.value()==None:
+            return queryset
+
+        ep = Expense_point.objects.filter(type = self.value())
+        fl = Fund_Item.objects.filter(type = self.value())
+        query = (Q(content_type__model = "fund_item") & Q(object_id__in=fl)) | (Q(content_type__model = "expense_point") & Q(object_id__in=ep))
+        return queryset.filter(query)  
+         
 class AmountHistoryAdmin(ExportActionModelAdmin):
     resource_classes = [HistoryAmountResource] 
     
     #list_filter = (get_generic_foreign_key_filter(u'content_type'),)
     # list_filter = ('value_date',get_content_type_filter(u'content_type'))
+    list_filter = [InstitutionListFitler, CostTypeListFitler, FunderListFitler,  ProjectListFitler]
     list_display = ('created_at', 'content_type', 'object_id', 'content_object', 'amount', 'delta', 'value_date')   
 
 admin.site.register(Fund, FundAdmin)

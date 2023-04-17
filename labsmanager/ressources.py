@@ -132,8 +132,10 @@ class ContenTypeObjectWidget(Field):
         self.fieldnames = fieldnames
     
     def render (self, value, obj=None,  **kwargs):
-        md_class=value.model_class()
-        ob=md_class.objects.get(id = obj.object_id)
+        md_class=obj.content_type.model_class()
+        # print("[ContenTypeObjectWidget]")
+        # print(f" Id : {obj.id}  / class :{md_class} / obj id:{obj.object_id}")
+        ob=md_class.objects.get(pk = obj.object_id)
         attrs = self.fieldnames.split("__")
         val=ob
         for x in attrs:

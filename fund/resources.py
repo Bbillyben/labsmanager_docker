@@ -364,15 +364,33 @@ class HistoryAmountResource(labResource):
         readonly=False
     )
     content_model=Field(
-        column_name=_('content_object'),
+        column_name=_('content_model'),
         attribute='content_type__model', 
         widget=widgets.CharWidget(), 
         readonly=False
     )
     content_type=Field(
-        column_name=_('content_object'),
+        column_name=_('content_type'),
         attribute='content_type', 
         widget=ContenTypeObjectWidget("type__short_name"), 
+        readonly=False
+    )
+    content_funder=Field(
+        column_name=_('content_funder'),
+        attribute='content_type', 
+        widget=ContenTypeObjectWidget("fund__funder__short_name"), 
+        readonly=False
+    )
+    content_institution=Field(
+        column_name=_('content_institution'),
+        attribute='content_type', 
+        widget=ContenTypeObjectWidget("fund__institution__short_name"), 
+        readonly=False
+    )
+    content_project=Field(
+        column_name=_('content_project'),
+        attribute='content_type', 
+        widget=ContenTypeObjectWidget("fund__project__name"), 
         readonly=False
     )
     
@@ -382,7 +400,7 @@ class HistoryAmountResource(labResource):
         skip_unchanged = True
         clean_model_instances = False
         exclude = [ 'id' ]
-        export_order=['created_at', 'content_type', 'object_id',
+        export_order=['created_at', 'object_id',
                       'content_app', 'content_model',
                       'content_type',
                       'amount', 'delta', 'value_date', ]
