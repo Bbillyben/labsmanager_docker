@@ -243,13 +243,38 @@ class CostTypeListFitler(admin.SimpleListFilter):
         fl = Fund_Item.objects.filter(type = self.value())
         query = (Q(content_type__model = "fund_item") & Q(object_id__in=fl)) | (Q(content_type__model = "expense_point") & Q(object_id__in=ep))
         return queryset.filter(query)  
-         
+    
+class ContentTypeListFitler(admin.SimpleListFilter):
+    title = _("Type")
+    parameter_name = "type"
+    
+    def lookups(self, request, model_admin):
+        pjl = AmountHistory.objects.all().values("content_type").distinct()
+        pjl = ContentType.objects.filter(id__in = pjl)
+        return [
+                (
+                    ct.pk,
+                    ct.model_class()._meta.verbose_name.title()
+                )
+                for ct
+                in pjl
+            ]   
+             
+    def queryset(self, request, queryset):
+       
+        if self.value()==None:
+            return queryset
+        return queryset.filter(content_type = self.value())
+        
+        
+        
+        
 class AmountHistoryAdmin(ExportActionModelAdmin):
     resource_classes = [HistoryAmountResource] 
     
     #list_filter = (get_generic_foreign_key_filter(u'content_type'),)
     # list_filter = ('value_date',get_content_type_filter(u'content_type'))
-    list_filter = [InstitutionListFitler, CostTypeListFitler, FunderListFitler,  ProjectListFitler]
+    list_filter = [ContentTypeListFitler, InstitutionListFitler, CostTypeListFitler, FunderListFitler,  ProjectListFitler]
     list_display = ('created_at', 'content_type', 'object_id', 'content_object', 'amount', 'delta', 'value_date')   
 
 admin.site.register(Fund, FundAdmin)
