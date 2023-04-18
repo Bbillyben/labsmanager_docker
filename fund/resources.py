@@ -1,7 +1,7 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource, SkipErrorRessource, percentageWidget
-from .models import Fund_Item, Fund, Cost_Type, Budget, Contribution
+from labsmanager.ressources import labResource, SkipErrorRessource, percentageWidget,ContenTypeObjectWidget
+from .models import Fund_Item, Fund, Cost_Type, Budget, Contribution, AmountHistory
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
@@ -111,9 +111,7 @@ class FundDateField(FundField):
         nAttr=data.get(self.column_name)
         if attr!=nAttr:
             setattr(fu, field, nAttr)
-            fu.save()
-        print(" - fu : "+str(fu))
-        
+            fu.save()        
         return fu
     
 class FundItemAdminResource(labResource, SkipErrorRessource):
@@ -355,3 +353,54 @@ class FundConsumptionResource(labResource):
                       'expense',
                       'available',
                       ]
+        
+
+class HistoryAmountResource(labResource):
+    
+    content_app=Field(
+        column_name=_('content_app'),
+        attribute='content_type__app_label', 
+        widget=widgets.CharWidget(), 
+        readonly=False
+    )
+    content_model=Field(
+        column_name=_('content_model'),
+        attribute='content_type__model', 
+        widget=widgets.CharWidget(), 
+        readonly=False
+    )
+    content_type=Field(
+        column_name=_('content_type'),
+        attribute='content_type', 
+        widget=ContenTypeObjectWidget("type__short_name"), 
+        readonly=False
+    )
+    content_funder=Field(
+        column_name=_('content_funder'),
+        attribute='content_type', 
+        widget=ContenTypeObjectWidget("fund__funder__short_name"), 
+        readonly=False
+    )
+    content_institution=Field(
+        column_name=_('content_institution'),
+        attribute='content_type', 
+        widget=ContenTypeObjectWidget("fund__institution__short_name"), 
+        readonly=False
+    )
+    content_project=Field(
+        column_name=_('content_project'),
+        attribute='content_type', 
+        widget=ContenTypeObjectWidget("fund__project__name"), 
+        readonly=False
+    )
+    
+    class Meta:
+        """Metaclass"""
+        model = AmountHistory
+        skip_unchanged = True
+        clean_model_instances = False
+        exclude = [ 'id' ]
+        export_order=['created_at', 'object_id',
+                      'content_app', 'content_model',
+                      'content_type',
+                      'amount', 'delta', 'value_date', ]

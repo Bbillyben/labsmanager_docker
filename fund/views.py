@@ -80,7 +80,6 @@ class RecetteGraphView(LoginRequiredMixin, View):
 
         ct = ContentType.objects.get_for_model(Fund_Item)
         qsetH=AmountHistory.objects.filter(content_type=ct, object_id__in=qset.values("pk")).order_by("value_date")
-        print("-------------> "+str(qsetH.count()))
         for e in qsetH:
             ep=e.content_object
             en_item=ep.fund.pk
@@ -102,7 +101,7 @@ class RecetteGraphView(LoginRequiredMixin, View):
                 }
             )
         # sort
-        #datas= sorted(datas, key=lambda item: item['date'])
+        # datas= sorted(datas, key=lambda item: item['date'])
         counter={}
         for it in datas:
             tid=it['tid']
