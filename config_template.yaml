@@ -34,3 +34,13 @@ admin_index_title: "Menu"
 
 static_root: '/home/labsmanager/data/static/'
 media_root: "/home/labsmanager/data/static/media/"
+
+# CSP policy
+admin_use_csp: 'true'
+#admin_csp_default: "site1.com, site2.com"
+admin_csp_script: "'unsafe-inline','unsafe-eval'"
+admin_csp_style: "'unsafe-inline'"
+admin_csp_font: "'unsafe-inline','unsafe-eval', data:"
+admin_csp_data: "'unsafe-inline','unsafe-eval'"
+admin_csp_img: "data:"
+# admin_csp_media: ""

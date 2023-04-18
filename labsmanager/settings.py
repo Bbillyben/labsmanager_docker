@@ -115,6 +115,50 @@ MIDDLEWARE = [
     'django.contrib.sites.middleware.CurrentSiteMiddleware',
 ]
 
+# FOR CSP policies
+use_csp = get_boolean_setting('ADMIN_USE_CSP', 'admin_use_csp', False)
+logger.debug('CSP Policy enabled :'+str(use_csp))   
+if use_csp:
+    MIDDLEWARE+= ['csp.middleware.CSPMiddleware',]
+    
+    CSP_DEFAULT_SRC = ["'self'"] #,"192.168.1.145","192.168.1.145:7000",]
+    p=get_setting("ADMIN_CSP_DEFAULT",'admin_csp_default', None)
+    if p is not None:
+        CSP_DEFAULT_SRC+= p.split(",")
+    
+    CSP_SCRIPT_SRC = [] + CSP_DEFAULT_SRC
+    p=get_setting("ADMIN_CSP_SCRIPT",'admin_csp_script', None)
+    if p is not None:
+        CSP_SCRIPT_SRC +=  p.split(",")
+    
+    CSP_STYLE_SRC = [] + CSP_DEFAULT_SRC
+    p=get_setting("ADMIN_CSP_STYLE",'admin_csp_style', None)
+    if p is not None:
+        CSP_STYLE_SRC +=  p.split(",") 
+        
+    CSP_FONT_SRC =[] +  CSP_DEFAULT_SRC # + ["'unsafe-inline'","'unsafe-eval'",]
+    p=get_setting("ADMIN_CSP_FONT",'admin_csp_font', None)
+    if p is not None:
+        CSP_FONT_SRC +=  p.split(",") 
+    
+    CSP_DATA_SRC  = [] + CSP_DEFAULT_SRC
+    p=get_setting("ADMIN_CSP_DATA",'admin_csp_data', None)
+    if p is not None:
+        CSP_DATA_SRC +=  p.split(",") 
+        
+    CSP_IMG_SRC = [] + CSP_DEFAULT_SRC
+    p=get_setting("ADMIN_CSP_IMG",'admin_csp_img', None)
+    if p is not None:
+        CSP_IMG_SRC +=  p.split(",") 
+    
+    CSP_MEDIA_SRC = [] + CSP_DEFAULT_SRC
+    p=get_setting("ADMIN_CSP_MEDIA",'admin_csp_media', None)
+    if p is not None:
+        CSP_MEDIA_SRC +=  p.split(",")
+
+    
+    
+    
 ROOT_URLCONF = 'labsmanager.urls'
 
 TEMPLATES = [
