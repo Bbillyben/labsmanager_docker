@@ -1,6 +1,6 @@
 from django.urls import include, path, re_path
 
-from . import views, views_modal
+from . import views, views_modal, apiviews
 
 
 urlpatterns = [
@@ -16,4 +16,6 @@ urlpatterns += [
     path('add/employee/<emp_pk>/', views_modal.LeaveItemCreateView.as_view(), name='add_leave_emp'),
     path('leave_type/add/', views_modal.LeaveTypeCreateView.as_view(), name='add_leave_type'),
     path('leave_type/<pk>/update/', views_modal.LeaveTypeUpdateView.as_view(), name='update_leave_type'),
+    
+    path('vacations', apiviews.get_vacation_events, name='vacation_events')
 ]

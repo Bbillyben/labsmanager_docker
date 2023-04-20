@@ -17,3 +17,6 @@ def main_calendar_view(request):
         'emp_types':emp_types,
     }
     return render(request, 'calendar/main_calendar.html', context)
+
+
+

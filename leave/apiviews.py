@@ -150,3 +150,104 @@ class LeaveViewSet(viewsets.ModelViewSet):
         
     
     
+### VACATION AND DAY OFF EVENT retrieval
+from labsmanager import settings
+from django.http import JsonResponse
+import json
+from settings.models import LabsManagerSetting
+
+def get_vacation_events(request):
+    folder = str(settings.MEDIA_ROOT) + "/vacation"
+    path = folder+"/vac.json"
+    with open(path) as json_file:
+        file_contents = json_file.read()
+    vac_json = json.loads(file_contents)
+    path = folder+"/dayoff.json"
+    with open(path) as json_file:
+        file_contents = json_file.read()
+    dayoff_json = json.loads(file_contents)
+    
+    
+    
+    zone = LabsManagerSetting.get_setting("VACATION_ZONE")
+    location = LabsManagerSetting.get_setting("VACATION_LOCATION")
+    start= request.GET["start"]
+    end = request.GET["end"]
+    bg_color_vac="lightblue"
+    bg_color_off="lightskyblue"
+    
+    
+    if not start and not end:
+        return  JsonResponse(vac_json, safe=False)
+    #tzinfo=datetime.timezone.utc
+    start= datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ")
+    end= datetime.strptime(end, "%Y-%m-%dT%H:%M:%SZ")
+    start = start.replace(tzinfo=None)
+    end = end.replace(tzinfo=None)
+    
+    
+    data=[]
+    for v in vac_json:
+        if v['zones'] != zone or v['location'] != location:
+            continue
+        s=datetime.strptime(v['start_date'], "%Y-%m-%dT%H:%M:%S%z")
+        e=datetime.strptime(v['end_date'], "%Y-%m-%dT%H:%M:%S%z")
+        s = s.replace(tzinfo=None)
+        e = e.replace(tzinfo=None)
+        if (start<e and s<end):
+            tmp={
+                'start': s.strftime('%Y-%m-%d'),
+                'end': e.strftime('%Y-%m-%d'),
+                'zone': v['zones'],
+                'desc': v['description'],
+                'display': 'background',
+                'color': bg_color_vac,
+            }
+            data.append(tmp)
+            
+    for item in dayoff_json:
+        d=datetime.strptime(item, "%Y-%m-%d")
+        d = d.replace(tzinfo=None)
+        if (start<d and d<end):
+            tmp={
+                'start': item,
+                #'end': e.strftime('%Y-%m-%d'),
+                'desc': dayoff_json[item],
+                'display': 'background',
+                'color': bg_color_off,
+            }
+            data.append(tmp)
+        
+    return  JsonResponse(data, safe=False)
+
+
+def get_vacation_zones_choices():
+    folder = str(settings.MEDIA_ROOT) + "/vacation"
+    path = folder+"/vac.json"
+    with open(path) as json_file:
+        file_contents = json_file.read()
+    vac_json = json.loads(file_contents)
+    listZone = []
+    unik = []
+    for item in vac_json:
+        if not item["zones"] in unik:
+            listZone.append((item["zones"], item["zones"]))
+            unik.append(item["zones"])
+    listZone.sort(key=lambda x: x[1])
+    return listZone
+
+def get_vacation_location_choices():
+    folder = str(settings.MEDIA_ROOT) + "/vacation"
+    path = folder+"/vac.json"
+    with open(path) as json_file:
+        file_contents = json_file.read()
+    vac_json = json.loads(file_contents)
+    listZone = []
+    unik = []
+    for item in vac_json:
+        if not item["location"] in unik:
+            listZone.append((item["location"], item["location"]))
+            unik.append(item["location"])
+    listZone.sort(key=lambda x: x[1])
+    return listZone
+    

@@ -93,11 +93,11 @@ INSTALLED_APPS = [
     'project.apps.ProjectConfig',
     'fund.apps.FundConfig',
     'expense.apps.ExpenseConfig',
-    'settings.apps.SettingsConfig',
     'endpoints.apps.EndpointsConfig',
     'leave.apps.LeaveConfig',
     'reports.apps.ReportsConfig',
     'common.apps.CommonConfig',
+    'settings.apps.SettingsConfig',
     
     
 ]

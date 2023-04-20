@@ -33,6 +33,7 @@ from project.views import get_project_fund_overviewReport
 from . import serializers
 from labsmanager.helpers import DownloadFile
 from labsmanager import settings
+from labsmanager.manager import FileModelManager
 
 logger = logging.getLogger("labsmanager")
 
@@ -47,6 +48,7 @@ def rename_template(instance, filename):
 # Create your models here.
 
 class BaseReport(models.Model):
+    
     class Meta:
         abstract = True
         
@@ -131,7 +133,8 @@ class BaseReport(models.Model):
         editable=False,
     )
     
-class WordReport(BaseReport):
+class WordReport(BaseReport):        
+        
     class Meta:
         abstract = True
     
@@ -203,6 +206,8 @@ class WordReport(BaseReport):
     
 class EmployeeWordReport(WordReport):
     
+    objects = FileModelManager()
+    
     @classmethod
     def getSubdir(cls):
         return 'employee'
@@ -242,6 +247,8 @@ class EmployeeWordReport(WordReport):
 
 from project.views import get_project_fund_overviewReport_bytType
 class ProjectWordReport(WordReport):
+    
+    objects = FileModelManager()
     
     @classmethod
     def getSubdir(cls):

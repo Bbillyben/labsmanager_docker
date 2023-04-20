@@ -65,3 +65,24 @@ class LastInManager(models.Manager):
 class focus_manager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(type__in_focus=True)
+    
+    
+class FileModelManager(models.Manager):
+    def contribute_to_class(self, model, name):
+        super(FileModelManager, self).contribute_to_class(model, name)
+        self._bind_flush_signal(model)
+        
+    def _bind_flush_signal(self, model):
+        models.signals.post_delete.connect(flush_file, model)
+
+import os   
+def flush_file(sender, **kwargs):
+    print(" -- flush_file called --")
+    print("  - sender:"+str(sender))
+    print("  - kwargs:"+str(kwargs))
+    
+    instance = kwargs.pop('instance', False)
+
+    if instance.template:
+        if os.path.isfile(instance.template.path):
+            os.remove(instance.template.path)

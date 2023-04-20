@@ -170,7 +170,10 @@ class BaseLabsManagerSetting(models.Model):
         """
         setting = cls.get_setting_definition(key, **kwargs)
 
-        return setting.get('default', '')
+        default = setting.get('default', '')
+        if callable(default):
+            return default()
+        return default
 
     @classmethod
     def get_setting_choices(cls, key, **kwargs):
@@ -178,11 +181,10 @@ class BaseLabsManagerSetting(models.Model):
         setting = cls.get_setting_definition(key, **kwargs)
 
         choices = setting.get('choices', None)
-
         if callable(choices):
             # Evaluate the function (we expect it will return a list of tuples...)
             return choices()
-
+        
         return choices
 
     @classmethod
@@ -205,17 +207,17 @@ class BaseLabsManagerSetting(models.Model):
         if user is not None:
             filters['user'] = user
 
-        # Filter by plugin
-        plugin = kwargs.get('plugin', None)
+        # # Filter by plugin
+        # plugin = kwargs.get('plugin', None)
 
-        if plugin is not None:
-            from plugin import LabsManagerPlugin
+        # if plugin is not None:
+        #     from plugin import LabsManagerPlugin
 
-            if issubclass(plugin.__class__, LabsManagerPlugin):
-                plugin = plugin.plugin_config()
+        #     if issubclass(plugin.__class__, LabsManagerPlugin):
+        #         plugin = plugin.plugin_config()
 
-            filters['plugin'] = plugin
-            kwargs['plugin'] = plugin
+        #     filters['plugin'] = plugin
+        #     kwargs['plugin'] = plugin
 
         # Filter by method
         method = kwargs.get('method', None)
@@ -378,7 +380,7 @@ class BaseLabsManagerSetting(models.Model):
             self.run_validator(validator)
 
         options = self.valid_options()
-
+        print("############# clean Setting : "+ str(self.key)+" - value : "+str(self.value))
         if options and self.value not in options:
             raise ValidationError(_("Chosen value is not a valid option"))
 
@@ -678,7 +680,24 @@ def update_instance_name(setting):
     site_obj.name = setting.value
     site_obj.save()
 
+
+def get_vac_zone():
+    from leave.apiviews import get_vacation_zones_choices
+    return get_vacation_zones_choices()
+def get_default_vac_zone():
+    from leave.apiviews import get_vacation_zones_choices
+    return get_vacation_zones_choices()[0][0]
+
+def get_vac_loc():
+    from leave.apiviews import get_vacation_location_choices
+    return get_vacation_location_choices()
+
+def get_default_vac_loc():
+    from leave.apiviews import get_vacation_location_choices
+    return get_vacation_location_choices()[0][0]
+
 class LabsManagerSetting(BaseLabsManagerSetting):
+
     SETTINGS = {
          'MAIL_OBJECT_PREFIX': {
             'name': _('Mail Object Prefix'),
@@ -696,8 +715,22 @@ class LabsManagerSetting(BaseLabsManagerSetting):
                 MinValueValidator(1),
             ]
         },
+        'VACATION_ZONE': {
+            'name': _('French Vacation Zone'),
+            'description': _('one of the zone defined for french vacation'),
+            'default': 'Zone B',
+            'choices': get_vac_zone,
+            'type':'choices',
+        },
+        'VACATION_LOCATION': {
+            'name': _('French Vacation Zone'),
+            'description': _('one of the zone defined for french vacation'),
+            'default': get_default_vac_loc,
+            'choices': get_vac_loc, 
+        },
          
-    }
+    }       
+        
     class Meta:
         """Meta options for InvenTreeSetting."""
 

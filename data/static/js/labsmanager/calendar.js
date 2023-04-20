@@ -216,11 +216,17 @@
                     center: 'title',
                     right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
                 },
-                events:{
+                eventSources:[{
                         url: Urls['api:leave-search-calendar'](),
                         method: 'GET',
                         extraParams:getExtraSetting,
                     },
+                    {
+                        url: Urls['vacation_events'](),
+                        method: 'GET',
+                        extraParams:getExtraSetting,
+                    },
+                    ],
                 resources:{
                         url: Urls['api:employee-calendar-resource'](),
                         method: 'GET',

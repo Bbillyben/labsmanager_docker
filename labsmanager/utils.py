@@ -65,3 +65,18 @@ def send_email(subject, body, recipients, from_email=None, html_message=None):
 
 
 
+# test if 2 date interval overlap
+from datetime import datetime
+
+def intervals_overlap(start1, end1, start2, end2):
+    # convert the start and end times to datetime objects
+    start1 = datetime.strptime(start1, "%Y-%m-%d %H:%M:%S")
+    end1 = datetime.strptime(end1, "%Y-%m-%d %H:%M:%S")
+    start2 = datetime.strptime(start2, "%Y-%m-%d %H:%M:%S")
+    end2 = datetime.strptime(end2, "%Y-%m-%d %H:%M:%S")
+    
+    # check if the intervals overlap
+    if start1 <= end2 and end1 >= start2:
+        return True
+    else:
+        return False
