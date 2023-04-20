@@ -122,7 +122,7 @@ function editSetting(key, options={}) {
                     value: response.value,
                 }
             };
-            console.log("editSetting - "+JSON.stringify(fields));
+            //console.log("editSetting - "+JSON.stringify(fields));
 
             // Foreign key lookup available!
             if (response.type == 'related field') {

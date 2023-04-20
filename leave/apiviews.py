@@ -202,7 +202,7 @@ def get_vacation_events(request):
         e=datetime.datetime.strptime(v['end_date'], "%Y-%m-%dT%H:%M:%S%z")
         s = s.replace(tzinfo=None)
         e = e.replace(tzinfo=None)
-        if (start<e and s<end):
+        if (start<=e and s<=end):
             tmp={
                 'start': s.strftime('%Y-%m-%d'),
                 'end': e.strftime('%Y-%m-%d'),
@@ -216,7 +216,7 @@ def get_vacation_events(request):
     for item in dayoff_json:
         d=datetime.datetime.strptime(item, "%Y-%m-%d")
         d = d.replace(tzinfo=None)
-        if (start<d and d<end):
+        if (start<=d and d<=end):
             tmp={
                 'start': item,
                 #'end': e.strftime('%Y-%m-%d'),
