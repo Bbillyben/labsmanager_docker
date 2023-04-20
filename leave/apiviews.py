@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.db.models import Q, F, ExpressionWrapper, fields
 from django.db.models.functions import Cast, Coalesce, Now, Extract, Abs
-from datetime import datetime
+import datetime
 
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
@@ -109,7 +109,7 @@ class LeaveViewSet(viewsets.ModelViewSet):
         """Download the filtered queryset as a data file"""
         dataset = LeaveItemResources().export(queryset=queryset)
         filedata = dataset.export(export_format)
-        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        dateSuffix=datetime.datetime.now().strftime("%Y%m%d-%H%M")
         filename = f"LeaveItem_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
     
@@ -170,28 +170,36 @@ def get_vacation_events(request):
     
     
     zone = LabsManagerSetting.get_setting("VACATION_ZONE")
-    location = LabsManagerSetting.get_setting("VACATION_LOCATION")
-    start= request.GET["start"]
-    end = request.GET["end"]
+
+    if "start" in request.GET:
+        start= request.GET["start"]
+        start= datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ")
+    else:
+        start = datetime.datetime(datetime.MINYEAR, 1, 1)
+    if "end" in request.GET:
+        end = request.GET["end"]
+        end= datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%SZ")
+    else:
+        end = datetime.datetime(datetime.MAXYEAR, 12, 31)
+        
     bg_color_vac="lightblue"
     bg_color_off="lightskyblue"
     
     
-    if not start and not end:
-        return  JsonResponse(vac_json, safe=False)
-    #tzinfo=datetime.timezone.utc
-    start= datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ")
-    end= datetime.strptime(end, "%Y-%m-%dT%H:%M:%SZ")
     start = start.replace(tzinfo=None)
     end = end.replace(tzinfo=None)
     
-    
     data=[]
+    unik=[]
     for v in vac_json:
-        if v['zones'] != zone or v['location'] != location:
+        if v['zones'] != zone:
             continue
-        s=datetime.strptime(v['start_date'], "%Y-%m-%dT%H:%M:%S%z")
-        e=datetime.strptime(v['end_date'], "%Y-%m-%dT%H:%M:%S%z")
+        if v['start_date'] in unik:
+            continue
+        unik.append(v['start_date'])
+        
+        s=datetime.datetime.strptime(v['start_date'], "%Y-%m-%dT%H:%M:%S%z")
+        e=datetime.datetime.strptime(v['end_date'], "%Y-%m-%dT%H:%M:%S%z")
         s = s.replace(tzinfo=None)
         e = e.replace(tzinfo=None)
         if (start<e and s<end):
@@ -206,7 +214,7 @@ def get_vacation_events(request):
             data.append(tmp)
             
     for item in dayoff_json:
-        d=datetime.strptime(item, "%Y-%m-%d")
+        d=datetime.datetime.strptime(item, "%Y-%m-%d")
         d = d.replace(tzinfo=None)
         if (start<d and d<end):
             tmp={

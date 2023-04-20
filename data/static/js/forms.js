@@ -1633,8 +1633,8 @@ function initializeRelatedField(field, fields, options={}) {
         parent = $(options.modal);
         auto_width = true;
         width = null;
+        
     }
-
     select.select2({
         placeholder: '',
         dropdownParent: parent,
@@ -1682,7 +1682,6 @@ function initializeRelatedField(field, fields, options={}) {
             },
             processResults: function(response) {
                 // Convert the returned labsmanager data into select2-friendly format
-
                 var data = [];
 
                 var more = false;
@@ -1849,12 +1848,13 @@ function setRelatedFieldData(name, data, options={}) {
 
 
 function initializeChoiceField(field, fields, options) {
-
+    console.log("initializeChoiceField")
     var select = getFormFieldElement(field.name, options);
 
     select.select2({
         dropdownAutoWidth: false,
         dropdownParent: $(options.modal),
+        width: '100%',
     });
 }
 

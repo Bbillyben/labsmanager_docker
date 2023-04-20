@@ -688,14 +688,6 @@ def get_default_vac_zone():
     from leave.apiviews import get_vacation_zones_choices
     return get_vacation_zones_choices()[0][0]
 
-def get_vac_loc():
-    from leave.apiviews import get_vacation_location_choices
-    return get_vacation_location_choices()
-
-def get_default_vac_loc():
-    from leave.apiviews import get_vacation_location_choices
-    return get_vacation_location_choices()[0][0]
-
 class LabsManagerSetting(BaseLabsManagerSetting):
 
     SETTINGS = {
@@ -721,12 +713,6 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'default': 'Zone B',
             'choices': get_vac_zone,
             'type':'choices',
-        },
-        'VACATION_LOCATION': {
-            'name': _('French Vacation Zone'),
-            'description': _('one of the zone defined for french vacation'),
-            'default': get_default_vac_loc,
-            'choices': get_vac_loc, 
         },
          
     }       
