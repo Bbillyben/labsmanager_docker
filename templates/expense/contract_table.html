@@ -1,6 +1,6 @@
 {% load i18n %}
 {% load customs_tags %}
-{% if datatype == 'all' %}
+{% if datatype == 'all' or datatype == 'project' %}
 <div id='tracking-table-toolbar_contract'>
     <div class='btn-group'>
         {% include "filter_list.html" with id="contract" %}

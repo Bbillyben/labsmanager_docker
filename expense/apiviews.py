@@ -74,6 +74,13 @@ class ContractViewSet(viewsets.ModelViewSet):
             pjFund=Fund.objects.filter(project__name__icontains=pname).values('pk')
             queryset = queryset.filter(fund__in=pjFund)
             
+        pid = params.get('project_id', None)
+        print("[ContractViewSet.filter_queryset] pid:"+str(pid))
+        if pid:
+            pjFund=Fund.objects.filter(project__pk=pid).values('pk')
+            queryset = queryset.filter(fund__in=pjFund)
+            
+            
         funder = params.get('funder', None)  
           # print("[ContractViewSet.filter_queryset] funder:"+str(funder))   
         if funder is not None :

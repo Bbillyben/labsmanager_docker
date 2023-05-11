@@ -102,6 +102,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
     def contracts(self,request, pk=None):
+        export = request.GET.get('export', None)
+        if export is not None:
+            from expense.apiviews import ContractViewSet
+            cv = ContractViewSet()
+            request.query_params._mutable = True
+            request.query_params.update({"project_id": int(pk)})
+            cv.request = request            
+            return cv.list(request)
+        
+        
         fund=Fund.objects.filter(project=pk).values('pk')        
         contract=Contract.objects.filter(fund__in=fund).order_by('end_date')
         return JsonResponse(serializers.ContractSerializer(contract, many=True).data, safe=False)
