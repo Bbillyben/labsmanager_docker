@@ -570,7 +570,7 @@ function FocusItemFormatter(value, row, index, field){
         type=row.cost_type;
     }
     if(type!=undefined && !type.in_focus){
-        response+='<sup class="out-focus"><small><i class="fas fa-eye-slash"></i></small></sup>'
+        response+='<sup class="out-focus"><small><i class="fas fa-eye-slash" title="Out of focus"></i></small></sup>'
     }
 
     return response;

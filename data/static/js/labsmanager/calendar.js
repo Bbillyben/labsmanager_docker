@@ -252,7 +252,7 @@
                 resourceLabelContent : function(renderInfo ) {
                     htmlRes=renderInfo.fieldValue
                     if(USER_PERMS.includes("staff.view_employee")){
-                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to user'><i type = 'button' class='fa-regular fa-circle-right text-info'></i></a></sup>"; 
+                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to employee'><i type = 'button' class='fa-regular fa-circle-right text-info'></i></a></sup>"; 
                     } 
                     //htmlRes+="</span>"
                     
