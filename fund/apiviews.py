@@ -44,10 +44,16 @@ class FundViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='stale', url_name='stale_fund')
     def staleFunds(self, request, pk=None):
+        
         q_objects = Q(project__status=True)  # & Q(is_active=True) &  base Q objkect
         slot = utils.getDashboardTimeSlot(request)
             
         fund=Fund.current.timeframe(slot).select_related('project', 'funder', 'institution').filter(q_objects).order_by('-end_date')
+        
+        export = request.GET.get('export', None)
+        if export is not None:
+            #qs = self.filter_queryset(self.get_queryset())
+            return self.download_queryset(fund, export)
         
         return JsonResponse(serializers.FundStaleSerializer(fund, many=True).data, safe=False)
     

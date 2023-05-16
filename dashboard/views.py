@@ -99,6 +99,7 @@ class fundStaleCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'}
             ],
             'options':{
+                'download':1,
             },         
         }
         
