@@ -1,12 +1,12 @@
 (function ($) {
     var elts;
-    var settings;
+    var settingsCal;
     function calendar_refresh(){
         //console.log("calendar_refresh")
         $('#calendar-box').unbind('click');
         calendar.refetchEvents(); 
         calendar.refetchResources();
-        callEventCallback();
+        callEventCallback(settingsCal);
     }
 
     function eventClicked(info){
@@ -83,10 +83,10 @@
 
     function getExtraSetting(){
         var extraSetting={};
-        if(typeof settings.extraParams === 'function'){
-            extraSetting=settings.extraParams();
+        if(typeof settingsCal.extraParams === 'function'){
+            extraSetting=settingsCal.extraParams();
         }else{
-            extraSetting=settings.extraParams
+            extraSetting=settingsCal.extraParams
         }
 
         // to specify it's from calendar
@@ -171,7 +171,7 @@
             },
             complete : function() {
                 calendar.refetchEvents();
-                callEventCallback();
+                callEventCallback(settingsCal);
             }
         });
     }
@@ -201,7 +201,7 @@
             };
 
             // Extend default settings with provided options
-            settings = $.extend(defaults, options);
+            settingsCal = $.extend(defaults, options);
             elts=this;
 
             eltCal=document.getElementById(this.attr('id'))
@@ -209,8 +209,8 @@
                 schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
                 
                 timeZone: 'UTC',
-                locale:settings.local,
-                initialView: settings.initialView,
+                locale:settingsCal.local,
+                initialView: settingsCal.initialView,
                 headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',
@@ -234,8 +234,8 @@
                     },
                 resourceGroupField:"employee",
 
-                selectable: settings.selectable,
-                editable: settings.editable,
+                selectable: settingsCal.selectable,
+                editable: settingsCal.editable,
                 eventDidMount: function(info) {
                     $(info.el).tooltip({
                     title: info.event.title,
@@ -244,11 +244,11 @@
                     container: 'body',
                     });
                 },
-                eventDrop: settings.eventDrop,
-                eventResize: settings.eventResize,
-                eventClick: settings.eventClick,
-                select: settings.select,
-                height: settings.height,
+                eventDrop: settingsCal.eventDrop,
+                eventResize: settingsCal.eventResize,
+                eventClick: settingsCal.eventClick,
+                select: settingsCal.select,
+                height: settingsCal.height,
                 resourceLabelContent : function(renderInfo ) {
                     htmlRes=renderInfo.fieldValue
                     if(USER_PERMS.includes("staff.view_employee")){
@@ -259,7 +259,7 @@
                     return { html: htmlRes}
                     },
                     resourceOrder: 'title',
-                filterResourcesWithEvents:settings.filterResourcesWithEvents,
+                filterResourcesWithEvents:settingsCal.filterResourcesWithEvents,
                 // -------------------------------
 
                 customButtons: {

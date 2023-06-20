@@ -83,7 +83,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
 // for calendar
 function initEmployeeCalendar(){
     var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
-    option={
+    var option={
         selectable:canMod,
         editable:canMod,
         initialView:"dayGridMonth",
