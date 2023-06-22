@@ -44,12 +44,17 @@
                     <div class="d-flex flex-wrap subheading">
                         <h4><i class="fas fa-calendar-days"></i>  {% trans 'Calendar' %}</h4> 
                         <span class="flex" style="flex-grow: 1;"></span>
-                        {% if  perms.leave.add_leave %}
-                            <button type="button" class="btn btn-success" id="leave_create" title="Create New Leave">
-                            <span class='fa fa-user-plus'></span>
-                            {% trans 'Add Leave' %}
-                        </button>
-                        {% endif %}
+                        <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-secondary" id="leave_print" title="Print" aria-expanded="false">
+                                <i class='fa fa-print'></i>
+                                </button>
+                            {% if  perms.leave.add_leave %}
+                                <button type="button" class="btn btn-success" id="leave_create" title="Create New Leave" aria-expanded="false">
+                                <i class='fa fa-user-plus'></i>
+                                {% trans 'Add Leave' %}
+                                </button>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 <div id="calendar-box">
@@ -86,6 +91,11 @@ $(document).ready(function () {
     $('#leave_create').labModalForm({
         formURL: "{% url 'add_leave' %}",
         addModalFormFunction: calendar_refresh,
+    })
+    $('#leave_print').on("click", function(){
+        var printURL = "{% url 'calendar_print' %}";
+
+        print_main_calendar(printURL);
     })
 })
 

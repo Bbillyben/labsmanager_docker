@@ -65,7 +65,9 @@ class LeaveViewSet(viewsets.ModelViewSet):
             qset= qset.filter(employee__in=empS)
         
         team = data.get('team', None)
-        if team is not None:
+        print(team)
+        print(team.isdigit())
+        if team is not None and team.isdigit():
             tm = TeamMate.objects.filter(team=team).values('employee')
             tl=Team.objects.filter(pk=team).values("leader")
             qset= qset.filter(Q(employee__in=tm) | Q(employee__in=tl))

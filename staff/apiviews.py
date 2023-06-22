@@ -108,7 +108,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             
             
         team = request.data.get('team', request.query_params.get('team', None))
-        if team is not None:
+        if team is not None and team.isdigit():
             tm = TeamMate.objects.filter(team=team).values('employee')
             tl=Team.objects.filter(pk=team).values("leader")
             t1= t1.filter(Q(pk__in=tm)|Q(pk__in=tl))

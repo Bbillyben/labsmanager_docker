@@ -11,19 +11,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<!-- Favicon -->
-<!-- exemple : TO BE IMPLEMENTED
-<link rel="manifest" href="{% static 'img/favicon/manifest.json' %}">
-<meta name="msapplication-TileImage" content="{% static 'img/labsmanager/labsmanager_icon_fav.png' %}">
-<meta name="msapplication-TileColor" content="#ffffff">
-<meta name="msapplication-TileImage" content="{% static 'img/favicon/ms-icon-144x144.png' %}">
-<meta name="theme-color" content="#ffffff">
--->
 
 <link rel="icon" type="image/png" href="{% static 'img/labsmanager/labsmanager_icon_fav.png' %}" />
-<!-- exemple : TO BE IMPLEMENTED
-<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
--->
+
 <!-- CSS -->
 <link rel="stylesheet" href="{% static 'css/labsmanager.css' %}">
 <link rel="stylesheet" href="{% static 'css/bootstrap-treeview.css' %}">
@@ -74,18 +64,7 @@
         <main class='col ps-md-2 pt-2 pe-2'>
             {% block alerts %}
             <div class='notification-area' id='alerts'>
-                <!-- Div for displayed alerts 
-                {% if server_restart_required %}
-                <div id='alert-restart-server' class='alert alert-danger' role='alert'>
-                    <span class='fas fa-server'></span>
-                    <strong>{% trans "Server Restart Required" %}</strong>
-                    <small>
-                        <br>
-                        {% trans "A configuration option has been changed which requires a server restart" %}. {% trans "Contact your system administrator for further information" %}
-                    </small>
-                </div>
-                {% endif %}
-                -->
+
             </div>
             {% endblock %}
             {% block breadcrumb_list %}
@@ -106,7 +85,7 @@
             {% endblock %}
             
             {% block content %}
-                <!-- Each view fills in here.. -->
+
             {% endblock %}
         </main>
     </div>

@@ -76,6 +76,35 @@
         </div>
     </div>
 </div>
+
+<!-- --------------------    Employee Team    --------------------  -->
+<div class="col-auto" >
+    <div class="d-flex flex-wrap ">
+    
+        <div class="card mr-2" >
+            <div class="row-header">                                  
+                <div class="d-flex flex-wrap subheading" role="button" data-bs-toggle="collapse" data-bs-target="#employee_team_filters">
+                    <h4><i class="fas fa-filter"></i>  {% trans 'Employee team Filter' %}</h4> 
+                </div>
+            
+            </div>
+            <div class="row">
+                <div id="employee_team_filters" class="collapse">
+                    <div id="employee_team" class="in-card d-flex flex-wrap collapse" style="margin-left:1em;">
+                        <div class="col-auto" >
+                            <select id='employee_team_selector' class="form-select form-select-sm" aria-label=".form-select-sm example">
+                                <option value="all">{% trans 'All' %}</option>
+                                {% for team in team %}
+                                    <option value="{{team.pk}}">{{ team.name }}</option>
+                                {%endfor%}
+                              </select>                             
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- --------------------    Ressource with event filter    --------------------  -->
 <div class="col-auto" >
     <div class="d-flex flex-wrap ">

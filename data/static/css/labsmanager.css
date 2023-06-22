@@ -814,7 +814,7 @@ input[type="submit"] {
     color: #55E;
 }
 
-.subheading .btn{
+.subheading .btn-group{
     scale:0.8;
 }
 
@@ -1394,4 +1394,12 @@ li.list-spacer{
 
     .out-focus{
         color: var(--label-yellow);
+    }
+
+
+    /* for Printing */
+    .lab-btn-print {
+        width:80%;
+        text-align: center;
+        margin: 1em 0 1em 0 !important;
     }

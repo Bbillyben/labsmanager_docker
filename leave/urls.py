@@ -5,6 +5,7 @@ from . import views, views_modal, apiviews
 
 urlpatterns = [
     path('main', views.main_calendar_view, name='calendar_main'),  
+    path('print', views.main_calendar_print, name='calendar_print'),  
 ]
 
 # for modal

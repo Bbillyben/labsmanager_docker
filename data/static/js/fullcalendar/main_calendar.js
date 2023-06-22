@@ -21,6 +21,50 @@ function initFullCalendar(){
    
 
 }
+function initPrintCalendar(options){
+    // console.log('[initPrintCalendar]'+JSON.stringify(options))
+    var canMod=false;
+    const calendarEl = document.getElementById('calendar-box')
+    option={
+        selectable:false,
+        editable:false,
+        initialView:options["initialView"],
+        extraParams:{
+            type:options["type"],
+            emp_status:options["emp_status"],
+            team:options["team"],
+        },
+        filterResourcesWithEvents:options["filterResourcesWithEvents"]=='true',
+
+        eventDrop:null,
+        eventResize:null,
+        eventClick:null,
+        select:null,
+        useDatePicker:false,
+        headerToolbar:"",
+
+    }
+    calendar = $('#calendar-box').lab_calendar(option);
+    calendar.gotoDate(options["start"]);
+
+}
+
+function print_main_calendar(printUrl){
+    options = {};
+    options['initialView']=calendar.view.type;
+    var d = calendar.view.activeStart
+    options['start']=d.toISOString();
+    d = calendar.view.activeEnd
+    options['end']=d.toISOString();
+    options['filterResourcesWithEvents']=calendar.getOption("filterResourcesWithEvents");
+    var extraP = getCalenderParams();
+    options['type']=extraP.type;
+    options['emp_status']=extraP.emp_status;
+    options['team']=extraP.team;
+    // console.log("Print Cal option :"+JSON.stringify(options));
+    var csrftoken = getCookie('csrftoken');
+    openWindowWithPost(printUrl, options, csrftoken)
+}
 
 
 
@@ -33,11 +77,15 @@ function getCalenderParams(){
         }).join(',');
     
     var emp_status=$('#employee_status_selector').val();
-    if(isNaN(emp_status))emp_status=null
+    if(isNaN(emp_status))emp_status=null;
+    var team=$('#employee_team_selector').val();
+    if(isNaN(team))team=null;
+
     var showResEvent=$("#resource_event_cb").is(":checked");
     filters={
         type:leaveList,
         emp_status:emp_status,
+        team:team,
         showResEvent:showResEvent,
     };
     return filters
@@ -48,11 +96,15 @@ function getCalenderFilters(){
         }).join(',');
     
     var emp_status=$('#employee_status_selector').val();
-    if(isNaN(emp_status))emp_status=null
+    if(isNaN(emp_status))emp_status=null;
+    var team=$('#employee_team_selector').val();
+    if(isNaN(team))team=null;
+
     var showResEvent=$("#resource_event_cb").is(":checked");
     filters={
         type:"{"+leaveList+"}",
         emp_status:emp_status,
+        team:team,
         showResEvent:showResEvent,
     };
     return filters
@@ -87,6 +139,14 @@ function Calendar_loadFilters(){
         }
         
     }
+    // employee team
+    if ('team' in filters){
+        var status =filters['team'];
+        if(!isNaN(status)){
+            $('#employee_team_selector').val(String(status));
+        }
+        
+    }
     // show only resource with event
     if ('showResEvent' in filters){
         var showResEvent =filters['showResEvent'];
@@ -103,6 +163,11 @@ function initListener(){
         calendar_refresh();
     });
     $('#employee_status_selector').change(function() {   
+        // save of filters values => see in js.labsmanager.filters.saveTableFilters
+        saveTableFilters("calendar-filter", getCalenderFilters());
+        calendar_refresh();
+    });
+    $('#employee_team_selector').change(function() {   
         // save of filters values => see in js.labsmanager.filters.saveTableFilters
         saveTableFilters("calendar-filter", getCalenderFilters());
         calendar_refresh();

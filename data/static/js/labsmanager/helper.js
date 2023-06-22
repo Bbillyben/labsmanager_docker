@@ -88,3 +88,38 @@ function isJson(item) {
 
   return typeof value === "object" && value !== null;
 }
+
+
+/**
+ * To replicate windows open with POST params.
+ * Create a Form and submit it 
+ * @returns nothing
+ */
+function openWindowWithPost(url, data, csrftoken) {
+  var form = document.createElement("form");
+  form.target = "_blank";
+  form.method = "POST";
+  form.action = url;
+  form.style.display = "none";
+  form.header
+
+  for (var key in data) {
+      var input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = data[key];
+      form.appendChild(input);
+  }
+  const hiddenField = document.createElement('input');
+  hiddenField.type = 'hidden';
+  hiddenField.name = 'csrfmiddlewaretoken';
+  hiddenField.value = csrftoken;
+  form.appendChild(hiddenField);
+
+  document.body.appendChild(form);
+
+
+
+  form.submit();
+  document.body.removeChild(form);
+}

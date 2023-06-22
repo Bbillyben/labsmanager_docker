@@ -1,0 +1,117 @@
+{% load static %}
+{% load i18n %}
+{% load customs_tags %}
+{% load js_reverse %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="icon" type="image/png" href="{% static 'img/labsmanager/labsmanager_icon_fav.png' %}" />
+<!-- CSS -->
+<link rel="stylesheet" href="{% static 'css/labsmanager.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-treeview.css' %}">
+
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/bootstrap-table.min.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/bootstrap-table.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/group-by-v2/bootstrap-table-group-by.min.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/group-by-v2/bootstrap-table-group-by.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.css' %}">
+<!-- <link rel='stylesheet' href='{% static "treegrid/css/jquery.treegrid.css" %}'>
+<link rel="stylesheet" href="{% static 'fontawesome/css/brands.min.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/solid.min.css' %}">
+<link rel="stylesheet" href="{% static 'script/jquery-ui/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'script/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/color-themes/default.css' %}"> -->
+
+{% block link %}
+{% endblock %}
+    <style>
+        {% block css %}
+        {% endblock %}
+    </style>
+        {% block head %}
+        {% endblock %}
+    <title>
+        {% block page_title %}
+        {% endblock %}
+    </title>
+</head>
+{% include 'print/print_button.html' %}
+<div class='main body wrapper container-fluid labmanager-body'>
+        <main class='col ps-md-2 pt-2 pe-2'>
+            
+            {% block content %}
+                <!-- Each view fills in here.. -->
+            {% endblock %}
+        </main>
+    </div>
+
+</div>
+{% include 'print/print_button.html' %}
+
+
+<script type="text/javascript" charset="utf-8">
+    {% js_reverse_inline %}
+</script>
+<!-- base jquery -->
+
+
+<script type="text/javascript" src="{% static 'script/jquery-3.6.1.min.js' %}"></script>
+
+<!-- <script type='text/javascript' src="{% static 'script/jquery.form.min.js' %}"></script> -->
+<script type='text/javascript' src="{% static 'script/jquery-ui/jquery-ui.1.13.1.min.js' %}"></script>
+<!-- <script type='text/javascript' src="{% static 'script/select2/js/select2.min.js' %}"></script> -->
+
+
+
+<script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<!-- <script type='text/javascript' src="{% static 'script/bootstrap/bootstrap-treeview.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'bootstrap-table/bootstrap-table.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'bootstrap-table/bootstrap-table-toolbar.min.js' %}"></script> -->
+
+<!-- <script type="text/javascript" src="{% static 'bootstrap-table/extensions/export/bootstrap-table-export.js' %}"></script> -->
+
+<!-- <script type='text/javascript' src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script> -->
+<script type='text/javascript' src="{% static 'fontawesome/js/solid.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/regular.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/brands.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/fontawesome.min.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/fullcalendar/index.global.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/locales/de.global.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/locales/fr.global.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/locales/es.global.min.js' %}"></script>
+
+<!-- <script type="text/javascript" src="{% static 'tableExport/tableExport.js' %} "></script> -->
+<!-- <script type="text/javascript" src="{% static 'tableExport/jquery.base64.js' %} "></script> -->
+
+<!-- Scripts -->
+<!-- <script type='text/javascript' src="{% static 'js/forms.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'js/modals.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'js/labsmanager/labModalForm.js' %}"></script> -->
+<script type='text/javascript' src="{% static 'js/labsmanager/helper.js' %}"></script>
+<!-- <script type='text/javascript' src="{% static 'js/labsmanager/tables.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'js/tables/tables_filters.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'js/labsmanager/filters.js' %}"></script> -->
+
+<!-- <script type='text/javascript' src="{% static 'js/labsmanager/favorites.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'js/labsmanager.js' %}"></script> -->
+<!-- <script type='text/javascript' src="{% static 'js/labsmanager/panel_collapse.js' %}"></script> -->
+
+
+<!-- <script type='text/javascript' src="{% static 'js/palette.js' %}"></script> -->
+
+{% block js_load %}
+{% endblock %}  
+
+{% block js %}
+{% endblock %}
+
+</body>
+</html>

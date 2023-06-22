@@ -180,7 +180,6 @@
         if(undefined != settings.eventCallback)settings.eventCallback();
     }
 
-
     $.fn.lab_calendar = function (options) {
         //console.log("Modal Form Call :"+options.formURL);
             // Default settings
@@ -198,24 +197,26 @@
                 height:"auto",
                 filterResourcesWithEvents:false,
                 initialView: 'resourceTimelineMonth',
+                useDatePicker: true,
+                headerToolbar: {
+                    left: 'prev,next today datePickerButton',
+                    center: 'title',
+                    right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
+                },
             };
 
             // Extend default settings with provided options
             settingsCal = $.extend(defaults, options);
             elts=this;
 
-            eltCal=document.getElementById(this.attr('id'))
-            calendar = new FullCalendar.Calendar(eltCal, {
+
+            var globals={
                 schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
                 
                 timeZone: 'UTC',
                 locale:settingsCal.local,
                 initialView: settingsCal.initialView,
-                headerToolbar: {
-                    left: 'prev,next today datePickerButton',
-                    center: 'title',
-                    right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
-                },
+                headerToolbar:settingsCal.headerToolbar,
                 eventSources:[{
                         url: Urls['api:leave-search-calendar'](),
                         method: 'GET',
@@ -262,7 +263,12 @@
                 filterResourcesWithEvents:settingsCal.filterResourcesWithEvents,
                 // -------------------------------
 
-                customButtons: {
+
+            }
+
+            // add date picker button
+            if (settingsCal.useDatePicker == true){
+                globals.customButtons={
                     datePickerButton: {
                         text:'select',
                         click: function () {      
@@ -294,12 +300,11 @@
         
                         }
                     },
-                },
+                }
+            }
 
-                // -------------------------------
-
-
-            })
+            eltCal=document.getElementById(this.attr('id'))
+            calendar = new FullCalendar.Calendar(eltCal, globals)
             calendar.render();
 
             return calendar;
