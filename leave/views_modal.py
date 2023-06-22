@@ -26,7 +26,7 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
         
         
         team = data.get('team', None)
-        if team is not None:
+        if team is not None and team.isdigit():
             initial['team']=team
             
         employee = data.get('employee', None)
