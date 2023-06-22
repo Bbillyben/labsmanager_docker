@@ -34,16 +34,21 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
             initial['employee']=employee
         
         start_date=data.get("start_date", None)
+        print("############### strart date :"+start_date)
         if start_date is not None:
-            start_date=start_date.split("T")[0]
+            d=start_date.split("T")
+            start_date=d[0]
             initial['start_date']=start_date
+            if d[1][0:2] == "12":
+                initial['start_period']="MI"
         
         end_date=data.get("end_date", None)
         if end_date is not None:
-            end_date=end_date.split("T")[0]
-            initial['end_date']=end_date
-        
-        print("  - initial : "+str(initial))
+            d=end_date.split("T")
+            initial['end_date']=d[0]
+            if d[1][0:2] == "12":
+                initial['end_period']="MI"
+
         
         form = self.form_class(initial=initial)
         context = {'form': form}

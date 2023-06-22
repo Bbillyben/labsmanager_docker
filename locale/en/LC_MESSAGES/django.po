@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 16:03+0200\n"
+"POT-Creation-Date: 2023-06-22 17:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,7 +93,7 @@ msgid "Stale Contract"
 msgstr ""
 
 #: dashboard/views.py:153 expense/models.py:117 expense/resources.py:20
-#: fund/resources.py:263 leave/models.py:38 leave/resources.py:83
+#: fund/resources.py:263 leave/models.py:47 leave/resources.py:83
 #: project/models.py:164 staff/models.py:23 staff/models.py:24
 #: staff/models.py:107 staff/models.py:170 staff/models.py:209
 #: templates/employee/employee_single.html:25
@@ -142,7 +142,7 @@ msgid "Description"
 msgstr ""
 
 #: dashboard/views.py:185 endpoints/models.py:19 fund/admin.py:248
-#: fund/models.py:192 labsmanager/mixin.py:130 leave/models.py:37
+#: fund/models.py:192 labsmanager/mixin.py:130 leave/models.py:46
 #: staff/models.py:106 templates/employee/employee_single.html:420
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
@@ -591,6 +591,18 @@ msgstr ""
 #: leave/models.py:34 templates/employee/employee_sidebar.html:19
 #: templates/team/team_sidebar.html:5
 msgid "Leave"
+msgstr ""
+
+#: leave/models.py:37
+msgid "start"
+msgstr ""
+
+#: leave/models.py:38 leave/models.py:41
+msgid "midday"
+msgstr ""
+
+#: leave/models.py:42
+msgid "end"
 msgstr ""
 
 #: leave/resources.py:24

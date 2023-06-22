@@ -12,6 +12,7 @@
     function eventClicked(info){
         $(info.el).tooltip('dispose');
         $('.popover').popover('dispose');
+        //console.log(JSON.stringify(info.event))
         titleP ='<div class="d-flex flex-wrap">'
         titleP += "<b>"+info.event.extendedProps.type+"</b>";
         titleP += '<span class="flex" style="flex-grow: 1;"></span>';
@@ -22,7 +23,7 @@
         textP = "<em><b>" + info.event.extendedProps.employee + "</b></em>";
         var d = new Date(info.event.end);
         d.setDate(d.getDate() - 1)
-        textP += "</br>" + info.event.start.toLocaleDateString() + " - " + d.toLocaleDateString();
+        textP += "</br>" + info.event.start.toLocaleDateString() + "<small> (" + info.event.extendedProps.start_period_di+")</small> " + " - " + d.toLocaleDateString() + "<small> (" + info.event.extendedProps.end_period_di+")</small>";
         if(info.event.extendedProps.comment) textP +="</br><i>"+ info.event.extendedProps.comment+"</i>";
         if(USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("leave.delete_leave") || USER_PERMS.includes("staff.view_employee")){
             textP +="<hr/>";
@@ -105,15 +106,15 @@
     }
     // ---------------------- Selection de date  --------------------- //
     function eventSelectHandler(info){
-        //console.log(JSON.stringify(info))
+        //console.log("[eventSelectHandler] :"+JSON.stringify(info))
         $('.popover').popover('dispose');
+        $(info.el).tooltip('dispose');
 
         var d = new Date(info.end);
         d.setDate(d.getDate() - 1)
         modURL=Urls['add_leave']()+"?start_date="+info.start.toISOString()+"&end_date="+d.toISOString();
         modURL+=getExtraSettingURL();
         resource=info.resource
-        console.log("resource :"+JSON.stringify(resource))
         if(resource){
             modURL+="&employee="+resource.id
         }
@@ -134,21 +135,38 @@
 
     // -------------------------  Update Event Functions --------------- //
     function LeaveChangeHandler(evt){
-        //console.log("LeaveChangeHandler called");
+        $('.popover').popover('dispose');
+        $(evt.el).tooltip('dispose');
         datas=evt['event'];
+        // console.log("LeaveChangeHandler called"+JSON.stringify(datas));
         ne={};
         ne["pk"]=datas["extendedProps"]["pk"];
         ne["employee"]=datas["extendedProps"]["employee_pk"];
         ne["type"]=datas["extendedProps"]["type_pk"];
-        ne["start_date"]=datas["start"].toISOString().split('T')[0];
+        ds=datas["start"].toISOString().split('T');
+        ne["start_date"]=ds[0];
+        if(ds[1].substring(0, 2)== "12"){
+            ne["start_period"]="MI"
+        }else{
+            ne["start_period"]="ST"
+        }
+
+
         if(datas["end"]){
-            var d = new Date(datas["end"]);
-            d.setDate(d.getDate() - 1)
-            ne["end_date"]=d.toISOString().split('T')[0];
+            de=datas["end"].toISOString().split('T');            
+            if(de[1].substring(0, 2)== "12"){
+                ne["end_period"]="MI"
+                ne["end_date"]=de[0]
+            }else{
+                d = new Date(de[0]);
+                d.setDate(d.getDate() - 1)
+                ne["end_date"]=d.toISOString().split('T')[0];
+                ne["end_period"]="EN"
+            }
         }else{
             ne["end_date"]=ne["start_date"];
         }
-        //console.log("new Event : "+JSON.stringify(ne));
+        // console.log("new Event : "+JSON.stringify(ne));
         // ajax
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -237,14 +255,14 @@
 
                 selectable: settingsCal.selectable,
                 editable: settingsCal.editable,
-                eventDidMount: function(info) {
-                    $(info.el).tooltip({
-                    title: info.event.title,
-                    placement: 'top',
-                    trigger: 'hover',
-                    container: 'body',
-                    });
-                },
+                // eventDidMount: function(info) {
+                //     $(info.el).tooltip({
+                //     title: info.event.title,
+                //     placement: 'top',
+                //     trigger: 'hover',
+                //     container: 'body',
+                //     });
+                // },
                 eventDrop: settingsCal.eventDrop,
                 eventResize: settingsCal.eventResize,
                 eventClick: settingsCal.eventClick,
@@ -262,6 +280,22 @@
                     resourceOrder: 'title',
                 filterResourcesWithEvents:settingsCal.filterResourcesWithEvents,
                 // -------------------------------
+                slotDuration: {
+                    "hours": 12
+                  },
+                  slotLabelInterval: {
+                    "hours": 24
+                  },
+                  slotLabelFormat: [{
+                      month: 'long',
+                      week: "short",
+                    }, // top level of text
+                    {
+                      weekday: 'narrow',
+                      day: 'numeric'
+              
+                    } // lower level of text
+                  ],
 
 
             }

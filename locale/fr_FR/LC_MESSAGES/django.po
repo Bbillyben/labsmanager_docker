@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 16:03+0200\n"
+"POT-Creation-Date: 2023-06-22 17:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -92,7 +92,7 @@ msgid "Stale Contract"
 msgstr "Contrat Périmé"
 
 #: dashboard/views.py:153 expense/models.py:117 expense/resources.py:20
-#: fund/resources.py:263 leave/models.py:38 leave/resources.py:83
+#: fund/resources.py:263 leave/models.py:47 leave/resources.py:83
 #: project/models.py:164 staff/models.py:23 staff/models.py:24
 #: staff/models.py:107 staff/models.py:170 staff/models.py:209
 #: templates/employee/employee_single.html:25
@@ -141,7 +141,7 @@ msgid "Description"
 msgstr "Description"
 
 #: dashboard/views.py:185 endpoints/models.py:19 fund/admin.py:248
-#: fund/models.py:192 labsmanager/mixin.py:130 leave/models.py:37
+#: fund/models.py:192 labsmanager/mixin.py:130 leave/models.py:46
 #: staff/models.py:106 templates/employee/employee_single.html:420
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
@@ -607,6 +607,22 @@ msgstr "Type de congé"
 msgid "Leave"
 msgstr "Congé"
 
+#: leave/models.py:37
+#, fuzzy
+#| msgid "Start"
+msgid "start"
+msgstr "Début"
+
+#: leave/models.py:38 leave/models.py:41
+msgid "midday"
+msgstr "mi-journée"
+
+#: leave/models.py:42
+#, fuzzy
+#| msgid "End"
+msgid "end"
+msgstr "Fin"
+
 #: leave/resources.py:24
 msgid "first_name"
 msgstr "Prénom"
@@ -799,7 +815,8 @@ msgstr "Tableau de bord périmé par le calcul"
 
 #: settings/models.py:743
 msgid "Number of previous month to get in stale scope from now"
-msgstr "Nombre de mois pour rentré dans l'état éventéNombre de mois précédents pour "
+msgstr ""
+"Nombre de mois pour rentré dans l'état éventéNombre de mois précédents pour "
 "considérer comme éventé à partir de maintenant.Nombre de mois précédent pour "
 "entrer dans le champs de péremption à partir de maintenant"
 
@@ -810,7 +827,8 @@ msgstr "Tableau de bord des éléments périmés"
 #: settings/models.py:749 settings/models.py:755 settings/models.py:761
 #: settings/models.py:768 settings/models.py:774
 msgid "Number of month to get in stale scope from now"
-msgstr "Nombre de mois pour considérer comme éventé à partir de maintenantNombre de "
+msgstr ""
+"Nombre de mois pour considérer comme éventé à partir de maintenantNombre de "
 "mois futur pour entrer dans le champs de péremption à partir de maintenant"
 
 #: settings/models.py:754
@@ -835,7 +853,9 @@ msgstr "Type de rapport sur la consommation des fonds"
 
 #: settings/models.py:781 settings/models.py:791
 msgid "Fund ratio consumption to report project in dahsboard"
-msgstr "Ratio de consommation de fonds pour rapporter le projet dans le tableau dahsboard"
+msgstr ""
+"Ratio de consommation de fonds pour rapporter le projet dans le tableau "
+"dahsboard"
 
 #: settings/models.py:790
 msgid "Fund ratio consumption threshold"
@@ -847,7 +867,8 @@ msgstr "Utiliser le projet Période de blocage pour la consommation"
 
 #: settings/models.py:797
 msgid "use Project Stale month scope period for under consommation calculation"
-msgstr "utiliser la période de la portée du mois du projet Stale pour le calcul de "
+msgstr ""
+"utiliser la période de la portée du mois du projet Stale pour le calcul de "
 "la sous-consommation"
 
 #: settings/models.py:802
