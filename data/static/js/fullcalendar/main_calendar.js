@@ -41,7 +41,11 @@ function initPrintCalendar(options){
         eventClick:null,
         select:null,
         useDatePicker:false,
-        headerToolbar:"",
+        headerToolbar: {
+            left: '',
+            center: 'title',
+            right: ''
+        },
 
     }
     calendar = $('#calendar-box').lab_calendar(option);
