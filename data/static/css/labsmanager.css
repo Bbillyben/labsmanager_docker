@@ -1322,7 +1322,7 @@ li.list-spacer{
   .fc-daygrid-day.fc-day-sat, .fc-daygrid-day.fc-day-sun {
     background-color: rgba(211, 211, 211, 0.322);
   } 
-  .fc-timeline-slot-lane.fc-day-today, .fc-daygrid-day.fc-day-today{
+  .fc-timeline-slot-lane.fc-day-today, .fc-timeline-slot-lane.fc-slot-today, .fc-daygrid-day.fc-day-today, .fc-daygrid-day.fc-slot-today{
     background-color: var(--primary-color-alpha) !important;
   }
 
