@@ -119,14 +119,14 @@ class LeaveTypeSerializer_tree(serializers.ModelSerializer):
 class LeaveSerializerBasic(serializers.ModelSerializer):
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'type', 'start_date', 'end_date',] 
+        fields = ['pk', 'employee', 'type', 'start_date','start_period', 'end_date','end_period',] 
         
 class LeaveSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many=False, read_only=True)
     type=LeaveTypeSerializer(many=False, read_only=True)
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'type', 'start_date', 'end_date',]  
+        fields = ['pk', 'employee', 'type', 'start_date','start_period', 'end_date','end_period',]  
 
 class LeaveSerializer1D(serializers.ModelSerializer):
     employee = serializers.CharField(source='employee.user_name')
@@ -137,25 +137,49 @@ class LeaveSerializer1D(serializers.ModelSerializer):
     end=serializers.DateField(source='end_date')
     title=serializers.SerializerMethodField()
     color= serializers.CharField(source='type.color')
-    days= serializers.CharField(source='open_days')
+    days= serializers.CharField(source='dayCount')
+    start_period_di=serializers.SerializerMethodField()
+    end_period_di=serializers.SerializerMethodField()
+    
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment', 'days']  
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start','start_period_di', 'end', 'end_period_di','title', 'color', 'comment', 'days']  
         
     def get_title(self,obj):
         return f'{obj.type.name} - {obj.employee.user_name}'
     
+    def get_start_period_di(self,obj):
+        return obj.get_start_period_display()
+    def get_end_period_di(self,obj):
+        return obj.get_end_period_display()
     
 class LeaveSerializer1DCal(LeaveSerializer1D):
     end=serializers.SerializerMethodField()
     resourceId= serializers.CharField(source='employee.pk')
+    start_period_di=serializers.SerializerMethodField()
+    end_period_di=serializers.SerializerMethodField()
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'end', 'title', 'color', 'comment','resourceId',]  
-        
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'start_period_di', 'end', 'end_period_di', 'title', 'color', 'comment','resourceId',]  
+    
+    def get_start(self,obj):
+        st= obj.start_date.isoformat()
+        if obj.start_period == "MI":
+            st = st +" 12:00"
+        return st
     
     def get_end(self,obj):
-        return obj.end_date +timedelta(days=1)
+        ed=datetime.combine(obj.end_date ,datetime.min.time())
+        ed = ed +timedelta(days=1)
+        if obj.end_period == "MI":
+            ed = ed + timedelta(hours=-12)
+        return ed
+    
+    
+    
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    For calendar 
 class EmployeeSerialize_Cal(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)

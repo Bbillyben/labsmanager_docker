@@ -240,6 +240,11 @@ function adminActionLeave(value, row, index, field){
     return action;
 }
 
-// ----------------------  table Team  ------------------- //
+// ----------------------  Formatter  ------------------- //
 
-
+function calDateFormatter(value, row, index, field){
+    if(value == null || value =="")return value
+    d=new Date(value)
+    if (d == "Invalid Date" )return value;
+    return d.toLocaleDateString() + " - "+ row[field+"_period_di"]
+}

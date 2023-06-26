@@ -48,7 +48,9 @@ class LeaveItemResources(labResource):
                       'last_name', 
                       'type',
                       'start_date',
+                      'start_period',
                       'end_date',
+                      'end_period',
                       'comment',
                       ]
 
@@ -99,6 +101,8 @@ class LeaveItemAdminResources(labResource):
                       'employee', 
                       'type',
                       'start_date',
+                      'start_period',
                       'end_date',
+                      'end_period',
                       'comment',
                       ]

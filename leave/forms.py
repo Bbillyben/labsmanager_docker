@@ -10,7 +10,7 @@ from labsmanager.forms import DateInput,ColorInput
 class LeaveItemModelForm(BSModalModelForm):
     class Meta:
         model = models.Leave
-        fields = ['employee', 'type','start_date','end_date', 'comment', ]
+        fields = ['employee', 'type','start_date','start_period', 'end_date', 'end_period', 'comment', ]
         widgets = {
             'start_date': DateInput(),
             'end_date': DateInput(),
