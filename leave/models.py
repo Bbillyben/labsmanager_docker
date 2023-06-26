@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q, F
+from django.core.exceptions import ValidationError
 
 from labsmanager.mixin import ActiveDateMixin
 from mptt.models import MPTTModel, TreeForeignKey
@@ -71,7 +72,11 @@ class Leave(ActiveDateMixin):
             e=0.5
         return num_open-s-e
         
-    
+    def clean(self):
+        super().clean()
+        if self.start_date == self.end_date and self.start_period == self.end_period:
+            raise ValidationError(_('On the same day leave can not start and end at the same period'))
+        
     def __str__(self):
         return f'{self.employee} - {self.type}'
     
