@@ -69,7 +69,6 @@ class Leave(ActiveDateMixin):
             s=0.5
         if self.end_period == "MI":
             e=0.5
-        print(str(num_open-s-e)+"  / "+str(self.start_period) + " - "+str(s)+" / "+str(e))
         return num_open-s-e
         
     

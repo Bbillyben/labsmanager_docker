@@ -89,11 +89,5 @@ def get_filter_lists( *args, **kwargs):
 @register.simple_tag()
 def get_faIcon(*args, **kwargs):
     from faicon import widgets
-    print(" get_faIcon")
-    print(" - args :"+str(args))
-    print(" - kwargs :"+str(kwargs))
     icon=args[0]
-    # icon=widgets.parse_icon(str(obj.icon))
-    # if isinstance(icon, widgets.Icon):
-    #     return icon.icon_html()
     return icon.icon_html()

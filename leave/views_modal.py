@@ -34,7 +34,6 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
             initial['employee']=employee
         
         start_date=data.get("start_date", None)
-        print("############### strart date :"+start_date)
         if start_date is not None:
             d=start_date.split("T")
             start_date=d[0]
