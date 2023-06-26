@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 17:53+0200\n"
+"POT-Creation-Date: 2023-06-26 11:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,7 +93,7 @@ msgid "Stale Contract"
 msgstr ""
 
 #: dashboard/views.py:153 expense/models.py:117 expense/resources.py:20
-#: fund/resources.py:263 leave/models.py:47 leave/resources.py:83
+#: fund/resources.py:263 leave/models.py:48 leave/resources.py:85
 #: project/models.py:164 staff/models.py:23 staff/models.py:24
 #: staff/models.py:107 staff/models.py:170 staff/models.py:209
 #: templates/employee/employee_single.html:25
@@ -142,7 +142,7 @@ msgid "Description"
 msgstr ""
 
 #: dashboard/views.py:185 endpoints/models.py:19 fund/admin.py:248
-#: fund/models.py:192 labsmanager/mixin.py:130 leave/models.py:46
+#: fund/models.py:192 labsmanager/mixin.py:130 leave/models.py:47
 #: staff/models.py:106 templates/employee/employee_single.html:420
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
@@ -288,7 +288,7 @@ msgstr ""
 msgid "value Date"
 msgstr ""
 
-#: expense/models.py:107 fund/models.py:36 leave/models.py:26
+#: expense/models.py:107 fund/models.py:36 leave/models.py:27
 msgid "Type name"
 msgstr ""
 
@@ -373,7 +373,7 @@ msgstr ""
 msgid "If A Contract is turn inactive, it should have a end Dat "
 msgstr ""
 
-#: fund/models.py:35 leave/models.py:25 staff/models.py:131
+#: fund/models.py:35 leave/models.py:26 staff/models.py:131
 msgid "Abbreviation"
 msgstr ""
 
@@ -483,7 +483,7 @@ msgid "Total Available"
 msgstr ""
 
 #: fund/resources.py:20 fund/resources.py:125 leave/resources.py:35
-#: leave/resources.py:77
+#: leave/resources.py:79
 msgid "type"
 msgstr ""
 
@@ -584,25 +584,37 @@ msgstr ""
 msgid "Focus Expense"
 msgstr ""
 
-#: leave/models.py:18 settings/views.py:109
+#: leave/models.py:19 settings/views.py:109
 msgid "Leave Type"
 msgstr ""
 
-#: leave/models.py:34 templates/employee/employee_sidebar.html:19
+#: leave/models.py:35 templates/employee/employee_sidebar.html:19
 #: templates/team/team_sidebar.html:5
 msgid "Leave"
 msgstr ""
 
-#: leave/models.py:37
+#: leave/models.py:38
 msgid "start"
 msgstr ""
 
-#: leave/models.py:38 leave/models.py:41
+#: leave/models.py:39 leave/models.py:42
 msgid "midday"
 msgstr ""
 
-#: leave/models.py:42
+#: leave/models.py:43
 msgid "end"
+msgstr ""
+
+#: leave/models.py:51
+msgid "Start Period"
+msgstr ""
+
+#: leave/models.py:57
+msgid "End Period"
+msgstr ""
+
+#: leave/models.py:80
+msgid "On the same day leave can not start and end at the same period"
 msgstr ""
 
 #: leave/resources.py:24

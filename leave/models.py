@@ -48,11 +48,13 @@ class Leave(ActiveDateMixin):
     employee=models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
     
     start_period=models.CharField(
+        verbose_name=_('Start Period'),
         max_length=2,
         choices=start_choices,
         default="ST",
     )
     end_period=models.CharField(
+        verbose_name=_('End Period'),
         max_length=2,
         choices=end_choices,
         default="EN",
