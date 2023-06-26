@@ -252,7 +252,7 @@
                         extraParams:getExtraSetting,
                     },
                 resourceGroupField:"employee",
-
+                resourceAreaWidth:"10%",
                 selectable: settingsCal.selectable,
                 editable: settingsCal.editable,
                 // eventDidMount: function(info) {
@@ -271,7 +271,7 @@
                 resourceLabelContent : function(renderInfo ) {
                     htmlRes=renderInfo.fieldValue
                     if(USER_PERMS.includes("staff.view_employee")){
-                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to employee'><i type = 'button' class='fa-regular fa-circle-right text-info'></i></a></sup>"; 
+                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to employee'><i type = 'button' class='fa-regular fa-circle-right d-print-none text-info'></i></a></sup>"; 
                     } 
                     //htmlRes+="</span>"
                     
@@ -291,11 +291,12 @@
                       week: "short",
                     }, // top level of text
                     {
-                      weekday: 'narrow',
+                      weekday: 'short',
                       day: 'numeric'
               
                     } // lower level of text
                   ],
+                  
 
 
             }

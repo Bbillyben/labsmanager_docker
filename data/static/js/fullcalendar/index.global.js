@@ -15075,7 +15075,14 @@ var FullCalendar = (function (exports) {
         });
     }
 
-    var css_248z$2 = ".fc .fc-event,.fc .fc-scrollgrid table tr{-moz-column-break-inside:avoid;break-inside:avoid}.fc-media-print{display:block;max-width:100%}.fc-media-print .fc-bg-event,.fc-media-print .fc-non-business,.fc-media-print .fc-timegrid-axis-chunk,.fc-media-print .fc-timegrid-slots,.fc-media-print .fc-timeline-slots{display:none}.fc-media-print .fc-h-event,.fc-media-print .fc-toolbar button,.fc-media-print .fc-v-event{background:#fff!important;color:#000!important}.fc-media-print .fc-event,.fc-media-print .fc-event-main{color:#000!important}.fc-media-print .fc-timegrid-event{margin:.5em 0}";
+    var css_248z$2 = ".fc .fc-event,.fc .fc-scrollgrid table tr{-moz-column-break-inside:avoid;break-inside:avoid}\
+    .fc-media-print{display:block;max-width:100%}\
+    .fc-media-print .fc-bg-event,.fc-media-print .fc-non-business, .fc-media-print .fc-timegrid-axis-chunk {display:none}\
+    .fc-media-print .fc-timegrid-event{margin:.5em 0}\
+    .fc-media-print .fc-timeline-slot-lane.fc-day-today, .fc-media-print .fc-timeline-slot-lane.fc-slot-today, .fc-media-print .fc-daygrid-day.fc-day-today, .fc-media-print .fc-daygrid-day.fc-slot-today{background: none !important;}\
+    .fc-media-print .fc-timeline-slot-minor {border-left:0 !important}";
+    //    /*.fc-media-print .fc-bg-event,.fc-media-print .fc-non-business,.fc-media-print .fc-timegrid-axis-chunk,.fc-media-print .fc-timegrid-slots,.fc-media-print .fc-timeline-slots {display:none}    .fc-media-print .fc-h-event,.fc-media-print .fc-toolbar button,.fc-media-print .fc-v-event{background:#fff!important;color:#000!important}   .fc-media-print .fc-event,.fc-media-print .fc-event-main{color:#000!important}\  .fc-media-print .fc-timegrid-event{margin:.5em 0} */\
+
     injectStyles(css_248z$2);
 
     var index$5 = createPlugin({
