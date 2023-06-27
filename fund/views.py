@@ -129,7 +129,7 @@ class RecetteGraphView(LoginRequiredMixin, View):
 class FundFinderView(BaseBreadcrumbMixin, TemplateView):
     
     template_name = "fund/fund_finder.html"
-    crumbs = [("Fund Finder","fund finder")]
+    crumbs = [(_("Fund Finder"),"fund finder")]
     
         
     

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-26 11:37+0200\n"
+"POT-Creation-Date: 2023-06-27 12:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -96,6 +96,7 @@ msgstr ""
 #: fund/resources.py:263 leave/models.py:48 leave/resources.py:85
 #: project/models.py:164 staff/models.py:23 staff/models.py:24
 #: staff/models.py:107 staff/models.py:170 staff/models.py:209
+#: staff/views.py:29 staff/views.py:45
 #: templates/employee/employee_single.html:25
 #: templates/expense/contract_table.html:30 templates/fund/budget_table.html:43
 #: templates/fund/contrib_table.html:41 templates/labmanager/index.html:44
@@ -436,7 +437,7 @@ msgstr ""
 msgid "employee type"
 msgstr ""
 
-#: fund/models.py:197
+#: fund/models.py:197 staff/views.py:29
 msgid "employee"
 msgstr ""
 
@@ -904,13 +905,18 @@ msgstr ""
 msgid "User Attached"
 msgstr ""
 
-#: staff/admin.py:62 staff/ressources.py:65 staff/ressources.py:160
+#: staff/admin.py:62 staff/models.py:28 staff/ressources.py:65
+#: staff/ressources.py:160
 msgid "First Name"
 msgstr ""
 
 #: staff/forms.py:73
 #, python-format
 msgid "End Date (%s) should be later than start date (%s) "
+msgstr ""
+
+#: staff/models.py:29 staff/ressources.py:71 staff/ressources.py:166
+msgid "Last Name"
 msgstr ""
 
 #: staff/models.py:31 staff/ressources.py:77 staff/ressources.py:172
@@ -927,6 +933,12 @@ msgstr ""
 #: staff/models.py:34 staff/ressources.py:190
 #: templates/staff/employee_desc_table.html:21
 msgid "Email"
+msgstr ""
+
+#: staff/models.py:35 templates/expense/contract_table.html:55
+#: templates/fund/budget_table.html:53 templates/fund/contrib_table.html:51
+#: templates/fund/fund_finder.html:87
+msgid "Is Active"
 msgstr ""
 
 #: staff/models.py:108
@@ -963,10 +975,6 @@ msgstr ""
 
 #: staff/models.py:189
 msgid "Is Team leader"
-msgstr ""
-
-#: staff/ressources.py:71 staff/ressources.py:166
-msgid "Last Name"
 msgstr ""
 
 #: staff/ressources.py:102
@@ -1235,11 +1243,6 @@ msgstr ""
 
 #: templates/expense/contract_item_expense.html:6
 msgid "Contract Expenses"
-msgstr ""
-
-#: templates/expense/contract_table.html:55 templates/fund/budget_table.html:53
-#: templates/fund/contrib_table.html:51 templates/fund/fund_finder.html:87
-msgid "Is Active"
 msgstr ""
 
 #: templates/expense/expense_timepoint.html:6

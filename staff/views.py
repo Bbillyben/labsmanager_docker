@@ -26,7 +26,7 @@ class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'employee/employee_base.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Employee
-    crumbs = [("Employee","employee")]
+    crumbs = [(_("Employee"),_("employee"))]
 
 
 
@@ -42,7 +42,7 @@ class EmployeeView(LoginRequiredMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  T
 
     @cached_property
     def crumbs(self):
-        return [("Employee","./",) ,
+        return [(_("Employee"),"./",) ,
                 (str(self.construct_crumb()) ,  ("A1","L1")),
                 ]
 
@@ -216,7 +216,7 @@ class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'team/team_base.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Team
-    crumbs = [("Teams","teams")]
+    crumbs = [(_("Teams"),"teams")]
     
     
 
@@ -231,7 +231,7 @@ class TeamView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin ,  Templa
     
     @cached_property
     def crumbs(self):
-        return [("Team","./",) ,
+        return [(_("Team"),"./",) ,
                 (str(self.construct_crumb()) ,  reverse("team_index" ) ),
                 ]
 

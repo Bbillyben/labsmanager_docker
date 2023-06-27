@@ -26,7 +26,7 @@ from dashboard import utils
 class DashboardView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     """View for index page."""
     template_name = 'dashboard/global_dashboard.html' #'labmanager/index.html
-    crumbs = [("Dashboard","dashboard")]
+    crumbs = [(_("Dashboard"),"dashboard")]
     
 class FundLossView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
     

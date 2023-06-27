@@ -25,14 +25,14 @@ class Employee(models.Model):
         ordering = ['first_name']
 
     """Model for employee"""
-    first_name=models.CharField(max_length=40, blank=False, null=False)
-    last_name=models.CharField(max_length=40, blank=False, null=False)
+    first_name=models.CharField(max_length=40, blank=False, null=False, verbose_name=_('First Name'))
+    last_name=models.CharField(max_length=40, blank=False, null=False, verbose_name=_('Last Name'))
     user = models.OneToOneField(User, null=True, blank=True, on_delete=models.CASCADE, verbose_name=_('User'))
     birth_date = models.DateField(null=True, blank=True, verbose_name=_('Birth Date'))
     entry_date = models.DateField(null=True, blank=True, verbose_name=_('Entry Date'))
     exit_date = models.DateField(null=True, blank=True, verbose_name=_('Exit Date'))
     email = models.EmailField(null=True, blank=True, verbose_name=_('Email'))
-    is_active=models.BooleanField(default=True, null=False)
+    is_active=models.BooleanField(default=True, null=False, verbose_name=_('Is Active'))
     history = AuditlogHistoryField()
     
     @property

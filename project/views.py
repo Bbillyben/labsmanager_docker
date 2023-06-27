@@ -22,7 +22,7 @@ from labsmanager.mixin import CrumbListMixin
 class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_base.html'
     model = Project
-    crumbs = [("Project","project")]
+    crumbs = [(_("Project"),"project")]
     
     
     
@@ -37,7 +37,7 @@ class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, Templ
     
     @cached_property
     def crumbs(self):
-        return [("Project","./",) ,
+        return [(_("Project"),"./",) ,
                 (str(self.construct_crumb()) ,  reverse("project_single", kwargs={'pk':'4'} ) ),
                 ]
 

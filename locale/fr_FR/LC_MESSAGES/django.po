@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-26 11:37+0200\n"
+"POT-Creation-Date: 2023-06-27 12:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -95,6 +95,7 @@ msgstr "Contrat Périmé"
 #: fund/resources.py:263 leave/models.py:48 leave/resources.py:85
 #: project/models.py:164 staff/models.py:23 staff/models.py:24
 #: staff/models.py:107 staff/models.py:170 staff/models.py:209
+#: staff/views.py:29 staff/views.py:45
 #: templates/employee/employee_single.html:25
 #: templates/expense/contract_table.html:30 templates/fund/budget_table.html:43
 #: templates/fund/contrib_table.html:41 templates/labmanager/index.html:44
@@ -438,7 +439,7 @@ msgstr "Fond"
 msgid "employee type"
 msgstr "Type d'employé"
 
-#: fund/models.py:197
+#: fund/models.py:197 staff/views.py:29
 msgid "employee"
 msgstr "Employé"
 
@@ -633,7 +634,9 @@ msgstr "Période de Fin"
 
 #: leave/models.py:80
 msgid "On the same day leave can not start and end at the same period"
-msgstr "Le même jour, le congé ne peut pas commencer et se terminer à la même période."
+msgstr ""
+"Le même jour, le congé ne peut pas commencer et se terminer à la même "
+"période."
 
 #: leave/resources.py:24
 msgid "first_name"
@@ -943,7 +946,8 @@ msgstr "Info Generic"
 msgid "User Attached"
 msgstr "Utilisateur lié"
 
-#: staff/admin.py:62 staff/ressources.py:65 staff/ressources.py:160
+#: staff/admin.py:62 staff/models.py:28 staff/ressources.py:65
+#: staff/ressources.py:160
 msgid "First Name"
 msgstr "Prénom"
 
@@ -951,6 +955,10 @@ msgstr "Prénom"
 #, python-format
 msgid "End Date (%s) should be later than start date (%s) "
 msgstr "La date de fin (%s) doit être postérieure à la date de début (%s) "
+
+#: staff/models.py:29 staff/ressources.py:71 staff/ressources.py:166
+msgid "Last Name"
+msgstr "Nom"
 
 #: staff/models.py:31 staff/ressources.py:77 staff/ressources.py:172
 #: templates/staff/employee_desc_table.html:16
@@ -967,6 +975,12 @@ msgstr "Date de Sortie"
 #: templates/staff/employee_desc_table.html:21
 msgid "Email"
 msgstr "Email"
+
+#: staff/models.py:35 templates/expense/contract_table.html:55
+#: templates/fund/budget_table.html:53 templates/fund/contrib_table.html:51
+#: templates/fund/fund_finder.html:87
+msgid "Is Active"
+msgstr "Est Actif"
 
 #: staff/models.py:108
 msgid "Contractual"
@@ -1003,10 +1017,6 @@ msgstr "Equipier"
 #: staff/models.py:189
 msgid "Is Team leader"
 msgstr "Est chef d'équipe"
-
-#: staff/ressources.py:71 staff/ressources.py:166
-msgid "Last Name"
-msgstr "Nom"
 
 #: staff/ressources.py:102
 msgid "Status Start Date"
@@ -1279,11 +1289,6 @@ msgstr "Ajout Contrat"
 #: templates/expense/contract_item_expense.html:6
 msgid "Contract Expenses"
 msgstr "Dépense de Contrat"
-
-#: templates/expense/contract_table.html:55 templates/fund/budget_table.html:53
-#: templates/fund/contrib_table.html:51 templates/fund/fund_finder.html:87
-msgid "Is Active"
-msgstr "Est Actif"
 
 #: templates/expense/expense_timepoint.html:6
 msgid "Expense Timepoint"

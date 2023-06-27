@@ -15,7 +15,7 @@ class ContractIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'expense/contract_base.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Contract
-    crumbs = [("Contracts","contracts")]
+    crumbs = [(_("Contracts"),"contracts")]
     
 
 
