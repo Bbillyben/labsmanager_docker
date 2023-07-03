@@ -9,6 +9,9 @@
 {% trans "User Settings" as text %}
 {% include "sidebar_header.html" with text=text icon='fa-user-cog' %}
 
+{% trans "Common Settings" as text %}
+{% include "sidebar_item.html" with label='common' text=text icon="fa-message" %}
+
 {% trans "Dashboard Settings" as text %}
 {% include "sidebar_item.html" with label='dashboard' text=text icon="fa-gauge" %}
 

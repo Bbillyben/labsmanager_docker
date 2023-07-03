@@ -11,11 +11,13 @@ from fund.models import Cost_Type, Fund_Institution
 from staff.models import Employee_Type, GenericInfoType
 from project.models import Institution, GenericInfoTypeProject
 
+from common.models import favorite, subscription
+
 class SettingsView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'settings/settings.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = LMUserSetting
-    crumbs = [("Settings","settings")]
+    crumbs = [(_("Settings"),"settings")]
     
 class SettingList_cost_type(LoginRequiredMixin, TemplateView):
     template_name = 'settings/setting_table.html'
@@ -232,5 +234,33 @@ class SettingList_GenericInfoProject(LoginRequiredMixin, TemplateView):
             context["action"]["add"] = reverse('add_genericinfotypeproject')
         if request.user.is_staff :
             context["action"]["admin"] = 'admin:project_genericinfotypeproject_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+    
+    
+    
+class Subscription_List(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = subscription
+    
+    def get(self,request):
+        # print("[Subscription_List] - get")
+        context={
+            'url':reverse_lazy("api:subscription-current_user"),
+            'title':_('Subscriptions'),
+            'columns':[
+                {'name':_('User'),'item':'user.username',},
+                {'name':_('Type'),'item':'content_type.modelname',},
+                {'name':_('Item'),'item':'object_name',},
+            ], 
+            'action':{
+            },
+            'options':{
+            },         
+        }
+        if request.user.has_perm("common.delete_subscription"):
+            context["action"]["delete"] = "delete_subscription"
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:common_subscription_change'
         
         return render(request=request,template_name=self.template_name,context=context)

@@ -192,11 +192,16 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Common
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from django.apps import apps
+
 class ContentTypeSerialize(serializers.ModelSerializer):
+    modelname=serializers.SerializerMethodField()
     class Meta:
         model = ContentType
-        fields = ['id', 'app_label', 'model',] 
-
+        fields = ['id', 'app_label', 'model', 'modelname',] 
+        
+    def get_modelname(self,obj):
+        return apps.get_model(obj.app_label, obj.model)._meta.verbose_name.title()
     
 class FavoriteSerialize(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)

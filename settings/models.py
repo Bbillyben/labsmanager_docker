@@ -804,6 +804,23 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': '0.2',
             'validator': [DecimalValidator(max_digits=2, decimal_places=2) ],
         },
+        'NOTIFCATION_STATUS': {
+            'name': _('E-Mail Notification'),
+            'description': _('enable automatic mail notification'),
+            'default': True,
+            'validator': bool,
+        },
+        'NOTIFCATION_FREQ': {
+            'name': _('Notification frequency'),
+            'description': _('frequency wanted for notice transmission'),
+            'default': 'weekly',
+            'choices': [
+                ('dayli', _('dayli')),
+                ('weekly', _('weekly')),
+                ('fortnightly', _('fortnightly')),
+                ('monthly', _('monthly'))
+            ],
+        },
         
     }
     class Meta:

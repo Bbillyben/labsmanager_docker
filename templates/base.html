@@ -139,6 +139,7 @@
 <script type='text/javascript' src="{% static 'js/labsmanager/filters.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager/calendar.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager/favorites.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/subscription.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager/panel_collapse.js' %}"></script>
 
@@ -161,8 +162,9 @@
         
 
         initialiseCollapsePanel();  
-        loadInTemplate($('#favorites'), '{% url "nav_favorites"%}')
-        initFavorites()
+        loadInTemplate($('#favorites'), '{% url "nav_favorites"%}');
+        initFavorites();
+        initSubscription();
     })
 
     
