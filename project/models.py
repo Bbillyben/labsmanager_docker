@@ -12,7 +12,8 @@ from dashboard import utils
 
 from labsmanager.mixin import ActiveDateMixin
 from faicon.fields import FAIconField
-
+import datetime
+import decimal
 import logging
 logger = logging.getLogger('labsmanager')
 
@@ -105,6 +106,26 @@ class Project(ActiveDateMixin):
     def contribution_amount(self):
         from fund.models import Contribution
         return Contribution.objects.filter(fund__project=self.pk).aggregate(Sum('amount'))["amount__sum"]
+    
+    def get_consumption_ratio(self):
+        amount = self.get_funds_amount
+        expense = self.get_funds_expense
+        
+        if amount != 0:
+            return abs(expense/amount)
+        else:
+            return "-"
+    
+    def get_advancement_ratio(self):
+
+        amount = self.get_funds_amount
+        expense = self.get_funds_expense
+        if amount == 0:
+            return "-"
+        
+        date_ratio = decimal.Decimal((datetime.datetime.now().date()-self.start_date) / (self.end_date-self.start_date))
+        return abs(expense)/(amount*date_ratio)
+        
     
     @classmethod
     def staleFilter(cls):

@@ -63,7 +63,11 @@ def send_email(subject, body, recipients, from_email=None, html_message=None):
     )
     return response
 
-
+def get_choiceitem(choices, value):
+    for el in choices:
+        if el[0] == value:
+            return el[1]
+    return None
 
 # test if 2 date interval overlap
 from datetime import datetime

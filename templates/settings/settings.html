@@ -17,6 +17,9 @@
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Settings' %}
 
+
+{% include "settings/common_settings.html" %}
+
 {% include "settings/dashboard_settings.html" %}
 {% include "settings/stale_calculation_settings.html" %}
 

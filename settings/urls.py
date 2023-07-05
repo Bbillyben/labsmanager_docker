@@ -11,5 +11,10 @@ urlpatterns = [
     path('setting_employee_type', views.SettingList_Employee_Type.as_view(), name='setting_employee_type'),
     path('setting_genericinfo_type', views.SettingList_GenericInfo.as_view(), name='setting_genericinfo_type'),
     path('setting_genericinfoproject_type', views.SettingList_GenericInfoProject.as_view(), name='setting_genericinfoproject_type'),
+    
+    
+    path('subscriptions_setting', views.Subscription_List.as_view(), name='subscriptions_setting'),
+    path('favorites_setting', views.Favorite_List.as_view(), name='favorite_setting'),
+    
 ]
 

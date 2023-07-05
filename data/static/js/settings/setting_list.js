@@ -1,10 +1,14 @@
 function settingListActionFormatter(value, row, index, field){
     actions = ""
     if(this.urladmin != undefined && this.urladmin!="" && this.urladmin!='None'){
-        actions += "<a href='"+Urls[this.urladmin](row.pk)+"'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
+        actions += "<a href='"+Urls[this.urladmin](row.pk)+"'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>";
     }
     if(this.urlupdate != undefined && this.urlupdate!="" && this.urlupdate!='None'){
         actions += "<button class='icon edit btn btn-success' data-form-url='"+Urls[this.urlupdate](row.pk)+"' ><i type = 'button' class='fas fa-edit'></i></button>";
+    }
+    
+    if(this.urldelete != undefined && this.urldelete!="" && this.urldelete!='None'){
+        actions += "<button class='icon delete btn btn-danger' data-form-url='" + Urls[this.urldelete](row.pk) + "' ><i type = 'button' class='fas fa-trash'></i></button>";
     }
     return actions;
 }

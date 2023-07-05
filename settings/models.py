@@ -733,8 +733,12 @@ class LabsManagerSetting(BaseLabsManagerSetting):
     def to_native_value(self):
         """Return the "pythonic" value, e.g. convert "True" to True, and "1" to 1."""
         return self.__class__.get_setting(self.key)
-    
 
+def checkNotif(lmu):   
+    print(f'object : {lmu} for user : {lmu.user}')
+    from common.tasks import checkuser_notification_tasks 
+    checkuser_notification_tasks(lmu.user)
+    
 class LMUserSetting(BaseLabsManagerSetting):
     
     SETTINGS = {
@@ -803,6 +807,25 @@ class LMUserSetting(BaseLabsManagerSetting):
             'description': _('margin in % to identifyed deviation in budget consumption from linear ratio'),
             'default': '0.2',
             'validator': [DecimalValidator(max_digits=2, decimal_places=2) ],
+        },
+        'NOTIFCATION_STATUS': {
+            'name': _('E-Mail Notification'),
+            'description': _('enable automatic mail notification'),
+            'default': True,
+            'validator': bool,
+            'after_save': checkNotif,
+        },
+        'NOTIFCATION_FREQ': {
+            'name': _('Notification frequency'),
+            'description': _('frequency wanted for notice transmission'),
+            'default': '3 5 * * 5',
+            'choices': [
+                ('3 5 * * *', _('dayli')),
+                ('3 5 * * 5', _('weekly')),
+                ('3 5 1,15 * *', _('fortnightly')),
+                ('3 5 1 * *', _('monthly'))
+            ],
+            'after_save': checkNotif,
         },
         
     }

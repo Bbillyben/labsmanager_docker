@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponse
 
-from .models import favorite
+from .models import favorite, subscription
 from labsmanager.serializers import FavoriteSerialize
 from django.contrib.contenttypes.models import ContentType
 # Create your views here.
@@ -67,3 +67,38 @@ def toggle_favorites(request):
         
     return render(request, 'favorite_star.html', data)
     
+    
+##### For Subscription ####
+def get_user_subscription_obj(request):
+    if request.method != 'POST' or request.POST.get('type', None) == None:
+        return HttpResponse("okoko", 400)
+    type=request.POST.get('type', "").split('.')
+    pk=request.POST.get('pk')
+    
+    ct= ContentType.objects.get(app_label=type[0], model=type[1])
+    sub=subscription.objects.filter(user=request.user, content_type=ct, object_id=pk)
+    return render(request, 'subscription_bell.html', {"sub":sub})
+
+
+def toggle_subscription(request):
+    if request.method != 'POST':
+        return HttpResponse("erreur send method", 400)
+    type=request.POST.get('type').split('.')
+    pk=request.POST.get('pk')
+    
+    ct= ContentType.objects.get(app_label=type[0], model=type[1])
+    sub=subscription.objects.filter(user=request.user, content_type=ct, object_id=pk)
+    
+    data={'sub':0}
+    if sub:
+        sub.delete()
+    else:
+        s=subscription(user=request.user,
+                   content_type=ct,
+                    object_id=pk
+                   )
+        s.save()
+        data={'sub':s}
+        
+        
+    return render(request, 'subscription_bell.html', data)

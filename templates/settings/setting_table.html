@@ -28,10 +28,11 @@
                     {{c.name}}
                 </th>
                 {% endfor %}
-                {% if  action.update or action.admin %}
-                 <th data-sortable="true" 
+                {% if  action.update or action.delete or action.admin %}
+                 <th data-sortable="false" 
                  class="th-inner sortable both" 
                  data-urlupdate="{{action.update}}"
+                 data-urldelete="{{action.delete}}"
                  data-urladmin="{{action.admin}}"
                  data-formatter="settingListActionFormatter"
                  >

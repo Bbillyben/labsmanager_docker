@@ -11,3 +11,16 @@ class favorite(models.Model):
     content_type = models.ForeignKey(ContentType, related_name="content_type_favorite", on_delete=models.CASCADE, )
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
+    
+    
+    def __str__(self):
+        return f"{self.user.username} : {self.content_object.__str__()}"
+
+class subscription(models.Model):
+    user = models.ForeignKey(User, null=False, blank=False, on_delete=models.CASCADE, verbose_name=_('User'))
+    content_type = models.ForeignKey(ContentType, related_name="content_type_subscription", on_delete=models.CASCADE, )
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    def __str__(self):
+        return f"{self.user.username} : {self.content_object.__str__()}"
