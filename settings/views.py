@@ -244,14 +244,13 @@ class Subscription_List(LoginRequiredMixin, TemplateView):
     model = subscription
     
     def get(self,request):
-        # print("[Subscription_List] - get")
         context={
             'url':reverse_lazy("api:subscription-current_user"),
             'title':_('Subscriptions'),
             'columns':[
-                {'name':_('User'),'item':'user.username',},
-                {'name':_('Type'),'item':'content_type.modelname',},
-                {'name':_('Item'),'item':'object_name',},
+                #{'name':_('User'),'item':'user.username',},
+                {'name':_('Type'),'item':'content_type.modelname','formatter':'subsTypeIconFormatter',},
+                {'name':_('Item'),'item':'object_name','formatter':'subObjectUrlFormatter',},
             ], 
             'action':{
             },
@@ -262,5 +261,29 @@ class Subscription_List(LoginRequiredMixin, TemplateView):
             context["action"]["delete"] = "delete_subscription"
         if request.user.is_staff :
             context["action"]["admin"] = 'admin:common_subscription_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+
+class Favorite_List(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = favorite
+    def get(self,request):
+        context={
+            'url':reverse_lazy("api:favorite-current_user"),
+            'title':_('Favorites'),
+            'columns':[
+                #{'name':_('User'),'item':'user.username',},
+                {'name':_('Type'),'item':'content_type.modelname','formatter':'subsTypeIconFormatter',},
+                {'name':_('Item'),'item':'object_name','formatter':'subObjectUrlFormatter',},
+            ], 
+            'action':{
+            },
+            'options':{
+            },         
+        }
+        if request.user.has_perm("common.delete_favorite"):
+            context["action"]["delete"] = "delete_favorite"
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:common_favorite_change'
         
         return render(request=request,template_name=self.template_name,context=context)

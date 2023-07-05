@@ -17,6 +17,13 @@ class favoriteViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.FavoriteSerialize
     permission_classes = [permissions.IsAuthenticated]
     
+    @action(methods=['get'], detail=False, url_path='current_user', url_name='current_user')
+    def genericinfotype(self, request):
+        
+        sub=favorite.objects.filter(user=request.user).order_by("content_type")
+        
+        return JsonResponse(serializers.FavoriteSerialize(sub, many=True).data, safe=False)
+    
     
 class subscriptionViewSet(viewsets.ModelViewSet):
     queryset = subscription.objects.select_related('user').all()
@@ -27,6 +34,6 @@ class subscriptionViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='current_user', url_name='current_user')
     def genericinfotype(self, request):
         
-        sub=subscription.objects.filter(user=request.user)
+        sub=subscription.objects.filter(user=request.user).order_by("content_type")
         
         return JsonResponse(serializers.FavoriteSerialize(sub, many=True).data, safe=False)

@@ -813,12 +813,12 @@ class LMUserSetting(BaseLabsManagerSetting):
         'NOTIFCATION_FREQ': {
             'name': _('Notification frequency'),
             'description': _('frequency wanted for notice transmission'),
-            'default': 'weekly',
+            'default': '3 5 * * 5',
             'choices': [
-                ('dayli', _('dayli')),
-                ('weekly', _('weekly')),
-                ('fortnightly', _('fortnightly')),
-                ('monthly', _('monthly'))
+                ('3 5 * * *', _('dayli')),
+                ('3 5 * * 5', _('weekly')),
+                ('3 5 1,15 * *', _('fortnightly')),
+                ('3 5 1 * *', _('monthly'))
             ],
         },
         

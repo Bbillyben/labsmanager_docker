@@ -8,6 +8,11 @@ import math
 import uuid
 register = template.Library()
 
+
+@register.simple_tag
+def setvar(val=None):
+  return val
+
 @register.simple_tag(takes_context=True)
 def isUserTeamLeader(context, dynvarname):
     """ Returns the value of dynvarname into the context """
@@ -17,8 +22,9 @@ def isUserTeamLeader(context, dynvarname):
 @register.simple_tag(takes_context=True)
 def quotityFormat(context, dynvarname):
     """ Returns the value of dynvarname into the context """
-    
-    if dynvarname != None:
+    if isinstance(dynvarname, str) and not dynvarname.isnumeric():
+         html="-"
+    elif dynvarname != None:
         val = "{0:.0%}".format(dynvarname)
         if dynvarname > 1:
             html="<div class='warning-quotity'>"+val+"</div>"

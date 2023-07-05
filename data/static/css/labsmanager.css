@@ -456,6 +456,10 @@ main {
     font-size: 125%;
 }
 
+.icon-inline {
+    margin-right: 1em;
+}
+
 .part-properties > span {
     padding-left: 5px;
     padding-right: 5px;

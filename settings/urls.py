@@ -14,6 +14,7 @@ urlpatterns = [
     
     
     path('subscriptions_setting', views.Subscription_List.as_view(), name='subscriptions_setting'),
+    path('favorites_setting', views.Favorite_List.as_view(), name='favorite_setting'),
     
 ]
 

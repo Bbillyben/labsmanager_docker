@@ -18,6 +18,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 import datetime
+import decimal
 
 import logging
 logger = logging.getLogger('labsmanager')
@@ -90,6 +91,14 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
     @property
     def getId(self):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
+    
+    
+    def get_advancement_ratio(self):
+        if self.amount == 0:
+            return "-"
+        
+        date_ratio = decimal.Decimal((datetime.datetime.now().date()-self.start_date) / (self.end_date-self.start_date))
+        return abs(self.expense)/(self.amount*date_ratio)
     
     def calculate(self, force=False):
         logger.debug(f'[Fund]-calculate :{str(self)} / (force: {force})')

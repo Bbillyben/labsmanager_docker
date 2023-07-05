@@ -613,18 +613,12 @@ function colorFormatter(value, row, index, field){
 }   
 
 function iconFormatter(value, row, index, field){
-    // console.log("[iconFormatter]")
-    // console.log(value)
-    // console.log(JSON.stringify(row))
     response = "<i class='"+value.style+" fa-"+value.icon+"'></i>"
-    // console.log(response)
     return response;
 }   
 
 
 function m2mBaseFormatter(value, row, index, field){
-    // console.log("m2mBaseFormatter")
-    // console.log(value)
     response=value.map(function(elem){
         return elem.name;
     }).join(", ");

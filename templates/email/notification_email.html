@@ -1,0 +1,210 @@
+{% extends "email/base_email.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block css %}
+.main-container{
+    display:inline-block;
+}
+.table_container{
+    display:block;
+    width:100%;
+    float:left;
+}
+table{
+    padding-top:10px;
+    width:100%;
+    font-size: small;
+   
+}
+thead tr:nth-child(odd){
+    color:white;
+    background-color: #568f67;
+}
+thead tr:nth-child(even){
+    background-color: #8fbc9d;
+}
+tbody tr:nth-child(even) {
+    background-color: #dfece3;
+}
+.footer-para{
+    font-style: italic;
+    font-size:small;
+    margin-top: 5em;
+}
+
+.employee thead tr:nth-child(odd){
+    color:white;
+    background-color: #993366;
+}
+.employee thead tr:nth-child(even){
+    background-color: #d98cb3;
+}
+.employee tbody tr:nth-child(even) {
+    background-color: #f2d9e6;
+}
+
+{% endblock %}
+
+
+
+{% block content %}
+{% setvar request.get_host as URLindex %}
+{% setvar request.scheme  as scheme %}
+{% setvar user  as username %}
+<p>
+    {% blocktrans %}Dear {{ username }},
+    Please find below the notification from your <a href='{{scheme}}://{{URLindex}}'>labsmanager</a> subscriptions.
+    {% endblocktrans %}
+
+</p>
+
+{% if projects %}
+
+<div class="main-container">
+    <div class="table_container">
+        <table class="table table-striped thead-default table-bordered">
+            <thead>
+                <tr>
+                    <th colspan="100%" >{% trans "Project overview" %}</th>
+                </tr>
+                <tr>
+                    <th>{% trans "Project" %}</th>
+                    <th>{% trans "Budget" %}</th>
+                    <th>{% trans "Expense" %}</th>
+                    <th>{% trans "Available" %}</th>
+                    <th>{% trans "Available in focus" %}</th>
+                    <th>{% trans "Consumption ratio" %}</th>
+                    <th>{% trans "Consumption Advancement" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in projects %}
+                <tr>
+                    <td align="left" valign="top"><a href="{% url 'project_single' pk=p.pk %}">{{p.name}}</a></td>
+                    <td align="center" valign="top">{% moneyFormat p.get_funds_amount %}</td>
+                    <td align="center" valign="top">{% moneyFormat p.get_funds_expense %}</td>
+                    <td align="center" valign="top">{% moneyFormat p.get_funds_available %}</td>
+                    <td align="center" valign="top">{% moneyFormat p.get_funds_available_f %}</td>
+                    <td align="center" valign="top">{% quotityFormat p.get_consumption_ratio %}</td>
+                    <td align="center" valign="top">{% quotityFormat p.get_advancement_ratio %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% setvar "no_p" as pname %}
+
+{% endif %}
+
+{% if funds %}
+
+        {% for f in funds %}
+            {% if f.project.name != pname and pname != "nop" %}
+                    </tbody>
+                </table>
+            
+            {% endif %}
+            {% if f.project.name != pname %} 
+            <div class="table_container">          
+                <table class="table "
+                >
+                        <thead>
+                            <tr>
+                                <th colspan="100%">{% trans "Project Fund overview :" %}<a href="{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a></th>
+                            </tr>
+                            <tr>
+                                <th>{% trans "Funder" %}</th>
+                                <th>{% trans "Institution" %}</th>
+                                <th>{% trans "Ref" %}</th>
+                                <th>{% trans "Start Date" %}</th>
+                                <th>{% trans "End Date" %}</th>
+                                <th>{% trans "Budget" %}</th>
+                                <th>{% trans "Expense" %}</th>
+                                <th>{% trans "Available" %}</th>
+                                <th>{% trans "Available in focus" %}</th>
+                                <th>{% trans "Consumption ratio" %}</th>
+                                <th>{% trans "Consumption Advancement" %}</th>
+                                
+                            </tr>
+                        </thead>
+                    <tbody>
+            {% endif %}
+                        <tr>
+                            <td align="left" valign="top">{{f.funder.short_name}}</td>
+                            <td align="center" valign="top">{{f.institution.short_name}}</td>
+                            <td align="center" valign="top">{{f.ref}}</td>
+                            <td align="center" valign="top">{{f.start_date}}</td>
+                            <td align="center" valign="top">{{f.end_date}}</td>
+                            <td align="center" valign="top">{% moneyFormat f.amount %}</td>
+                            <td align="center" valign="top">{% moneyFormat f.expense %}</td>
+                            <td align="center" valign="top">{% moneyFormat f.available %}</td>
+                            <td align="center" valign="top">{% moneyFormat f.available_f %}</td>
+                            <td align="center" valign="top">{% quotityFormat f.get_consumption_ratio %}</td>
+                            <td align="center" valign="top">{% quotityFormat f.get_advancement_ratio %}</td>
+                        </tr>
+
+            {% setvar f.project.name as pname %}
+        {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</br>
+{% endif %}
+{% if contracts %}
+<div class="main-container">
+    <div class="table_container">
+        <table class="table employee table-striped thead-default table-bordered">
+            <thead>
+                <tr>
+                    <th colspan="100%" >{% trans "Employee overview" %}</th>
+                </tr>
+                <tr>
+                    <th>{% trans "Employee" %}</th>
+                    <th>{% trans "Project" %}</th>
+                    <th>{% trans "Funder" %}</th>
+                    <th>{% trans "Institution" %}</th>
+                    <th>{% trans "Start Date" %}</th>
+                    <th>{% trans "End Date" %}</th>
+                    <th>{% trans "Quotity" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in contracts %}
+                <tr>
+                    <td align="center" valign="top"><a href="{% url 'employee' pk=c.employee.pk %}">{{c.employee.user_name}}</a></td>
+                    <td align="left" valign="top"><a href="{% url 'project_single' pk=c.fund.project.pk %}">{{c.fund.project.name}}</a></td>
+                    <td align="center" valign="top">{{c.fund.funder.short_name}}</td>
+                    <td align="center" valign="top">{{c.fund.institution.short_name}}</td>
+                    <td align="center" valign="top">{{c.start_date}}</td>
+                    <td align="center" valign="top">{{c.end_date}}</td>
+                    <td align="center" valign="top">{% quotityFormat c.quotity %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+</div>
+{% endif %}
+
+
+
+
+<div class="footer-para">
+    {% blocktrans %} Your subscription parameters :{% endblocktrans %}</br>
+    <div style="margin-left: 2em;">
+    {%trans "User Name" %}: <b>{{user.username}}</b></br>
+    {%trans "frequency" %}: <b>{{sub_freq}}</b></br>
+    {%trans "Next report" %}: <b>{{next_date}}</b></br>
+    </div>
+    
+
+</div>
+ 
+{% endblock %}
