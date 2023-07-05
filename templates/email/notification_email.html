@@ -71,6 +71,8 @@ tbody tr:nth-child(even) {
                 </tr>
                 <tr>
                     <th>{% trans "Project" %}</th>
+                    <th>{% trans "Start Date" %}</th>
+                    <th>{% trans "End Date" %}</th>
                     <th>{% trans "Budget" %}</th>
                     <th>{% trans "Expense" %}</th>
                     <th>{% trans "Available" %}</th>
@@ -83,6 +85,8 @@ tbody tr:nth-child(even) {
                 {% for p in projects %}
                 <tr>
                     <td align="left" valign="top"><a href="{% url 'project_single' pk=p.pk %}">{{p.name}}</a></td>
+                    <td align="center" valign="top">{{p.start_date}}</td>
+                    <td align="center" valign="top">{{p.end_date}}</td>
                     <td align="center" valign="top">{% moneyFormat p.get_funds_amount %}</td>
                     <td align="center" valign="top">{% moneyFormat p.get_funds_expense %}</td>
                     <td align="center" valign="top">{% moneyFormat p.get_funds_available %}</td>

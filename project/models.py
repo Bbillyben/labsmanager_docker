@@ -111,7 +111,7 @@ class Project(ActiveDateMixin):
         amount = self.get_funds_amount
         expense = self.get_funds_expense
         
-        if amount != 0:
+        if amount != 0 and amount != None and expense != None:
             return abs(expense/amount)
         else:
             return "-"
@@ -120,7 +120,7 @@ class Project(ActiveDateMixin):
 
         amount = self.get_funds_amount
         expense = self.get_funds_expense
-        if amount == 0:
+        if amount == 0 or amount == None or expense == None or self.start_date == None or self.end_date == None:
             return "-"
         
         date_ratio = decimal.Decimal((datetime.datetime.now().date()-self.start_date) / (self.end_date-self.start_date))

@@ -61,7 +61,7 @@
 <!-- <script type='text/javascript' src="{% static 'faicon/js/faicon.js' %}"></script> -->
 <script type='text/javascript' src="{% static 'js/settings/settings.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/settings/setting_list.js' %}"></script>
-
+<script type='text/javascript' src="{% static 'js/settings/testmail.js' %}"></script>
 
 <script>
     function loadSettingsListCards(){
@@ -74,9 +74,12 @@
     }
 
     $(document).ready(function () {
+        user_id = JSON.parse(document.getElementById('user_id').textContent);
+
         enableSidebar('settings');
         initSettingsPage();
         loadSettingsListCards();
+        initTestMailBtn('#send_test_mail');
     })
 </script>
 {% endblock %}

@@ -14,5 +14,6 @@ urlpatterns = [
     path('subscription/<pk>/delete', views_modal.SubscriptionDeleteView.as_view(), name='delete_subscription'),
     path('favorite/<pk>/delete', views_modal.FavoriteDeleteView.as_view(), name='delete_favorite'),
     
+    path('subscription/send_test_mail', tasks.send_test_mail, name='subs_test_mail'),
     path('subscription/send_test', tasks.test_check, name='subs_check_tasks'),
 ]

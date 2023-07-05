@@ -145,9 +145,30 @@ def send_notification(*args, **kwargs):
         html_message=html_message
     )
     logger.debug(f" Mail sending  to {recipient}")
+    return response
     
-
-
+from django.core.exceptions import ObjectDoesNotExist
+def send_test_mail(request, *args, **kwargs):
+    print("[send_test_mail] Called")
+    
+    for a in args:
+        print(a)
+    for k,v in kwargs.items():
+        print(f'{k}:{v}')
+    
+    upk = request.POST.get("user", None)
+    
+    user = User.objects.filter(pk=upk)
+    if user == None:
+         raise ObjectDoesNotExist(f"Test Mail Sending : User not found : ({upk})") 
+    user= user.first() 
+    logger.debug(f" Send test mail  to user {user} ({upk})")
+    
+    response = send_notification(user_pk=user.pk)
+    if response == None:
+        raise ObjectDoesNotExist(f"Test Mail Sending Error, reponse : {response}") 
+        
+    return HttpResponse("success")   
 
 def test_check(request):
     upk = request.GET["user"]

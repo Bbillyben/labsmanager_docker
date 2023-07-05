@@ -1,5 +1,6 @@
 {% extends "panel.html" %}
 {% load i18n %}
+{% load static %}
 {% load customs_tags %}
 
 {% block label %}common{% endblock %}
@@ -18,6 +19,13 @@
                 </tbody>
             </table>
             <div class="card  mb-2 loadingCard" data-url="{% url 'subscriptions_setting' %}">
+            </div>
+            <div style ="text-align: center;">
+                <button type="button" id="send_test_mail" class="btn btn-primary">
+                <span class="initial" >{%trans 'Send Test Mail' %}</span>
+                <span class="spinner spinner-border spinner-border-sm" role="status" style="display: none;"></span>
+                <span class="spinner" style="display: none;">... {%trans 'Sending' %}</span>
+                </button>
             </div>
         </div>
         <div class="col col-6">
