@@ -733,8 +733,12 @@ class LabsManagerSetting(BaseLabsManagerSetting):
     def to_native_value(self):
         """Return the "pythonic" value, e.g. convert "True" to True, and "1" to 1."""
         return self.__class__.get_setting(self.key)
-    
 
+def checkNotif(lmu):   
+    print(f'object : {lmu} for user : {lmu.user}')
+    from common.tasks import checkuser_notification_tasks 
+    checkuser_notification_tasks(lmu.user)
+    
 class LMUserSetting(BaseLabsManagerSetting):
     
     SETTINGS = {
@@ -809,6 +813,7 @@ class LMUserSetting(BaseLabsManagerSetting):
             'description': _('enable automatic mail notification'),
             'default': True,
             'validator': bool,
+            'after_save': checkNotif,
         },
         'NOTIFCATION_FREQ': {
             'name': _('Notification frequency'),
@@ -820,6 +825,7 @@ class LMUserSetting(BaseLabsManagerSetting):
                 ('3 5 1,15 * *', _('fortnightly')),
                 ('3 5 1 * *', _('monthly'))
             ],
+            'after_save': checkNotif,
         },
         
     }

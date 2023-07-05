@@ -24,8 +24,45 @@ logger = logging.getLogger('labsmanager')
 
 
 
+def checkuser_notification_tasks(user):
+    currSch = Schedule.objects.filter(name='send_notification_'+str(user.username))
+    sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user.pk)
+    
+    # print("  - user : "+str(user)+" / "+str(user.pk))
+    # print("  - NOTIFCATION_STATUS : "+str(sub_enab))
+    # print("  - schedule : "+str(currSch))
+    
+    if not currSch and sub_enab:
+        logger.debug(f"Notification task for User {user.username} do not exist")
+        sch = Schedule.objects.create(name='send_notification_'+str(user.username),
+                                    func='common.tasks.send_notification',
+                        schedule_type=Schedule.CRON,
+                        cron = '5 4 * * *',
+                        kwargs={'user_pk':user.pk, 'username':user.username},
+                        #hook="labsmanager.tasks.sendSuperUserMail",
+                        )
+        logger.debug("New Schedule :"+str(sch))
+    
+    if currSch and not sub_enab:
+        logger.debug(f"delete Notification task for User {user.username}")
+        currSch.delete()
+        return
+    
+        
+    currSch = Schedule.objects.get(name='send_notification_'+str(user.username))
+    if not currSch :
+        return
+    
+    freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",  user=user.pk)
+    # print("  - NOTIFCATION_FREQ : "+str(freq))
+    
+    if currSch.cron != freq:
+        currSch.cron = freq
+        currSch.save()
+        logger.debug(f"Update Notification cron for user {user.username} at {freq}")
     
 def check_notifications_tasks():
+    logger.debug(f"[check_notifications_tasks] called")
     # get all user involved
     users=subscription.objects.all().values("user")
     users=users.distinct("user")
@@ -35,43 +72,7 @@ def check_notifications_tasks():
         if not user:
             logger.error(f"Notification User {u_pk['user']} do not exist in DB")
             continue
-        
-        
-        currSch = Schedule.objects.filter(name='send_notification_'+str(user.username))
-        sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=u_pk['user'])
-        
-        print("  - user : "+str(user)+" / "+str(u_pk['user']))
-        print("  - NOTIFCATION_STATUS : "+str(sub_enab))
-        print("  - schedule : "+str(currSch))
-        
-        if not currSch and sub_enab:
-            logger.debug(f"Notification task for User {user.username} do not exist")
-            sch = Schedule.objects.create(name='send_notification_'+str(user.username),
-                                      func='common.tasks.send_notification',
-                            schedule_type=Schedule.CRON,
-                            cron = '5 4 * * *',
-                            kwargs={'user_pk':u_pk['user'], 'username':user.username},
-                            #hook="labsmanager.tasks.sendSuperUserMail",
-                            )
-            logger.debug("New Schedule :"+str(sch))
-        
-        if currSch and not sub_enab:
-            logger.debug(f"delete Notification task for User {user.username}")
-            currSch.delete()
-        
-            
-        currSch = Schedule.objects.get(name='send_notification_'+str(user.username))
-        if not currSch :
-            continue
-        
-        freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",  user=u_pk['user'])
-        print("  - NOTIFCATION_FREQ : "+str(freq))
-        
-        if currSch.cron != freq:
-            currSch.cron = freq
-            currSch.save()
-            logger.debug(f"Update Notification cron for user {user.username} at {freq}")
-        
+        checkuser_notification_tasks(user)        
     
 def generate_notif_mail_context(user):
     
