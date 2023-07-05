@@ -26,7 +26,7 @@ logger = logging.getLogger('labsmanager')
 
 def checkuser_notification_tasks(user):
     currSch = Schedule.objects.filter(name='send_notification_'+str(user.username))
-    sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user.pk)
+    sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
     
     # print("  - user : "+str(user)+" / "+str(user.pk))
     # print("  - NOTIFCATION_STATUS : "+str(sub_enab))
@@ -53,7 +53,7 @@ def checkuser_notification_tasks(user):
     if not currSch :
         return
     
-    freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",  user=user.pk)
+    freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",  user=user)
     # print("  - NOTIFCATION_FREQ : "+str(freq))
     
     if currSch.cron != freq:
@@ -101,8 +101,8 @@ def generate_notif_mail_context(user):
     
     # subscription parameters
     
-    sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user.pk)
-    freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",   user=user.pk)
+    sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
+    freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",   user=user)
     choices=LMUserSetting.get_setting_choices("NOTIFCATION_FREQ")
     freq_name=get_choiceitem(choices, freq)
     
