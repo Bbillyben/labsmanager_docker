@@ -159,6 +159,7 @@ def generate_notif_mail_context(user):
     if leaves_report:
         lv=Leave.objects.timeframe(slot).all().order_by('-end_date')  
         context['all_leaves']=lv 
+        context['current_month']=slot['from'].strftime('%B')
     
     
     return context 
