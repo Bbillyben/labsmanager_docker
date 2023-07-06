@@ -50,12 +50,11 @@ tbody tr:nth-child(even) {
 
 
 {% block content %}
-{% setvar request.get_host as URLindex %}
-{% setvar request.scheme  as scheme %}
+{% setvar 'http'  as scheme %}
 {% setvar user  as username %}
 <p>
     {% blocktrans %}Dear {{ username }},
-    Please find below the notification from your <a href='{{scheme}}://{{URLindex}}'>labsmanager</a> subscriptions.
+    Please find below the notification from your <a href='{{scheme}}://{{site}}'>labsmanager</a> subscriptions.
     {% endblocktrans %}
 
 </p>
@@ -84,7 +83,7 @@ tbody tr:nth-child(even) {
             <tbody>
                 {% for p in projects %}
                 <tr>
-                    <td align="left" valign="top"><a href="{% url 'project_single' pk=p.pk %}">{{p.name}}</a></td>
+                    <td align="left" valign="top"><a href="{{scheme}}://{{site}}{% url 'project_single' pk=p.pk %}">{{p.name}}</a></td>
                     <td align="center" valign="top">{{p.start_date}}</td>
                     <td align="center" valign="top">{{p.end_date}}</td>
                     <td align="center" valign="top">{% moneyFormat p.get_funds_amount %}</td>
@@ -117,7 +116,7 @@ tbody tr:nth-child(even) {
                 >
                         <thead>
                             <tr>
-                                <th colspan="100%">{% trans "Project Fund overview :" %}<a href="{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a></th>
+                                <th colspan="100%">{% trans "Project Fund overview :" %}<a href="{{scheme}}://{{site}}{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a></th>
                             </tr>
                             <tr>
                                 <th>{% trans "Funder" %}</th>
@@ -180,8 +179,8 @@ tbody tr:nth-child(even) {
             <tbody>
                 {% for c in contracts %}
                 <tr>
-                    <td align="center" valign="top"><a href="{% url 'employee' pk=c.employee.pk %}">{{c.employee.user_name}}</a></td>
-                    <td align="left" valign="top"><a href="{% url 'project_single' pk=c.fund.project.pk %}">{{c.fund.project.name}}</a></td>
+                    <td align="center" valign="top"><a href="{{scheme}}://{{site}}{% url 'employee' pk=c.employee.pk %}">{{c.employee.user_name}}</a></td>
+                    <td align="left" valign="top"><a href="{{scheme}}://{{site}}{% url 'project_single' pk=c.fund.project.pk %}">{{c.fund.project.name}}</a></td>
                     <td align="center" valign="top">{{c.fund.funder.short_name}}</td>
                     <td align="center" valign="top">{{c.fund.institution.short_name}}</td>
                     <td align="center" valign="top">{{c.start_date}}</td>
@@ -204,6 +203,7 @@ tbody tr:nth-child(even) {
     {% blocktrans %} Your subscription parameters :{% endblocktrans %}</br>
     <div style="margin-left: 2em;">
     {%trans "User Name" %}: <b>{{user.username}}</b></br>
+    {%trans "Notification activated" %}: <b>{% if sub_status %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
     {%trans "frequency" %}: <b>{{sub_freq}}</b></br>
     {%trans "Next report" %}: <b>{{next_date}}</b></br>
     </div>

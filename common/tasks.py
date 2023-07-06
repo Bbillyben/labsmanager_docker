@@ -10,6 +10,7 @@ from django_q.models import Schedule
 
 from django.shortcuts import render, HttpResponse
 from settings.models import LMUserSetting
+from django.contrib.sites.models import Site
 
 from project.models import Project
 from fund.models import Fund
@@ -66,7 +67,7 @@ def check_notifications_tasks():
     # get all user involved
     users=subscription.objects.all().values("user")
     users=users.distinct("user")
-
+    
     for u_pk in users:
         user = User.objects.get(pk=u_pk['user'])
         if not user:
@@ -106,18 +107,26 @@ def generate_notif_mail_context(user):
     choices=LMUserSetting.get_setting_choices("NOTIFCATION_FREQ")
     freq_name=get_choiceitem(choices, freq)
     
-    currSch = Schedule.objects.get(name='send_notification_'+str(user.username))
-    next_date = currSch.next_run
+    if sub_enab == True:
+        currSch = Schedule.objects.get(name='send_notification_'+str(user.username))
+        next_date = currSch.next_run
+    else:
+        next_date = "-"
     
+    current_site = Site.objects.get_current()
+
     context = {
         'user':user,
         'projects':projects,
         'funds':fund_lines,
         'employees':employees, 
         'contracts': contracts,
+        'sub_status':sub_enab,
         'sub_freq':freq_name, 
-        'next_date':next_date,        
+        'next_date':next_date,  
+        'site':current_site.domain,   
     }
+    
     return context 
 
 def send_notification(*args, **kwargs):
@@ -149,12 +158,7 @@ def send_notification(*args, **kwargs):
     
 from django.core.exceptions import ObjectDoesNotExist
 def send_test_mail(request, *args, **kwargs):
-    print("[send_test_mail] Called")
-    
-    for a in args:
-        print(a)
-    for k,v in kwargs.items():
-        print(f'{k}:{v}')
+    logger.info("[send_test_mail] Called")
     
     upk = request.POST.get("user", None)
     
@@ -170,7 +174,8 @@ def send_test_mail(request, *args, **kwargs):
         
     return HttpResponse("success")   
 
-def test_check(request):
+def test_check(request):    
+
     upk = request.GET["user"]
     
     send_test = request.GET.get("mail", None)
