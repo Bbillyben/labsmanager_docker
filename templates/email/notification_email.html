@@ -65,6 +65,18 @@ table.fund_o_t thead tr:nth-child(odd){
 }
 
 
+.leaves thead tr:nth-child(odd){
+    color:white;
+    background-color: #cc7a00;
+}
+.leaves thead tr:nth-child(even){
+    background-color: #ffb84d;
+}
+.leaves tbody tr:nth-child(even) {
+    background-color: #ffe0b3;
+}
+
+
 hr {
     display: block;
     margin-top: 1.5em;
@@ -291,11 +303,43 @@ hr.light {
 
 </div>
 {% endif %}
+
+
+{% if all_leaves %}
+<hr class="">
+        <div class="table_container">          
+            <table class="table leaves">
+                    <thead>
+                        <tr>
+                            <th colspan="100%"><a href="{{scheme}}://{{site}}{% url 'dashboard' %}">{% trans "Current Leaves" %}</a></th>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Employee" %}</th>
+                            <th>{% trans "Start Date" %}</th>
+                            <th>{% trans "End Date" %}</th>
+                            <th>{% trans "Type" %}</th>
+                        </tr>
+                    </thead>
+                <tbody>
+
+                {% for l in all_leaves %}
+                <tr>
+                    <td align="left" valign="top"><a href="{{scheme}}://{{site}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
+                    <td align="center" valign="top">{{l.start_date}}</td>
+                    <td align="center" valign="top">{{l.end_date}}</td>
+                    <td align="center" valign="top">{{l.type.short_name}}</td>
+                </tr>
+                {% endfor %}                           
+
+            </tbody>
+        </table> 
+{% endif %}
 <div class="footer-para">
     {% blocktrans %} Your subscription parameters :{% endblocktrans %}</br>
     <div style="margin-left: 2em;">
     {%trans "User Name" %}: <b>{{user.username}}</b></br>
     {%trans "Notification activated" %}: <b>{% if sub_status %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
+    {%trans "Report Leaves" %}: <b>{% if report_leave %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
     {%trans "frequency" %}: <b>{{sub_freq}}</b></br>
     {%trans "Next report" %}: <b>{{next_date}}</b></br>
     </div>

@@ -827,6 +827,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             ],
             'after_save': checkNotif,
         },
+        'NOTIFCATION_INC_LEAVE': {
+            'name': _('Notification Leaves'),
+            'description': _('report all leaves of current month'),
+            'default': False,
+            'validator': bool,
+        },
         
     }
     class Meta:

@@ -16,6 +16,7 @@
                 <tbody>
                     {% include "settings/setting.html" with key="NOTIFCATION_STATUS" user_setting=True icon='fa-bell' %}
                     {% include "settings/setting.html" with key="NOTIFCATION_FREQ" user_setting=True icon='fa-calendar-week' %}
+                    {% include "settings/setting.html" with key="NOTIFCATION_INC_LEAVE" user_setting=True icon='fa-martini-glass-citrus' %}
                 </tbody>
             </table>
             <div class="card  mb-2 loadingCard" data-url="{% url 'subscriptions_setting' %}">

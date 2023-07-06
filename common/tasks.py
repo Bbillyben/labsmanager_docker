@@ -82,11 +82,38 @@ def check_notifications_tasks():
 def generate_notif_mail_context(user):
     
     logger.debug(f" Send notification for user : {user.username}")
+    context = {}
+    # subscription parameters
+    
+    sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
+    freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",   user=user)
+    choices=LMUserSetting.get_setting_choices("NOTIFCATION_FREQ")
+    leaves_report=LMUserSetting.get_setting("NOTIFCATION_INC_LEAVE", user=user)
+    freq_name=get_choiceitem(choices, freq)
+    
+    if sub_enab == True:
+        currSch = Schedule.objects.get(name='send_notification_'+str(user.username))
+        next_date = currSch.next_run
+    else:
+        next_date = "-"
+    
+    current_site = Site.objects.get_current()
+
+    context.update({
+        'user':user,
+        'sub_status':sub_enab,
+        'report_leave':leaves_report,
+        'sub_freq':freq_name, 
+        'next_date':next_date,  
+        'site':current_site.domain,   
+    })
+    
+    
 
     # get subscription
     subs = subscription.objects.filter(user=user.pk)
     
-    context = {}
+    
     
     # for projects
     conttype_proj = ContentType.objects.get(app_label="project", model="project")
@@ -120,41 +147,18 @@ def generate_notif_mail_context(user):
     teams = Team.objects.filter(pk__in = team_ids).order_by("name")
     context['teams']=teams 
     
+    slot = utils.getCurrentMonthTimeslot()
+    
     for t in teams:
         tm = TeamMate.current.filter(team=t).values('employee')
         tmE = Employee.objects.filter(Q(pk__in=tm) | Q(pk=t.leader.pk))
-
-        
         context['teammate_'+str(t.name)]=tmE 
-        slot = utils.getCurrentMonthTimeslot()
-            
         leave=Leave.objects.timeframe(slot).filter(employee__in=tmE).order_by('-end_date')    
         context['leave_'+str(t.name)]=leave 
     
-    
-    # subscription parameters
-    
-    sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
-    freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",   user=user)
-    choices=LMUserSetting.get_setting_choices("NOTIFCATION_FREQ")
-    freq_name=get_choiceitem(choices, freq)
-    
-    if sub_enab == True:
-        currSch = Schedule.objects.get(name='send_notification_'+str(user.username))
-        next_date = currSch.next_run
-    else:
-        next_date = "-"
-    
-    current_site = Site.objects.get_current()
-
-    context.update({
-        'user':user,
-        'sub_status':sub_enab,
-        'sub_freq':freq_name, 
-        'next_date':next_date,  
-        'site':current_site.domain,   
-    })
-    
+    if leaves_report:
+        lv=Leave.objects.timeframe(slot).all().order_by('-end_date')  
+        context['all_leaves']=lv 
     
     
     return context 
