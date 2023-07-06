@@ -1,0 +1,27 @@
+
+{% load i18n %}
+{% load customs_tags %}
+
+<table class="table fund_o_t">
+    <thead>
+        <tr>
+            <th>{% trans "Type" %}</th>
+            <th>{% trans "In Focus" %}</th>
+            <th>{% trans "Amount" %}</th>
+            <th>{% trans "Expense" %}</th>
+            <th>{% trans "Available" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in fs %}
+        <tr>
+            <td align="center" valign="top">{{f.type_name}}</td>
+            <td align="center" valign="top">{{f.type_focus}}</td>
+            <td align="center" valign="top">{% moneyFormat f.total_amount %}</td>
+            <td align="center" valign="top">{% moneyFormat f.total_expense %}</td>
+            <td align="center" valign="top">{% moneyFormat f.total_available %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    
+</table>

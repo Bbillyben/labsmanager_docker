@@ -2,6 +2,7 @@ from .models import subscription
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -14,12 +15,15 @@ from django.contrib.sites.models import Site
 
 from project.models import Project
 from fund.models import Fund
-from staff.models import Employee
+from staff.models import Employee, Team, TeamMate
 from expense.models import Contract
+from leave.models import Leave
+
+from dashboard import utils
 
 
 from labsmanager.utils import send_email, get_choiceitem
-
+from project.views import get_project_fund_overviewReport_bytType
 import logging
 logger = logging.getLogger('labsmanager')
 
@@ -74,7 +78,7 @@ def check_notifications_tasks():
             logger.error(f"Notification User {u_pk['user']} do not exist in DB")
             continue
         checkuser_notification_tasks(user)        
-    
+
 def generate_notif_mail_context(user):
     
     logger.debug(f" Send notification for user : {user.username}")
@@ -82,12 +86,20 @@ def generate_notif_mail_context(user):
     # get subscription
     subs = subscription.objects.filter(user=user.pk)
     
+    context = {}
     
     # for projects
     conttype_proj = ContentType.objects.get(app_label="project", model="project")
     proj_ids = subs.filter(content_type= conttype_proj).values_list("object_id")
     projects = Project.objects.filter(pk__in = proj_ids).order_by("name")
     fund_lines = Fund.objects.filter(project__in=proj_ids).order_by("project__name")
+    
+    context['projects']=projects
+    context['funds']=fund_lines
+    
+    for pj in projects:
+        fo = get_project_fund_overviewReport_bytType(pj.pk)
+        context['fund_o_'+str(pj.name)] = fo
     
     
     # for employees
@@ -98,6 +110,26 @@ def generate_notif_mail_context(user):
     # for active contract
     contracts = Contract.objects.filter(employee__in=emp_ids, is_active=True)
     
+    context['employees']=employees 
+    context['contracts']= contracts
+    
+    # for team
+    
+    conttype_team = ContentType.objects.get(app_label="staff", model="team")
+    team_ids  = subs.filter(content_type= conttype_team).values_list("object_id")
+    teams = Team.objects.filter(pk__in = team_ids).order_by("name")
+    context['teams']=teams 
+    
+    for t in teams:
+        tm = TeamMate.current.filter(team=t).values('employee')
+        tmE = Employee.objects.filter(Q(pk__in=tm) | Q(pk=t.leader.pk))
+
+        
+        context['teammate_'+str(t.name)]=tmE 
+        slot = utils.getCurrentMonthTimeslot()
+            
+        leave=Leave.objects.timeframe(slot).filter(employee__in=tmE).order_by('-end_date')    
+        context['leave_'+str(t.name)]=leave 
     
     
     # subscription parameters
@@ -115,17 +147,15 @@ def generate_notif_mail_context(user):
     
     current_site = Site.objects.get_current()
 
-    context = {
+    context.update({
         'user':user,
-        'projects':projects,
-        'funds':fund_lines,
-        'employees':employees, 
-        'contracts': contracts,
         'sub_status':sub_enab,
         'sub_freq':freq_name, 
         'next_date':next_date,  
         'site':current_site.domain,   
-    }
+    })
+    
+    
     
     return context 
 

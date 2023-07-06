@@ -5,12 +5,10 @@
 
 {% block css %}
 .main-container{
-    display:inline-block;
+    display:block;
 }
 .table_container{
-    display:block;
     width:100%;
-    float:left;
 }
 table{
     padding-top:10px;
@@ -18,9 +16,13 @@ table{
     font-size: small;
    
 }
+table.fund_o_t thead tr:nth-child(odd){
+    background-color: red;
+}
 thead tr:nth-child(odd){
     color:white;
     background-color: #568f67;
+    font-size: large;
 }
 thead tr:nth-child(even){
     background-color: #8fbc9d;
@@ -28,6 +30,12 @@ thead tr:nth-child(even){
 tbody tr:nth-child(even) {
     background-color: #dfece3;
 }
+
+table.fund_o_t thead tr:nth-child(odd){
+    background-color: #9fc6ab;
+}
+
+
 .footer-para{
     font-style: italic;
     font-size:small;
@@ -43,6 +51,34 @@ tbody tr:nth-child(even) {
 }
 .employee tbody tr:nth-child(even) {
     background-color: #f2d9e6;
+}
+
+.team thead tr:nth-child(odd){
+    color:white;
+    background-color: #0099cc;
+}
+.team thead tr:nth-child(even){
+    background-color: #4dd2ff;
+}
+.team tbody tr:nth-child(even) {
+    background-color: #ccf2ff;
+}
+
+
+hr {
+    display: block;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 1px;
+    width:50%;
+  }
+hr.light {
+    border-style: dashed;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }
 
 {% endblock %}
@@ -63,7 +99,7 @@ tbody tr:nth-child(even) {
 
 <div class="main-container">
     <div class="table_container">
-        <table class="table table-striped thead-default table-bordered">
+        <table class="table">
             <thead>
                 <tr>
                     <th colspan="100%" >{% trans "Project overview" %}</th>
@@ -98,22 +134,28 @@ tbody tr:nth-child(even) {
         </table>
     </div>
 
-    {% setvar "no_p" as pname %}
+  
 
 {% endif %}
 
+{% setvar "no_p" as pname %}
 {% if funds %}
-
+        <hr class="">
         {% for f in funds %}
-            {% if f.project.name != pname and pname != "nop" %}
+            {% if f.project.name != pname %} 
+            {% if pname != "no_p" %}
                     </tbody>
                 </table>
-            
+                {% with "fund_o_"|addstr:pname as funds_o %}
+                    {% extractArgs funds_o  as fs%}
+                    {% include 'fund/fund_overview_type.html' with fs=fs %}
+                {% endwith %}
             {% endif %}
-            {% if f.project.name != pname %} 
+            {% if not forloop.first %}
+            <hr class="light">
+            {% endif %}
             <div class="table_container">          
-                <table class="table "
-                >
+                <table class="table ">
                         <thead>
                             <tr>
                                 <th colspan="100%">{% trans "Project Fund overview :" %}<a href="{{scheme}}://{{site}}{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a></th>
@@ -150,18 +192,72 @@ tbody tr:nth-child(even) {
                         </tr>
 
             {% setvar f.project.name as pname %}
-        {% endfor %}
+
+            {% if forloop.last %}
                 </tbody>
-            </table>
+            </table> 
+            {% with "fund_o_"|addstr:pname as funds_o %}
+                    {% extractArgs funds_o  as fs%}
+                    {% include 'fund/fund_overview_type.html' with fs=fs %}
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+           
         </div>
     </div>
 </div>
 </br>
 {% endif %}
+
+
+
+{% if teams %}
+        <hr class="">
+        {% for t in teams %}
+                <div class="table_container">          
+                    <table class="table team">
+                            <thead>
+                                <tr>
+                                    <th colspan="100%">{% trans "Team Leaves :" %}<a href="{{scheme}}://{{site}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a></th>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Team Mate" %}</th>
+                                    <th>{% trans "Start Date" %}</th>
+                                    <th>{% trans "End Date" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                </tr>
+                            </thead>
+                        <tbody>
+
+                            {% with "leave_"|addstr:t.name as leaveM %}
+                                {% extractArgs leaveM  as leaves%}
+                                {% if leaves %}
+                                    {% for l in leaves %}
+                                    <tr>
+                                        <td align="left" valign="top"><a href="{{scheme}}://{{site}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
+                                        <td align="center" valign="top">{{l.start_date}}</td>
+                                        <td align="center" valign="top">{{l.end_date}}</td>
+                                        <td align="center" valign="top">{{l.type.short_name}}</td>
+                                    </tr>
+                                    {% endfor %}        
+                                {% endif %}
+                            
+
+                            {% endwith %}
+
+                    </tbody>
+                </table> 
+                <hr class="light">
+        {% endfor %}
+
+{% endif %}
+
+
 {% if contracts %}
+<hr class="">
 <div class="main-container">
     <div class="table_container">
-        <table class="table employee table-striped thead-default table-bordered">
+        <table class="table employee">
             <thead>
                 <tr>
                     <th colspan="100%" >{% trans "Employee overview" %}</th>
@@ -195,10 +291,6 @@ tbody tr:nth-child(even) {
 
 </div>
 {% endif %}
-
-
-
-
 <div class="footer-para">
     {% blocktrans %} Your subscription parameters :{% endblocktrans %}</br>
     <div style="margin-left: 2em;">

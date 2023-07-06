@@ -1,8 +1,8 @@
 
-from datetime import datetime
+from datetime import datetime, date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from settings.models import LMUserSetting
-
+# from datetime import date, datetime, timedelta
 
 def getDashboardTimeSlot(request):
     if not request.user:
@@ -47,3 +47,14 @@ def getDashboardContractTimeSlot(request):
 
 def getDateToStale(monthToGo):
     return datetime.now()+ relativedelta(months=+monthToGo)
+
+def getCurrentMonthTimeslot():
+    # Obtenir la date du premier jour du mois courant
+    start_date = date.today().replace(day=1)
+    next_first = (start_date + timedelta(days=32)).replace(day=1)
+    date_fin = (next_first - timedelta(days=1))
+    slot={
+        'from':start_date,
+        'to':date_fin
+    }
+    return slot

@@ -9,7 +9,7 @@ class date_manager(models.Manager):
         if 'from' in slots:
             query= query & Q(end_date__gte=slots["from"])
         if 'to' in slots:
-            query= query & Q(end_date__lte=slots["to"])
+            query= query & Q(start_date__lte=slots["to"])
         return self.get_queryset().filter(query)
 
 class Current_date_Manager(date_manager):

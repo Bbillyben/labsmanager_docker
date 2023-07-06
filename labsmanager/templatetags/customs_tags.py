@@ -97,3 +97,14 @@ def get_faIcon(*args, **kwargs):
     from faicon import widgets
     icon=args[0]
     return icon.icon_html()
+
+@register.filter
+def addstr(arg1, arg2):
+    return str(arg1) + str(arg2)
+
+
+@register.simple_tag(takes_context=True)
+def extractArgs(context, key):
+   if key in context:
+       return context[key]
+   return None
