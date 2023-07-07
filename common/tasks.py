@@ -18,6 +18,10 @@ def checkuser_notification_tasks(user):
     currSch = Schedule.objects.filter(name='send_notification_'+str(user.username))
     sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
     
+    print(f' checkuser_notification_tasks / user : {user} / enabled :{sub_enab} / curr prog :{currSch}')
+    if not currSch and not sub_enab:
+        return
+    
     if not currSch and sub_enab:
         logger.debug(f"Notification task for User {user.username} do not exist")
         sch = Schedule.objects.create(name='send_notification_'+str(user.username),
@@ -49,13 +53,16 @@ def checkuser_notification_tasks(user):
 def check_notifications_tasks():
     logger.debug(f"[check_notifications_tasks] called")
     # get all user involved
-    users=subscription.objects.all().values("user")
-    users=users.distinct("user")
+    
+    usersSubs=subscription.objects.all().values_list("user", flat=True)
+    usersSet = LMUserSetting.objects.filter(key__iexact="NOTIFCATION_INC_LEAVE", value="True").values_list("user", flat=True)
+    users=list(usersSubs.union(usersSet))
+    # users=users.distinct("user")
     
     for u_pk in users:
-        user = User.objects.get(pk=u_pk['user'])
+        user = User.objects.get(pk=u_pk)
         if not user:
-            logger.error(f"Notification User {u_pk['user']} do not exist in DB")
+            logger.error(f"Notification User {u_pk} do not exist in DB")
             continue
         checkuser_notification_tasks(user)        
 
@@ -94,7 +101,8 @@ def send_test_mail(request, *args, **kwargs):
         
     return HttpResponse("success")   
 
-def test_check(request):    
+def test_check(request):  
+
 
     upk = request.GET["user"]
     user = User.objects.get(pk=upk)

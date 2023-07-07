@@ -150,13 +150,13 @@ hr.light {
         </table>
     </div>
 
-  
+    <hr class="">
 
 {% endif %}
 
 {% setvar "no_p" as pname %}
 {% if funds %}
-        <hr class="">
+
         {% for f in funds %}
             {% if f.project.name != pname %} 
             {% if pname != "no_p" %}
@@ -222,13 +222,12 @@ hr.light {
         </div>
     </div>
 </div>
-</br>
+<hr class="">
 {% endif %}
 
 
 
 {% if teams %}
-        <hr class="">
         {% for t in teams %}
                 <div class="table_container">          
                     <table class="table team">
@@ -263,7 +262,9 @@ hr.light {
 
                     </tbody>
                 </table> 
+                {% if not forloop.last %}
                 <hr class="light">
+                {% endif %}
         {% endfor %}
 
 {% endif %}
@@ -306,11 +307,12 @@ hr.light {
 
 
 </div>
+<hr class="">
 {% endif %}
 
 
 {% if all_leaves %}
-<hr class="">
+
         <div class="table_container">          
             <table class="table leaves">
                     <thead>
@@ -326,17 +328,19 @@ hr.light {
                     </thead>
                 <tbody>
 
-                {% for l in all_leaves %}
-                <tr>
-                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
-                    <td align="center" valign="top">{{l.start_date}}</td>
-                    <td align="center" valign="top">{{l.end_date}}</td>
-                    <td align="center" valign="top">{{l.type.short_name}}</td>
-                </tr>
-                {% endfor %}                           
+                    {% for l in all_leaves %}
+                    <tr>
+                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
+                        <td align="center" valign="top">{{l.start_date}}</td>
+                        <td align="center" valign="top">{{l.end_date}}</td>
+                        <td align="center" valign="top">{{l.type.short_name}}</td>
+                    </tr>
+                    {% endfor %}                           
 
-            </tbody>
-        </table> 
+                </tbody>
+            </table> 
+        </div>
+        <hr class="">
 {% endif %}
 <div class="footer-para">
     {% blocktrans %} Your subscription parameters :{% endblocktrans %}</br>
