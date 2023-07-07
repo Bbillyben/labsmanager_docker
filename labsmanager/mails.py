@@ -12,7 +12,13 @@ from django.utils.html import strip_tags
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ObjectDoesNotExist
 
+import logging
+logger = logging.getLogger('labsmanager')
+
 class BaseMail():
+    """ Use to send basic email, with template generation.
+    Send class method can be directly called if necessary
+     """
     mail_template="email/base_email.html"
     logo_path="img/labsmanager/labsmanager_icon.png"
     subject = "Labs Manager Mail"
@@ -26,6 +32,12 @@ class BaseMail():
         return self.context
     
     def send(self, recipients, addLogo=False, **kwargs):
+        
+        if recipients == None :
+            logger.error(f"Notification Send  has no user email defined : {user}")
+            return None
+        
+        
         self.generate_context(**kwargs)
         html_message=  render_to_string(self.__class__.mail_template,self.context)
         body = strip_tags(html_message)
@@ -76,7 +88,7 @@ class BaseMail():
         )
         message.mixed_subtype = 'related'
         message.attach_alternative(html_message, "text/html")
-        message.attach(BaseMail.logo_data())
+        message.attach(cls.logo_data())
         response= message.send(fail_silently=False)
         return response
     
@@ -121,6 +133,9 @@ from project.views import get_project_fund_overviewReport_bytType
 from django.db.models import Q
 
 class SubscriptionMail(BaseMail):
+    """ Class to generate and send Notification email from subscription
+    has to be a user parameter in kwargs
+     """
     mail_template="email/notification_email.html"
     subject = "Notification Report"
 
