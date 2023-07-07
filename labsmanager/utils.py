@@ -63,16 +63,21 @@ def send_email(subject, body, recipients, from_email=None, html_message=None):
     )
     return response
 
+
+
+
 def get_choiceitem(choices, value):
+    """find the value from a list of tuple with the value.
+     """
     for el in choices:
         if el[0] == value:
             return el[1]
     return None
 
-# test if 2 date interval overlap
 from datetime import datetime
-
 def intervals_overlap(start1, end1, start2, end2):
+    """determine if 2 date interval overlap.
+     """
     # convert the start and end times to datetime objects
     start1 = datetime.strptime(start1, "%Y-%m-%d %H:%M:%S")
     end1 = datetime.strptime(end1, "%Y-%m-%d %H:%M:%S")

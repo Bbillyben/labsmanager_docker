@@ -18,7 +18,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
-from .views import IndexView , redirectIndexView, get_filters_lists, SendTestView
+from .views import IndexView , redirectIndexView, get_filters_lists
 from settings.apiviews import UserSettingsDetail
 from rest_framework import routers
 from . import apiviews #UserViewSet, GroupViewSet, EmployeeViewSet, ProjectViewSet, FundViewSet
@@ -102,7 +102,6 @@ if settings.DEBUG:
 
     # Media file access
     # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += [path('sendtest', SendTestView, name='testmail'),]
     from labsmanager.tasks import create_report
     urlpatterns += [path('testTask', create_report, name='testTask'),]
 

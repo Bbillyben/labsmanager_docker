@@ -83,24 +83,3 @@ def get_filters_lists(request, *args, **kwargs):
     
     return render_to_string('status_codes.js', data)
     
-    # return render(request, 'status_codes.js', data, )
-    # str=""
-    # for item in data['codes']:
-    #     str += ' const '+item['name']+"Codes ={ "
-    #     for ob in item['data']:
-    #         str+= ' key :"'+str(ob['key'])+'" ,'
-    #         str+= ' value :"'+str(ob['value'])+'" ,'
-    #     str+= '} '
-    
-    
-    # return HttpResponse(str,content_type="application/x-javascript")
-    # return SimpleTemplateResponse('status_codes.js', data, content_type="application/x-javascript")
-    
-from .utils import send_email
-def SendTestView(request, *args, **kwargs):
-    resp = send_email(
-        subject = 'This is a test django send mail',
-        body = 'This is the message  for the test without sender.',
-        recipients = 'benjamin.legendre@univ-lille.fr',
-    )
-    return HttpResponse("Send Mail test :"+str(resp))
