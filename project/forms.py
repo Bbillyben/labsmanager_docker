@@ -25,7 +25,7 @@ class ProjectModelForm(BSModalModelForm):
             
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
-            raise ValidationError(_('Exit Date (%s) should be later than entry date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
+            raise ValidationError(_('Exit Date (%(end)s) should be later than entry date (%(start)s) ') % ({'end':self.cleaned_data['end_date'], 'start': self.cleaned_data['start_date']}))
         return self.cleaned_data['end_date']
 
 class ParticipantModelForm(BSModalModelForm):
@@ -71,7 +71,7 @@ class ParticipantModelForm(BSModalModelForm):
             
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
-            raise ValidationError(_('Exit Date (%s) should be later than entry date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
+            raise ValidationError(_('Exit Date (%(end)s) should be later than entry date (%(start)s) ') % ({'end':self.cleaned_data['end_date'], 'start': self.cleaned_data['start_date']}))
         return self.cleaned_data['end_date']
 
 class InstitutionModelForm(BSModalModelForm):

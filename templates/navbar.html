@@ -15,36 +15,46 @@
         <ul class="navbar-nav">
 
           <!-- For Employee-->
+          {% if perms.staff.view_employee %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'employee_index' %}">
               <span class='fas fa-user icon-header'></span>{% trans "Employee" %}
             </a>
           </li>
+          {% endif %}
           <!-- For Teams-->
+          {% if perms.staff.view_team %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'team_index' %}">
               <span class='fas fa-people-group icon-header'></span>{% trans "Teams" %}
             </a>
           </li>
+          {% endif %}
           <!-- For Contract-->
+          {% if perms.expense.view_contract %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'contract_index' %}">
               <span class='fas fa-file-signature icon-header'></span>{% trans "Contracts" %}
             </a>
           </li>
+          {% endif %}
 
           <!-- For Project-->
+          {% if perms.project.view_project %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'project_index' %}">
               <span class='fas fa-flask icon-header'></span>{% trans "Projects" %}
             </a>
           </li>
+          {% endif %}
           <!-- For Fund Items-->
+          {% if perms.fund.view_fund %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'fund_finder' %}">
               <span class='fas fa-filter-circle-dollar icon-header'></span>{% trans "Funds Finder" %}
             </a>
           </li>
+          {% endif %}
           <!-- For Favorite -->
           <li class='nav-item' id="favorites">
 

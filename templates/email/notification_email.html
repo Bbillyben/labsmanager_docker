@@ -67,6 +67,14 @@ table.fund_o_t thead tr:nth-child(odd){
 .team tbody tr:nth-child(even) {
     background-color: #ccf2ff;
 }
+.team tbody tr:nth-child(odd) {
+    background-color: #e6f9ff;
+}
+
+.team tbody td.on-leave {
+    background-color: #4682b4;
+    color: #4682b4;
+}
 
 
 .leaves thead tr:nth-child(odd){
@@ -79,6 +87,18 @@ table.fund_o_t thead tr:nth-child(odd){
 .leaves tbody tr:nth-child(even) {
     background-color: #ffe0b3;
 }
+.leaves tbody tr:nth-child(odd) {
+    background-color: #fff5e6;
+}
+.leaves tbody td.on-leave {
+    background-color: 	#f08080;
+    color: 	#f08080;
+}
+
+td.leave{
+    text-align: center;;
+}
+
 
 
 hr {
@@ -104,6 +124,7 @@ hr.light {
 {% block content %}
 {% setvar 'http'  as scheme %}
 {% setvar user  as username %}
+
 <p>
     {% blocktrans %}Dear {{ username }},
     Please find below the notification from your <a href='{{scheme}}://{{base_url}}'>labsmanager</a> subscriptions.
@@ -228,6 +249,9 @@ hr.light {
 
 
 {% if teams %}
+       
+
+        {% if leave_format == "list" %}
         {% for t in teams %}
                 <div class="table_container">          
                     <table class="table team">
@@ -266,6 +290,48 @@ hr.light {
                 <hr class="light">
                 {% endif %}
         {% endfor %}
+        {% endif %}
+        {% if leave_format == "calendar" %}
+        {% for t in teams %}
+                <div class="table_container">          
+                    <table class="table team">
+                            <thead>
+                                <tr class="table_title">
+                                    <th colspan="100%">{% trans "Team Leaves :" %}<a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a></th>
+                                </tr>
+                                <tr>
+                                    <th>{% trans "Team Mate" %}</th>
+                                    {% for d in days %}
+                                    <th>{{ d|date:"d M" }}</th>
+                                    {%endfor%}
+                                </tr>
+                            </thead>
+                        <tbody>
+
+                            {% with "leave_emp_"|addstr:t.name as leaveM %}
+                                {% extractArgs leaveM  as leaves%}
+                                {% if leaves %}
+                                {% for l, li in leaves.items %}
+                                <tr>
+                                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
+                                    {% for d in days %}
+                                        {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}
+                                    {%endfor%}
+            
+                                </tr>
+                                {% endfor %}    
+                                {% endif %}
+                            
+
+                            {% endwith %}
+
+                    </tbody>
+                </table> 
+                {% if not forloop.last %}
+                <hr class="light">
+                {% endif %}
+        {% endfor %}
+        {% endif %}
 
 {% endif %}
 
@@ -312,7 +378,7 @@ hr.light {
 
 
 {% if all_leaves %}
-
+        {% if leave_format == "list" %}
         <div class="table_container">          
             <table class="table leaves">
                     <thead>
@@ -340,7 +406,41 @@ hr.light {
                 </tbody>
             </table> 
         </div>
+
+        {%endif%}
+        {% if leave_format == "calendar" %}
+        <!--          ################################################  TEST MONTH DISPLAY ##################-->
+        <div class="table_container">          
+            <table class="table leaves">
+                    <thead>
+                        <tr class="table_title">
+                            <th colspan="100%"><a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a></th>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Employee" %}</th>
+                            {% for d in days %}
+                            <th>{{ d|date:"d M" }}</th>
+                            {%endfor%}
+                        </tr>
+                    </thead>
+                <tbody>
+
+                    {% for l, li in emp_leaves.items %}
+                    <tr>
+                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
+                        {% for d in days %}
+                            {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}
+                        {%endfor%}
+
+                    </tr>
+                    {% endfor %}                           
+
+                </tbody>
+            </table> 
+        </div>
+        {%endif%}
         <hr class="">
+
 {% endif %}
 <div class="footer-para">
     {% blocktrans %} Your subscription parameters :{% endblocktrans %}</br>

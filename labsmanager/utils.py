@@ -89,3 +89,15 @@ def intervals_overlap(start1, end1, start2, end2):
         return True
     else:
         return False
+
+
+def create_dict(keyname, queryset):
+    dico={}
+    for it in queryset:
+        k = getattr(it, keyname)
+        if k is not None:
+            if k not in dico:
+                dico[k]=[]
+            dico[k].append(it)
+            
+    return dico

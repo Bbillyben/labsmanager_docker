@@ -1,5 +1,6 @@
 from .models import subscription
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -101,6 +102,7 @@ def send_test_mail(request, *args, **kwargs):
         
     return HttpResponse("success")   
 
+@login_required
 def test_check(request):  
 
 

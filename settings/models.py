@@ -833,6 +833,21 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': False,
             'validator': bool,
         },
+        'NOTIFCATION_LEAVE_FORMAT': {
+            'name': _('Notification Leaves Format'),
+            'description': _('choose to report by calendar or list view for leaves'),
+            'default': 'calendar',
+            'choices': [
+                ('calendar', _('calendar')),
+                ('list', _('list'))
+            ],
+        },
+        'NOTIFCATION_LEAVE_REPORT_NONE': {
+            'name': _('Notification Report Employee without leaves in calendar'),
+            'description': _('report all employee even without leaves in calendar views'),
+            'default': False,
+            'validator': bool,
+        },
         
     }
     class Meta:

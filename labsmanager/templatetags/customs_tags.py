@@ -108,3 +108,11 @@ def extractArgs(context, key):
    if key in context:
        return context[key]
    return None
+
+
+@register.filter
+def is_in_leavelist(d, d_list):   
+    for ds in d_list:
+        if d>=ds.start_date and d<=ds.end_date:
+            return True
+    return False

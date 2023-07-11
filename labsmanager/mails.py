@@ -131,6 +131,7 @@ from django.contrib.contenttypes.models import ContentType
 from dashboard import utils
 from project.views import get_project_fund_overviewReport_bytType
 from django.db.models import Q
+from labsmanager.utils import create_dict
 
 class SubscriptionMail(BaseMail):
     """ Class to generate and send Notification email from subscription
@@ -206,15 +207,44 @@ class SubscriptionMail(BaseMail):
         self.context['teams']=teams 
         
         slot = utils.getCurrentMonthTimeslot()
+        self.context['days']=[slot['from'] + datetime.timedelta(days=i) for i in range(slot["to"].day)] # [i for i in range(1, +1)]
+        
+        
+        leaves_format=LMUserSetting.get_setting("NOTIFCATION_LEAVE_FORMAT", user=user)
+        self.context['leave_format']=leaves_format 
+        
+        leaves_reportNone=LMUserSetting.get_setting("NOTIFCATION_LEAVE_REPORT_NONE", user=user)
         
         for t in teams:
-            tm = TeamMate.current.filter(team=t).values('employee')
-            tmE = Employee.objects.filter(Q(pk__in=tm) | Q(pk=t.leader.pk))
+            tm = TeamMate.current.filter(team=t)
+            tmE = Employee.objects.filter(Q(pk__in=tm.values('employee')) | Q(pk=t.leader.pk))
             self.context['teammate_'+str(t.name)]=tmE 
             leave=Leave.objects.timeframe(slot).filter(employee__in=tmE).order_by('-end_date')    
             self.context['leave_'+str(t.name)]=leave 
+            lv_list=create_dict('employee', leave)
+            #add team leader and teammant not in list for calendar
+            if leaves_reportNone:
+                if t.leader not in lv_list:
+                        lv_list[t.leader]=[]
+                for tmm in tm:
+                    if tmm.employee not in lv_list:
+                        lv_list[tmm.employee]=[]
+            self.context['leave_emp_'+str(t.name)]=lv_list 
+                    
         
         if leaves_report:
-            lv=Leave.objects.timeframe(slot).all().order_by('-end_date')  
+            lv=Leave.objects.timeframe(slot).all().order_by('employee') 
+            lv_list=create_dict('employee', lv)
+               
             self.context['all_leaves']=lv 
+             
             self.context['current_month']=slot['from'].strftime('%B')
+            self.context['timeslot']=slot
+            
+            if leaves_reportNone:
+                emps = Employee.objects.filter(is_active=True)
+                for e in emps:
+                    if e not in lv_list:
+                        lv_list[e]=[]
+                        
+            self.context['emp_leaves']=lv_list

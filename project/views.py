@@ -1,10 +1,11 @@
+from django.contrib.auth.decorators import permission_required
 from http.client import HTTPResponse
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from .models import Project, GenericInfoProject
 from .forms import GenericInfoProjectForm
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic.base import TemplateView
 from django.utils.translation import gettext_lazy as _
 from django.utils.functional import cached_property
@@ -19,14 +20,16 @@ import json
 from labsmanager.pandas_utils import PDUtils
 from labsmanager.mixin import CrumbListMixin
 
-class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
+class ProjectIndexView(LoginRequiredMixin, PermissionRequiredMixin, BaseBreadcrumbMixin, TemplateView):
+    permission_required='project.view_project'
     template_name = 'project/project_base.html'
     model = Project
     crumbs = [(_("Project"),"project")]
     
     
     
-class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, TemplateView):
+class ProjectView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, TemplateView):
+    permission_required='project.view_project'
     template_name = 'project/project_single.html'
     model = Project
     # crumbs = [("Project","project")]

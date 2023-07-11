@@ -17,6 +17,8 @@
                     {% include "settings/setting.html" with key="NOTIFCATION_STATUS" user_setting=True icon='fa-bell' %}
                     {% include "settings/setting.html" with key="NOTIFCATION_FREQ" user_setting=True icon='fa-calendar-week' %}
                     {% include "settings/setting.html" with key="NOTIFCATION_INC_LEAVE" user_setting=True icon='fa-martini-glass-citrus' %}
+                    {% include "settings/setting.html" with key="NOTIFCATION_LEAVE_FORMAT" user_setting=True icon='fa-paragraph' %}
+                    {% include "settings/setting.html" with key="NOTIFCATION_LEAVE_REPORT_NONE" user_setting=True icon='fa-paragraph' %}
                 </tbody>
             </table>
             <div class="card  mb-2 loadingCard" data-url="{% url 'subscriptions_setting' %}">

@@ -50,6 +50,13 @@ function activatePanel(label, panel_name, options={}) {
     var selector = `#select-${panel_name}`;
 
     $(selector).addClass('active');
+
+    // check if parent is accordion if show ensure it's open
+    var selparent = $(selector).parent()
+    if(undefined != selparent.data("bs-parent")){
+        selparent.collapse('show')
+    }
+    
 }
 
 

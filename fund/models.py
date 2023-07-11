@@ -146,7 +146,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
     def clean_end_date(self):
         ## print("EXIT DATE CLEAN Fund Model :"+str(self.cleaned_data))
         if( self.end_date != None and (self.start_date == None or self.start_date > self.end_date)):
-            raise ValidationError(_('Exit Date (%s) should be later than entry date (%s) ') % (self.end_date, self.start_date))
+            raise ValidationError(_('Exit Date (%(end)s) should be later than entry date (%(start)s) ') % ({'end':self.end_date, 'start':self.start_date}))
         return self.end_date
     
     def get_available(self):
