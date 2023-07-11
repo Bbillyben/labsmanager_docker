@@ -12,7 +12,8 @@
     function eventClicked(info){
         $(info.el).tooltip('dispose');
         $('.popover').popover('dispose');
-        //console.log(JSON.stringify(info.event))
+        if (info.event.display == "background" )return  { html: "" }
+        // console.log(JSON.stringify(info.event))
         titleP ='<div class="d-flex flex-wrap">'
         titleP += "<b>"+info.event.extendedProps.type+"</b>";
         titleP += '<span class="flex" style="flex-grow: 1;"></span>';
@@ -106,7 +107,7 @@
     }
     // ---------------------- Selection de date  --------------------- //
     function eventSelectHandler(info){
-        //console.log("[eventSelectHandler] :"+JSON.stringify(info))
+        // console.log("[eventSelectHandler] :"+JSON.stringify(info))
         $('.popover').popover('dispose');
         $(info.el).tooltip('dispose');
 
@@ -197,6 +198,26 @@
     function callEventCallback(settings){
         if(undefined != settings.eventCallback)settings.eventCallback();
     }
+    function eventContentRender(event){
+        // console.log('[eventContentRender] called')
+        htmlEvt = ""
+        //console.log(JSON.stringify(event))
+        
+        if (event.event.display == "background" )return  { html: "" }
+
+        props = event.event.extendedProps
+        if(event.view.type.includes("resourceTimeline")){
+            htmlEvt += props.type;
+        }else if(event.view.type.includes("Grid")){
+            htmlEvt += props.employee;
+        }else{
+            htmlEvt += props.employee + " - " + props.type;
+        }
+
+        
+        return  { html: htmlEvt }
+    }
+
 
     $.fn.lab_calendar = function (options) {
         //console.log("Modal Form Call :"+options.formURL);
@@ -268,7 +289,7 @@
                 eventClick: settingsCal.eventClick,
                 select: settingsCal.select,
                 height: settingsCal.height,
-                resourceLabelContent : function(renderInfo ) {
+                resourceLabelContent : function(renderInfo) {
                     htmlRes=renderInfo.fieldValue
                     if(USER_PERMS.includes("staff.view_employee")){
                         htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to employee'><i type = 'button' class='fa-regular fa-circle-right d-print-none text-info'></i></a></sup>"; 
@@ -283,20 +304,23 @@
                 slotDuration: {
                     "hours": 12
                   },
-                  slotLabelInterval: {
-                    "hours": 24
-                  },
-                  slotLabelFormat: [{
-                      month: 'long',
-                      week: "short",
-                    }, // top level of text
-                    {
-                      weekday: 'short',
-                      day: 'numeric'
-              
-                    } // lower level of text
-                  ],
-                  
+                slotLabelInterval: {
+                "hours": 24
+                },
+                slotLabelFormat: [{
+                    month: 'long',
+                    week: "short",
+                }, // top level of text
+                {
+                    weekday: 'short',
+                    day: 'numeric'
+            
+                } // lower level of text
+                ],
+
+                  // ------------------------------------------
+                
+                  eventContent:eventContentRender,  
 
 
             }
