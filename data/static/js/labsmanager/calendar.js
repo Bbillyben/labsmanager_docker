@@ -23,7 +23,7 @@
         titleP += '</div>';
         textP = "<em><b>" + info.event.extendedProps.employee + "</b></em>";
         var d = new Date(info.event.end);
-        d.setDate(d.getDate() - 1)
+        if(d.getUTCHours()==0)d.setDate(d.getDate() - 1)
         textP += "</br>" + info.event.start.toLocaleDateString() + "<small> (" + info.event.extendedProps.start_period_di+")</small> " + " - " + d.toLocaleDateString() + "<small> (" + info.event.extendedProps.end_period_di+")</small>";
         if(info.event.extendedProps.comment) textP +="</br><i>"+ info.event.extendedProps.comment+"</i>";
         if(USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("leave.delete_leave") || USER_PERMS.includes("staff.view_employee")){
@@ -139,7 +139,7 @@
         $('.popover').popover('dispose');
         $(evt.el).tooltip('dispose');
         datas=evt['event'];
-        // console.log("LeaveChangeHandler called"+JSON.stringify(datas));
+        console.log("LeaveChangeHandler called"+JSON.stringify(datas));
         ne={};
         ne["pk"]=datas["extendedProps"]["pk"];
         ne["employee"]=datas["extendedProps"]["employee_pk"];
@@ -198,10 +198,11 @@
     function callEventCallback(settings){
         if(undefined != settings.eventCallback)settings.eventCallback();
     }
-    function eventContentRender(event){
+    function eventContentRender(event, createElement){
         // console.log('[eventContentRender] called')
+        // console.log(JSON.stringify(event))
+
         htmlEvt = ""
-        //console.log(JSON.stringify(event))
         
         if (event.event.display == "background" )return  { html: "" }
 
@@ -213,11 +214,12 @@
         }else{
             htmlEvt += props.employee + " - " + props.type;
         }
-
-        
+        if (props.start_period_di == "Middle" ||  props.end_period_di== "Middle"){
+            console.log(event)
+            htmlEvt = '<span style="width:50%;">'+htmlEvt+'</span>'
+        }
         return  { html: htmlEvt }
     }
-
 
     $.fn.lab_calendar = function (options) {
         //console.log("Modal Form Call :"+options.formURL);
@@ -321,6 +323,7 @@
                   // ------------------------------------------
                 
                   eventContent:eventContentRender,  
+                  eventDisplay:'block',
 
 
             }
