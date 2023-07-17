@@ -89,10 +89,14 @@
                  {% if user.is_staff %}
                    <li><a class='dropdown-item' href="{% url 'admin:index' %}"><span class="fas fa-user-shield"></span> {% trans "Admin" %}</a></li>
                  {% endif %}
+                 {% if user.employee %}
                  <hr>
-                 <li><a class='dropdown-item' href="{% url 'logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a></li>
+                 <li><a class='dropdown-item' href="{% url 'employee' pk=user.employee.pk %}" title="{{user.employee}}"><span class="fas fa-user"></span> {% trans "My Employee" %}</a></li>
+                 {% endif %}
+                 <hr>
+                 <li><a class='dropdown-item' href="{% url 'account_logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a></li>
                {% else %}
-                 <li><a class='dropdown-item' href="{% url 'login' %}"><span class="fas fa-sign-in-alt"></span> {% trans "Login" %}</a></li>
+                 <li><a class='dropdown-item' href="{% url 'account_login' %}"><span class="fas fa-sign-in-alt"></span> {% trans "Login" %}</a></li>
                {% endif %}    
                  <!-- <hr>     
                  <li><div class='dropdown-item' ><span class="fas fa-flag"></span>{{LANGUAGE_CODE}}</div></li>    -->

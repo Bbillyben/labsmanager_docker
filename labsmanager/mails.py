@@ -34,7 +34,7 @@ class BaseMail():
     def send(self, recipients, addLogo=False, **kwargs):
         
         if recipients == None :
-            logger.error(f"Notification Send  has no user email defined : {user}")
+            logger.error(f"Notification Send  has no user email defined : {recipients}")
             return None
         
         

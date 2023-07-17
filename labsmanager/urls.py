@@ -52,7 +52,8 @@ urlpatterns = [
 ]
 #  Authentications : 
 urlpatterns += [
-    path('accounts/', include('django.contrib.auth.urls')),
+    #path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
 #  django_js_reverse
 urlpatterns += [

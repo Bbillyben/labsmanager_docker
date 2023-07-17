@@ -89,6 +89,15 @@ function isJson(item) {
   return typeof value === "object" && value !== null;
 }
 
+/**
+ * Returns true if the input looks like a email
+ * @param {String} n
+ * @returns
+ */
+function isEmail(item) {
+  var validRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+  return item.match(validRegex);
+}
 
 /**
  * To replicate windows open with POST params.

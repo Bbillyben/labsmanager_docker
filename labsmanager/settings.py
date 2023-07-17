@@ -87,6 +87,8 @@ INSTALLED_APPS = [
     'colorfield',                   # to get a color field
     'django_js_reverse',            # get reverse url in javascript file https://github.com/ierror/django-js-reverse
     'faicon',                        #https://pypi.org/project/django-faicon/
+    'allauth',
+    'allauth.account',              # https://django-allauth.readthedocs.io/en/latest/installation.html
     
     # App
     'staff.apps.StaffConfig',
@@ -114,6 +116,9 @@ MIDDLEWARE = [
     'auditlog.middleware.AuditlogMiddleware',
     'django.contrib.sites.middleware.CurrentSiteMiddleware',
 ]
+MIDDLEWARE_CLASSES = (
+    'labsmanager.UserEmployeeMiddleware',
+)
 
 # FOR CSP policies
 use_csp = get_boolean_setting('ADMIN_USE_CSP', 'admin_use_csp', False)
@@ -209,8 +214,12 @@ DATABASES = {
 AUTHENTICATION_BACKENDS = [
     'labsmanager.MailAutenticateBackend.MailAutenticateBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
     ]
-
+# accounts settings
+ACCOUNT_DEFAULT_HTTP_PROTOCOL=get_setting('ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'lab_ddefault_http_protocol', 'http')
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE=True
+ACCOUNT_CONFIRM_EMAIL_ON_GET=False
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 

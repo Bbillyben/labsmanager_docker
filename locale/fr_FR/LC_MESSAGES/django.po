@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-11 14:03+0200\n"
+"POT-Creation-Date: 2023-07-17 16:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,6 +21,15 @@ msgstr ""
 #: settings/models.py:874 staff/models.py:30 staff/ressources.py:196
 msgid "User"
 msgstr "Utilisateur"
+
+#: common/tasks.py:86
+#, python-format
+msgid "No Primary Email for user %(user)s verified "
+msgstr "Pas d'email principal vérifié pour l'utilisateur %(user)s"
+
+#: common/tasks.py:97
+msgid "Mail Send"
+msgstr "Mail Envoyé"
 
 #: dashboard/views.py:29 templates/dashboard/global_dashboard.html:22
 #: templates/labmanager/index.html:93 templates/navbar.html:77
@@ -128,7 +137,7 @@ msgstr "Employé"
 #: templates/expense/contract_table.html:25 templates/fund/budget_table.html:17
 #: templates/fund/contrib_table.html:17 templates/fund/fund_finder.html:56
 #: templates/labmanager/index.html:66 templates/project/project_base.html:53
-#: templates/project/project_single.html:26 templates/settings/sidebar.html:36
+#: templates/project/project_single.html:26 templates/settings/sidebar.html:39
 #: templates/team/team_single.html:162
 msgid "Project"
 msgstr "Projet"
@@ -318,7 +327,7 @@ msgstr "Nom du Type"
 #: expense/models.py:115 templates/dashboard/global_dashboard.html:88
 #: templates/employee/employee_sidebar.html:4
 #: templates/labmanager/index.html:58 templates/project/project_single.html:498
-#: templates/settings/sidebar.html:30
+#: templates/settings/sidebar.html:33
 msgid "Contract"
 msgstr "Contrat"
 
@@ -434,7 +443,7 @@ msgstr "Ligne de Fond"
 #: fund/models.py:77 project/resources.py:66
 #: templates/fund/budget_table.html:21 templates/fund/contrib_table.html:21
 #: templates/labmanager/index.html:75 templates/project/project_base.html:68
-#: templates/project/project_single.html:254 templates/settings/sidebar.html:27
+#: templates/project/project_single.html:254 templates/settings/sidebar.html:30
 msgid "Fund"
 msgstr "Fond"
 
@@ -462,7 +471,8 @@ msgstr "Référence"
 #, fuzzy, python-format
 #| msgid "Exit Date (%s) should be later than entry date (%s) "
 msgid "Exit Date (%(end)s) should be later than entry date (%(start)s) "
-msgstr "La date de départ (%(end)s) doit être postérieur à la date de fin (%(start)s)"
+msgstr ""
+"La date de départ (%(end)s) doit être postérieur à la date de fin (%(start)s)"
 
 #: fund/models.py:198
 #, fuzzy
@@ -636,6 +646,18 @@ msgstr "Aperçu des fonds du projet"
 #: fund/views.py:132 templates/fund/fund_finder.html:25
 msgid "Fund Finder"
 msgstr "Explorateur de Fonds"
+
+#: labsmanager/admin.py:33
+msgid "Personal info"
+msgstr "Info Personnelles"
+
+#: labsmanager/admin.py:34
+msgid "Permissions"
+msgstr "Permissions"
+
+#: labsmanager/admin.py:37
+msgid "Important dates"
+msgstr "Dates importantes"
 
 #: labsmanager/mixin.py:108
 msgid "Focus Amount"
@@ -1005,10 +1027,11 @@ msgstr "Reporter les employés sans congé dans les vues calendrier"
 
 #: settings/models.py:847
 msgid "report all employee even without leaves in calendar views"
-msgstr "Reporter tous les employés, même sans congés, dans les vues de calendrier"
+msgstr ""
+"Reporter tous les employés, même sans congés, dans les vues de calendrier"
 
 #: settings/views.py:20 templates/labmanager/index.html:101
-#: templates/navbar.html:88
+#: templates/navbar.html:88 templates/settings/sidebar.html:9
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -1096,6 +1119,7 @@ msgid "Exit Date"
 msgstr "Date de Sortie"
 
 #: staff/models.py:34 staff/ressources.py:190
+#: templates/settings/user_settings.html:52
 #: templates/staff/employee_desc_table.html:21
 msgid "Email"
 msgstr "Email"
@@ -1173,9 +1197,57 @@ msgstr "Equipier"
 msgid "Teams"
 msgstr "Equipes"
 
-#: templates/account/login.html:8 templates/account/login.html:12
-#: templates/account/login.html:27 templates/registration/login.html:7
-#: templates/registration/login.html:9
+#: templates/account/email_confirm.html:6
+#: templates/account/email_confirm.html:10
+msgid "Confirm E-mail Address"
+msgstr "Confirmez votre adresse E-mail"
+
+#: templates/account/email_confirm.html:17
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr ""
+"Merci de confirmer que l'adresse <a href=\"mailto:%(email)s\">%(email)s</a> "
+"est une adresse e-mail pour l'utilisateur %(user_display)s."
+
+#: templates/account/email_confirm.html:23
+msgid "Confirm"
+msgstr "Confirmer"
+
+#: templates/account/email_confirm.html:33
+#, python-format
+msgid ""
+"This e-mail confirmation link expired or is invalid. Please <a href="
+"\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+msgstr ""
+"Ce lien de confirmation par e-mail a expiré ou n'est pas valide. Demandez <a "
+"href=\"%(email_url)s\"> une nouvelle confirmation s'il vous plait</a>."
+
+#: templates/account/email_list.html:17
+msgid "Verified"
+msgstr "Vérifié"
+
+#: templates/account/email_list.html:19
+msgid "Unverified"
+msgstr "Non Vérifié"
+
+#: templates/account/email_list.html:21
+msgid "Primary"
+msgstr "Principal"
+
+#: templates/account/email_list.html:47
+msgid "Add Email"
+msgstr "Ajout Email"
+
+#: templates/account/login.html:7 templates/account/login.html:9
+#: templates/account/logout.html:7 templates/account/logout.html:9
+#: templates/account/password_reset.html:7
+#: templates/account/password_reset_confirm.html:7
+#: templates/account/password_reset_confirm.html:9
+#: templates/account/password_reset_done.html:7
+#: templates/account/password_reset_from_key.html:7
+#: templates/registration/login.html:7 templates/registration/login.html:9
 #: templates/registration/password_reset_confirm.html:7
 #: templates/registration/password_reset_confirm.html:9
 #: templates/registration/password_reset_done.html:7
@@ -1183,9 +1255,121 @@ msgstr "Equipes"
 msgid "Sign In"
 msgstr "Connexion"
 
-#: templates/account/login.html:31 templates/registration/login.html:19
+#: templates/account/login.html:16 templates/registration/login.html:16
+msgid "Connexion"
+msgstr "Connexion"
+
+#: templates/account/login.html:19 templates/account/password_change.html:18
+#: templates/registration/login.html:19
 msgid "Forgot Password?"
 msgstr "Password oublié?"
+
+#: templates/account/logout.html:10
+msgid "Are you sure you want to sign out?"
+msgstr "Etes vous sur de vouloir vous déconnecter ?"
+
+#: templates/account/logout.html:20
+msgid "Sign out"
+msgstr "Déconnexion"
+
+#: templates/account/password_change.html:7
+#: templates/account/password_change.html:9
+#: templates/account/password_change.html:15
+msgid "Set Password"
+msgstr "Définir le mot de passe"
+
+#: templates/account/password_reset.html:9
+#: templates/registration/password_reset_form.html:9
+msgid "Forgot Your Password ?"
+msgstr "Password oublié?"
+
+#: templates/account/password_reset.html:18
+#: templates/registration/password_reset_form.html:15
+msgid "send mail"
+msgstr "envoyer un message"
+
+#: templates/account/password_reset_complete.html:7
+#: templates/account/password_reset_from_key_done.html:7
+#: templates/registration/password_reset_complete.html:7
+msgid "Password reset"
+msgstr "Réinitialisation du mot de passe"
+
+#: templates/account/password_reset_complete.html:9
+#: templates/account/password_reset_from_key_done.html:9
+#: templates/registration/password_reset_complete.html:9
+msgid "Password reset Complete"
+msgstr "Réinitialisation du mot de passe Terminé"
+
+#: templates/account/password_reset_complete.html:10
+#: templates/account/password_reset_from_key_done.html:10
+#: templates/registration/password_reset_complete.html:10
+msgid ""
+"\n"
+"    Your password has been set. You may go ahead and log in now.    \n"
+"  "
+msgstr ""
+"\n"
+"Votre mot de passe a été défini. Vous pouvez vous connecter maintenant.    \n"
+"  "
+
+#: templates/account/password_reset_complete.html:15
+#: templates/account/password_reset_done.html:17
+#: templates/account/password_reset_from_key_done.html:15
+#: templates/registration/password_reset_complete.html:15
+#: templates/registration/password_reset_done.html:17
+msgid "Back to login page"
+msgstr "Retour à la page de connexion"
+
+#: templates/account/password_reset_confirm.html:15
+#: templates/account/password_reset_from_key.html:20
+#: templates/registration/password_reset_confirm.html:15
+msgid "Reset Password"
+msgstr "Réinitialiser le mot de passe"
+
+#: templates/account/password_reset_done.html:9
+#: templates/registration/password_reset_done.html:9
+msgid "Password reset done ?"
+msgstr "Le mot de passe a été réinitialisé ?"
+
+#: templates/account/password_reset_done.html:10
+#: templates/registration/password_reset_done.html:10
+msgid ""
+"\n"
+"        We've emailed you instructions for setting your password, if an "
+"account exists with the email you entered.\n"
+"        You should receive them shortly.<br>If you don't receive an email, "
+"please make sure you've entered the address you registered with, and check "
+"your spam folder.\n"
+"  "
+msgstr ""
+"\n"
+"        Nous vous avons envoyé par e-mail des instructions pour définir "
+"votre mot de passe, si un compte existe avec l'adresse e-mail que vous avez "
+"saisie.\n"
+"        Vous devriez les recevoir sous peu.<br>Si vous ne recevez pas d'e-"
+"mail, vérifiez que vous avez bien saisi l'adresse avec laquelle vous vous "
+"êtes inscrit, et vérifiez votre dossier de spam.\n"
+"  "
+
+#: templates/account/password_reset_from_key.html:9
+msgid "Bad Token"
+msgstr "Mauvais Jeton"
+
+#: templates/account/password_reset_from_key.html:9
+#: templates/settings/user_settings.html:46
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+#: templates/account/password_reset_from_key.html:13
+#, python-format
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</"
+"a>."
+msgstr ""
+"Le lien de réinitialisation du mot de passe n'était pas valide, peut-être "
+"parce qu'il a déjà . été utilisé.  Veuillez demander <a href="
+"\"%(passwd_reset_url)s\">la réinitialisation de votre mot de passe</a>."
 
 #: templates/calendar/calendar_filters.html:14
 msgid "Leave Type Filter"
@@ -1320,10 +1504,8 @@ msgstr "Taux de Consommation"
 
 #: templates/email/notification_email.html:153
 #: templates/email/notification_email.html:211
-#, fuzzy
-#| msgid "Consumption Ratio"
 msgid "Consumption Advancement"
-msgstr "Taux de Consommation"
+msgstr "Avancement de la consommation"
 
 #: templates/email/notification_email.html:198
 #, fuzzy
@@ -1333,16 +1515,12 @@ msgstr "Aperçu des fonds du projet"
 
 #: templates/email/notification_email.html:260
 #: templates/email/notification_email.html:300
-#, fuzzy
-#| msgid "Team Leader"
 msgid "Team Leaves :"
-msgstr "Chef d'équipe"
+msgstr "Congés de l'équipe"
 
 #: templates/email/notification_email.html:346
-#, fuzzy
-#| msgid "Employee Active"
 msgid "Employee overview"
-msgstr "Employé Actif"
+msgstr "Aperçu Employé"
 
 #: templates/email/notification_email.html:386
 #: templates/email/notification_email.html:417
@@ -1482,7 +1660,7 @@ msgid "Participant Status"
 msgstr "Statut du Participant"
 
 #: templates/employee/employee_single.html:385
-#: templates/project/project_sidebar.html:21 templates/settings/sidebar.html:33
+#: templates/project/project_sidebar.html:21 templates/settings/sidebar.html:36
 msgid "Leaves"
 msgstr "Congés"
 
@@ -1554,7 +1732,7 @@ msgstr "Ligne Budgétaire"
 msgid "Welcome"
 msgstr "Bienvue"
 
-#: templates/labmanager/index.html:30 templates/navbar.html:93
+#: templates/labmanager/index.html:30 templates/navbar.html:97
 msgid "Logout"
 msgstr "Déconnexion"
 
@@ -1566,7 +1744,11 @@ msgstr "Admin"
 msgid "Funds Finder"
 msgstr "Explorateur de Fonds"
 
-#: templates/navbar.html:95
+#: templates/navbar.html:94
+msgid "My Employee"
+msgstr "Mon Employé"
+
+#: templates/navbar.html:99
 msgid "Login"
 msgstr "Connexion"
 
@@ -1684,60 +1866,6 @@ msgstr "Fin"
 msgid "project Dashboard"
 msgstr "Tableau de bord Projet"
 
-#: templates/registration/login.html:16
-msgid "Connexion"
-msgstr "Connexion"
-
-#: templates/registration/password_reset_complete.html:7
-msgid "Password reset"
-msgstr "Réinitialisation du mot de passe"
-
-#: templates/registration/password_reset_complete.html:9
-msgid "Password reset Complete"
-msgstr "Réinitialisation du mot de passe Terminé"
-
-#: templates/registration/password_reset_complete.html:10
-msgid ""
-"\n"
-"    Your password has been set. You may go ahead and log in now.    \n"
-"  "
-msgstr ""
-"\n"
-"Votre mot de passe a été défini. Vous pouvez vous connecter maintenant.    \n"
-"  "
-
-#: templates/registration/password_reset_complete.html:15
-#: templates/registration/password_reset_done.html:17
-msgid "Back to login page"
-msgstr "Retour à la page de connexion"
-
-#: templates/registration/password_reset_confirm.html:15
-msgid "Reset Password"
-msgstr "Réinitialiser le mot de passe"
-
-#: templates/registration/password_reset_done.html:9
-msgid "Password reset done ?"
-msgstr "Le mot de passe a été réinitialisé ?"
-
-#: templates/registration/password_reset_done.html:10
-msgid ""
-"\n"
-"        We've emailed you instructions for setting your password, if an "
-"account exists with the email you entered.\n"
-"        You should receive them shortly.<br>If you don't receive an email, "
-"please make sure you've entered the address you registered with, and check "
-"your spam folder.\n"
-"  "
-msgstr ""
-"\n"
-"        Nous vous avons envoyé par e-mail des instructions pour définir "
-"votre mot de passe, si un compte existe avec l'adresse e-mail que vous avez "
-"saisie.\n"
-"        Vous devriez les recevoir sous peu.<br>Si vous ne recevez pas d'e-"
-"mail, vérifiez que vous avez bien saisi l'adresse avec laquelle vous vous "
-"êtes inscrit, et vérifiez votre dossier de spam.\n"
-"  "
-
 #: templates/registration/password_reset_email.html:4
 msgid ""
 "You're receiving this e-mail because you requested a password reset for your "
@@ -1765,16 +1893,8 @@ msgstr "Ou vous pouvez vous connecter avec votre email"
 msgid "The %(site)s team."
 msgstr "L'équipe de %(site)s."
 
-#: templates/registration/password_reset_form.html:9
-msgid "Forgot Your Password ?"
-msgstr "Password oublié?"
-
-#: templates/registration/password_reset_form.html:15
-msgid "send mail"
-msgstr "envoyer un message"
-
 #: templates/settings/auditlog_settings.html:7
-#: templates/settings/sidebar.html:52
+#: templates/settings/sidebar.html:55
 msgid "Audit Log"
 msgstr "Audit Log"
 
@@ -1782,15 +1902,15 @@ msgstr "Audit Log"
 msgid "Calendar Settings"
 msgstr "Paramètres de calendrier"
 
-#: templates/settings/common_settings.html:8 templates/settings/sidebar.html:12
+#: templates/settings/common_settings.html:9 templates/settings/sidebar.html:15
 msgid "Favorites and Subscriptions"
 msgstr "Favoris et abonnements"
 
-#: templates/settings/common_settings.html:28
+#: templates/settings/common_settings.html:30
 msgid "Send Test Mail"
 msgstr "envoyer un message test"
 
-#: templates/settings/common_settings.html:30
+#: templates/settings/common_settings.html:32
 msgid "Sending"
 msgstr "Envoi"
 
@@ -1830,41 +1950,53 @@ msgstr "Edition Paramètre"
 msgid "LabManager Settings"
 msgstr "Paramètres LabsManager"
 
-#: templates/settings/sidebar.html:9
+#: templates/settings/sidebar.html:12 templates/settings/user_settings.html:10
 msgid "User Settings"
 msgstr "Paramètre Utilisateur"
 
-#: templates/settings/sidebar.html:15
+#: templates/settings/sidebar.html:18
 msgid "Dashboard Settings"
 msgstr "Paramètre Tableau de bord"
 
-#: templates/settings/sidebar.html:18
+#: templates/settings/sidebar.html:21
 msgid "Stale Settings"
 msgstr "Paramètre de péremption"
 
-#: templates/settings/sidebar.html:23
+#: templates/settings/sidebar.html:26
 msgid "LabsManager Lists"
 msgstr "Listes LabsManager"
 
-#: templates/settings/sidebar.html:39
+#: templates/settings/sidebar.html:42
 msgid "Staff"
 msgstr "Personnel"
 
-#: templates/settings/sidebar.html:46
+#: templates/settings/sidebar.html:49
 msgid "LabsManager Settings"
 msgstr "Paramètre LabsManager"
 
-#: templates/settings/sidebar.html:49
+#: templates/settings/sidebar.html:52
 msgid "Mails"
 msgstr "Mails"
 
-#: templates/settings/sidebar.html:55
+#: templates/settings/sidebar.html:58
 msgid "Calendar View"
 msgstr "Vue Calendrier"
 
 #: templates/settings/stale_calculation_settings.html:7
 msgid "Stale Alert"
 msgstr "Alerte de péremption"
+
+#: templates/settings/user_settings.html:25
+msgid "LabsManager User"
+msgstr "Utilisateur LabsManager"
+
+#: templates/settings/user_settings.html:30
+msgid "User's Employee"
+msgstr "Employé de l'utilisateur"
+
+#: templates/settings/user_settings.html:34
+msgid "None"
+msgstr "Aucun"
 
 #: templates/staff/employee_desc_table.html:11
 msgid "Employee Id"
@@ -1910,10 +2042,8 @@ msgstr "Ajout Equipier"
 msgid "TeamMate Projects"
 msgstr "Projets Equipier"
 
-#, fuzzy
-#~| msgid "Description"
 #~ msgid "Subscription Report"
-#~ msgstr "Description"
+#~ msgstr "Rapport desabonnements"
 
 #~ msgid "Server Restart Required"
 #~ msgstr "Redémarrage du serveur requis"

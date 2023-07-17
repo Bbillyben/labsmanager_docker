@@ -23,22 +23,28 @@ function callTestMail(el){
         success: function( data )
         {
             // console.log("Success")
+            // console.log(data)
             btn.addClass('btn-success').removeClass('btn-primary').removeClass('btn-warning');
+            showMessage(data.message,{
+                'style':'success',
+            })
             
         },
-        error:function( err )
+        error: function( err )
         {
-            console.log("Error Send Test Mail :"+err);
+            // console.log("Error Send Test Mail :"+err);
             btn.addClass('btn-warning').removeClass('btn-primary').removeClass('btn-success');
+            showMessage("Error Mail Sending :"+err.responseJSON.message,{
+                'style':'danger',
+            })
         },
         complete:function(arg)
         {
             btn.prop('disabled', false);
             btn.find(".initial").show();
             btn.find(".spinner").hide();
-            setTimeout(function(){
-                btn.addClass('btn-primary').removeClass('btn-warning').removeClass('btn-success');
-            }, 2500);
+            //btn.addClass('btn-primary').removeClass('btn-warning').removeClass('btn-success');
+            
         }
     })
     

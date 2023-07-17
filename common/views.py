@@ -102,3 +102,9 @@ def toggle_subscription(request):
         
         
     return render(request, 'subscription_bell.html', data)
+
+
+
+#### For email list and modification ####
+def get_user_emaillist(request):
+    return render(request, 'account/email_list.html')

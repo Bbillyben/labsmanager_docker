@@ -1,0 +1,114 @@
+{% load i18n %}
+{% load account %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<table class='table table-striped table-condensed table-desc'>
+    <tbody>
+        
+        {% for e in user.emailaddress_set.all %}
+        <tr>
+            <td>
+                {{ e.email }}
+            </td>
+            
+            <td>
+                {% if e.verified %}
+                <span class='badge badge-right rounded-pill bg-success'>{% trans "Verified" %}</span>
+                {% else %}
+                <span class='badge badge-right rounded-pill bg-warning'>{% trans "Unverified" %}</span>
+                {% endif %}
+                {% if e.primary %}<span class='badge badge-right rounded-pill bg-primary'>{% trans "Primary" %}</span>{% endif %}
+            </td>
+            <td>
+                <span class="icon-left-cell btn-group">
+                    {% if not e.primary and e.verified %}
+                    <button class="icon mail-mngt btn btn-success" data-type="make-primary" data-pk="{{e.pk}}" data-email="{{e.email}}">
+                        <i class="fa-solid fa-ranking-star"></i>
+                    </button>
+                    {% endif %}
+                    {% if not e.verified %}
+                    <button class="icon mail-mngt btn btn-secondary " data-type="send-verif" data-pk="{{e.pk}}" data-email="{{e.email}}">
+                        <i class="fa-solid fa-envelope-circle-check"></i>
+                    </button>
+                    {% endif %}
+                    {% if not e.primary %}
+                    <button class="icon mail-mngt btn btn-danger " data-type="remove" data-pk="{{e.pk}}" data-email="{{e.email}}">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    {% endif %}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="100%" style="width:100%;">
+                <input type="email" name="email" placeholder="Adresse e-mail" id="id_email" style="width:50%;"></input>
+                <button class="btn mail-mngt btn-primary" data-type="add">{% trans "Add Email" %}</button>
+            </td>
+        </tr>
+        
+        
+    </tbody>
+</table>
+
+{% endblock %}
+
+
+
+{% block panel_js %}
+<script>
+$('.mail-mngt').click(function(){
+    // console.log("mail-mngt"+$(this).data("pk")+" / type :"+$(this).data("type"));
+
+    var postData={}
+    postData['email']=$(this).data("email")
+    switch ($(this).data("type")) {
+        case 'make-primary':
+            postData['action_primary']=true;   
+            break;
+        case 'send-verif':
+            postData['action_send']=true; 
+            break;
+        case 'remove':
+            postData['action_remove']=true; 
+            break;
+        case 'add':
+            postData['action_add']=true; 
+            postData['email']=$('#id_email').val();
+            break;
+        default:
+            console.log(`Error On email action type :`+$(this).data("type"));
+            return;
+    }
+    if(postData['email'] == "" || undefined == postData['email'] ){
+        console.log(`Error On email string`);
+        return;
+    }
+    if( ! isEmail(postData['email'] )){
+        console.log(`Invalid email string :`+postData['email']);
+        return;
+    }
+    console.log(JSON.stringify(postData))
+    postData['csrfmiddlewaretoken']=getCookie('csrftoken'),
+    $.ajax({
+        type:"POST",
+        url:"{% url 'account_email' %}",
+        data:postData,
+        success: function( data )
+        {
+            loadInTemplate(elt=$('#user_email_cont'),url="{% url 'user_emaillist' %}");
+        },
+        error:function( err )
+        {
+            jsErr = JSON.parse(err.responseText)
+            showMessage(jsErr.form.fields.email.errors, {
+                    'style':'danger',
+                })
+            console.log(JSON.stringify(jsErr.form.fields.email.errors));
+        }
+    })    
+})
+</script>
+
+{% endblock %}

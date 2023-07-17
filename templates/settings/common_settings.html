@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load account %}
 
 {% block label %}common{% endblock %}
 
@@ -14,6 +15,7 @@
         <div class="col col-6">
             <table class='table table-striped table-condensed'>
                 <tbody>
+                    
                     {% include "settings/setting.html" with key="NOTIFCATION_STATUS" user_setting=True icon='fa-bell' %}
                     {% include "settings/setting.html" with key="NOTIFCATION_FREQ" user_setting=True icon='fa-calendar-week' %}
                     {% include "settings/setting.html" with key="NOTIFCATION_INC_LEAVE" user_setting=True icon='fa-martini-glass-citrus' %}

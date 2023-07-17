@@ -7,15 +7,18 @@
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 {% block content %}
 <h2>{% trans "Sign In" %}</h2>
-<form class="login" method="POST" action="{% url 'account_login' %}">
+<p>{% trans 'Are you sure you want to sign out?' %}</p>
+<form class="login" method="POST" action="{% url 'account_logout' %}">
+    
   {% csrf_token %}
-  {{ form|crispy }}
-  <input type="hidden" name="next" value="{{ next }}">
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+  {% endif %}
+  
     <div class="btn-group float-right" role="group">
         <button class="btn btn-success" type="submit">
-            <span class='fas fa-sign-in-alt'></span> {% trans "Connexion" %}
+            <span class='fas fa-sign-in-alt'></span> {% trans "Sign out" %}
         </button>
     </div>
-    <a class="" href="{% url 'account_reset_password' %}"><small>{% trans "Forgot Password?" %}</small></a>
 </form>
 {% endblock %}

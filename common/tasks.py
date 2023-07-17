@@ -8,7 +8,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django_q.models import Schedule
 
 from django.shortcuts import render, HttpResponse
+from django.http import JsonResponse
 from settings.models import LMUserSetting
+
+from labsmanager.mails import SubscriptionMail
+from allauth.account.models import EmailAddress
 
 import logging
 logger = logging.getLogger('labsmanager')
@@ -67,7 +71,6 @@ def check_notifications_tasks():
             continue
         checkuser_notification_tasks(user)        
 
-from labsmanager.mails import SubscriptionMail
 
 def send_notification(*args, **kwargs):
     print("###############   [cdmmon.tasks.send_notification]    #######")
@@ -77,12 +80,23 @@ def send_notification(*args, **kwargs):
         return None    
     user = User.objects.get(pk=pkU)
     
+    # find email in EmailAdress
+    emails= EmailAddress.objects.filter(user=pkU, primary=True, verified=True)
+    if not emails:
+        response=JsonResponse({'status': 'error', 'message': _("No Primary Email for user %(user)s verified ")%({'user':user})}) 
+        response.status_code = 400
+        return response
+    
+    
+    mail = emails.first()
     kwargs ={'user':user, }
     sm = SubscriptionMail()
-    response = sm.send(user.email,True , **kwargs)
+    response = sm.send(mail.email ,True , **kwargs)
 
     logger.debug(f" Mail sending  to {user.email} / status : {response}")
-    return response
+    jsonResponse=JsonResponse({'status': 'success', 'message': _("Mail Send"), 'reponse':response}) 
+    jsonResponse.status_code = 200
+    return jsonResponse
     
 
 def send_test_mail(request, *args, **kwargs):
@@ -100,7 +114,7 @@ def send_test_mail(request, *args, **kwargs):
     if response == None:
         raise ObjectDoesNotExist(f"Test Mail Sending Error, reponse : {response}") 
         
-    return HttpResponse("success")   
+    return response
 
 @login_required
 def test_check(request):  

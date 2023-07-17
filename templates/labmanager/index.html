@@ -27,7 +27,7 @@
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container-fluid"><span class="dropdown-item">{% trans 'Welcome' %} <b><i>{{ user.get_username }}</i></b></span></div>
     <div class="container-fluid" style="text-align: end;">
-        <a class='dropdown-item' href="{% url 'logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a>
+        <a class='dropdown-item' href="{% url 'account_logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a>
     </div>
 </nav>
 {% endif %}   

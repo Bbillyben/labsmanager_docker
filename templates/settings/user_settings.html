@@ -1,0 +1,60 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load account %}
+{% load crispy_forms_tags %}
+
+{% block label %}user{% endblock %}
+
+{% block heading %}{% trans 'User Settings' %}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 100%; padding: 5px;">
+    
+    <div class="row">
+        <div class="col col-6">
+            <table class="table table-striped table-condensed table-desc" id="employee_single_table">
+                <colgroup>
+                    <col width="2">
+                    <col width="20%">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td><i class="fas fa-id-card"></i></td>
+                        <td  class="desc_title">{% trans 'LabsManager User' %}</td>
+                        <td>{% user_display user %}</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fas fa-user"></i></td>
+                        <td  class="desc_title">{% trans "User's Employee" %}</td>
+                        <td>{% if user.employee %}
+                            <a href="{% url 'employee' pk=user.employee.pk %}">{{user.employee}}</a>
+                            {% else %}
+                            <i>{% trans 'None' %}</i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!--   Password change -->
+            <div class="panel-content">           
+                <a href="{% url 'account_set_password' %}" >
+                    <div class="btn btn-primary" role="">
+                        <span class='fas fa-key'></span> 
+                        {% trans "Change Password" %}
+                    </div>
+                </a>
+            </div>
+
+            <!--  emails accounts -->
+            <div class="subheading">{% trans 'Email' %}</div>
+            
+            <div id="user_email_cont" class="loadingCard" data-url="{% url 'user_emaillist' %}"> <!-- User Email list container --></div>
+        </div>
+    </div><!-- end row -->
+</div> <!-- end container -->
+
+{% endblock %}
+

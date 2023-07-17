@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-11 14:03+0200\n"
+"POT-Creation-Date: 2023-07-17 16:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,6 +21,15 @@ msgstr ""
 #: common/models.py:10 common/models.py:20 settings/models.py:873
 #: settings/models.py:874 staff/models.py:30 staff/ressources.py:196
 msgid "User"
+msgstr ""
+
+#: common/tasks.py:86
+#, python-format
+msgid "No Primary Email for user %(user)s verified "
+msgstr ""
+
+#: common/tasks.py:97
+msgid "Mail Send"
 msgstr ""
 
 #: dashboard/views.py:29 templates/dashboard/global_dashboard.html:22
@@ -129,7 +138,7 @@ msgstr ""
 #: templates/expense/contract_table.html:25 templates/fund/budget_table.html:17
 #: templates/fund/contrib_table.html:17 templates/fund/fund_finder.html:56
 #: templates/labmanager/index.html:66 templates/project/project_base.html:53
-#: templates/project/project_single.html:26 templates/settings/sidebar.html:36
+#: templates/project/project_single.html:26 templates/settings/sidebar.html:39
 #: templates/team/team_single.html:162
 msgid "Project"
 msgstr ""
@@ -319,7 +328,7 @@ msgstr ""
 #: expense/models.py:115 templates/dashboard/global_dashboard.html:88
 #: templates/employee/employee_sidebar.html:4
 #: templates/labmanager/index.html:58 templates/project/project_single.html:498
-#: templates/settings/sidebar.html:30
+#: templates/settings/sidebar.html:33
 msgid "Contract"
 msgstr ""
 
@@ -434,7 +443,7 @@ msgstr ""
 #: fund/models.py:77 project/resources.py:66
 #: templates/fund/budget_table.html:21 templates/fund/contrib_table.html:21
 #: templates/labmanager/index.html:75 templates/project/project_base.html:68
-#: templates/project/project_single.html:254 templates/settings/sidebar.html:27
+#: templates/project/project_single.html:254 templates/settings/sidebar.html:30
 msgid "Fund"
 msgstr ""
 
@@ -630,6 +639,18 @@ msgstr ""
 
 #: fund/views.py:132 templates/fund/fund_finder.html:25
 msgid "Fund Finder"
+msgstr ""
+
+#: labsmanager/admin.py:33
+msgid "Personal info"
+msgstr ""
+
+#: labsmanager/admin.py:34
+msgid "Permissions"
+msgstr ""
+
+#: labsmanager/admin.py:37
+msgid "Important dates"
 msgstr ""
 
 #: labsmanager/mixin.py:108
@@ -986,7 +1007,7 @@ msgid "report all employee even without leaves in calendar views"
 msgstr ""
 
 #: settings/views.py:20 templates/labmanager/index.html:101
-#: templates/navbar.html:88
+#: templates/navbar.html:88 templates/settings/sidebar.html:9
 msgid "Settings"
 msgstr ""
 
@@ -1068,6 +1089,7 @@ msgid "Exit Date"
 msgstr ""
 
 #: staff/models.py:34 staff/ressources.py:190
+#: templates/settings/user_settings.html:52
 #: templates/staff/employee_desc_table.html:21
 msgid "Email"
 msgstr ""
@@ -1145,9 +1167,53 @@ msgstr ""
 msgid "Teams"
 msgstr ""
 
-#: templates/account/login.html:8 templates/account/login.html:12
-#: templates/account/login.html:27 templates/registration/login.html:7
-#: templates/registration/login.html:9
+#: templates/account/email_confirm.html:6
+#: templates/account/email_confirm.html:10
+msgid "Confirm E-mail Address"
+msgstr ""
+
+#: templates/account/email_confirm.html:17
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr ""
+
+#: templates/account/email_confirm.html:23
+msgid "Confirm"
+msgstr ""
+
+#: templates/account/email_confirm.html:33
+#, python-format
+msgid ""
+"This e-mail confirmation link expired or is invalid. Please <a href="
+"\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+msgstr ""
+
+#: templates/account/email_list.html:17
+msgid "Verified"
+msgstr ""
+
+#: templates/account/email_list.html:19
+msgid "Unverified"
+msgstr ""
+
+#: templates/account/email_list.html:21
+msgid "Primary"
+msgstr ""
+
+#: templates/account/email_list.html:47
+msgid "Add Email"
+msgstr ""
+
+#: templates/account/login.html:7 templates/account/login.html:9
+#: templates/account/logout.html:7 templates/account/logout.html:9
+#: templates/account/password_reset.html:7
+#: templates/account/password_reset_confirm.html:7
+#: templates/account/password_reset_confirm.html:9
+#: templates/account/password_reset_done.html:7
+#: templates/account/password_reset_from_key.html:7
+#: templates/registration/login.html:7 templates/registration/login.html:9
 #: templates/registration/password_reset_confirm.html:7
 #: templates/registration/password_reset_confirm.html:9
 #: templates/registration/password_reset_done.html:7
@@ -1155,8 +1221,106 @@ msgstr ""
 msgid "Sign In"
 msgstr ""
 
-#: templates/account/login.html:31 templates/registration/login.html:19
+#: templates/account/login.html:16 templates/registration/login.html:16
+msgid "Connexion"
+msgstr ""
+
+#: templates/account/login.html:19 templates/account/password_change.html:18
+#: templates/registration/login.html:19
 msgid "Forgot Password?"
+msgstr ""
+
+#: templates/account/logout.html:10
+msgid "Are you sure you want to sign out?"
+msgstr ""
+
+#: templates/account/logout.html:20
+msgid "Sign out"
+msgstr ""
+
+#: templates/account/password_change.html:7
+#: templates/account/password_change.html:9
+#: templates/account/password_change.html:15
+msgid "Set Password"
+msgstr ""
+
+#: templates/account/password_reset.html:9
+#: templates/registration/password_reset_form.html:9
+msgid "Forgot Your Password ?"
+msgstr ""
+
+#: templates/account/password_reset.html:18
+#: templates/registration/password_reset_form.html:15
+msgid "send mail"
+msgstr ""
+
+#: templates/account/password_reset_complete.html:7
+#: templates/account/password_reset_from_key_done.html:7
+#: templates/registration/password_reset_complete.html:7
+msgid "Password reset"
+msgstr ""
+
+#: templates/account/password_reset_complete.html:9
+#: templates/account/password_reset_from_key_done.html:9
+#: templates/registration/password_reset_complete.html:9
+msgid "Password reset Complete"
+msgstr ""
+
+#: templates/account/password_reset_complete.html:10
+#: templates/account/password_reset_from_key_done.html:10
+#: templates/registration/password_reset_complete.html:10
+msgid ""
+"\n"
+"    Your password has been set. You may go ahead and log in now.    \n"
+"  "
+msgstr ""
+
+#: templates/account/password_reset_complete.html:15
+#: templates/account/password_reset_done.html:17
+#: templates/account/password_reset_from_key_done.html:15
+#: templates/registration/password_reset_complete.html:15
+#: templates/registration/password_reset_done.html:17
+msgid "Back to login page"
+msgstr ""
+
+#: templates/account/password_reset_confirm.html:15
+#: templates/account/password_reset_from_key.html:20
+#: templates/registration/password_reset_confirm.html:15
+msgid "Reset Password"
+msgstr ""
+
+#: templates/account/password_reset_done.html:9
+#: templates/registration/password_reset_done.html:9
+msgid "Password reset done ?"
+msgstr ""
+
+#: templates/account/password_reset_done.html:10
+#: templates/registration/password_reset_done.html:10
+msgid ""
+"\n"
+"        We've emailed you instructions for setting your password, if an "
+"account exists with the email you entered.\n"
+"        You should receive them shortly.<br>If you don't receive an email, "
+"please make sure you've entered the address you registered with, and check "
+"your spam folder.\n"
+"  "
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:9
+msgid "Bad Token"
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:9
+#: templates/settings/user_settings.html:46
+msgid "Change Password"
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:13
+#, python-format
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</"
+"a>."
 msgstr ""
 
 #: templates/calendar/calendar_filters.html:14
@@ -1433,7 +1597,7 @@ msgid "Participant Status"
 msgstr ""
 
 #: templates/employee/employee_single.html:385
-#: templates/project/project_sidebar.html:21 templates/settings/sidebar.html:33
+#: templates/project/project_sidebar.html:21 templates/settings/sidebar.html:36
 msgid "Leaves"
 msgstr ""
 
@@ -1505,7 +1669,7 @@ msgstr ""
 msgid "Welcome"
 msgstr ""
 
-#: templates/labmanager/index.html:30 templates/navbar.html:93
+#: templates/labmanager/index.html:30 templates/navbar.html:97
 msgid "Logout"
 msgstr ""
 
@@ -1517,7 +1681,11 @@ msgstr ""
 msgid "Funds Finder"
 msgstr ""
 
-#: templates/navbar.html:95
+#: templates/navbar.html:94
+msgid "My Employee"
+msgstr ""
+
+#: templates/navbar.html:99
 msgid "Login"
 msgstr ""
 
@@ -1635,49 +1803,6 @@ msgstr ""
 msgid "project Dashboard"
 msgstr ""
 
-#: templates/registration/login.html:16
-msgid "Connexion"
-msgstr ""
-
-#: templates/registration/password_reset_complete.html:7
-msgid "Password reset"
-msgstr ""
-
-#: templates/registration/password_reset_complete.html:9
-msgid "Password reset Complete"
-msgstr ""
-
-#: templates/registration/password_reset_complete.html:10
-msgid ""
-"\n"
-"    Your password has been set. You may go ahead and log in now.    \n"
-"  "
-msgstr ""
-
-#: templates/registration/password_reset_complete.html:15
-#: templates/registration/password_reset_done.html:17
-msgid "Back to login page"
-msgstr ""
-
-#: templates/registration/password_reset_confirm.html:15
-msgid "Reset Password"
-msgstr ""
-
-#: templates/registration/password_reset_done.html:9
-msgid "Password reset done ?"
-msgstr ""
-
-#: templates/registration/password_reset_done.html:10
-msgid ""
-"\n"
-"        We've emailed you instructions for setting your password, if an "
-"account exists with the email you entered.\n"
-"        You should receive them shortly.<br>If you don't receive an email, "
-"please make sure you've entered the address you registered with, and check "
-"your spam folder.\n"
-"  "
-msgstr ""
-
 #: templates/registration/password_reset_email.html:4
 msgid ""
 "You're receiving this e-mail because you requested a password reset for your "
@@ -1701,16 +1826,8 @@ msgstr ""
 msgid "The %(site)s team."
 msgstr ""
 
-#: templates/registration/password_reset_form.html:9
-msgid "Forgot Your Password ?"
-msgstr ""
-
-#: templates/registration/password_reset_form.html:15
-msgid "send mail"
-msgstr ""
-
 #: templates/settings/auditlog_settings.html:7
-#: templates/settings/sidebar.html:52
+#: templates/settings/sidebar.html:55
 msgid "Audit Log"
 msgstr ""
 
@@ -1718,15 +1835,15 @@ msgstr ""
 msgid "Calendar Settings"
 msgstr ""
 
-#: templates/settings/common_settings.html:8 templates/settings/sidebar.html:12
+#: templates/settings/common_settings.html:9 templates/settings/sidebar.html:15
 msgid "Favorites and Subscriptions"
 msgstr ""
 
-#: templates/settings/common_settings.html:28
+#: templates/settings/common_settings.html:30
 msgid "Send Test Mail"
 msgstr ""
 
-#: templates/settings/common_settings.html:30
+#: templates/settings/common_settings.html:32
 msgid "Sending"
 msgstr ""
 
@@ -1766,40 +1883,52 @@ msgstr ""
 msgid "LabManager Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:9
+#: templates/settings/sidebar.html:12 templates/settings/user_settings.html:10
 msgid "User Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:15
+#: templates/settings/sidebar.html:18
 msgid "Dashboard Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:18
+#: templates/settings/sidebar.html:21
 msgid "Stale Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:23
+#: templates/settings/sidebar.html:26
 msgid "LabsManager Lists"
 msgstr ""
 
-#: templates/settings/sidebar.html:39
+#: templates/settings/sidebar.html:42
 msgid "Staff"
 msgstr ""
 
-#: templates/settings/sidebar.html:46
+#: templates/settings/sidebar.html:49
 msgid "LabsManager Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:49
+#: templates/settings/sidebar.html:52
 msgid "Mails"
 msgstr ""
 
-#: templates/settings/sidebar.html:55
+#: templates/settings/sidebar.html:58
 msgid "Calendar View"
 msgstr ""
 
 #: templates/settings/stale_calculation_settings.html:7
 msgid "Stale Alert"
+msgstr ""
+
+#: templates/settings/user_settings.html:25
+msgid "LabsManager User"
+msgstr ""
+
+#: templates/settings/user_settings.html:30
+msgid "User's Employee"
+msgstr ""
+
+#: templates/settings/user_settings.html:34
+msgid "None"
 msgstr ""
 
 #: templates/staff/employee_desc_table.html:11

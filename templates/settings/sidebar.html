@@ -6,8 +6,11 @@
 
 
 
-{% trans "User Settings" as text %}
+{% trans "Settings" as text %}
 {% include "sidebar_header.html" with text=text icon='fa-user-cog' %}
+
+{% trans "User Settings" as text %}
+{% include "sidebar_item.html" with label='user' text=text icon="fa-user" %}
 
 {% trans "Favorites and Subscriptions" as text %}
 {% include "sidebar_item.html" with label='common' text=text icon="fa-message" %}
