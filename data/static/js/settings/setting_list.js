@@ -44,11 +44,11 @@ function settingListActionFormatter(value, row, index, field){
 
                 $(this).labModalForm({
                         formURL: $(this).data("form-url"),
+                        modal_title:"Add",
                         addModalFormFunction:function(){
                             console.log("refresh from add modal")
                             console.log(table)
                             $(table).bootstrapTable('refresh');
-                            modal_title:"Add",
                         },
                     }   
                 )
@@ -61,10 +61,10 @@ function settingListActionFormatter(value, row, index, field){
                 function () {
                     $(this).labModalForm({
                         formURL:  $(this).data("form-url"),
+                        modal_title:"Edit",
                         addModalFormFunction: function(){
                             $(table).bootstrapTable('refresh');
                             plugin.updateSettingCardBtn(table);
-                            modal_title:"Edit",
                         },
                     })
                 }
