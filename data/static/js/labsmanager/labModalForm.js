@@ -6,6 +6,7 @@ $.fn.labModalForm = function(options) {
         isDeleteForm: false,
         addModalFormFunction:null,
         forceExitFunction: false,
+        modal_title:null,
         asyncSettings:{
             directUpdate: true,
             closeOnSubmit: true,
@@ -27,6 +28,7 @@ $.fn.labModalForm = function(options) {
         isDeleteForm: settings.isDeleteForm,
         errorClass: ".form-validation-warning",
         asyncUpdate: true,
+        modal_title:settings.modal_title,
         asyncSettings: {
             directUpdate: settings.asyncSettings.directUpdate,
             closeOnSubmit: settings.asyncSettings.closeOnSubmit,

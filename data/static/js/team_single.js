@@ -33,12 +33,14 @@ function updateTeamMateBtnHandler(){
     $('#teammate_create').labModalForm({
         formURL:'/staff/teammate/add/?team_pk='+team_id,
         addModalFormFunction: update_team_desc,
+        modal_title:"Add Teammate",
     })
     
     $(".update_teammate").each(function () {
         $(this).labModalForm({
             formURL: $(this).data("form-url"),
             addModalFormFunction: update_team_desc,
+            modal_title:"Update Teammate",
         })
     });
     $(".delete_teammate").each(function () {
@@ -46,6 +48,7 @@ function updateTeamMateBtnHandler(){
             formURL: $(this).data("form-url"),
             isDeleteForm: true,
             addModalFormFunction: update_team_desc,
+            modal_title:"Delete Teammate",
         })
     });
     initTeamCalendar();

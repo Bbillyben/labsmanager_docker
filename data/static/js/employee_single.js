@@ -44,34 +44,41 @@ function initEmployeeSingleView(user_idA, employee_idA){
     $('#edit-employee').labModalForm({
         formURL: '/staff/employee/'+employee_id+'/udpate',
         addModalFormFunction: update_employee,
+        modal_title:"Edit Employee",
     })
 
     $('#add-status').labModalForm({
         formURL: '/staff/employee/'+employee_id+'/status/add/',
         addModalFormFunction: update_status,
+        modal_title:"Add Status",
     })
     $('#add-info').labModalForm({
         formURL:  Urls['create_info_employee'](employee_id),
         addModalFormFunction: update_employee_info,
+        modal_title:"Add Info",
     })
 
     $('#add_project').labModalForm({
         formURL:  '/project/ajax/participant/add/'+employee_id,
         addModalFormFunction: updateParticipant,
+        modal_title:"Add Project",
     })
 
     $('#add_contract').labModalForm({
         formURL: '/expense/ajax/contract/add/employee/'+employee_id,
         addModalFormFunction: updateContract,
+        modal_title:"Add Contract",
     })
 
     $('#add_leave').labModalForm({
         formURL:'/calendar/add/employee/'+employee_id+"/",
         addModalFormFunction: updateLeave,
+        modal_title:"Add Leave",
     })
     $('#export_word').labModalForm({
         formURL: Urls['employee_report_generate'](employee_id),
         asyncSettings: {directUpdate:true,closeOnSubmit:true,},
+        modal_title:"Export Word",
     })
 
     update_employee();
@@ -186,6 +193,7 @@ function update_info_btn(){
         $(this).labModalForm({
             formURL: $(this).data("form-url"),
             addModalFormFunction: update_employee_info,
+            modal_title:"Update Info",
         })
     });
     $(".delete_info").each(function () {
@@ -193,6 +201,7 @@ function update_info_btn(){
             formURL: $(this).data("form-url"),
             isDeleteForm: true,
             addModalFormFunction: update_employee_info,
+            modal_title:"Delete Info",
         })
     });
 }

@@ -15,7 +15,8 @@
 {% endblock %}
 
 {% block content %}
-{% include 'modals.html' with modal_id='create-modal' modal_title='Settings' %}
+{% trans 'Settings' as modal_title %}
+{% include 'modals.html' with modal_id='create-modal' modal_title=modal_title %}
 
 {% include "settings/user_settings.html" %}
 {% include "settings/common_settings.html" %}

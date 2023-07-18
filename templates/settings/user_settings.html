@@ -40,12 +40,12 @@
             
             <!--   Password change -->
             <div class="panel-content">           
-                <a href="{% url 'account_set_password' %}" >
-                    <div class="btn btn-primary" role="">
+                <!-- <a href="{% url 'account_set_password' %}" > -->
+                    <div id="change_pass" class="btn btn-primary" role="">
                         <span class='fas fa-key'></span> 
                         {% trans "Change Password" %}
                     </div>
-                </a>
+                <!-- </a> -->
             </div>
 
             <!--  emails accounts -->
@@ -56,5 +56,23 @@
     </div><!-- end row -->
 </div> <!-- end container -->
 
+{% endblock %}
+
+{% block panel_js %}
+<script>
+    function mess_emailok(){
+        showMessage("{% trans 'Password Saved' %}", {
+                    'style':'success',
+                })
+    }
+    document.addEventListener("DOMContentLoaded", function(event) { 
+        $('#change_pass').labModalForm({
+            formURL: "{% url 'change_password_modal' %}",
+            addModalFormFunction:mess_emailok,
+            modal_title:"{% trans 'Change Password' %}",
+        })
+    });
+</script>
+    
 {% endblock %}
 

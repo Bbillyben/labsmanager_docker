@@ -44,6 +44,7 @@ function initializeBudgetTable(callback=null){
             $('#add_budget').labModalForm({
                 formURL:urlmodal,
                 addModalFormFunction: updateFullBudget,
+                modal_title:"Add",
             })
       }
     

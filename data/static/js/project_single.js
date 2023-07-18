@@ -14,6 +14,7 @@ function initProjectSingleView(user_idA, project_idA){
     $('#edit-project').labModalForm({
         formURL: '/project/ajax/'+project_id+'/udpate',
         addModalFormFunction: update_project,
+        modal_title:"Edit Project",
     })
 
     var options={
@@ -42,31 +43,37 @@ function initProjectSingleView(user_idA, project_idA){
     $('#add_participant').labModalForm({
         formURL: '/project/ajax/'+project_id+'/participant/add',
         addModalFormFunction: updateParticipant,
+        modal_title:"Add Participant",
     })
     $('#add_institution_participant').labModalForm({
         formURL: '/project/ajax/'+project_id+'/institution/add',
         addModalFormFunction: updateInstitution,
+        modal_title:"Add Institution",
     })
 
 
     $('#add_fund_temp').labModalForm({
         formURL:'/fund/ajax/add/' + $("#add_fund_temp").data("projectpk"),
         addModalFormFunction: updateFund,
+        modal_title:"Add Fund",
     })
 
     $('#add_contract').labModalForm({
         formURL:'/expense/ajax/contract/add/project/'+project_id,
         addModalFormFunction: updateContract,
+        modal_title:"Add Contract",
     })
 
     $('#export_word').labModalForm({
         formURL: Urls['project_report_generate'](project_id),
         asyncSettings: {directUpdate:true,closeOnSubmit:true,},
+        modal_title:"Export Word",
     })
 
     $('#add-info').labModalForm({
         formURL:  Urls['create_info_project'](project_id),
         addModalFormFunction: update_project_info,
+        modal_title:"Add Info",
     })
 
 
@@ -195,6 +202,7 @@ function update_info_btn(){
         $(this).labModalForm({
             formURL: $(this).data("form-url"),
             addModalFormFunction: update_project_info,
+            modal_title:"Update Info",
         })
     });
     $(".delete_info").each(function () {
@@ -202,6 +210,7 @@ function update_info_btn(){
             formURL: $(this).data("form-url"),
             isDeleteForm: true,
             addModalFormFunction: update_project_info,
+            modal_title:"Delete Info",
         })
     });
 }

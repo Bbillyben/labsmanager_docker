@@ -44,6 +44,7 @@ function initializeContribTable(callback=null){
             $('#add_contrib').labModalForm({
                 formURL:urlmodal,
                 addModalFormFunction: updateFullContrib,
+                modal_title:"Add",
             })
       }
     

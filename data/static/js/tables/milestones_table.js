@@ -23,6 +23,7 @@ function initializeMilestoneTable(tableurl, type=null, callback_ms=null){
     $('#add_milestones').labModalForm({
         formURL: $('#add_milestones').attr("data-form-url"),
         addModalFormFunction: updateMilestones,
+        modal_title:"Add",
     });
 
 

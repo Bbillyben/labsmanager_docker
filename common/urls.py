@@ -19,4 +19,6 @@ urlpatterns = [
     
     
     path('user_maillist/', views.get_user_emaillist, name='user_emaillist'),
+    
+    path('changepassword/', views_modal.ChangePasswordBSView.as_view(), name='change_password_modal'),
 ]

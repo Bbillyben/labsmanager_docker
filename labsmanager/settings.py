@@ -217,8 +217,8 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
     ]
 # accounts settings
-ACCOUNT_DEFAULT_HTTP_PROTOCOL=get_setting('ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'lab_ddefault_http_protocol', 'http')
-ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE=True
+ACCOUNT_DEFAULT_HTTP_PROTOCOL=get_setting('ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'lab_default_http_protocol', 'http')
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE=False
 ACCOUNT_CONFIRM_EMAIL_ON_GET=False
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

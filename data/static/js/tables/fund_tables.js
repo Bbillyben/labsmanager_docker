@@ -99,6 +99,7 @@ function updateFundItem(){
     $('#add_fund_item_temp').labModalForm({
             formURL: '/fund/ajax/funditem/add/' + $("#add_fund_item_temp").attr("data-fundPk"),
             addModalFormFunction: updateFullFund,
+            modal_title:"Add",
         })
 }
 
@@ -118,6 +119,7 @@ function updateExpenseTimepoint(){
     $('#add_expense_timepoint').labModalForm({
         formURL: '/fund/ajax/expense_timepoint/add/' + $("#add_expense_timepoint").attr("data-fundPk"),
         addModalFormFunction: updageGlobalFund,
+        modal_title:"Add",
     })
 }
 

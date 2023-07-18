@@ -48,6 +48,7 @@ function settingListActionFormatter(value, row, index, field){
                             console.log("refresh from add modal")
                             console.log(table)
                             $(table).bootstrapTable('refresh');
+                            modal_title:"Add",
                         },
                     }   
                 )
@@ -63,6 +64,7 @@ function settingListActionFormatter(value, row, index, field){
                         addModalFormFunction: function(){
                             $(table).bootstrapTable('refresh');
                             plugin.updateSettingCardBtn(table);
+                            modal_title:"Edit",
                         },
                     })
                 }

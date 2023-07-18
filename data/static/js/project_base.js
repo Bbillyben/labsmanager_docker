@@ -25,6 +25,7 @@ function initProjectBaseView(tableurl, user_idA, project_idA){
     $("#project_create").labModalForm({
         formURL:"/project/ajax/add/",
         addModalFormFunction: updateProjectTable,
+        modal_title:"Create Project",
     })
 }
 

@@ -115,6 +115,7 @@ function updateContractItem(){
     $('#add_contract_expense').labModalForm({
         formURL:   '/expense/ajax/contract_expense/add/'+$('#add_contract_expense').attr('data-contractPk'),
         addModalFormFunction: updateContractExpense,
+        modal_title:"Add",
     })
 
 

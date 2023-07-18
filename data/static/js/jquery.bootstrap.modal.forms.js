@@ -14,6 +14,9 @@ https://github.com/trco/django-bootstrap-modal-forms
         $(settings.modalID).find(settings.modalContent).load(url, function () {
             $(settings.modalID).modal("show");
             $(settings.modalForm).attr("action", settings.formURL);
+            if(settings.modal_title){
+                $(settings.modalID+" #modal-title").html(settings.modal_title)
+            }
             addEventHandlers(settings);
         });
     };
@@ -190,6 +193,7 @@ https://github.com/trco/django-bootstrap-modal-forms
             isDeleteForm: false,
             errorClass: ".invalid",
             asyncUpdate: false,
+            modal_title:null,
             asyncSettings: {
                 closeOnSubmit: false,
                 successMessage: null,

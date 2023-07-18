@@ -108,3 +108,7 @@ def toggle_subscription(request):
 #### For email list and modification ####
 def get_user_emaillist(request):
     return render(request, 'account/email_list.html')
+
+
+
+

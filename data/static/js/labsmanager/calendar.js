@@ -69,6 +69,7 @@
             $(this).labModalForm({
                 formURL:  $(this).data("form-url"),
                 addModalFormFunction: calendar_refresh,
+                modal_title:"Edit Leave",
             })
             $(this).click(function(){$('.popover').popover('dispose');})
         });
@@ -78,6 +79,7 @@
                 formURL:  $(this).data("form-url"),
                 isDeleteForm: true,
                 addModalFormFunction: calendar_refresh,
+                modal_title:"Delete Leave",
             })
             $(this).click(function(){$('.popover').popover('dispose');})
         });
@@ -130,6 +132,7 @@
             formURL: modURL,
             addModalFormFunction: calendar_refresh,
             forceExitFunction: true,
+            modal_title:"Leave",
         })
         
     }

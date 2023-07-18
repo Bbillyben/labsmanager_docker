@@ -229,6 +229,7 @@ function labTableUpdate(eventName, table, options, playCallback=true){
             modalForm: settings.modalForm,
             formURL: $(this).data("form-url"),
             addModalFormFunction: function(){reloadtable(table)},
+            modal_title:"Edit",
         })
     })
     $(table).find('.delete').each(function(){
@@ -239,6 +240,7 @@ function labTableUpdate(eventName, table, options, playCallback=true){
             isDeleteForm: true,
             formURL: $(this).data("form-url"),
             addModalFormFunction: function(){reloadtable(table)},
+            modal_title:"Delete",
         })
     })    
 }
