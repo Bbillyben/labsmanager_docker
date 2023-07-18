@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 def get_user_fav_obj(request):
     if request.method != 'POST' or request.POST.get('type', None) == None:
-        return HttpResponse("Error", 400)
+        return HttpResponse("", 400)
     type=request.POST.get('type', "").split('.')
     pk=request.POST.get('pk')
     
@@ -46,7 +46,7 @@ def get_nav_favorites_accordion(request):
 
 def toggle_favorites(request):
     if request.method != 'POST':
-        return HttpResponse("Error", 400)
+        return HttpResponse("", 400)
     type=request.POST.get('type').split('.')
     pk=request.POST.get('pk')
     
@@ -71,7 +71,7 @@ def toggle_favorites(request):
 ##### For Subscription ####
 def get_user_subscription_obj(request):
     if request.method != 'POST' or request.POST.get('type', None) == None:
-        return HttpResponse("Error", 400)
+        return HttpResponse("", 400)
     type=request.POST.get('type', "").split('.')
     pk=request.POST.get('pk')
     
@@ -82,7 +82,7 @@ def get_user_subscription_obj(request):
 
 def toggle_subscription(request):
     if request.method != 'POST':
-        return HttpResponse("erreur send method", 400)
+        return HttpResponse("", 400)
     type=request.POST.get('type').split('.')
     pk=request.POST.get('pk')
     
