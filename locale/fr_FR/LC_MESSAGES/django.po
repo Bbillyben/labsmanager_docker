@@ -1527,7 +1527,7 @@ msgstr "Vos paramètres de notification :"
 
 #: templates/email/notification_email.html:448
 msgid "User Name"
-msgstr "Nom d'utilisateur'"
+msgstr "Nom d'utilisateur"
 
 #: templates/email/notification_email.html:449
 msgid "Notification activated"

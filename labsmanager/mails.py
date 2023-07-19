@@ -8,21 +8,27 @@ from functools import lru_cache
 from settings.models import LabsManagerSetting
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.utils import translation
 
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ObjectDoesNotExist
 
+from labsmanager.utils import randomID
+import re
 import logging
 logger = logging.getLogger('labsmanager')
 
+
 class BaseMail():
     """ Use to send basic email, with template generation.
-    Send class method can be directly called if necessary
+    define template path with mail_template
+        Send class method can be directly called if necessary
      """
     mail_template="email/base_email.html"
-    logo_path="img/labsmanager/labsmanager_icon.png"
-    subject = "Labs Manager Mail"
+    default_subject = "Labs Manager Mail"
     from_email=None
+    
+    
     
     def generate_context(self, **kwargs):
         self.context={}
@@ -35,7 +41,12 @@ class BaseMail():
         html = render_to_string(self.__class__.mail_template,self.context)
         return html
     
-    def send(self, recipients, addLogo=False, **kwargs):
+    def render_body(self, html, **kwargs):
+        body = re.sub(r'<style>.*?</style>', '', html, flags=re.DOTALL)
+        body = strip_tags(body)
+        return body
+    
+    def send(self, recipients, **kwargs):
         
         if recipients == None :
             logger.error(f"Notification Send  has no user email defined : {recipients}")
@@ -44,60 +55,23 @@ class BaseMail():
         
         self.generate_context(**kwargs)
         html_message=  self.render_html(**kwargs) # render_to_string(self.__class__.mail_template,self.context)
-        body = strip_tags(html_message)
+        body = self.render_body(html_message)
         
         if 'subject' in kwargs:
             self.subject = kwargs["subject"]
         else:
-            self.subject = self.__class__.subject
+            self.subject = self.__class__.default_subject
         
         if 'from_email' in kwargs:
             self.from_email = kwargs["from_email"]
         else:
             self.from_email = self.__class__.from_email
             
-        
-        if addLogo == True:
-            return self.__class__.send_logo_mail(self.subject, body, recipients, self.from_email, html_message)
-        else:
-            return self.__class__.send_email(self.subject, body, recipients, self.from_email, html_message)
+        return self.__class__.send_email(self.subject, body, recipients, self.from_email, html_message, **kwargs)
         
     
     @classmethod
-    def logo_data(cls):
-        with open(finders.find(cls.logo_path), 'rb') as f:
-            logo_data = f.read()
-        logo = MIMEImage(logo_data)
-        logo.add_header('Content-ID', '<logo>')
-        return logo
-    
-    @classmethod
-    def send_logo_mail(cls, subject, body, recipients, from_email=None, html_message=None):
-        if type(recipients) == str:
-            recipients = [recipients]
-            
-        if from_email == None:
-            from_email=settings.EMAIL_SENDER
-        
-         # get the subject prefix from settings
-        subject_prefix=LabsManagerSetting.get_setting("MAIL_OBJECT_PREFIX")
-        if subject_prefix:
-            subject= subject_prefix+" "+subject
-            
-        message = EmailMultiAlternatives(
-            subject=subject,
-            body=body,
-            from_email=from_email,
-            to=recipients,
-        )
-        message.mixed_subtype = 'related'
-        message.attach_alternative(html_message, "text/html")
-        message.attach(cls.logo_data())
-        response= message.send(fail_silently=False)
-        return response
-    
-    @classmethod
-    def send_email(cls, subject, body, recipients, from_email=None, html_message=None):
+    def send_email(cls, subject, body, recipients, from_email=None, html_message=None, **kwargs):
         from settings.models import LabsManagerSetting
         
         if type(recipients) == str:
@@ -121,11 +95,87 @@ class BaseMail():
         )
         return response
 
-from django.template.loader import render_to_string
-from django.utils import translation
 
+
+class EmbedImgMail(BaseMail):
+    """ Extends Base Mail
+    Able to embed images from static dir (see labsmanager.settings.STATIC_URL)
+    To embed img add in kwargs of send method :  'embedImg':True
+    source of image should start with /STATIC_ULR/ (as included with {% static 'path/to/img.png' %})
+    """
+    
+    @classmethod
+    def send_email(cls, subject, body, recipients, from_email=None, html_message=None, **kwargs):
+        if 'embedImg' in kwargs and kwargs['embedImg'] == True:
+            return cls.send_img_mail(subject, body, recipients, from_email, html_message, **kwargs)
+        else:
+            return super().send_email(subject, body, recipients, from_email, html_message, **kwargs)
+        
+        
+    @classmethod
+    def img_data(cls, imgPath, id):
+        try:
+            with open(finders.find(imgPath), 'rb') as f:
+                img_data = f.read()
+            img = MIMEImage(img_data)
+            img.add_header('Content-ID', '<'+id+'>')
+        
+            return img
+        except:
+            return None
+    @classmethod
+    def embed_img(cls, message, html, balise_url):
+        imgURL = balise_url.replace( "/" + settings.STATIC_URL, "")
+        id = randomID(5)
+        imgData=cls.img_data(imgURL, id )
+        if imgData is not None:
+            message.attach(imgData)
+            return re.sub(re.escape(balise_url), "cid:" + id, html)
+        return html
+    
+    @classmethod
+    def send_img_mail(cls, subject, body, recipients, from_email=None, html_message=None, **kwargs):
+        if type(recipients) == str:
+            recipients = [recipients]
+            
+        if from_email == None:
+            from_email=settings.EMAIL_SENDER
+        
+        # get the subject prefix from settings
+        subject_prefix=LabsManagerSetting.get_setting("MAIL_OBJECT_PREFIX")
+        if subject_prefix:
+            subject= subject_prefix+" "+subject
+            
+        message = EmailMultiAlternatives(
+            subject=subject,
+            body=body,
+            from_email=from_email,
+            to=recipients,
+        )
+        message.mixed_subtype = 'related'
+        
+        
+        # Scrap Image balise from HMLT and embbed them if in static path
+        reIm = r'<img\s+src="([^"]+)"'
+        balises_img = re.findall(reIm, html_message)
+        html_mod = html_message
+        staticURL = "/" + settings.STATIC_URL
+        for balise_src in balises_img:
+            if balise_src.startswith(staticURL):
+                html_mod = cls.embed_img(message, html_mod, balise_src)
+        
+        # attache html and send
+        message.attach_alternative(html_mod, "text/html")
+        response= message.send(fail_silently=False)
+        return response
+    
+    
+    
+    
 class UserLanguageMail(BaseMail):
-
+    """ Add translation from language defined in user setting NOTIFCATION_REPORT_LANGUAGE
+    NEED a user parameter in kwargs
+    """
     def render_html(self, **kwargs):
         if not 'user' in kwargs:
             raise ObjectDoesNotExist("User Not defined for [SubscriptionMail]")
@@ -160,12 +210,12 @@ from project.views import get_project_fund_overviewReport_bytType
 from django.db.models import Q
 from labsmanager.utils import create_dict
 
-class SubscriptionMail(UserLanguageMail):
+class SubscriptionMail(EmbedImgMail, UserLanguageMail):
     """ Class to generate and send Notification email from subscription
-    has to be a user parameter in kwargs
+    NEED a user parameter in kwargs
      """
     mail_template="email/notification_email.html"
-    subject = "Notification Report"
+    default_subject = "Notification Report"
 
     def generate_context(self, **kwargs):
         
