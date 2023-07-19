@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 16:58+0200\n"
+"POT-Creation-Date: 2023-07-19 15:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: common/models.py:10 common/models.py:20 settings/models.py:873
-#: settings/models.py:874 staff/models.py:30 staff/ressources.py:196
+#: common/models.py:10 common/models.py:20 settings/models.py:882
+#: settings/models.py:883 staff/models.py:30 staff/ressources.py:196
 msgid "User"
 msgstr "Utilisateur"
 
@@ -30,6 +30,10 @@ msgstr "Pas d'email principal vérifié pour l'utilisateur %(user)s"
 #: common/tasks.py:97
 msgid "Mail Send"
 msgstr "Mail Envoyé"
+
+#: common/views_modal.py:53
+msgid "Your password has been changed"
+msgstr "Votre mot de passe à été modifié"
 
 #: dashboard/views.py:29 templates/dashboard/global_dashboard.html:22
 #: templates/labmanager/index.html:93 templates/navbar.html:77
@@ -828,210 +832,221 @@ msgstr "Activé"
 msgid "Report template is enabled"
 msgstr "Le Template de rapport est activé"
 
-#: settings/models.py:342 settings/models.py:866
+#: settings/models.py:344 settings/models.py:875
 msgid "Settings key (must be unique - case insensitive)"
 msgstr "Clé des paramètres (doit être unique - insensible à la casse)"
 
-#: settings/models.py:344
+#: settings/models.py:346
 msgid "Settings value"
 msgstr "Valeur des paramètres"
 
-#: settings/models.py:385
+#: settings/models.py:387
 msgid "Chosen value is not a valid option"
 msgstr "La valeur choisie n'est pas une option valide"
 
-#: settings/models.py:402
+#: settings/models.py:404
 msgid "Value must be a boolean value"
 msgstr "La valeur doit être une valeur booléenne"
 
-#: settings/models.py:413
+#: settings/models.py:415
 msgid "Value must be an integer value"
 msgstr "La valeur doit être un entier"
 
-#: settings/models.py:421
+#: settings/models.py:423
 msgid "Value must be an Decimal value"
 msgstr "La valeur doit être une valeur décimale"
 
-#: settings/models.py:465
+#: settings/models.py:467
 msgid "Key string must be unique"
 msgstr "La chaine de la clé doit être unique"
 
-#: settings/models.py:667
+#: settings/models.py:669
 msgid "No group"
 msgstr "Pas de groupe"
 
-#: settings/models.py:695
+#: settings/models.py:697
 msgid "Mail Object Prefix"
 msgstr "Préfix Objet du mail"
 
-#: settings/models.py:697
+#: settings/models.py:699
 msgid "String added as prefix to mail object"
 msgstr "Chaine ajoutée comme préfix à l'object du mail"
 
-#: settings/models.py:701
+#: settings/models.py:703
 msgid "Audit Log Retention"
 msgstr "Rétention de l'audit log"
 
-#: settings/models.py:702
+#: settings/models.py:704
 msgid "Number of to retain AudiLog history"
 msgstr "Nombre de jour de rétention pour l'historique de l'auditlog"
 
-#: settings/models.py:703
+#: settings/models.py:705
 msgid "Days"
 msgstr "Jours"
 
-#: settings/models.py:711
+#: settings/models.py:713
 msgid "French Vacation Zone"
 msgstr "Zone de vacances en France"
 
-#: settings/models.py:712
+#: settings/models.py:714
 msgid "one of the zone defined for french vacation"
 msgstr "une des zones définies pour les vacances en France"
 
-#: settings/models.py:730
+#: settings/models.py:732
 msgid "Settings key (must be unique - case insensitive"
 msgstr "Clé des paramètres (doit être unique - insensible à la casse)"
 
-#: settings/models.py:746
+#: settings/models.py:748
 msgid "Dashboard Stale From Calculation"
 msgstr "Tableau de bord périmé par le calcul"
 
-#: settings/models.py:747
+#: settings/models.py:749
 msgid "Number of previous month to get in stale scope from now"
 msgstr ""
 "Nombre de mois pour rentré dans l'état éventéNombre de mois précédents pour "
 "considérer comme éventé à partir de maintenant.Nombre de mois précédent pour "
 "entrer dans le champs de péremption à partir de maintenant"
 
-#: settings/models.py:752
+#: settings/models.py:754
 msgid "Dashboard Stale To Calculation"
 msgstr "Tableau de bord des éléments périmés"
 
-#: settings/models.py:753 settings/models.py:759 settings/models.py:765
-#: settings/models.py:772 settings/models.py:778
+#: settings/models.py:755 settings/models.py:761 settings/models.py:767
+#: settings/models.py:774 settings/models.py:780
 msgid "Number of month to get in stale scope from now"
 msgstr ""
 "Nombre de mois pour considérer comme éventé à partir de maintenantNombre de "
 "mois futur pour entrer dans le champs de péremption à partir de maintenant"
 
-#: settings/models.py:758
+#: settings/models.py:760
 msgid "Contract Stale month"
 msgstr "Nombre de mois pour considérer périmé les contrats"
 
-#: settings/models.py:764
+#: settings/models.py:766
 msgid "Project Stale month"
 msgstr "Nombre de mois pour considérer périmé les projets"
 
-#: settings/models.py:771
+#: settings/models.py:773
 msgid "Milestones Stale to month"
 msgstr "Nombre de mois pour considérer périmé les jalons"
 
-#: settings/models.py:777
+#: settings/models.py:779
 msgid "Milestones Stale from month"
 msgstr "Nombre de mois pour considérer périmé les jalons"
 
-#: settings/models.py:784
+#: settings/models.py:786
 msgid "Fund ratio consumption report type"
 msgstr "Type de rapport sur la consommation des fonds"
 
-#: settings/models.py:785 settings/models.py:795
+#: settings/models.py:787 settings/models.py:797
 msgid "Fund ratio consumption to report project in dahsboard"
 msgstr ""
 "Ratio de consommation de fonds pour rapporter le projet dans le tableau "
 "dahsboard"
 
-#: settings/models.py:794
+#: settings/models.py:796
 msgid "Fund ratio consumption threshold"
 msgstr "Seuil de consommation du ratio du fonds"
 
-#: settings/models.py:800
+#: settings/models.py:802
 msgid "Use project Stale period for Consumption"
 msgstr "Utiliser le projet Période de blocage pour la consommation"
 
-#: settings/models.py:801
+#: settings/models.py:803
 msgid "use Project Stale month scope period for under consommation calculation"
 msgstr ""
 "utiliser la période de la portée du mois du projet Stale pour le calcul de "
 "la sous-consommation"
 
-#: settings/models.py:806
+#: settings/models.py:808
 msgid "Margin to detect linear ratio"
 msgstr "Marge pour détecter la déviation par rapport au linéaire"
 
-#: settings/models.py:807
+#: settings/models.py:809
 msgid ""
 "margin in % to identifyed deviation in budget consumption from linear ratio"
 msgstr ""
 " marge en % pour identifier l'écart de la consommation budgétaire par "
 "rapport au ratio linéaire"
 
-#: settings/models.py:812
+#: settings/models.py:814
 msgid "E-Mail Notification"
 msgstr "Notification e-mail"
 
-#: settings/models.py:813
+#: settings/models.py:815
 msgid "enable automatic mail notification"
 msgstr "activer la notification automatique du courrier"
 
-#: settings/models.py:819
+#: settings/models.py:821
 msgid "Notification frequency"
 msgstr "Fréquence des notifications"
 
-#: settings/models.py:820
+#: settings/models.py:822
 msgid "frequency wanted for notice transmission"
 msgstr "fréquence désirée pour la notification par email"
 
-#: settings/models.py:823
+#: settings/models.py:825
 msgid "dayli"
 msgstr "Quotidienne"
 
-#: settings/models.py:824
+#: settings/models.py:826
 msgid "weekly"
 msgstr "Hebdomadaire"
 
-#: settings/models.py:825
+#: settings/models.py:827
 msgid "fortnightly"
 msgstr "Bi-mensuelle"
 
-#: settings/models.py:826
+#: settings/models.py:828
 msgid "monthly"
 msgstr "mensuelle"
 
-#: settings/models.py:831
+#: settings/models.py:833
 msgid "Notification Leaves"
 msgstr "Reporter les congés généraux"
 
-#: settings/models.py:832
+#: settings/models.py:834
 msgid "report all leaves of current month"
 msgstr "Reporter tous les congés du mois en cours"
 
-#: settings/models.py:837
+#: settings/models.py:839
 msgid "Notification Leaves Format"
 msgstr "Format des rapports de congés"
 
-#: settings/models.py:838
+#: settings/models.py:840
 msgid "choose to report by calendar or list view for leaves"
 msgstr "Reporter les congé sous forme de liste ou de calendrier"
 
-#: settings/models.py:841
+#: settings/models.py:843
 msgid "calendar"
 msgstr "Calendrier"
 
-#: settings/models.py:842
+#: settings/models.py:844
 msgid "list"
 msgstr "list"
 
-#: settings/models.py:846
+#: settings/models.py:848
 msgid "Notification Report Employee without leaves in calendar"
 msgstr "Reporter les employés sans congé dans les vues calendrier"
 
-#: settings/models.py:847
+#: settings/models.py:849
 msgid "report all employee even without leaves in calendar views"
 msgstr ""
 "Reporter tous les employés, même sans congés, dans les vues de calendrier"
 
+#: settings/models.py:854
+#, fuzzy
+#| msgid "Notification Leaves"
+msgid "Notification Report language"
+msgstr "Reporter les congés généraux"
+
+#: settings/models.py:855
+msgid "choose the language for reports"
+msgstr "Choisissez la langue du rapport"
+
 #: settings/views.py:20 templates/labmanager/index.html:101
-#: templates/navbar.html:88 templates/settings/sidebar.html:9
+#: templates/navbar.html:88 templates/settings/settings.html:18
+#: templates/settings/sidebar.html:9
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -1255,11 +1270,11 @@ msgstr "Ajout Email"
 msgid "Sign In"
 msgstr "Connexion"
 
-#: templates/account/login.html:16 templates/registration/login.html:16
+#: templates/account/login.html:18 templates/registration/login.html:16
 msgid "Connexion"
 msgstr "Connexion"
 
-#: templates/account/login.html:19 templates/account/password_change.html:18
+#: templates/account/login.html:21 templates/account/password_change.html:18
 #: templates/registration/login.html:19
 msgid "Forgot Password?"
 msgstr "Password oublié?"
@@ -1357,6 +1372,7 @@ msgstr "Mauvais Jeton"
 
 #: templates/account/password_reset_from_key.html:9
 #: templates/settings/user_settings.html:46
+#: templates/settings/user_settings.html:72
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
@@ -1459,6 +1475,7 @@ msgid "Fund Loss"
 msgstr "Pertes Fonds"
 
 #: templates/email/notification_email.html:129
+#, python-format
 msgid ""
 "Dear %(username)s,\n"
 "    Please find below the notification from your <a href='%(scheme)s://"
@@ -1466,8 +1483,8 @@ msgid ""
 "    "
 msgstr ""
 "Cher %(username)s,\n"
-"    Veuillez trouver ci-dessous la notification de vos abonnements à <a href='%(scheme)s://"
-"%(base_url)s'>labsmanager</a>.\n"
+"    Veuillez trouver ci-dessous la notification de vos abonnements à <a "
+"href='%(scheme)s://%(base_url)s'>labsmanager</a>.\n"
 "    "
 
 #: templates/email/notification_email.html:142
@@ -1484,15 +1501,11 @@ msgstr "Disponible"
 
 #: templates/email/notification_email.html:151
 #: templates/email/notification_email.html:209
-#, fuzzy
-#| msgid "Availability Focus"
 msgid "Available in focus"
 msgstr "Disponibilité Focus"
 
 #: templates/email/notification_email.html:152
 #: templates/email/notification_email.html:210
-#, fuzzy
-#| msgid "Consumption Ratio"
 msgid "Consumption ratio"
 msgstr "Taux de Consommation"
 
@@ -1502,8 +1515,6 @@ msgid "Consumption Advancement"
 msgstr "Avancement de la consommation"
 
 #: templates/email/notification_email.html:198
-#, fuzzy
-#| msgid "Project Fund Overview"
 msgid "Project Fund overview :"
 msgstr "Aperçu des fonds du projet"
 
@@ -1900,11 +1911,11 @@ msgstr "Paramètres de calendrier"
 msgid "Favorites and Subscriptions"
 msgstr "Favoris et abonnements"
 
-#: templates/settings/common_settings.html:30
+#: templates/settings/common_settings.html:31
 msgid "Send Test Mail"
 msgstr "envoyer un message test"
 
-#: templates/settings/common_settings.html:32
+#: templates/settings/common_settings.html:33
 msgid "Sending"
 msgstr "Envoi"
 
@@ -1991,6 +2002,10 @@ msgstr "Employé de l'utilisateur"
 #: templates/settings/user_settings.html:34
 msgid "None"
 msgstr "Aucun"
+
+#: templates/settings/user_settings.html:64
+msgid "Password Saved"
+msgstr "Mot de passe sauvegardé"
 
 #: templates/staff/employee_desc_table.html:11
 msgid "Employee Id"
