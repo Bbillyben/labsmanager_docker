@@ -1459,12 +1459,6 @@ msgid "Fund Loss"
 msgstr "Pertes Fonds"
 
 #: templates/email/notification_email.html:129
-#, fuzzy, python-format
-#| msgid ""
-#| "Dear %(username)s,\n"
-#| "    Please find below the notification from your <a href='%(scheme)s://"
-#| "%(URLindex)s'>labsmanager</a> subscriptions.\n"
-#| "    "
 msgid ""
 "Dear %(username)s,\n"
 "    Please find below the notification from your <a href='%(scheme)s://"
@@ -1472,8 +1466,8 @@ msgid ""
 "    "
 msgstr ""
 "Cher %(username)s,\n"
-"    Veuillez trouver ci-dessous la notification de vos abonnements à <a "
-"href='%(scheme)s://%(URLindex)s'>labsmanager</a>.\n"
+"    Veuillez trouver ci-dessous la notification de vos abonnements à <a href='%(scheme)s://"
+"%(base_url)s'>labsmanager</a>.\n"
 "    "
 
 #: templates/email/notification_email.html:142

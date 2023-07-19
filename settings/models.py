@@ -24,6 +24,8 @@ import labsmanager.utils
 import labsmanager.ready
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR
 
+from labsmanager.settings import LANGUAGES
+
 from decimal import Decimal
 
 class BaseLabsManagerSetting(models.Model):
@@ -848,6 +850,13 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': False,
             'validator': bool,
         },
+        'NOTIFCATION_REPORT_LANGUAGE': {
+            'name': _('Notification Report language'),
+            'description': _('choose the language for reports'),
+            'default': 'en',
+            'choices':LANGUAGES,
+        },
+        
         
     }
     class Meta:

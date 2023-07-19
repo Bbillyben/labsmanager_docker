@@ -31,6 +31,10 @@ class BaseMail():
         
         return self.context
     
+    def render_html(self, **kwargs):
+        html = render_to_string(self.__class__.mail_template,self.context)
+        return html
+    
     def send(self, recipients, addLogo=False, **kwargs):
         
         if recipients == None :
@@ -39,7 +43,7 @@ class BaseMail():
         
         
         self.generate_context(**kwargs)
-        html_message=  render_to_string(self.__class__.mail_template,self.context)
+        html_message=  self.render_html(**kwargs) # render_to_string(self.__class__.mail_template,self.context)
         body = strip_tags(html_message)
         
         if 'subject' in kwargs:
@@ -116,7 +120,30 @@ class BaseMail():
             fail_silently=False,
         )
         return response
+
+from django.template.loader import render_to_string
+from django.utils import translation
+
+class UserLanguageMail(BaseMail):
+
+    def render_html(self, **kwargs):
+        if not 'user' in kwargs:
+            raise ObjectDoesNotExist("User Not defined for [SubscriptionMail]")
+        user = kwargs['user']
+        lang =  LMUserSetting.get_setting("NOTIFCATION_REPORT_LANGUAGE", user=user)
+        cur_language = translation.get_language()
+        
+        print (lang)
+        try:
+            translation.activate(lang)
+            html = render_to_string(self.__class__.mail_template,self.context)
+        finally:
+            translation.activate(cur_language)
     
+        if html is None:
+            raise ObjectDoesNotExist("Error for language definition in [UserLanguageMail]")        
+       
+        return html 
     
 from settings.models import LMUserSetting
 from labsmanager.utils import get_choiceitem
@@ -133,7 +160,7 @@ from project.views import get_project_fund_overviewReport_bytType
 from django.db.models import Q
 from labsmanager.utils import create_dict
 
-class SubscriptionMail(BaseMail):
+class SubscriptionMail(UserLanguageMail):
     """ Class to generate and send Notification email from subscription
     has to be a user parameter in kwargs
      """
