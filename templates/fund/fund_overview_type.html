@@ -4,7 +4,7 @@
 
 <table class="table fund_o_t">
     <thead>
-        <tr>
+        <tr  class="column_title">
             <th>{% trans "Type" %}</th>
             <th>{% trans "In Focus" %}</th>
             <th>{% trans "Amount" %}</th>
@@ -14,7 +14,7 @@
     </thead>
     <tbody>
         {% for f in fs %}
-        <tr>
+        <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
             <td align="center" valign="top">{{f.type_name}}</td>
             <td align="center" valign="top">{{f.type_focus}}</td>
             <td align="center" valign="top">{% moneyFormat f.total_amount %}</td>

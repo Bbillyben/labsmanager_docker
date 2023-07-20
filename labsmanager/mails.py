@@ -216,6 +216,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail):
      """
     mail_template="email/notification_email.html"
     default_subject = "Notification Report"
+    
 
     def generate_context(self, **kwargs):
         
