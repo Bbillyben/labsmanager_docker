@@ -173,7 +173,8 @@ class EmbedImgMail(BaseMail):
     
     
 class UserLanguageMail(BaseMail):
-    """ Add translation from language defined in user setting NOTIFCATION_REPORT_LANGUAGE
+    """ change render_html of base mail
+    Add translation from language defined in user setting NOTIFCATION_REPORT_LANGUAGE
     NEED a user parameter in kwargs
     """
     def render_html(self, **kwargs):
@@ -183,7 +184,6 @@ class UserLanguageMail(BaseMail):
         lang =  LMUserSetting.get_setting("NOTIFCATION_REPORT_LANGUAGE", user=user)
         cur_language = translation.get_language()
         
-        print (lang)
         try:
             translation.activate(lang)
             html = render_to_string(self.__class__.mail_template,self.context)
@@ -194,6 +194,42 @@ class UserLanguageMail(BaseMail):
             raise ObjectDoesNotExist("Error for language definition in [UserLanguageMail]")        
        
         return html 
+    
+import pandas as pd
+class BodyTableMail(BaseMail):
+    """ change render_body of base mail
+    to transform html containign table into readable text
+    using panda library    
+    """
+    def concatenate_tables_with_text(self, df, html_content):
+        result = ""
+        last_table_end = 0
+
+        for table in df:
+            table.fillna('-', inplace=True)
+            table_start = html_content.find("<table", last_table_end)
+            table_end = html_content.find("</table>", table_start) + len("</table>")
+
+            # Add the text between the previous table and the current table to the result
+            result += html_content[last_table_end:table_start]
+
+            # Append the table data to the result
+            result += table.to_string(index=False) + "\n\n"
+
+            last_table_end = table_end
+
+        # Add the remaining text after the last table
+        result += html_content[last_table_end:]
+
+        return result
+    
+    def render_body(self, html, **kwargs):
+        tablesPD = pd.read_html(html)
+        body = self.concatenate_tables_with_text(tablesPD, html)
+        body = super().render_body(body, **kwargs)
+        return body
+    
+   
     
 from settings.models import LMUserSetting
 from labsmanager.utils import get_choiceitem
@@ -210,7 +246,7 @@ from project.views import get_project_fund_overviewReport_bytType
 from django.db.models import Q
 from labsmanager.utils import create_dict
 
-class SubscriptionMail(EmbedImgMail, UserLanguageMail):
+class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
     """ Class to generate and send Notification email from subscription
     NEED a user parameter in kwargs
      """

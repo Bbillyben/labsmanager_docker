@@ -11,19 +11,19 @@
     width:100%;
 }
 table{
-    padding-top:10px;
     width:100%;
     font-size: small;
-   
 }
 
 .table_title{
+    padding-top:10px;
     font-size: large;
+    width:100%;
+    text-align: center;
+    padding: 0.1em;
 }
-table.fund_o_t thead .table_title{
-    background-color: red;
-}
-thead .table_title{
+
+.table_title.project_overview, .table_title.project{
     color:white;
     background-color: #568f67;
     
@@ -35,10 +35,6 @@ tbody tr.odd {
     background-color: #dfece3;
 }
 
-table.fund_o_t thead .table_title{
-    background-color: #9fc6ab;
-}
-
 
 .footer-para{
     font-style: italic;
@@ -46,7 +42,7 @@ table.fund_o_t thead .table_title{
     margin-top: 5em;
 }
 
-.employee thead .table_title{
+.table_title.employee{
     color:white;
     background-color: #993366;
 }
@@ -57,7 +53,7 @@ table.fund_o_t thead .table_title{
     background-color: #f2d9e6;
 }
 
-.team thead .table_title{
+.table_title.team_live{
     color:white;
     background-color: #0099cc;
 }
@@ -77,7 +73,7 @@ table.fund_o_t thead .table_title{
 }
 
 
-.leaves thead .table_title{
+.table_title.leave{
     color:white;
     background-color: #cc7a00;
 }
@@ -140,11 +136,12 @@ hr.light {
 
 <div class="main-container">
     <div class="table_container">
+        <div class="table_title project_overview">
+            <th colspan="100%" >{% trans "Project overview" %}</th>
+        </div>
         <table class="table">
             <thead>
-                <tr class="table_title">
-                    <th colspan="100%" >{% trans "Project overview" %}</th>
-                </tr>
+                
                 <tr class="column_title">
                     <th>{% trans "Project" %}</th>
                     <th>{% trans "Start Date" %}</th>
@@ -195,12 +192,12 @@ hr.light {
             {% if not forloop.first %}
             <hr class="light">
             {% endif %}
-            <div class="table_container">          
+            <div class="table_container">
+                <div class="table_title project">
+                    {% trans "Project Fund overview :" %} <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a>
+                </div>   
                 <table class="table ">
                         <thead>
-                            <tr class="table_title">
-                                <th colspan="100%">{% trans "Project Fund overview :" %} <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a></th>
-                            </tr>
                             <tr class="column_title">
                                 <th>{% trans "Funder" %}</th>
                                 <th>{% trans "Institution" %}</th>
@@ -259,10 +256,11 @@ hr.light {
         {% for t in teams %}
                 <div class="table_container">          
                     <table class="table team">
+                        <div class="table_title team_live">
+                            {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
+                        </div>
                             <thead>
-                                <tr class="table_title">
-                                    <th colspan="100%">{% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a></th>
-                                </tr>
+                                
                                 <tr class="column_title">
                                     <th>{% trans "Team Mate" %}</th>
                                     <th>{% trans "Start Date" %}</th>
@@ -297,12 +295,12 @@ hr.light {
         {% endif %}
         {% if leave_format == "calendar" %}
         {% for t in teams %}
-                <div class="table_container">          
+                <div class="table_container">    
+                    <div class="table_title team_live">
+                        {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
+                    </div>      
                     <table class="table team">
                             <thead>
-                                <tr class="table_title">
-                                    <th colspan="100%">{% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a></th>
-                                </tr>
                                 <tr class="column_title">
                                     <th>{% trans "Team Mate" %}</th>
                                     {% for d in days %}
@@ -344,11 +342,12 @@ hr.light {
 <hr class="">
 <div class="main-container">
     <div class="table_container">
+        <div class="table_title employee">
+            {% trans "Employee overview" %}
+        </div>
         <table class="table employee">
             <thead>
-                <tr class="table_title">
-                    <th colspan="100%" >{% trans "Employee overview" %}</th>
-                </tr>
+                
                 <tr class="column_title">
                     <th>{% trans "Employee" %}</th>
                     <th>{% trans "Project" %}</th>
@@ -383,12 +382,13 @@ hr.light {
 
 {% if all_leaves %}
         {% if leave_format == "list" %}
-        <div class="table_container">          
+        <div class="table_container">    
+            <div class="table_title leave">
+                <a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a>
+            </div>      
             <table class="table leaves">
                     <thead>
-                        <tr class="table_title">
-                            <th colspan="100%"><a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a></th>
-                        </tr>
+                        
                         <tr class="column_title">
                             <th>{% trans "Employee" %}</th>
                             <th>{% trans "Start Date" %}</th>
@@ -414,12 +414,12 @@ hr.light {
         {%endif%}
         {% if leave_format == "calendar" %}
         <!--          ################################################  TEST MONTH DISPLAY ##################-->
-        <div class="table_container">          
+        <div class="table_container">   
+            <div class="table_title leave">
+                <a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a>
+            </div>         
             <table class="table leaves">
                     <thead>
-                        <tr class="table_title">
-                            <th colspan="100%"><a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a></th>
-                        </tr>
                         <tr class="column_title">
                             <th>{% trans "Employee" %}</th>
                             {% for d in days %}
