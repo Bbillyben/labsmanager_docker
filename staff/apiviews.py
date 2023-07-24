@@ -46,6 +46,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         if empStatus:
             inS=Employee_Status.objects.filter(type=empStatus).values('employee')
             queryset = queryset.filter(pk__in=inS)
+            
+        current_status = params.get('current_status', None) 
+        if current_status:
+            inS=Employee_Status.current.filter(type=current_status).values('employee')
+            queryset = queryset.filter(pk__in=inS)
         
         return queryset
     

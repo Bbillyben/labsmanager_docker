@@ -177,17 +177,21 @@ class ActiveDateMixin(DateMixin):
         
     @property
     def is_active(self):
+        is_a = True
+        if self.start_date:
+            is_a =is_a & (self.start_date <= date.today())
         if self.end_date:
-            return self.end_date > date.today()
-        return True
+            is_a =is_a & (self.end_date >= date.today())
+        return is_a
     
     @classmethod
-    def get_active_filter():
-        query = Q(end_date=None) | Q(end_date__gte=date.today())
+    def get_active_filter(cls):
+        query = (Q(start_date=None) | Q(start_date__lte=date.today())) & (Q(end_date=None) | Q(end_date__gte=date.today()))
         return query
+    
     @classmethod
-    def get_inactive_filter():
-        query = Q(end_date__lte=date.today())
+    def get_inactive_filter(cls):
+        query = Q(start_date__gte=date.today()) | Q(end_date__lte=date.today())
         return query
 
 
