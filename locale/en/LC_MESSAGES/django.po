@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-19 15:43+0200\n"
+"POT-Creation-Date: 2023-07-24 13:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -64,8 +64,9 @@ msgstr ""
 #: dashboard/views.py:93 dashboard/views.py:119 dashboard/views.py:155
 #: expense/resources.py:35 fund/admin.py:36 fund/admin.py:175
 #: fund/resources.py:248 project/models.py:171 project/resources.py:61
-#: settings/views.py:140 templates/email/notification_email.html:202
-#: templates/email/notification_email.html:352
+#: settings/views.py:140 templates/email/notification_email copy.html:206
+#: copy.html:356 templates/email/notification_email.html:203
+#: templates/email/notification_email.html:355
 #: templates/expense/contract_table.html:43 templates/fund/fund_finder.html:62
 #: templates/fund/fund_table.html:16 templates/project/project_base.html:62
 msgid "Institution"
@@ -117,10 +118,11 @@ msgstr ""
 #: fund/resources.py:263 leave/models.py:48 leave/resources.py:85
 #: project/models.py:185 staff/models.py:23 staff/models.py:24
 #: staff/models.py:107 staff/models.py:170 staff/models.py:209
-#: staff/views.py:29 staff/views.py:45
-#: templates/email/notification_email.html:349
-#: templates/email/notification_email.html:389
-#: templates/email/notification_email.html:420
+#: staff/views.py:29 staff/views.py:45 templates/email/notification_email
+#: copy.html:353 copy.html:393 copy.html:424
+#: templates/email/notification_email.html:352
+#: templates/email/notification_email.html:393
+#: templates/email/notification_email.html:424
 #: templates/employee/employee_single.html:25
 #: templates/expense/contract_table.html:30 templates/fund/budget_table.html:43
 #: templates/fund/contrib_table.html:41 templates/labmanager/index.html:44
@@ -134,8 +136,9 @@ msgstr ""
 #: fund/admin.py:46 fund/resources.py:25 fund/resources.py:131
 #: fund/resources.py:307 project/models.py:170 project/models.py:184
 #: project/models.py:252 project/views.py:27 project/views.py:43
-#: templates/email/notification_email.html:145
-#: templates/email/notification_email.html:350
+#: templates/email/notification_email copy.html:149 copy.html:354
+#: templates/email/notification_email.html:146
+#: templates/email/notification_email.html:353
 #: templates/employee/employee_sidebar.html:13
 #: templates/employee/employee_single.html:283
 #: templates/endpoints/milestones_table.html:26
@@ -172,8 +175,9 @@ msgstr ""
 #: dashboard/views.py:185 endpoints/models.py:19 fund/admin.py:248
 #: fund/models.py:201 labsmanager/mixin.py:130 leave/models.py:47
 #: settings/views.py:252 settings/views.py:276 staff/models.py:106
-#: templates/email/notification_email.html:266
-#: templates/email/notification_email.html:392
+#: templates/email/notification_email copy.html:270 copy.html:396
+#: templates/email/notification_email.html:268
+#: templates/email/notification_email.html:396
 #: templates/employee/employee_single.html:423
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
@@ -184,7 +188,8 @@ msgstr ""
 msgid "Type"
 msgstr ""
 
-#: dashboard/views.py:186 templates/email/notification_email.html:355
+#: dashboard/views.py:186 templates/email/notification_email copy.html:359
+#: templates/email/notification_email.html:358
 #: templates/employee/employee_single.html:304
 #: templates/endpoints/milestones_table.html:37
 #: templates/expense/contract_table.html:52 templates/fund/budget_table.html:47
@@ -237,8 +242,9 @@ msgstr ""
 
 #: expense/admin.py:44 expense/resources.py:30 fund/admin.py:31
 #: fund/admin.py:51 fund/admin.py:199 fund/resources.py:243
-#: templates/email/notification_email.html:201
-#: templates/email/notification_email.html:351
+#: templates/email/notification_email copy.html:205 copy.html:355
+#: templates/email/notification_email.html:202
+#: templates/email/notification_email.html:354
 #: templates/expense/contract_table.html:34 templates/fund/fund_table.html:13
 msgid "Funder"
 msgstr ""
@@ -253,8 +259,9 @@ msgid "If A Contract is turn inactive, it should have a end Date"
 msgstr ""
 
 #: expense/models.py:22 labsmanager/mixin.py:87
-#: templates/email/notification_email.html:149
-#: templates/email/notification_email.html:207
+#: templates/email/notification_email copy.html:153 copy.html:211
+#: templates/email/notification_email.html:150
+#: templates/email/notification_email.html:208
 #: templates/fund/fund_finder.html:81 templates/fund/fund_overview_type.html:11
 #: templates/project/project_desc_table.html:32
 msgid "Expense"
@@ -502,9 +509,9 @@ msgid ""
 "not of RH or descendant "
 msgstr ""
 
-#: fund/models.py:225 fund/resources.py:162
-#: templates/email/notification_email.html:148
-#: templates/email/notification_email.html:206
+#: fund/models.py:225 fund/resources.py:162 templates/email/notification_email
+#: copy.html:152 copy.html:210 templates/email/notification_email.html:149
+#: templates/email/notification_email.html:207
 #: templates/project/project_desc_table.html:31
 msgid "Budget"
 msgstr ""
@@ -546,11 +553,12 @@ msgid "institution"
 msgstr ""
 
 #: fund/resources.py:40 fund/resources.py:149 labsmanager/mixin.py:136
-#: templates/email/notification_email.html:146
-#: templates/email/notification_email.html:204
-#: templates/email/notification_email.html:264
-#: templates/email/notification_email.html:353
-#: templates/email/notification_email.html:390
+#: templates/email/notification_email copy.html:150 copy.html:208 copy.html:268
+#: copy.html:357 copy.html:394 templates/email/notification_email.html:147
+#: templates/email/notification_email.html:205
+#: templates/email/notification_email.html:266
+#: templates/email/notification_email.html:356
+#: templates/email/notification_email.html:394
 #: templates/employee/employee_single.html:96
 #: templates/employee/employee_single.html:298
 #: templates/employee/employee_single.html:426
@@ -563,11 +571,12 @@ msgid "Start Date"
 msgstr ""
 
 #: fund/resources.py:46 fund/resources.py:155 labsmanager/mixin.py:137
-#: templates/email/notification_email.html:147
-#: templates/email/notification_email.html:205
-#: templates/email/notification_email.html:265
-#: templates/email/notification_email.html:354
-#: templates/email/notification_email.html:391
+#: templates/email/notification_email copy.html:151 copy.html:209 copy.html:269
+#: copy.html:358 copy.html:395 templates/email/notification_email.html:148
+#: templates/email/notification_email.html:206
+#: templates/email/notification_email.html:267
+#: templates/email/notification_email.html:357
+#: templates/email/notification_email.html:395
 #: templates/employee/employee_single.html:99
 #: templates/employee/employee_single.html:301
 #: templates/employee/employee_single.html:429
@@ -581,7 +590,8 @@ msgid "End Date"
 msgstr ""
 
 #: fund/resources.py:52 fund/resources.py:119 fund/resources.py:253
-#: templates/email/notification_email.html:203
+#: templates/email/notification_email copy.html:207
+#: templates/email/notification_email.html:204
 #: templates/fund/fund_finder.html:74
 msgid "Ref"
 msgstr ""
@@ -1169,8 +1179,9 @@ msgstr ""
 msgid "projects quotity"
 msgstr ""
 
-#: staff/ressources.py:257 templates/email/notification_email.html:263
-#: templates/email/notification_email.html:303
+#: staff/ressources.py:257 templates/email/notification_email copy.html:267
+#: copy.html:307 templates/email/notification_email.html:265
+#: templates/email/notification_email.html:305
 #: templates/employee/employee_single.html:362 templates/team/team_base.html:67
 msgid "Team Mate"
 msgstr ""
@@ -1347,6 +1358,7 @@ msgstr ""
 
 #: templates/calendar/calendar_filters.html:67
 #: templates/calendar/calendar_filters.html:96
+#: templates/calendar/calendar_filters.html:126
 msgid "All"
 msgstr ""
 
@@ -1358,8 +1370,12 @@ msgstr ""
 msgid "Resource event Filter"
 msgstr ""
 
-#: templates/calendar/calendar_filters.html:125
+#: templates/calendar/calendar_filters.html:130
 msgid "Show Only Resource with event"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:134
+msgid "Show Only Resource with event today"
 msgstr ""
 
 #: templates/calendar/main_calendar.html:9
@@ -1424,95 +1440,114 @@ msgstr ""
 msgid "Fund Loss"
 msgstr ""
 
+#: templates/email/notification_email copy.html:133
 #: templates/email/notification_email.html:129
 #, python-format
 msgid ""
 "Dear %(username)s,\n"
-"    Please find below the notification from your <a href='%(scheme)s://"
+"    Please find below the report from your <a href='%(scheme)s://"
 "%(base_url)s'>labsmanager</a> subscriptions.\n"
 "    "
 msgstr ""
 
-#: templates/email/notification_email.html:142
+#: templates/email/notification_email copy.html:146
+#: templates/email/notification_email.html:140
 msgid "Project overview"
 msgstr ""
 
-#: templates/email/notification_email.html:150
-#: templates/email/notification_email.html:208
+#: templates/email/notification_email copy.html:154 copy.html:212
+#: templates/email/notification_email.html:151
+#: templates/email/notification_email.html:209
 #: templates/fund/fund_finder.html:84 templates/fund/fund_overview_type.html:12
 #: templates/fund/fund_table.html:35
 #: templates/project/project_desc_table.html:33
 msgid "Available"
 msgstr ""
 
-#: templates/email/notification_email.html:151
-#: templates/email/notification_email.html:209
+#: templates/email/notification_email copy.html:155 copy.html:213
+#: templates/email/notification_email.html:152
+#: templates/email/notification_email.html:210
 msgid "Available in focus"
 msgstr ""
 
-#: templates/email/notification_email.html:152
-#: templates/email/notification_email.html:210
+#: templates/email/notification_email copy.html:156 copy.html:214
+#: templates/email/notification_email.html:153
+#: templates/email/notification_email.html:211
 msgid "Consumption ratio"
 msgstr ""
 
-#: templates/email/notification_email.html:153
-#: templates/email/notification_email.html:211
+#: templates/email/notification_email copy.html:157 copy.html:215
+#: templates/email/notification_email.html:154
+#: templates/email/notification_email.html:212
 msgid "Consumption Advancement"
 msgstr ""
 
-#: templates/email/notification_email.html:198
+#: templates/email/notification_email copy.html:202
+#: templates/email/notification_email.html:197
 msgid "Project Fund overview :"
 msgstr ""
 
+#: templates/email/notification_email copy.html:264 copy.html:304
 #: templates/email/notification_email.html:260
 #: templates/email/notification_email.html:300
 msgid "Team Leaves :"
 msgstr ""
 
+#: templates/email/notification_email copy.html:350
 #: templates/email/notification_email.html:346
 msgid "Employee overview"
 msgstr ""
 
-#: templates/email/notification_email.html:386
-#: templates/email/notification_email.html:417
+#: templates/email/notification_email copy.html:390 copy.html:421
+#: templates/email/notification_email.html:387
+#: templates/email/notification_email.html:419
 msgid "Current Leaves"
 msgstr ""
 
-#: templates/email/notification_email.html:446
+#: templates/email/notification_email copy.html:450
+#: templates/email/notification_email.html:450
 msgid " Your subscription parameters :"
 msgstr ""
 
-#: templates/email/notification_email.html:448
+#: templates/email/notification_email copy.html:452
+#: templates/email/notification_email.html:452
 msgid "User Name"
 msgstr ""
 
-#: templates/email/notification_email.html:449
+#: templates/email/notification_email copy.html:453
+#: templates/email/notification_email.html:453
 msgid "Notification activated"
 msgstr ""
 
-#: templates/email/notification_email.html:449
-#: templates/email/notification_email.html:450
+#: templates/email/notification_email copy.html:453 copy.html:454
+#: templates/email/notification_email.html:453
+#: templates/email/notification_email.html:454
 msgid "Yes"
 msgstr ""
 
-#: templates/email/notification_email.html:449
-#: templates/email/notification_email.html:450
+#: templates/email/notification_email copy.html:453 copy.html:454
+#: templates/email/notification_email.html:453
+#: templates/email/notification_email.html:454
 msgid "No"
 msgstr ""
 
-#: templates/email/notification_email.html:450
+#: templates/email/notification_email copy.html:454
+#: templates/email/notification_email.html:454
 msgid "Report Leaves"
 msgstr ""
 
-#: templates/email/notification_email.html:451
+#: templates/email/notification_email copy.html:455
+#: templates/email/notification_email.html:455
 msgid "frequency"
 msgstr ""
 
-#: templates/email/notification_email.html:452
+#: templates/email/notification_email copy.html:456
+#: templates/email/notification_email.html:456
 msgid "Next report"
 msgstr ""
 
-#: templates/email/notification_email.html:453
+#: templates/email/notification_email copy.html:457
+#: templates/email/notification_email.html:457
 msgid "Current Date"
 msgstr ""
 
