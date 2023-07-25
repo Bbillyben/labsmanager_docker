@@ -246,6 +246,7 @@ class EmployeeWordReport(WordReport):
         return context
 
 from project.views import get_project_fund_overviewReport_bytType
+from project.models import GenericInfoProject
 class ProjectWordReport(WordReport):
     
     objects = FileModelManager()
@@ -265,6 +266,9 @@ class ProjectWordReport(WordReport):
         if not proj:
             return HttpResponse("not found", code=404)
         context["project"]=proj
+        
+        info = GenericInfoProject.objects.filter(project__pk=pk)
+        context["info"]=info
         
         context["institution"] = Institution_Participant.objects.filter(project=pk)
         
