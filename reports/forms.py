@@ -1,8 +1,8 @@
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
-from .models import WordReport, EmployeeWordReport, ProjectWordReport
+from .models import WordReport, EmployeeWordReport, ProjectWordReport, EmployeePDFReport, ProjectPDFReport
 
-class WordReportBaseForm(BSModalForm):
+class ReportBaseForm(BSModalForm):
     class Meta:
         fields = ['Template','pk',]
         #abstract = True
@@ -12,14 +12,11 @@ class WordReportBaseForm(BSModalForm):
     pk = forms.IntegerField(widget=forms.HiddenInput)
     
     def get_queryset(self):
-        print("[WordReportBaseForm] - get_queryset :")
         qset = self.Meta.model.objects.all()
         return qset
     
     def __init__(self, *args, **kwargs):
-        print("[WordReportBaseForm] - init :")
         qset= self.get_queryset()
-        print(" set : "+str(qset))
         if qset.count()>0:
             self.base_fields['Template'] = forms.ModelChoiceField(qset, initial=qset.first())
         else:
@@ -27,11 +24,18 @@ class WordReportBaseForm(BSModalForm):
         super().__init__(*args, **kwargs)
     
     
-class EmployeeWordReportForm(WordReportBaseForm):
+class EmployeeWordReportForm(ReportBaseForm):
     class Meta:
         model = EmployeeWordReport
-    
+
+class EmployeePDFReportForm(ReportBaseForm):
+    class Meta:
+        model = EmployeePDFReport
  
-class ProjectWordReportForm(WordReportBaseForm):
+class ProjectWordReportForm(ReportBaseForm):
     class Meta:
         model = ProjectWordReport
+        
+class ProjectPDFReportForm(ReportBaseForm):
+    class Meta:
+        model = ProjectPDFReport

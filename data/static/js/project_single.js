@@ -69,6 +69,11 @@ function initProjectSingleView(user_idA, project_idA){
         asyncSettings: {directUpdate:true,closeOnSubmit:true,},
         modal_title:"Export Word",
     })
+    $('#export_pdf').labModalForm({
+        formURL: Urls['project_pdf_report_generate'](project_id),
+        asyncSettings: {directUpdate:true,closeOnSubmit:true,},
+        modal_title:"Export PDF",
+    })
 
     $('#add-info').labModalForm({
         formURL:  Urls['create_info_project'](project_id),

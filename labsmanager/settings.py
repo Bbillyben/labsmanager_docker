@@ -120,6 +120,8 @@ MIDDLEWARE_CLASSES = (
     'labsmanager.UserEmployeeMiddleware',
 )
 
+MEDIA_ROOT = get_media_dir()
+
 # FOR CSP policies
 use_csp = get_boolean_setting('ADMIN_USE_CSP', 'admin_use_csp', False)
 logger.debug('CSP Policy enabled :'+str(use_csp))   
@@ -169,7 +171,9 @@ ROOT_URLCONF = 'labsmanager.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'),],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),
+                    MEDIA_ROOT.joinpath('report'),
+                ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -276,7 +280,7 @@ STATICFILES_DIRS = [
 STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_URL, 'css', 'color-themes')
 
 
-MEDIA_ROOT = get_media_dir()
+
 
 
 

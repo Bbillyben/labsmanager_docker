@@ -69,6 +69,11 @@
                             <i class='fa fa-file-word'></i> {% trans 'Export Word' %}
                         </a></li>
                         {% endif %}
+                        {% if perms.reports.view_projectpdfreport %}
+                        <li><a class="dropdown-item" href="#" id="export_pdf" title="Export Word">
+                            <i class='fa fa-file-word'></i> {% trans 'Export PDF' %}
+                        </a></li>
+                        {% endif %}
                     </ul>
                     {% endif %}
                 </div>

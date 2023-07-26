@@ -3,12 +3,12 @@ from django.http import HttpResponse, JsonResponse
 from django.urls import reverse, reverse_lazy
 
 from bootstrap_modal_forms.generic import BSModalFormView
-from .models import EmployeeWordReport, ProjectWordReport
-from .forms import WordReportBaseForm, EmployeeWordReportForm, ProjectWordReportForm
+from .models import EmployeeWordReport, EmployeePDFReport, ProjectWordReport, ProjectPDFReport
+from .forms import ReportBaseForm, EmployeeWordReportForm, EmployeePDFReportForm, ProjectWordReportForm, ProjectPDFReportForm
 
 class WordBaseReportView(BSModalFormView):
     template_name = 'form_base.html'
-    form_class = WordReportBaseForm
+    form_class = ReportBaseForm
     nav_url='to_be_defined'
     success_url = reverse_lazy('employee_index')
     
@@ -33,22 +33,36 @@ class WordBaseReportView(BSModalFormView):
         return  JsonResponse({'navigate':urlP})
     
     
-class EmployeeReportView(WordBaseReportView):
+class EmployeeWordReportView(WordBaseReportView):
     form_class = EmployeeWordReportForm
     nav_url='employee_report'
-    
 
-class ProjectReportView(WordBaseReportView):
+class EmployeePDFReportView(WordBaseReportView):
+    form_class = EmployeePDFReportForm
+    nav_url='employee_pdf_report'  
+
+class ProjectWordReportView(WordBaseReportView):
     form_class = ProjectWordReportForm
     nav_url='project_report'
-    
 
-def userReport(request, pk, template):
+class ProjectPDFReportView(WordBaseReportView):
+    form_class = ProjectPDFReportForm
+    nav_url='project_pdf_report' 
+
+def userWordReport(request, pk, template):
     rep = EmployeeWordReport.objects.get(pk=template)
     return rep.render(request, {"pk":int(pk),})
 
-def projectReport(request, pk, template):
+def userPDFReport(request, pk, template):
+    rep = EmployeePDFReport.objects.get(pk=template)
+    return rep.render(request, {"pk":int(pk),})
+
+def projectWordReport(request, pk, template):
     rep = ProjectWordReport.objects.get(pk=template)
+    return rep.render(request, {"pk":int(pk),})
+
+def projectPDFReport(request, pk, template):
+    rep = ProjectPDFReport.objects.get(pk=template)
     return rep.render(request, {"pk":int(pk),})
     
     

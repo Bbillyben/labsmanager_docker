@@ -132,9 +132,10 @@ class BaseReport(models.Model):
         help_text=_("Report revision number (auto-increments)"),
         editable=False,
     )
+
+class TemplateReport(BaseReport):  
+    objects = FileModelManager()
     
-class WordReport(BaseReport):        
-        
     class Meta:
         abstract = True
     
@@ -167,22 +168,9 @@ class WordReport(BaseReport):
         context = Context(ctx)
 
         return template_string.render(context)
-    
     def render(self, request, options):
         # rendering    
-        doc = DocxTemplate(self.template_name)
-        jinja_env = jinja2.Environment(autoescape=True)
-        doc.render( self.get_context(request, options), autoescape=True)
-        doc_io = BytesIO()
-        doc.save(doc_io)
-        doc_io.seek(0)
-        
-        filename = self.generate_filename(request, options)
-        response = DownloadFile(doc_io.read(), 
-                                filename, 
-                                content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                )
-        return response
+        raise  Exception("render method as to be overriden in TemplateReport")
     
     filename_pattern = models.CharField(
         default="report.docx",
@@ -200,17 +188,63 @@ class WordReport(BaseReport):
         upload_to=rename_template,
         verbose_name=_('Template'),
         help_text=_("Report template file"),
-        validators=[FileExtensionValidator(allowed_extensions=['doc', 'docx',])],
+        validators=[FileExtensionValidator(allowed_extensions=['doc', 'docx','html'])],
     )
     
+class WordReport(TemplateReport):   
+    class Meta:
+        abstract = True
     
-class EmployeeWordReport(WordReport):
     
-    objects = FileModelManager()
+    def render(self, request, options):
+        # rendering    
+        doc = DocxTemplate(self.template_name)
+        jinja_env = jinja2.Environment(autoescape=True)
+        doc.render( self.get_context(request, options), autoescape=True)
+        doc_io = BytesIO()
+        doc.save(doc_io)
+        doc_io.seek(0)
+        
+        filename = self.generate_filename(request, options)
+        response = DownloadFile(doc_io.read(), 
+                                filename, 
+                                content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                )
+        return response
     
-    @classmethod
-    def getSubdir(cls):
-        return 'employee'
+    
+from django_weasyprint import WeasyTemplateResponseMixin
+class WeasyprintReportMixin(WeasyTemplateResponseMixin):
+    """Class for rendering a HTML template to a PDF."""
+
+    pdf_filename = 'report.pdf'
+    pdf_attachment = True
+
+    def __init__(self, request, template, **kwargs):
+        """Initialize the report mixin with some standard attributes"""
+        self.request = request
+        self.template_name = template
+        self.pdf_filename = kwargs.get('filename', 'report.pdf')
+        
+class PdfReport(TemplateReport):
+    class Meta:
+        abstract = True
+        
+    def render(self, request, options, **kwargs):      
+        wp = WeasyprintReportMixin(
+            request,
+            self.template_name,
+            base_url=request.build_absolute_uri("/"),
+            presentational_hints=True,
+            filename=self.generate_filename(request, options)
+        )
+        context = self.get_context(request, options)
+        return wp.render_to_response(context, **kwargs)
+        
+class EmployeeReport(TemplateReport):   
+    class Meta:
+        abstract = True
+           
     
     def get_context_data(self, request, options):
         pk=options.get('pk', None)
@@ -244,16 +278,23 @@ class EmployeeWordReport(WordReport):
         context["teams"]=teams
         
         return context
-
-from project.views import get_project_fund_overviewReport_bytType
-from project.models import GenericInfoProject
-class ProjectWordReport(WordReport):
     
-    objects = FileModelManager()
     
+class EmployeeWordReport(EmployeeReport, WordReport):
     @classmethod
     def getSubdir(cls):
-        return 'project'
+        return 'employee'
+ 
+class EmployeePDFReport(EmployeeReport, PdfReport):
+    @classmethod
+    def getSubdir(cls):
+        return 'employee'
+    
+from project.views import get_project_fund_overviewReport_bytType
+from project.models import GenericInfoProject
+class ProjectReport(TemplateReport):
+    class Meta:
+        abstract = True
     
     def get_context_data(self, request, options):
         print("[ProjectWordReport] get_context_data")
@@ -297,9 +338,15 @@ class ProjectWordReport(WordReport):
         context["fund_overview"]=fuT
         
         return context 
+
+class ProjectWordReport(ProjectReport, WordReport):
     
-    def render(self, request, options):
-        print("[ProjectWordReport] render")
-        # rendering    
-        # self.template_name = "/templates/reports/Project_report.docx"
-        return super().render(request, options)
+    @classmethod
+    def getSubdir(cls):
+        return 'project'
+    
+class ProjectPDFReport(ProjectReport, PdfReport):
+    
+    @classmethod
+    def getSubdir(cls):
+        return 'project'
