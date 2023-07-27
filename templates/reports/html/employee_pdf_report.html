@@ -139,7 +139,7 @@
         <div id="header_bar"> 
             <img src="{% static 'img/labsmanager/labsmanager_icon_small.png' %}" alt="logo image">
             
-            <span class="inline"> Project Report - {{ project.name }}</span>
+            <span class="inline"> Employee Report - {{ employee.first_name }}  {{ employee.last_name }}</span>
         </div>
         
     </header>
@@ -156,48 +156,48 @@
         <tbody>
             <tr>
                 <td class="cell_title">
-                    {% trans "Name" %}
+                    {% trans "First Name" %}
                 </td>
-                <td colspan="5" class="highlight cell_center">
-                    {{ project.name }}
+                <td class="highlight cell_center">
+                    {{ employee.first_name  }}
+                </td>
+                <td class="cell_title">
+                    {% trans "Last Name" %}
+                </td>
+                <td class="highlight cell_center">
+                    {{ employee.last_name }}
                 </td>
             </tr>
             <tr>
                 <td class="cell_title">
-                    {% trans "Start Date" %}
+                    {% trans "Birth Date" %}
                 </td>
-                <td colspan="2">                    
-                    {{ project.start_date}} 
-                </td>
-                <td class="cell_title">
-                    {% trans "End Date" %}
-                </td>
-                <td colspan="2">                    
-                    {{ project.end_date}} 
+                <td colspan="3">                    
+                    {{ employee.birth_date }}
                 </td>
             </tr>
             <tr>
                 <td class="cell_title">
-                    {% trans "Budget" %}
+                    {% trans "Entry Date" %}
                 </td>
                 <td >                    
-                    {% moneyFormat project.get_funds_amount %} 
+                    {{ employee.entry_date  }}
                 </td>
                 <td class="cell_title">
-                    {% trans "Expense" %}
+                    {% trans "Exit Date" %}
                 </td>
                 <td >                    
-                    {% moneyFormat project.get_funds_expense %} 
-                </td>
-                <td class="cell_title">
-                    {% trans "Available" %}
-                </td>
-                <td >                    
-                    {% moneyFormat project.get_funds_available %} 
+                    {{ employee.entry_date  }}
                 </td>
             </tr>
-
-            
+            <tr>
+                <td class="cell_title">
+                    {% trans "email" %}
+                </td>
+                <td colspan="3">                    
+                    {{ employee.email  }}
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -227,112 +227,34 @@
 <div class="spacer"></div>
 {% endif %}
 
-<!-- ##################################    Institutions    ################################## -->
-{% if institution %}
+<!-- ##################################    Status    ################################## -->
+{% if status  %}
 <div class="table_container">
     <div class="table_title general highlight">
-        <span>{% trans "Institutions" %}</span>
+        <span>{% trans "Status" %}</span>
         
     </div>
     <table class="table">
         <thead>
-            <th colspan="2" class="cell_title">{% trans 'Institution' %}</th>
             <th class="cell_title">{% trans 'Status' %}</th>
+            <th class="cell_title">{% trans 'Start Date' %}</th>
+            <th class="cell_title">{% trans 'End Date' %}</th>
+            <th class="cell_title">{% trans 'Type' %}</th>
         </thead>
         <tbody>
-            {% for item in institution  %}
+            {% for item in status   %}
             <tr>
                 <td >
-                    {{item.institution.name}}
+                    {{item.type.name }}
                 </td>
                 <td>
-                    {{ item.institution.short_name }}
-                </td>
-                <td>
-                    {{ item.get_status_display }}
-                </td>
-            </tr>    
-            {%endfor %}        
-        </tbody>
-    </table>
-</div>
-<div class="spacer"></div>
-{% endif %}
-<!-- ##################################    Participants    ################################## -->
-{% if participant %}
-<div class="table_container">
-    <div class="table_title general highlight">
-        <span>{% trans "Participants" %}</span>
-    </div>
-    <table class="table">
-        <thead>
-            <th class="cell_title">{% trans 'Employee' %}</th>
-            <th class="cell_title">{% trans 'Status' %}</th>
-            <th class="cell_title">{% trans 'Start date' %}</th>
-            <th class="cell_title">{% trans 'End date' %}</th>
-            <th class="cell_title">{% trans 'quotity' %}</th>
-        </thead>
-        <tbody>
-            {% for item in participant  %}
-            <tr>
-                <td >
-                    {{ item.employee.user_name }}
-                </td>
-                <td>
-                    {{ item.get_status_display }}
-                </td>
-                <td>
-                    {{ item.start_date }}
+                    {{ item.start_date  }}
                 </td>
                 <td>
                     {{ item.end_date  }}
                 </td>
                 <td>
-                    {% quotityFormat item.quotity %}
-                </td>
-                
-            </tr>    
-            {%endfor %}        
-        </tbody>
-    </table>
-</div>
-<div class="spacer"></div>
-{% endif %}
-<!-- ##################################    Milestones    ################################## -->
-{% if milestone  %}
-<div class="table_container">
-    <div class="table_title general highlight">
-        <span>{% trans "Milestones" %}</span>
-    </div>
-    <table class="table">
-        <thead>
-            <th class="cell_title">{% trans 'Name' %}</th>
-            <th class="cell_title">{% trans 'Deadline' %}</th>
-            <th class="cell_title">{% trans 'Description' %}</th>
-            <th class="cell_title">{% trans 'Type' %}</th>
-            <th class="cell_title">{% trans 'quotity' %}</th>
-            <th class="cell_title">{% trans 'Status' %}</th>
-        </thead>
-        <tbody>
-            {% for item in  milestone %}
-            <tr>
-                <td >
-                    {{ item.name }}
-                </td>
-                <td>
-                    {{ item.deadline_date  }}
-                </td>
-                <td>
-                    {{ item.desc  }}
-                </td>
-                <td>
-                    {{ item.get_type_display  }}
-                </td>
-                <td>
-                    {% quotityFormat item.quotity %}
-                </td>
-                <td>
-                    {{ item.status }}
+                    {{ item.get_is_contractual_display  }}
                 </td>
             </tr>    
             {%endfor %}        
@@ -341,118 +263,6 @@
 </div>
 <div class="spacer"></div>
 {% endif %}
-<!-- ##################################    Budgets    ################################## -->
-{% if milestone  %}
-<div class="table_container">
-    <div class="table_title general highlight">
-        <span>{% trans "Budgets" %}</span>
-    </div>
-    <table class="table">
-        <thead>
-            <th class="cell_title">{% trans 'Type' %}</th>
-            <th class="cell_title">{% trans 'Fund' %}</th>
-            <th class="cell_title">{% trans 'Amount' %}</th>
-            <th class="cell_title">{% trans 'Description' %}</th>
-            <th class="cell_title">{% trans 'Employee Type' %}</th>
-            <th class="cell_title">{% trans 'Contract Type' %}</th>
-            <th class="cell_title">{% trans 'Employee' %}</th>
-            <th class="cell_title">{% trans 'quotity' %}</th>
-        </thead>
-        <tbody>
-            {% for item in budget %}
-            <tr>
-                <td >
-                    {{ item.cost_type.short_name }}
-                </td>
-                <td>
-                    {{  item.fund.funder.short_name}} - {{  item.fund.institution.short_name}} ({{  item.fund.ref}} )
-                </td>
-                <td>
-                    {% moneyFormat item.amount %} 
-                </td>
-                <td>
-                    {{ item.desc   }}
-                </td>
-                <td>
-                    {{item.emp_type }}
-                </td>
-                <td>
-                    {% for ct in item.contract_type.all %}{{ct.name }}{% if not loop.last %}, {% endif %}{% endfor %} 
-                </td>
-                <td>
-                    {{item.employee  }}
-                </td>
-                <td>
-                    {% quotityFormat item.quotity %}
-                </td>
-            </tr>    
-            {%endfor %}        
-        </tbody>
-    </table>
-</div>
-<div class="spacer"></div>
-{% endif %}
-<!-- ##################################    Contributions    ################################## -->
-{% if Contribution  %}
-<div class="table_container">
-    <div class="table_title general highlight">
-        <span>{% trans "Contributions" %}</span>
-    </div>
-    <table class="table">
-        <thead>
-            <th class="cell_title">{% trans 'Type' %}</th>
-            <th class="cell_title">{% trans 'Fund' %}</th>
-            <th class="cell_title">{% trans 'Start Date' %}</th>
-            <th class="cell_title">{% trans 'End Date' %}</th>
-            <th class="cell_title">{% trans 'Amount' %}</th>
-            <th class="cell_title">{% trans 'Description' %}</th>
-            <th class="cell_title">{% trans 'Employee Type' %}</th>
-            <th class="cell_title">{% trans 'Contract Type' %}</th>
-            <th class="cell_title">{% trans 'Employee' %}</th>
-            <th class="cell_title">{% trans 'quotity' %}</th>
-        </thead>
-        <tbody>
-            {% for item in Contribution %}
-            <tr>
-                <td >
-                    {{ item.cost_type.short_name }}
-                </td>
-                <td>
-                    {{  item.fund.funder.short_name}} - {{  item.fund.institution.short_name}} ({{  item.fund.ref}}  )    
-                </td>
-                
-                <td>
-                    {{ item.start_date }}
-                </td>
-                <td>
-                    {{item.end_date }}
-                </td>
-                <td>
-                    {% moneyFormat item.amount %} 
-                </td>
-                <td>
-                    {{  item.desc }}  
-                </td>
-                <td>
-                    {{  item.emp_type  }}  
-                </td>
-                <td>
-                    {% for ct in item.contract_type.all %}{{  ct.name }}{% if not loop.last %}, {% endif %}{% endfor %} 
-                </td>
-                <td>
-                    {{  item.employee }}   
-                </td>
-                <td>
-                    {% quotityFormat item.quotity %}
-                </td>
-            </tr>    
-            {%endfor %}        
-        </tbody>
-    </table>
-</div>
-<div class="spacer"></div>
-{% endif %}
-
 <!-- ##################################    Contracts    ################################## -->
 {% if contract   %}
 <div class="table_container">
@@ -461,7 +271,7 @@
     </div>
     <table class="table">
         <thead>
-            <th class="cell_title">{% trans 'Employee' %}</th>
+            <th class="cell_title">{% trans 'Project' %}</th>
             <th class="cell_title">{% trans 'Funder' %}</th>
             <th class="cell_title">{% trans 'Start Date' %}</th>
             <th class="cell_title">{% trans 'End Date' %}</th>
@@ -474,7 +284,7 @@
             {% for item in contract  %}
             <tr>
                 <td >
-                    {{ item.employee.user_name }}
+                    {{ item.fund.project.name  }}
                 </td>
                 <td>
                     {{  item.fund.funder.short_name }}<span class="small"> ({{ item.fund.ref }})</span>
@@ -506,120 +316,175 @@
 </div>
 <div class="spacer"></div>
 {% endif %}
-
-<!-- ##################################    Funds    ################################## -->
-{% if fund   %}
-
+<!-- ##################################    Project    ################################## -->
+{% if project  %}
 <div class="table_container">
     <div class="table_title general highlight">
-        <span>{% trans "Funds" %}</span>
-    </div>
-    <div class="table_subtitle general highlight">
-        <span>{% trans "Overview" %}</span>
+        <span>{% trans "Projects" %}</span>
     </div>
     <table class="table">
         <thead>
-            <th class="cell_title">{% trans 'Type' %}</th>
-            <th class="cell_title">{% trans 'Amout' %}</th>
-            <th class="cell_title">{% trans 'Expense' %}</th>
-            <th class="cell_title">{% trans 'Available' %}</th>
+            <th class="cell_title">{% trans 'Project' %}</th>
+            
+            <th class="cell_title">{% trans 'Start date' %}</th>
+            <th class="cell_title">{% trans 'End date' %}</th>
+            <th class="cell_title">{% trans 'Status' %}</th>
+            <th class="cell_title">{% trans 'quotity' %}</th>
         </thead>
         <tbody>
-            {% for item in fund_overview %}
+            {% for item in project  %}
             <tr>
                 <td >
-                    {{ item.type_name }}
+                    {{ item.project.name  }}
+                </td>
+                
+                <td>
+                    {{ item.start_date }}
                 </td>
                 <td>
-                    {% moneyFormat item.total_amount %} 
+                    {{ item.end_date  }}
                 </td>
                 <td>
-                    {% moneyFormat item.total_expense %} 
+                    {{ item.get_status_display }}
                 </td>
                 <td>
-                    {% moneyFormat item.total_available %} 
+                    {% quotityFormat item.quotity %}
+                </td>
+                
+            </tr>    
+            {%endfor %}        
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>
+{% endif %}
+<!-- ##################################    Teams    ################################## -->
+{% if teams  %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Teams" %}</span>
+    </div>
+    <table class="table">
+        <thead>
+            <th class="cell_title">{% trans 'Team' %}</th>
+            <th class="cell_title">{% trans 'Leader' %}</th>
+        </thead>
+        <tbody>
+            {% for item in  teams %}
+            <tr>
+                <td >
+                    {{ item.name }}
+                </td>
+                <td>
+                    {{ item.leader.user_name  }}
                 </td>
             </tr>    
             {%endfor %}        
         </tbody>
     </table>
-    <div class="spacer"></div>
-    <div class="table_subtitle general highlight">
-        <span>{% trans "Liste" %}</span>
-    </div>
-    <div class="spacer-small"></div>
-
-    {% for f in fund %}
-    
-    <table class="table">
-        <thead>
-            <th class="cell_head" colspan="4">{% trans 'Fund  ' %} {{ f.ref }}<span class="right">{{ f.start_date }} - {{ f.end_date }}</span></th>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="cell_title">
-                    {% trans "Funder" %}
-                </td>
-                <td class="">
-                    {{ f.funder.short_name  }}
-                </td>
-                <td class="cell_title">
-                    {% trans "Institution" %}
-                </td>
-                <td class="">
-                    {{ f.institution.short_name   }}
-                </td>
-            </tr>   
-            <tr>
-                <td class="cell_title">
-                    {% trans "Amount" %}
-                </td>
-                <td class="">
-                    {% moneyFormat f.amount %} 
-                </td>
-                <td class="cell_title">
-                    {% trans "Expense" %}
-                </td>
-                <td class="">
-                    {% moneyFormat f.expense %} 
-                </td>
-            </tr>        
-        </tbody>
-
-    </table>
-    {% if f.fund_item %}
-    <div class="table_subtitle general highlight">
-        <span>{% trans "Items" %}</span>
+</div>
+<div class="spacer"></div>
+{% endif %}
+<!-- ##################################    Contributions    ################################## -->
+{% if Contribution  %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Contributions" %}</span>
     </div>
     <table class="table">
         <thead>
+            <th class="cell_title">{% trans 'Project' %}</th>
             <th class="cell_title">{% trans 'Type' %}</th>
-            <th class="cell_title">{% trans 'Amount ' %}</th>
-            <th class="cell_title">{% trans 'Expense' %}</th>
-            <th class="cell_title">{% trans 'Available' %}</th>
-            <th class="cell_title">{% trans 'Date' %}</th>
+            <th class="cell_title">{% trans 'Start Date' %}</th>
+            <th class="cell_title">{% trans 'End Date' %}</th>
+            <th class="cell_title">{% trans 'Fund' %}</th>
+            <th class="cell_title">{% trans 'Amount' %}</th>
+            <th class="cell_title">{% trans 'Description' %}</th>
+            <th class="cell_title">{% trans 'Employee Type' %}</th>
+            <th class="cell_title">{% trans 'Contract Type' %}</th>
+            <th class="cell_title">{% trans 'quotity' %}</th>
         </thead>
         <tbody>
-            {% for item in f.fund_item  %}
+            {% for item in Contribution %}
             <tr>
-                <td>{{item.type.name}}</td>
-                <td>{% moneyFormat item.amount %} </td>
-                <td>{% moneyFormat item.expense %} </td>
-                <td>{% moneyFormat item.available %} </td>
-                <td>{{item.value_date}}</td>
-            </tr>   
-            {%endfor %}     
+                <td >
+                    {{ item.fund.project.name }}
+                </td>
+                <td >
+                    {{ item.cost_type.short_name }}
+                </td>
+                <td>
+                    {{ item.start_date }}
+                </td>
+                <td>
+                    {{item.end_date }}
+                </td>
+                <td>
+                    {{  item.fund.funder.short_name}} - {{  item.fund.institution.short_name}} ({{  item.fund.ref}}  )    
+                </td>
+                <td>
+                    {% moneyFormat item.amount %} 
+                </td>
+                <td>
+                    {{  item.desc }}  
+                </td>
+                <td>
+                    {{  item.emp_type  }}  
+                </td>
+                <td>
+                    {% for ct in item.contract_type.all %}{{  ct.name }}{% if not loop.last %}, {% endif %}{% endfor %} 
+                </td>
+                <td>
+                    {% quotityFormat item.quotity %}
+                </td>
+            </tr>    
+            {%endfor %}        
         </tbody>
     </table>
-    {%endif%}
-    <div class="spacer"></div>
-    {%endfor %}
-
-
 </div>
 <div class="spacer"></div>
 {% endif %}
 
+
+
+
+
+
+<!-- ##################################    Leaces    ################################## -->
+{% if leave   %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Leaves" %}</span>
+    </div>
+    <table class="table">
+        <thead>
+            <th class="cell_title">{% trans 'Type' %}</th>
+            <th class="cell_title">{% trans 'Start Date' %}</th>
+            <th class="cell_title">{% trans 'End Date' %}</th>
+            <th class="cell_title">{% trans 'Comment' %}</th>
+        </thead>
+        <tbody>
+            {% for item in leave  %}
+            <tr>
+                <td >
+                    {{ item.type.short_name  }}
+                </td>
+                <td>
+                    {{ item.start_date }}
+                </td>
+                <td>
+                    {{item.end_date }}
+                </td>
+                <td>
+                    {{item.comment  }}
+                </td>
+            </tr>    
+            {%endfor %}        
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>
+{% endif %}
 
 <!-- ##################################    Footer    ################################## -->
 <footer>
@@ -631,9 +496,3 @@
 
   </body>
 </html>
-
-
-
-
-
-

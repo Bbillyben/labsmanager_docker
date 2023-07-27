@@ -64,5 +64,6 @@ def projectWordReport(request, pk, template):
 def projectPDFReport(request, pk, template):
     rep = ProjectPDFReport.objects.get(pk=template)
     return rep.render(request, {"pk":int(pk),})
+
     
     

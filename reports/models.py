@@ -141,7 +141,12 @@ class TemplateReport(BaseReport):
     
     def get_context_data(self, request, options):
         """Supply context data to the template for rendering."""
-        return {}
+        context = {}
+        context['request']= request
+        context['options']= options
+        context['template']= self
+        context["current_date"]=datetime.datetime.now()
+        return context
     
     def get_context(self, request, options):
         """All context to be passed to the renderer."""
@@ -250,7 +255,8 @@ class EmployeeReport(TemplateReport):
         pk=options.get('pk', None)
         if not pk:
             return {}
-        context={'request': request,}
+        context=super().get_context_data(request, options)
+        
 
         emp = Employee.objects.get(pk=pk)
         if not emp:
@@ -301,7 +307,7 @@ class ProjectReport(TemplateReport):
         pk=options.get('pk', None)
         if not pk:
             return {}
-        context={'request': request,}
+        context=super().get_context_data(request, options)
         
         proj = Project.objects.get(pk=pk)
         if not proj:
