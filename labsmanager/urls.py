@@ -95,6 +95,10 @@ urlpatterns += [
     path('faicon/', include('faicon.urls')),
 ]
 
+from .views import serve_protected_media
+urlpatterns += [
+    path('report/<path:path>', serve_protected_media, name='serve_protected_media'),
+]
 
 
 if settings.DEBUG:
@@ -102,7 +106,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
     # Media file access
-    # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    #urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     from labsmanager.tasks import create_report
     urlpatterns += [path('testTask', create_report, name='testTask'),]
 

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template.response import SimpleTemplateResponse
 from django.views.generic.base import TemplateView
 from django.contrib.auth import authenticate, login, logout
@@ -20,6 +20,12 @@ from leave.models import Leave_Type
 # from allauth.account.views import LoginView
 # Create your views here.
 
+from django.contrib.auth.decorators import user_passes_test
+from labsmanager import settings
+import os
+
+
+
 class redirectIndexView(LoginRequiredMixin, TemplateView):
     template_name = 'labmanager/index.html' #'labmanager/index.html'
     def get(self, request, *args, **kwargs): ## Redirect to dash board for the moment
@@ -33,6 +39,20 @@ class IndexView(LoginRequiredMixin, TemplateView):
     #     return redirect('dashboard')
     
 
+
+def is_admin(user):
+    return user.is_authenticated and user.is_superuser
+
+@user_passes_test(is_admin, login_url="/index/")
+def serve_protected_media(request, path):
+    """ View specific to serve report file stored in MEDIA_ROOT/report/... to admin only
+    """
+    file_path = os.path.join(settings.MEDIA_ROOT, 'report/'+path)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as file:
+            return HttpResponse(file.read(), content_type='application/octet-stream')
+    else:
+        raise Http404
 
 #   Get type list for filtering tables across labsmanager
 def get_filters_lists(request, *args, **kwargs):
