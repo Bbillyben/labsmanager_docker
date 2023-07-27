@@ -80,6 +80,11 @@ function initEmployeeSingleView(user_idA, employee_idA){
         asyncSettings: {directUpdate:true,closeOnSubmit:true,},
         modal_title:"Export Word",
     })
+    $('#export_pdf').labModalForm({
+        formURL: Urls['employee_pdf_report_generate'](employee_id),
+        asyncSettings: {directUpdate:true,closeOnSubmit:true,},
+        modal_title:"Export PDF",
+    })
 
     update_employee();
     update_employee_info();

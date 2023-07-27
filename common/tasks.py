@@ -89,9 +89,9 @@ def send_notification(*args, **kwargs):
     
     
     mail = emails.first()
-    kwargs ={'user':user, }
+    kwargs ={'user':user, 'embedImg':True, }
     sm = SubscriptionMail()
-    response = sm.send(mail.email ,True , **kwargs)
+    response = sm.send(mail.email , **kwargs)
 
     logger.debug(f" Mail sending  to {user.email} / status : {response}")
     jsonResponse=JsonResponse({'status': 'success', 'message': _("Mail Send"), 'reponse':response}) 
@@ -124,11 +124,11 @@ def test_check(request):
     user = User.objects.get(pk=upk)
     
     sm = SubscriptionMail()
-    kwargs ={'user':user, }
+    kwargs ={'user':user, 'embedImg':True}
     
     send_test = request.GET.get("mail", None)
     if send_test != None:
-        sm.send(user.email,True , **kwargs)
+        sm.send(user.email, **kwargs)
     else:
         sm.generate_context(**kwargs)
     

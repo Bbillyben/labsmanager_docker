@@ -34,7 +34,12 @@ function callTestMail(el){
         {
             // console.log("Error Send Test Mail :"+err);
             btn.addClass('btn-warning').removeClass('btn-primary').removeClass('btn-success');
-            showMessage("Error Mail Sending :"+err.responseJSON.message,{
+            if(undefined != err.responseJSON){
+                errMess = err.responseJSON.message;
+            }else{
+                errMess = "SERVER ERROR";
+            }
+            showMessage("Error Mail Sending :"+errMess,{
                 'style':'danger',
             })
         },

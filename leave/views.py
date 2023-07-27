@@ -31,7 +31,7 @@ def main_calendar_print(request):
     options["type"]=request.POST["type"]
     options["emp_status"]=request.POST["emp_status"]
     options["team"]=request.POST["team"]
-    
+    options["showResEventRadio"]=request.POST["showResEventRadio"]
     context["options"]=options
     return render(request, 'calendar/main_calendar_print.html', context)
 

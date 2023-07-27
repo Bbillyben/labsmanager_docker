@@ -15,7 +15,7 @@ function initFullCalendar(){
         selectable:canMod,
         editable:canMod,
         extraParams:getCalenderParams,
-        filterResourcesWithEvents:$("#resource_event_cb").is(":checked"),
+        filterResourcesWithEvents:$("#ressource_event_radio_box input[name='ressource_event_radio']:checked").val()!='false',
     }
     calendar = $('#calendar-box').lab_calendar(option);
    
@@ -33,8 +33,9 @@ function initPrintCalendar(options){
             type:options["type"],
             emp_status:options["emp_status"],
             team:options["team"],
+            showResEventRadio:options["showResEventRadio"],
         },
-        filterResourcesWithEvents:options["filterResourcesWithEvents"]=='true',
+        filterResourcesWithEvents:options["filterResourcesWithEvents"]!='false',
 
         eventDrop:null,
         eventResize:null,
@@ -65,6 +66,7 @@ function print_main_calendar(printUrl){
     options['type']=extraP.type;
     options['emp_status']=extraP.emp_status;
     options['team']=extraP.team;
+    options["showResEventRadio"]=$("#ressource_event_radio_box input[name='ressource_event_radio']:checked").val();
     // console.log("Print Cal option :"+JSON.stringify(options));
     var csrftoken = getCookie('csrftoken');
     openWindowWithPost(printUrl, options, csrftoken)
@@ -85,12 +87,13 @@ function getCalenderParams(){
     var team=$('#employee_team_selector').val();
     if(isNaN(team))team=null;
 
-    var showResEvent=$("#resource_event_cb").is(":checked");
+    var radioResEvent = $("#ressource_event_radio_box input[name='ressource_event_radio']:checked").val();
+   
     filters={
         type:leaveList,
         emp_status:emp_status,
         team:team,
-        showResEvent:showResEvent,
+        showResEventRadio:radioResEvent,
     };
     return filters
 }
@@ -104,12 +107,13 @@ function getCalenderFilters(){
     var team=$('#employee_team_selector').val();
     if(isNaN(team))team=null;
 
-    var showResEvent=$("#resource_event_cb").is(":checked");
+    var radioResEvent = $("#ressource_event_radio_box input[name='ressource_event_radio']:checked").val();
+   
     filters={
         type:"{"+leaveList+"}",
         emp_status:emp_status,
         team:team,
-        showResEvent:showResEvent,
+        showResEventRadio:radioResEvent,
     };
     return filters
 }
@@ -118,6 +122,7 @@ function getCalenderFilters(){
 function Calendar_loadFilters(){
     // load filters values => see in js.labsmanager.filters.loadTableFilters
     var filters=loadTableFilters("calendar-filter");
+    
     // types filters
     if ('type' in filters){
         try {
@@ -151,11 +156,11 @@ function Calendar_loadFilters(){
         }
         
     }
-    // show only resource with event
-    if ('showResEvent' in filters){
-        var showResEvent =filters['showResEvent'];
-        isCk=(showResEvent=="true")
-        $('#resource_event_cb').prop("checked",isCk);        
+    // filter ressource event 
+    if ('showResEventRadio' in filters){
+        var showResEventRadio =filters['showResEventRadio'];
+        var selector = "#ressource_event_radio_box input[value='"+showResEventRadio+"']";
+        $(selector).prop("checked", true);       
     }
     // other filters to come
 }
@@ -176,11 +181,12 @@ function initListener(){
         saveTableFilters("calendar-filter", getCalenderFilters());
         calendar_refresh();
     });
-    $('#resource_event_cb').change(function() {   
-        // save of filters values => see in js.labsmanager.filters.saveTableFilters
+    $('#ressource_event_radio_box').change(function(){
+        selected_value = $("input[name='ressource_event_radio']:checked").val();
         saveTableFilters("calendar-filter", getCalenderFilters());
-        calendar.setOption("filterResourcesWithEvents",$("#resource_event_cb").is(":checked"));
-        //calendar_refresh();
+        calendar.setOption("filterResourcesWithEvents",selected_value!="false");
+        calendar_refresh();
+        
     });
 
 }

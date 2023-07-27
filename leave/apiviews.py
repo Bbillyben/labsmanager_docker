@@ -91,6 +91,12 @@ class LeaveViewSet(viewsets.ModelViewSet):
             end_date=end_date.split("T")[0]
             query=Q(end_date__lte=end_date) | (Q(start_date__lt=end_date) & Q(end_date__gte=end_date))
             qset= qset.filter(query)
+            
+        today_event = data.get('showResEventRadio', None) 
+        if today_event is not None and today_event == "today_event":
+            today = datetime.date.today()
+            query=Q(end_date__gte=today) & (Q(start_date__lte=today) )
+            qset= qset.filter(query)
         
         return qset
         

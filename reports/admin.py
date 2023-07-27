@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EmployeeWordReport, ProjectWordReport
+from .models import EmployeeWordReport, ProjectWordReport, EmployeePDFReport, ProjectPDFReport
 
 # Register your models here.
 # @admin.register(EmployeeWordReport)
@@ -9,4 +9,6 @@ class EmployeeWordReportAdmin(admin.ModelAdmin):
 
 
 admin.site.register(EmployeeWordReport, EmployeeWordReportAdmin)
+admin.site.register(EmployeePDFReport, EmployeeWordReportAdmin)
 admin.site.register(ProjectWordReport, EmployeeWordReportAdmin)
+admin.site.register(ProjectPDFReport, EmployeeWordReportAdmin)

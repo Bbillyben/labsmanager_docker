@@ -11,28 +11,32 @@
     width:100%;
 }
 table{
+    padding-top:10px;
     width:100%;
     font-size: small;
+   
 }
 
 .table_title{
-    padding-top:10px;
     font-size: large;
-    width:100%;
-    text-align: center;
-    padding: 0.1em;
 }
-
-.table_title.project_overview, .table_title.project{
+table.fund_o_t thead tr:nth-child(odd){
+    background-color: red;
+}
+thead tr:nth-child(odd){
     color:white;
     background-color: #568f67;
     
 }
-thead tr.column_title{
+thead tr:nth-child(even){
     background-color: #8fbc9d;
 }
-tbody tr.odd {
+tbody tr:nth-child(even) {
     background-color: #dfece3;
+}
+
+table.fund_o_t thead tr:nth-child(odd){
+    background-color: #9fc6ab;
 }
 
 
@@ -42,28 +46,28 @@ tbody tr.odd {
     margin-top: 5em;
 }
 
-.table_title.employee{
+.employee thead tr:nth-child(odd){
     color:white;
     background-color: #993366;
 }
-.employee thead tr.column_title{
+.employee thead tr:nth-child(even){
     background-color: #d98cb3;
 }
-.employee tbody tr.odd {
+.employee tbody tr:nth-child(even) {
     background-color: #f2d9e6;
 }
 
-.table_title.team_live{
+.team thead tr:nth-child(odd){
     color:white;
     background-color: #0099cc;
 }
-.team thead tr.column_title{
+.team thead tr:nth-child(even){
     background-color: #4dd2ff;
 }
-.team tbody tr.odd {
+.team tbody tr:nth-child(even) {
     background-color: #ccf2ff;
 }
-.team tbody tr.even {
+.team tbody tr:nth-child(odd) {
     background-color: #e6f9ff;
 }
 
@@ -73,17 +77,17 @@ tbody tr.odd {
 }
 
 
-.table_title.leave{
+.leaves thead tr:nth-child(odd){
     color:white;
     background-color: #cc7a00;
 }
-.leaves thead tr.column_title{
+.leaves thead tr:nth-child(even){
     background-color: #ffb84d;
 }
-.leaves tbody tr.odd {
+.leaves tbody tr:nth-child(even) {
     background-color: #ffe0b3;
 }
-.leaves tbody tr.even {
+.leaves tbody tr:nth-child(odd) {
     background-color: #fff5e6;
 }
 .leaves tbody td.on-leave {
@@ -136,13 +140,12 @@ hr.light {
 
 <div class="main-container">
     <div class="table_container">
-        <div class="table_title project_overview">
-            {% trans "Project overview" %}
-        </div>
         <table class="table">
             <thead>
-                
-                <tr class="column_title">
+                <tr class="table_title">
+                    <th colspan="100%" >{% trans "Project overview" %}</th>
+                </tr>
+                <tr>
                     <th>{% trans "Project" %}</th>
                     <th>{% trans "Start Date" %}</th>
                     <th>{% trans "End Date" %}</th>
@@ -156,7 +159,7 @@ hr.light {
             </thead>
             <tbody>
                 {% for p in projects %}
-                <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
+                <tr>
                     <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.pk %}">{{p.name}}</a></td>
                     <td align="center" valign="top">{{p.start_date}}</td>
                     <td align="center" valign="top">{{p.end_date}}</td>
@@ -192,13 +195,13 @@ hr.light {
             {% if not forloop.first %}
             <hr class="light">
             {% endif %}
-            <div class="table_container">
-                <div class="table_title project">
-                    {% trans "Project Fund overview :" %} <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a>
-                </div>   
+            <div class="table_container">          
                 <table class="table ">
                         <thead>
-                            <tr class="column_title">
+                            <tr class="table_title">
+                                <th colspan="100%">{% trans "Project Fund overview :" %} <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a></th>
+                            </tr>
+                            <tr>
                                 <th>{% trans "Funder" %}</th>
                                 <th>{% trans "Institution" %}</th>
                                 <th>{% trans "Ref" %}</th>
@@ -215,7 +218,7 @@ hr.light {
                         </thead>
                     <tbody>
             {% endif %}
-                        <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                        <tr>
                             <td align="left" valign="top">{{f.funder.short_name}}</td>
                             <td align="center" valign="top">{{f.institution.short_name}}</td>
                             <td align="center" valign="top">{{f.ref}}</td>
@@ -256,12 +259,11 @@ hr.light {
         {% for t in teams %}
                 <div class="table_container">          
                     <table class="table team">
-                        <div class="table_title team_live">
-                            {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                        </div>
                             <thead>
-                                
-                                <tr class="column_title">
+                                <tr class="table_title">
+                                    <th colspan="100%">{% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a></th>
+                                </tr>
+                                <tr>
                                     <th>{% trans "Team Mate" %}</th>
                                     <th>{% trans "Start Date" %}</th>
                                     <th>{% trans "End Date" %}</th>
@@ -274,7 +276,7 @@ hr.light {
                                 {% extractArgs leaveM  as leaves%}
                                 {% if leaves %}
                                     {% for l in leaves %}
-                                    <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                                    <tr>
                                         <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
                                         <td align="center" valign="top">{{l.start_date}}</td>
                                         <td align="center" valign="top">{{l.end_date}}</td>
@@ -295,13 +297,13 @@ hr.light {
         {% endif %}
         {% if leave_format == "calendar" %}
         {% for t in teams %}
-                <div class="table_container">    
-                    <div class="table_title team_live">
-                        {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                    </div>      
+                <div class="table_container">          
                     <table class="table team">
                             <thead>
-                                <tr class="column_title">
+                                <tr class="table_title">
+                                    <th colspan="100%">{% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a></th>
+                                </tr>
+                                <tr>
                                     <th>{% trans "Team Mate" %}</th>
                                     {% for d in days %}
                                     <th>{{ d|date:"d M" }}</th>
@@ -314,7 +316,7 @@ hr.light {
                                 {% extractArgs leaveM  as leaves%}
                                 {% if leaves %}
                                 {% for l, li in leaves.items %}
-                                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                                <tr>
                                     <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
                                     {% for d in days %}
                                         {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}
@@ -342,13 +344,12 @@ hr.light {
 <hr class="">
 <div class="main-container">
     <div class="table_container">
-        <div class="table_title employee">
-            {% trans "Employee overview" %}
-        </div>
         <table class="table employee">
             <thead>
-                
-                <tr class="column_title">
+                <tr class="table_title">
+                    <th colspan="100%" >{% trans "Employee overview" %}</th>
+                </tr>
+                <tr>
                     <th>{% trans "Employee" %}</th>
                     <th>{% trans "Project" %}</th>
                     <th>{% trans "Funder" %}</th>
@@ -360,7 +361,7 @@ hr.light {
             </thead>
             <tbody>
                 {% for c in contracts %}
-                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                <tr>
                     <td align="center" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=c.employee.pk %}">{{c.employee.user_name}}</a></td>
                     <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=c.fund.project.pk %}">{{c.fund.project.name}}</a></td>
                     <td align="center" valign="top">{{c.fund.funder.short_name}}</td>
@@ -382,14 +383,13 @@ hr.light {
 
 {% if all_leaves %}
         {% if leave_format == "list" %}
-        <div class="table_container">    
-            <div class="table_title leave">
-                <a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a>
-            </div>      
+        <div class="table_container">          
             <table class="table leaves">
                     <thead>
-                        
-                        <tr class="column_title">
+                        <tr class="table_title">
+                            <th colspan="100%"><a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a></th>
+                        </tr>
+                        <tr>
                             <th>{% trans "Employee" %}</th>
                             <th>{% trans "Start Date" %}</th>
                             <th>{% trans "End Date" %}</th>
@@ -399,7 +399,7 @@ hr.light {
                 <tbody>
 
                     {% for l in all_leaves %}
-                    <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                    <tr>
                         <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
                         <td align="center" valign="top">{{l.start_date}}</td>
                         <td align="center" valign="top">{{l.end_date}}</td>
@@ -414,13 +414,13 @@ hr.light {
         {%endif%}
         {% if leave_format == "calendar" %}
         <!--          ################################################  TEST MONTH DISPLAY ##################-->
-        <div class="table_container">   
-            <div class="table_title leave">
-                <a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a>
-            </div>         
+        <div class="table_container">          
             <table class="table leaves">
                     <thead>
-                        <tr class="column_title">
+                        <tr class="table_title">
+                            <th colspan="100%"><a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a></th>
+                        </tr>
+                        <tr>
                             <th>{% trans "Employee" %}</th>
                             {% for d in days %}
                             <th>{{ d|date:"d M" }}</th>
@@ -430,7 +430,7 @@ hr.light {
                 <tbody>
 
                     {% for l, li in emp_leaves.items %}
-                    <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                    <tr>
                         <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
                         {% for d in days %}
                             {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}

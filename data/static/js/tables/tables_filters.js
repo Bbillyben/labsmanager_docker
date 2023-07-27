@@ -25,7 +25,12 @@ function getAvailableTableFilters(tableKey) {
                 title : 'Employee Status',
                 description: 'Employee Status Code',
                 options:employee_status_codes,
-            }
+            },
+            current_status:{
+                title : 'Current Employee Status',
+                description: 'Employee Status Code',
+                options:employee_status_codes,
+            },
         };
     }
     if (tableKey == 'contract') {

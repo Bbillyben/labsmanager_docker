@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 16:58+0200\n"
+"POT-Creation-Date: 2023-07-24 13:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: common/models.py:10 common/models.py:20 settings/models.py:873
-#: settings/models.py:874 staff/models.py:30 staff/ressources.py:196
+#: common/models.py:10 common/models.py:20 settings/models.py:882
+#: settings/models.py:883 staff/models.py:30 staff/ressources.py:196
 msgid "User"
 msgstr "Utilisateur"
 
@@ -30,6 +30,10 @@ msgstr "Pas d'email principal vérifié pour l'utilisateur %(user)s"
 #: common/tasks.py:97
 msgid "Mail Send"
 msgstr "Mail Envoyé"
+
+#: common/views_modal.py:53
+msgid "Your password has been changed"
+msgstr "Votre mot de passe à été modifié"
 
 #: dashboard/views.py:29 templates/dashboard/global_dashboard.html:22
 #: templates/labmanager/index.html:93 templates/navbar.html:77
@@ -59,8 +63,9 @@ msgstr "financeur"
 #: dashboard/views.py:93 dashboard/views.py:119 dashboard/views.py:155
 #: expense/resources.py:35 fund/admin.py:36 fund/admin.py:175
 #: fund/resources.py:248 project/models.py:171 project/resources.py:61
-#: settings/views.py:140 templates/email/notification_email.html:202
-#: templates/email/notification_email.html:352
+#: settings/views.py:140 templates/email/notification_email copy.html:206
+#: copy.html:356 templates/email/notification_email.html:203
+#: templates/email/notification_email.html:355
 #: templates/expense/contract_table.html:43 templates/fund/fund_finder.html:62
 #: templates/fund/fund_table.html:16 templates/project/project_base.html:62
 msgid "Institution"
@@ -112,10 +117,11 @@ msgstr "Contrat Périmé"
 #: fund/resources.py:263 leave/models.py:48 leave/resources.py:85
 #: project/models.py:185 staff/models.py:23 staff/models.py:24
 #: staff/models.py:107 staff/models.py:170 staff/models.py:209
-#: staff/views.py:29 staff/views.py:45
-#: templates/email/notification_email.html:349
-#: templates/email/notification_email.html:389
-#: templates/email/notification_email.html:420
+#: staff/views.py:29 staff/views.py:45 templates/email/notification_email
+#: copy.html:353 copy.html:393 copy.html:424
+#: templates/email/notification_email.html:352
+#: templates/email/notification_email.html:393
+#: templates/email/notification_email.html:424
 #: templates/employee/employee_single.html:25
 #: templates/expense/contract_table.html:30 templates/fund/budget_table.html:43
 #: templates/fund/contrib_table.html:41 templates/labmanager/index.html:44
@@ -129,8 +135,9 @@ msgstr "Employé"
 #: fund/admin.py:46 fund/resources.py:25 fund/resources.py:131
 #: fund/resources.py:307 project/models.py:170 project/models.py:184
 #: project/models.py:252 project/views.py:27 project/views.py:43
-#: templates/email/notification_email.html:145
-#: templates/email/notification_email.html:350
+#: templates/email/notification_email copy.html:149 copy.html:354
+#: templates/email/notification_email.html:146
+#: templates/email/notification_email.html:353
 #: templates/employee/employee_sidebar.html:13
 #: templates/employee/employee_single.html:283
 #: templates/endpoints/milestones_table.html:26
@@ -167,8 +174,9 @@ msgstr "Description"
 #: dashboard/views.py:185 endpoints/models.py:19 fund/admin.py:248
 #: fund/models.py:201 labsmanager/mixin.py:130 leave/models.py:47
 #: settings/views.py:252 settings/views.py:276 staff/models.py:106
-#: templates/email/notification_email.html:266
-#: templates/email/notification_email.html:392
+#: templates/email/notification_email copy.html:270 copy.html:396
+#: templates/email/notification_email.html:268
+#: templates/email/notification_email.html:396
 #: templates/employee/employee_single.html:423
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
@@ -179,7 +187,8 @@ msgstr "Description"
 msgid "Type"
 msgstr "Type"
 
-#: dashboard/views.py:186 templates/email/notification_email.html:355
+#: dashboard/views.py:186 templates/email/notification_email copy.html:359
+#: templates/email/notification_email.html:358
 #: templates/employee/employee_single.html:304
 #: templates/endpoints/milestones_table.html:37
 #: templates/expense/contract_table.html:52 templates/fund/budget_table.html:47
@@ -232,8 +241,9 @@ msgstr "Jalons"
 
 #: expense/admin.py:44 expense/resources.py:30 fund/admin.py:31
 #: fund/admin.py:51 fund/admin.py:199 fund/resources.py:243
-#: templates/email/notification_email.html:201
-#: templates/email/notification_email.html:351
+#: templates/email/notification_email copy.html:205 copy.html:355
+#: templates/email/notification_email.html:202
+#: templates/email/notification_email.html:354
 #: templates/expense/contract_table.html:34 templates/fund/fund_table.html:13
 msgid "Funder"
 msgstr "Financeur"
@@ -248,8 +258,9 @@ msgid "If A Contract is turn inactive, it should have a end Date"
 msgstr "Si un contrat devient inactif, il doit avoir une date de fin."
 
 #: expense/models.py:22 labsmanager/mixin.py:87
-#: templates/email/notification_email.html:149
-#: templates/email/notification_email.html:207
+#: templates/email/notification_email copy.html:153 copy.html:211
+#: templates/email/notification_email.html:150
+#: templates/email/notification_email.html:208
 #: templates/fund/fund_finder.html:81 templates/fund/fund_overview_type.html:11
 #: templates/project/project_desc_table.html:32
 msgid "Expense"
@@ -504,9 +515,9 @@ msgstr ""
 " Type d'employée, de contrat et l'employée ne peuvent pas être définis si le "
 "type de coûtn'est pas RH ou ses déscendants"
 
-#: fund/models.py:225 fund/resources.py:162
-#: templates/email/notification_email.html:148
-#: templates/email/notification_email.html:206
+#: fund/models.py:225 fund/resources.py:162 templates/email/notification_email
+#: copy.html:152 copy.html:210 templates/email/notification_email.html:149
+#: templates/email/notification_email.html:207
 #: templates/project/project_desc_table.html:31
 msgid "Budget"
 msgstr "Budget"
@@ -548,11 +559,12 @@ msgid "institution"
 msgstr "institution"
 
 #: fund/resources.py:40 fund/resources.py:149 labsmanager/mixin.py:136
-#: templates/email/notification_email.html:146
-#: templates/email/notification_email.html:204
-#: templates/email/notification_email.html:264
-#: templates/email/notification_email.html:353
-#: templates/email/notification_email.html:390
+#: templates/email/notification_email copy.html:150 copy.html:208 copy.html:268
+#: copy.html:357 copy.html:394 templates/email/notification_email.html:147
+#: templates/email/notification_email.html:205
+#: templates/email/notification_email.html:266
+#: templates/email/notification_email.html:356
+#: templates/email/notification_email.html:394
 #: templates/employee/employee_single.html:96
 #: templates/employee/employee_single.html:298
 #: templates/employee/employee_single.html:426
@@ -565,11 +577,12 @@ msgid "Start Date"
 msgstr "Date de Début"
 
 #: fund/resources.py:46 fund/resources.py:155 labsmanager/mixin.py:137
-#: templates/email/notification_email.html:147
-#: templates/email/notification_email.html:205
-#: templates/email/notification_email.html:265
-#: templates/email/notification_email.html:354
-#: templates/email/notification_email.html:391
+#: templates/email/notification_email copy.html:151 copy.html:209 copy.html:269
+#: copy.html:358 copy.html:395 templates/email/notification_email.html:148
+#: templates/email/notification_email.html:206
+#: templates/email/notification_email.html:267
+#: templates/email/notification_email.html:357
+#: templates/email/notification_email.html:395
 #: templates/employee/employee_single.html:99
 #: templates/employee/employee_single.html:301
 #: templates/employee/employee_single.html:429
@@ -583,7 +596,8 @@ msgid "End Date"
 msgstr "Date de Fin"
 
 #: fund/resources.py:52 fund/resources.py:119 fund/resources.py:253
-#: templates/email/notification_email.html:203
+#: templates/email/notification_email copy.html:207
+#: templates/email/notification_email.html:204
 #: templates/fund/fund_finder.html:74
 msgid "Ref"
 msgstr "Ref"
@@ -828,210 +842,221 @@ msgstr "Activé"
 msgid "Report template is enabled"
 msgstr "Le Template de rapport est activé"
 
-#: settings/models.py:342 settings/models.py:866
+#: settings/models.py:344 settings/models.py:875
 msgid "Settings key (must be unique - case insensitive)"
 msgstr "Clé des paramètres (doit être unique - insensible à la casse)"
 
-#: settings/models.py:344
+#: settings/models.py:346
 msgid "Settings value"
 msgstr "Valeur des paramètres"
 
-#: settings/models.py:385
+#: settings/models.py:387
 msgid "Chosen value is not a valid option"
 msgstr "La valeur choisie n'est pas une option valide"
 
-#: settings/models.py:402
+#: settings/models.py:404
 msgid "Value must be a boolean value"
 msgstr "La valeur doit être une valeur booléenne"
 
-#: settings/models.py:413
+#: settings/models.py:415
 msgid "Value must be an integer value"
 msgstr "La valeur doit être un entier"
 
-#: settings/models.py:421
+#: settings/models.py:423
 msgid "Value must be an Decimal value"
 msgstr "La valeur doit être une valeur décimale"
 
-#: settings/models.py:465
+#: settings/models.py:467
 msgid "Key string must be unique"
 msgstr "La chaine de la clé doit être unique"
 
-#: settings/models.py:667
+#: settings/models.py:669
 msgid "No group"
 msgstr "Pas de groupe"
 
-#: settings/models.py:695
+#: settings/models.py:697
 msgid "Mail Object Prefix"
 msgstr "Préfix Objet du mail"
 
-#: settings/models.py:697
+#: settings/models.py:699
 msgid "String added as prefix to mail object"
 msgstr "Chaine ajoutée comme préfix à l'object du mail"
 
-#: settings/models.py:701
+#: settings/models.py:703
 msgid "Audit Log Retention"
 msgstr "Rétention de l'audit log"
 
-#: settings/models.py:702
+#: settings/models.py:704
 msgid "Number of to retain AudiLog history"
 msgstr "Nombre de jour de rétention pour l'historique de l'auditlog"
 
-#: settings/models.py:703
+#: settings/models.py:705
 msgid "Days"
 msgstr "Jours"
 
-#: settings/models.py:711
+#: settings/models.py:713
 msgid "French Vacation Zone"
 msgstr "Zone de vacances en France"
 
-#: settings/models.py:712
+#: settings/models.py:714
 msgid "one of the zone defined for french vacation"
 msgstr "une des zones définies pour les vacances en France"
 
-#: settings/models.py:730
+#: settings/models.py:732
 msgid "Settings key (must be unique - case insensitive"
 msgstr "Clé des paramètres (doit être unique - insensible à la casse)"
 
-#: settings/models.py:746
+#: settings/models.py:748
 msgid "Dashboard Stale From Calculation"
 msgstr "Tableau de bord périmé par le calcul"
 
-#: settings/models.py:747
+#: settings/models.py:749
 msgid "Number of previous month to get in stale scope from now"
 msgstr ""
 "Nombre de mois pour rentré dans l'état éventéNombre de mois précédents pour "
 "considérer comme éventé à partir de maintenant.Nombre de mois précédent pour "
 "entrer dans le champs de péremption à partir de maintenant"
 
-#: settings/models.py:752
+#: settings/models.py:754
 msgid "Dashboard Stale To Calculation"
 msgstr "Tableau de bord des éléments périmés"
 
-#: settings/models.py:753 settings/models.py:759 settings/models.py:765
-#: settings/models.py:772 settings/models.py:778
+#: settings/models.py:755 settings/models.py:761 settings/models.py:767
+#: settings/models.py:774 settings/models.py:780
 msgid "Number of month to get in stale scope from now"
 msgstr ""
 "Nombre de mois pour considérer comme éventé à partir de maintenantNombre de "
 "mois futur pour entrer dans le champs de péremption à partir de maintenant"
 
-#: settings/models.py:758
+#: settings/models.py:760
 msgid "Contract Stale month"
 msgstr "Nombre de mois pour considérer périmé les contrats"
 
-#: settings/models.py:764
+#: settings/models.py:766
 msgid "Project Stale month"
 msgstr "Nombre de mois pour considérer périmé les projets"
 
-#: settings/models.py:771
+#: settings/models.py:773
 msgid "Milestones Stale to month"
 msgstr "Nombre de mois pour considérer périmé les jalons"
 
-#: settings/models.py:777
+#: settings/models.py:779
 msgid "Milestones Stale from month"
 msgstr "Nombre de mois pour considérer périmé les jalons"
 
-#: settings/models.py:784
+#: settings/models.py:786
 msgid "Fund ratio consumption report type"
 msgstr "Type de rapport sur la consommation des fonds"
 
-#: settings/models.py:785 settings/models.py:795
+#: settings/models.py:787 settings/models.py:797
 msgid "Fund ratio consumption to report project in dahsboard"
 msgstr ""
 "Ratio de consommation de fonds pour rapporter le projet dans le tableau "
 "dahsboard"
 
-#: settings/models.py:794
+#: settings/models.py:796
 msgid "Fund ratio consumption threshold"
 msgstr "Seuil de consommation du ratio du fonds"
 
-#: settings/models.py:800
+#: settings/models.py:802
 msgid "Use project Stale period for Consumption"
 msgstr "Utiliser le projet Période de blocage pour la consommation"
 
-#: settings/models.py:801
+#: settings/models.py:803
 msgid "use Project Stale month scope period for under consommation calculation"
 msgstr ""
 "utiliser la période de la portée du mois du projet Stale pour le calcul de "
 "la sous-consommation"
 
-#: settings/models.py:806
+#: settings/models.py:808
 msgid "Margin to detect linear ratio"
 msgstr "Marge pour détecter la déviation par rapport au linéaire"
 
-#: settings/models.py:807
+#: settings/models.py:809
 msgid ""
 "margin in % to identifyed deviation in budget consumption from linear ratio"
 msgstr ""
 " marge en % pour identifier l'écart de la consommation budgétaire par "
 "rapport au ratio linéaire"
 
-#: settings/models.py:812
+#: settings/models.py:814
 msgid "E-Mail Notification"
 msgstr "Notification e-mail"
 
-#: settings/models.py:813
+#: settings/models.py:815
 msgid "enable automatic mail notification"
 msgstr "activer la notification automatique du courrier"
 
-#: settings/models.py:819
+#: settings/models.py:821
 msgid "Notification frequency"
 msgstr "Fréquence des notifications"
 
-#: settings/models.py:820
+#: settings/models.py:822
 msgid "frequency wanted for notice transmission"
 msgstr "fréquence désirée pour la notification par email"
 
-#: settings/models.py:823
+#: settings/models.py:825
 msgid "dayli"
 msgstr "Quotidienne"
 
-#: settings/models.py:824
+#: settings/models.py:826
 msgid "weekly"
 msgstr "Hebdomadaire"
 
-#: settings/models.py:825
+#: settings/models.py:827
 msgid "fortnightly"
 msgstr "Bi-mensuelle"
 
-#: settings/models.py:826
+#: settings/models.py:828
 msgid "monthly"
 msgstr "mensuelle"
 
-#: settings/models.py:831
+#: settings/models.py:833
 msgid "Notification Leaves"
 msgstr "Reporter les congés généraux"
 
-#: settings/models.py:832
+#: settings/models.py:834
 msgid "report all leaves of current month"
 msgstr "Reporter tous les congés du mois en cours"
 
-#: settings/models.py:837
+#: settings/models.py:839
 msgid "Notification Leaves Format"
 msgstr "Format des rapports de congés"
 
-#: settings/models.py:838
+#: settings/models.py:840
 msgid "choose to report by calendar or list view for leaves"
 msgstr "Reporter les congé sous forme de liste ou de calendrier"
 
-#: settings/models.py:841
+#: settings/models.py:843
 msgid "calendar"
 msgstr "Calendrier"
 
-#: settings/models.py:842
+#: settings/models.py:844
 msgid "list"
 msgstr "list"
 
-#: settings/models.py:846
+#: settings/models.py:848
 msgid "Notification Report Employee without leaves in calendar"
 msgstr "Reporter les employés sans congé dans les vues calendrier"
 
-#: settings/models.py:847
+#: settings/models.py:849
 msgid "report all employee even without leaves in calendar views"
 msgstr ""
 "Reporter tous les employés, même sans congés, dans les vues de calendrier"
 
+#: settings/models.py:854
+#, fuzzy
+#| msgid "Notification Leaves"
+msgid "Notification Report language"
+msgstr "Reporter les congés généraux"
+
+#: settings/models.py:855
+msgid "choose the language for reports"
+msgstr "Choisissez la langue du rapport"
+
 #: settings/views.py:20 templates/labmanager/index.html:101
-#: templates/navbar.html:88 templates/settings/sidebar.html:9
+#: templates/navbar.html:88 templates/settings/settings.html:18
+#: templates/settings/sidebar.html:9
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -1186,8 +1211,9 @@ msgstr "Quotité de Contrat"
 msgid "projects quotity"
 msgstr "Quotité de Projet"
 
-#: staff/ressources.py:257 templates/email/notification_email.html:263
-#: templates/email/notification_email.html:303
+#: staff/ressources.py:257 templates/email/notification_email copy.html:267
+#: copy.html:307 templates/email/notification_email.html:265
+#: templates/email/notification_email.html:305
 #: templates/employee/employee_single.html:362 templates/team/team_base.html:67
 msgid "Team Mate"
 msgstr "Equipier"
@@ -1255,11 +1281,11 @@ msgstr "Ajout Email"
 msgid "Sign In"
 msgstr "Connexion"
 
-#: templates/account/login.html:16 templates/registration/login.html:16
+#: templates/account/login.html:18 templates/registration/login.html:16
 msgid "Connexion"
 msgstr "Connexion"
 
-#: templates/account/login.html:19 templates/account/password_change.html:18
+#: templates/account/login.html:21 templates/account/password_change.html:18
 #: templates/registration/login.html:19
 msgid "Forgot Password?"
 msgstr "Password oublié?"
@@ -1357,6 +1383,7 @@ msgstr "Mauvais Jeton"
 
 #: templates/account/password_reset_from_key.html:9
 #: templates/settings/user_settings.html:46
+#: templates/settings/user_settings.html:72
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
@@ -1381,6 +1408,7 @@ msgstr "Filtre Statut Employé"
 
 #: templates/calendar/calendar_filters.html:67
 #: templates/calendar/calendar_filters.html:96
+#: templates/calendar/calendar_filters.html:126
 msgid "All"
 msgstr "Tous"
 
@@ -1392,9 +1420,13 @@ msgstr "Filtre Equipe"
 msgid "Resource event Filter"
 msgstr "Filtre Evènement resource"
 
-#: templates/calendar/calendar_filters.html:125
+#: templates/calendar/calendar_filters.html:130
 msgid "Show Only Resource with event"
 msgstr "Afficher uniquement les ressource avec évènement"
+
+#: templates/calendar/calendar_filters.html:134
+msgid "Show Only Resource with event today"
+msgstr "Afficher uniquement les ressource avec évènement Aujourd'hui"
 
 #: templates/calendar/main_calendar.html:9
 #: templates/calendar/main_calendar_print.html:9
@@ -1458,110 +1490,118 @@ msgstr "Consommation Fond"
 msgid "Fund Loss"
 msgstr "Pertes Fonds"
 
+#: templates/email/notification_email copy.html:133
 #: templates/email/notification_email.html:129
-#, fuzzy, python-format
-#| msgid ""
-#| "Dear %(username)s,\n"
-#| "    Please find below the notification from your <a href='%(scheme)s://"
-#| "%(URLindex)s'>labsmanager</a> subscriptions.\n"
-#| "    "
+#, python-format
 msgid ""
 "Dear %(username)s,\n"
-"    Please find below the notification from your <a href='%(scheme)s://"
+"    Please find below the report from your <a href='%(scheme)s://"
 "%(base_url)s'>labsmanager</a> subscriptions.\n"
 "    "
 msgstr ""
 "Cher %(username)s,\n"
-"    Veuillez trouver ci-dessous la notification de vos abonnements à <a "
-"href='%(scheme)s://%(URLindex)s'>labsmanager</a>.\n"
+"    Veuillez trouver ci-dessous le rapport de vos abonnements à <a "
+"href='%(scheme)s://%(base_url)s'>labsmanager</a>.\n"
 "    "
 
-#: templates/email/notification_email.html:142
+#: templates/email/notification_email copy.html:146
+#: templates/email/notification_email.html:140
 msgid "Project overview"
 msgstr "Aperçu du projets"
 
-#: templates/email/notification_email.html:150
-#: templates/email/notification_email.html:208
+#: templates/email/notification_email copy.html:154 copy.html:212
+#: templates/email/notification_email.html:151
+#: templates/email/notification_email.html:209
 #: templates/fund/fund_finder.html:84 templates/fund/fund_overview_type.html:12
 #: templates/fund/fund_table.html:35
 #: templates/project/project_desc_table.html:33
 msgid "Available"
 msgstr "Disponible"
 
-#: templates/email/notification_email.html:151
-#: templates/email/notification_email.html:209
-#, fuzzy
-#| msgid "Availability Focus"
+#: templates/email/notification_email copy.html:155 copy.html:213
+#: templates/email/notification_email.html:152
+#: templates/email/notification_email.html:210
 msgid "Available in focus"
 msgstr "Disponibilité Focus"
 
-#: templates/email/notification_email.html:152
-#: templates/email/notification_email.html:210
-#, fuzzy
-#| msgid "Consumption Ratio"
+#: templates/email/notification_email copy.html:156 copy.html:214
+#: templates/email/notification_email.html:153
+#: templates/email/notification_email.html:211
 msgid "Consumption ratio"
 msgstr "Taux de Consommation"
 
-#: templates/email/notification_email.html:153
-#: templates/email/notification_email.html:211
+#: templates/email/notification_email copy.html:157 copy.html:215
+#: templates/email/notification_email.html:154
+#: templates/email/notification_email.html:212
 msgid "Consumption Advancement"
 msgstr "Avancement de la consommation"
 
-#: templates/email/notification_email.html:198
-#, fuzzy
-#| msgid "Project Fund Overview"
+#: templates/email/notification_email copy.html:202
+#: templates/email/notification_email.html:197
 msgid "Project Fund overview :"
 msgstr "Aperçu des fonds du projet"
 
+#: templates/email/notification_email copy.html:264 copy.html:304
 #: templates/email/notification_email.html:260
 #: templates/email/notification_email.html:300
 msgid "Team Leaves :"
 msgstr "Congés de l'équipe"
 
+#: templates/email/notification_email copy.html:350
 #: templates/email/notification_email.html:346
 msgid "Employee overview"
 msgstr "Aperçu Employé"
 
-#: templates/email/notification_email.html:386
-#: templates/email/notification_email.html:417
+#: templates/email/notification_email copy.html:390 copy.html:421
+#: templates/email/notification_email.html:387
+#: templates/email/notification_email.html:419
 msgid "Current Leaves"
 msgstr "Congés en cours"
 
-#: templates/email/notification_email.html:446
+#: templates/email/notification_email copy.html:450
+#: templates/email/notification_email.html:450
 msgid " Your subscription parameters :"
 msgstr "Vos paramètres de notification :"
 
-#: templates/email/notification_email.html:448
+#: templates/email/notification_email copy.html:452
+#: templates/email/notification_email.html:452
 msgid "User Name"
-msgstr "Nom d'utilisateur'"
+msgstr "Nom d'utilisateur"
 
-#: templates/email/notification_email.html:449
+#: templates/email/notification_email copy.html:453
+#: templates/email/notification_email.html:453
 msgid "Notification activated"
 msgstr "Activation des notifications"
 
-#: templates/email/notification_email.html:449
-#: templates/email/notification_email.html:450
+#: templates/email/notification_email copy.html:453 copy.html:454
+#: templates/email/notification_email.html:453
+#: templates/email/notification_email.html:454
 msgid "Yes"
 msgstr "Oui"
 
-#: templates/email/notification_email.html:449
-#: templates/email/notification_email.html:450
+#: templates/email/notification_email copy.html:453 copy.html:454
+#: templates/email/notification_email.html:453
+#: templates/email/notification_email.html:454
 msgid "No"
 msgstr "Non"
 
-#: templates/email/notification_email.html:450
+#: templates/email/notification_email copy.html:454
+#: templates/email/notification_email.html:454
 msgid "Report Leaves"
 msgstr "Rapport des Congés"
 
-#: templates/email/notification_email.html:451
+#: templates/email/notification_email copy.html:455
+#: templates/email/notification_email.html:455
 msgid "frequency"
 msgstr "fréquence"
 
-#: templates/email/notification_email.html:452
+#: templates/email/notification_email copy.html:456
+#: templates/email/notification_email.html:456
 msgid "Next report"
 msgstr "Prochain rapport"
 
-#: templates/email/notification_email.html:453
+#: templates/email/notification_email copy.html:457
+#: templates/email/notification_email.html:457
 msgid "Current Date"
 msgstr "Date courante"
 
@@ -1906,11 +1946,11 @@ msgstr "Paramètres de calendrier"
 msgid "Favorites and Subscriptions"
 msgstr "Favoris et abonnements"
 
-#: templates/settings/common_settings.html:30
+#: templates/settings/common_settings.html:31
 msgid "Send Test Mail"
 msgstr "envoyer un message test"
 
-#: templates/settings/common_settings.html:32
+#: templates/settings/common_settings.html:33
 msgid "Sending"
 msgstr "Envoi"
 
@@ -1997,6 +2037,10 @@ msgstr "Employé de l'utilisateur"
 #: templates/settings/user_settings.html:34
 msgid "None"
 msgstr "Aucun"
+
+#: templates/settings/user_settings.html:64
+msgid "Password Saved"
+msgstr "Mot de passe sauvegardé"
 
 #: templates/staff/employee_desc_table.html:11
 msgid "Employee Id"

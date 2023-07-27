@@ -3,7 +3,8 @@ from django.db.models import Q
 from datetime import datetime
 from django.core.mail import send_mail
 from labsmanager import settings
-
+import random
+import string
 
 def str2bool(text, test=True):
     """Test if a string 'looks' like a boolean value.
@@ -65,6 +66,11 @@ def send_email(subject, body, recipients, from_email=None, html_message=None):
 
 
 
+
+def randomID(size=5):
+    """ generate a random id of a size """
+    cara = string.ascii_letters + string.digits 
+    return ''.join(random.choice(cara) for _ in range(size))
 
 def get_choiceitem(choices, value):
     """find the value from a list of tuple with the value.
