@@ -19,6 +19,7 @@ from staff.filters import EmployeeFilter
 from .ressources import EmployeeResource, TeamResource
 
 from datetime import datetime
+from django.db.models import BooleanField, Case, When, Value
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
@@ -53,6 +54,22 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(pk__in=inS)
         
         return queryset
+    
+    def get_queryset(self, *arg, **kwargs):
+
+        qset = super().get_queryset( *arg, **kwargs)
+        print(f'user : {self.request.user} has perm : {self.request.user.user_permissions.all()}')
+        if self.request.user.has_perm('staff.view_employee'):
+            qset = qset.annotate(has_perm=Value(True))
+        else:    
+            qset = qset.annotate(
+                has_perm=Case(
+                    When(Q(user=self.request.user), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            )
+        return qset
     
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)

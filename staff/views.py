@@ -9,7 +9,7 @@ from django.db.models import Q
 from .models import Employee, Team, TeamMate, Employee_Status, Employee_Type, GenericInfo
 from .filters import EmployeeFilter
 from expense.models import Contract
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin,AccessMixin
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -28,9 +28,9 @@ class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     model = Employee
     crumbs = [(_("Employee"),_("employee"))]
 
-
-
-class EmployeeView(LoginRequiredMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  TemplateView):
+from django.http import HttpResponseRedirect 
+from django.urls import reverse
+class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  TemplateView):
     template_name = 'employee/employee_single.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Employee
@@ -39,7 +39,36 @@ class EmployeeView(LoginRequiredMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  T
     crumbListQuerySet=Employee.objects.filter(is_active=True)
     names_val=['first_name', 'last_name']
     # crumbs = [("Employee","./",),("employees",reverse("employee"))]
+    
+    
+    def test_func(self, *args, **kwargs):
+        print("[EmployeeView] - test_func")
+        # for v in args:
+        #     print(f'  - arg : {v}')
+        # for k,v in kwargs.items():
+        #     print(f'  - {k} : {v}')
+        print(self.request.user)
+        return True
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        print("[EmployeeView] - dispatch")
+        
+        if request.user.is_staff:
+            return super().dispatch(request, *args, **kwargs)
+        
+        userEmp = Employee.objects.get(pk=kwargs['pk']).user
+        if request.user == userEmp:
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse('employee_index'))
 
+        # Checks pass, let http method handlers process the request
+        return super().dispatch(request, *args, **kwargs)
+    
+        
+        
     @cached_property
     def crumbs(self):
         return [(_("Employee"),"./",) ,

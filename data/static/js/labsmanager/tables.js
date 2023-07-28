@@ -432,6 +432,7 @@ function moneyFocusFormatter(value, row, index, field){
 }
 
 function employeeFormatter(value, row, index, field){
+
     if(!isIterable(value)){
         value=[{"employee":value}];
     }

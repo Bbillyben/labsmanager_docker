@@ -493,6 +493,7 @@ class EmployeeSerialize(serializers.ModelSerializer):
     contracts=ContractSerializer(many=True, read_only=True)
     projects=ParticipantSerializer(many=True, read_only=True)
     info=EmployeeInfoSerialize(many=True, read_only=True)
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Employee
         fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','email',
@@ -500,6 +501,7 @@ class EmployeeSerialize(serializers.ModelSerializer):
                   'contracts', 'contracts_quotity',
                   'projects','projects_quotity',
                   'info',
+                  'has_perm',
                   ]
         
 class TeamMateSerializer_min(serializers.ModelSerializer):

@@ -32,8 +32,12 @@ function simpleStyle(value, row, index, field){
 }
 
 function userFormatter(value, row, index, field){
-    //console.log('userFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
-    response =  '<span class="icon-right-cell"><a href="/staff/employee/'+row.pk+'" title="/staff/employee/'+row.ipkd+'/"> '+row.first_name+" "+row.last_name+'</a>';
+    if(row['has_perm'] == true ){
+      response =  '<span class="icon-right-cell"><a href="/staff/employee/'+row.pk+'" title="/staff/employee/'+row.ipkd+'/"> '+row.first_name+" "+row.last_name+'</a></span>';
+    }else{
+      response =  '<span class="icon-right-cell">'+row.first_name+" "+row.last_name+'</span>';
+    }
+    
     response += '<span class="icon-left-cell">';
   if(row.is_team_leader){
     response+='<i class="fas fa-crown icon-spaced" style="color: coral" title="team leader"></i>'
