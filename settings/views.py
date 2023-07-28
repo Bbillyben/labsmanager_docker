@@ -301,7 +301,7 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
             'columns':[
                 #{'name':_('User'),'item':'user.username',},
                 {'name':_('User'),'item':'username',},
-                {'name':_('Employee'),'item':'employee.user_name',},
+                {'name':_('Employee'),'item':'employee','formatter':'employeeFormatter'},
             ], 
             'action':{
             },
@@ -310,6 +310,8 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
         }
         if request.user.is_staff :
             context["action"]["update"] = 'update_user_employee'
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:auth_user_change'
         
         return render(request=request,template_name=self.template_name,context=context)
     

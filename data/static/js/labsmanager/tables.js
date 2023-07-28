@@ -441,6 +441,8 @@ function employeeFormatter(value, row, index, field){
             if("employee" in item && item.employee!=null){
                 tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
                 response+= (response.length > 1 ? ', ' : '') + tm;
+            }else{
+                response +="-"
             }
             
       }
