@@ -13,8 +13,11 @@ urlpatterns = [
     path('setting_genericinfoproject_type', views.SettingList_GenericInfoProject.as_view(), name='setting_genericinfoproject_type'),
     
     
+    
     path('subscriptions_setting', views.Subscription_List.as_view(), name='subscriptions_setting'),
     path('favorites_setting', views.Favorite_List.as_view(), name='favorite_setting'),
+    
+    path('employee_user_setting', views.EmployeeUser_list.as_view(), name='employee_user_setting'),
     
 ]
 

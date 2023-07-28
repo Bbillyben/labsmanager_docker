@@ -57,5 +57,17 @@
                {% include 'staff/active.html' with user=employee %}
             </td>
         </tr>
+        {% if user.is_staff %}
+        <tr>
+            <td><i class="fas fa-user"></i></td>
+            <td  class="desc_title">{% trans 'User' %}</td>
+            <td id="emp_user">
+                {{employee.user}}
+                <span style="float:right">
+                    <button id="emp_user_edit" class='icon edit btn btn-success' data-form-url='{% url "update_employee_user" pk=employee.pk %}'  ><i type = 'button' class='fas fa-edit'></i></button>
+                </span>
+            </td>
+        </tr>
+        {%endif%}
     </tbody>
 </table>

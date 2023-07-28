@@ -1,11 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
-from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
+from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView, BSModalFormView
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm
+from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm, EmployeeUserModelForm, UserEmployeeModelForm
 
 
 # Update
@@ -85,6 +85,63 @@ class EmployeeTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
     
+
+class EmployeeUserUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Employee  
+    template_name = 'form_validate_base.html'
+    form_class = EmployeeUserModelForm
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+
+
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.contrib.auth import get_user_model
+from staff.models import Employee
+class UserEmployeeUpdateView(LoginRequiredMixin, BSModalFormView):
+    template_name = 'form_validate_base.html'
+    form_class = UserEmployeeModelForm
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"    
+    
+    
+    def post(self, request, *args, **kwargs):
+        print("[UserEmployeeUpdateView] - post")
+        for a in args:
+            print(f"  - arg :{a}")
+        for k, v in kwargs.items():
+            print(f"  - {k} :{v}")
+        print(f"  - request post :{request.POST}")  
+        
+        if not 'pk' in kwargs:
+            raise ObjectDoesNotExist("User Pk not in post request")
+        try:
+            user = get_user_model().objects.get(pk=kwargs['pk'])
+        except:
+             raise ObjectDoesNotExist(f"User for pk :{kwargs['pk']} not found")
+        if not 'employee' in request.POST:
+            raise ObjectDoesNotExist(f"No employee in POST request : {request.POST}")
+        
+        ## erase previous user's employee
+        try:
+            emp = Employee.objects.get(user = user)
+            emp.user= None
+            emp.save()
+        except:
+            pass
+
+        if request.POST['employee'] != '':
+            try:
+                emp = Employee.objects.get(pk=request.POST['employee'])
+                emp.user = user
+                emp.save()
+            except:
+                raise ObjectDoesNotExist(f"Employee for pk :{request.POST['employee']} not found")
+            
+        
+        
+        return HttpResponse("Item Saved")
     
 class GenericInfoTypeCreateView(LoginRequiredMixin, BSModalCreateView):
     template_name = 'form_base.html'

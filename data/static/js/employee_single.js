@@ -86,6 +86,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
         modal_title:"Export PDF",
     })
 
+
     update_employee();
     update_employee_info();
     initEmployeeCalendar();
@@ -182,6 +183,13 @@ function update_activ_btn(){
                  $("body").html(err.responseText)
                 //console.log(JSON.stringify(err));
             }
+        })
+    });
+    $("#employee_single_table .edit").each(function () {
+        $(this).labModalForm({
+            formURL: $(this).data("form-url"),
+            addModalFormFunction: update_employee,
+            modal_title:"Update",
         })
     });
 }

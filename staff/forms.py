@@ -4,11 +4,11 @@ from django import forms
 from .models import Employee, TeamMate, Employee_Status, Team,GenericInfoType, GenericInfo, Employee_Type
 from django.contrib.auth.models import User
 from django.db.models import Q
-from bootstrap_modal_forms.forms import BSModalModelForm
+from bootstrap_modal_forms.forms import BSModalModelForm, BSModalForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from labsmanager.forms import DateInput
-
+from django.contrib.auth import get_user_model
 
 class TeamMateForm(forms.ModelForm):
     model = TeamMate
@@ -48,6 +48,22 @@ class EmployeeModelForm(BSModalModelForm):
             raise ValidationError(_('Exit Date (%(end)s) should be later than entry date (%(start)s) ') % ({'end':self.cleaned_data['exit_date'], 'start': self.cleaned_data['entry_date']}))
         return self.cleaned_data['exit_date']
 
+class EmployeeUserModelForm(BSModalModelForm):
+    class Meta:
+        model = Employee
+        fields = ['user']
+        
+    def __init__(self, *args, **kwargs):
+        super(EmployeeUserModelForm, self).__init__(*args, **kwargs)
+        userModel = get_user_model()
+        inEmp = Employee.objects.exclude(user=None).values('user')
+        self.fields['user'].queryset = userModel.objects.exclude(pk__in=inEmp)
+
+class UserEmployeeModelForm(BSModalForm):
+    employee= forms.ModelChoiceField (queryset=Employee.objects.filter(is_active = True, user=None),  required=False, blank=True)
+    class Meta:
+        fields = ['employee']
+    
 class EmployeeStatusForm(BSModalModelForm):
     class Meta:
         model = Employee_Status

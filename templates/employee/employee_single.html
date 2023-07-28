@@ -109,6 +109,7 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
                                                 {% trans 'Active' %}
                                             </th>
+                                            
                                             {% if perms.staff.change_employee_status or perms.staff.delete_employee_status %}
                                             <th data-sortable="false" class="th-inner" data-field="admin_action" 
                                             data-can-change="{{ perms.staff.change_employee_status }}"
