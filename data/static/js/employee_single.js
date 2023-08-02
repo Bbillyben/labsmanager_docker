@@ -2,13 +2,8 @@
 employee_id= 0;
 user_id= 0;
 
-function initEmployeeSingleView(user_idA, employee_idA){
-    employee_id=employee_idA;
-    user_id = user_idA;
-    
-
-    $('#employee_team_table').bootstrapTable();
-
+// initi function called on panel loading
+function initEmployeeProjectTable(){
     var options_part={
         callback:update_employee,
         url:$('#employee_project_table').data("url"),
@@ -18,16 +13,9 @@ function initEmployeeSingleView(user_idA, employee_idA){
         showColumns:false,
     }
     $('#employee_project_table').labTable(options_part);
-    
-    var options_status={
-        url:$('#employee_status_table').data("url"),
-        name:'status',
-        disablePagination:true,
-        search:false,
-        showColumns:false,
-    }
-    $('#employee_status_table').labTable(options_status);
+}
 
+function initEmployeeLeaveTable(){
     var filters = loadTableFilters('leave');
     var filterOption={
         download:true,
@@ -39,7 +27,23 @@ function initEmployeeSingleView(user_idA, employee_idA){
     }
     setupFilterList('leave', $('#employee_leave_table'), '#filter-list-leave',filterOption);
     $('#employee_leave_table').labTable(options);
+    initEmployeeCalendar();
+}
 
+function initEmployeeSingleView(user_idA, employee_idA){
+    employee_id=employee_idA;
+    user_id = user_idA;
+
+    var options_status={
+        url:$('#employee_status_table').data("url"),
+        name:'status',
+        disablePagination:true,
+        search:false,
+        showColumns:false,
+    }
+    $('#employee_status_table').labTable(options_status);
+
+    
     // MOdal for employee edition
     $('#edit-employee').labModalForm({
         formURL: '/staff/employee/'+employee_id+'/udpate',
@@ -89,7 +93,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
 
     update_employee();
     update_employee_info();
-    initEmployeeCalendar();
+    
     //updateLeaveBtnHandler();
 }
 

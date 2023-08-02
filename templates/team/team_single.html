@@ -208,7 +208,14 @@ $(document).ready(function () {
     team_id = JSON.parse(document.getElementById('team_id').textContent);
 
     initTeamSingleView(user_id, team_id, perms, "{% url 'api:leave-search-calendar' %}");
-    initializeBudgetTable()
+    
+
+
+    onPanelLoad("team-leave", function(){initTeamCalendar();}) 
+    onPanelLoad("team-budget", function(){initializeBudgetTable();}) 
+    onPanelLoad("team-project", function(){initTeamProjectTable();}) 
+
+
     enableSidebar('team');
 })
 </script>

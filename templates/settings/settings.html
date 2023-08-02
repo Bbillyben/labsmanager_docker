@@ -65,22 +65,32 @@
 <script type='text/javascript' src="{% static 'js/settings/testmail.js' %}"></script>
 
 <script>
-    function loadSettingsListCards(){
-        $('.loadingCard').each(function(){
-            url=$(this).data('url');
-            if(url==undefined)return;
-            loadInTemplate(elt=$(this),url=url);
-            
-        });
-    }
 
     $(document).ready(function () {
         user_id = JSON.parse(document.getElementById('user_id').textContent);
 
-        enableSidebar('settings');
+        
         initSettingsPage();
-        loadSettingsListCards();
         initTestMailBtn('#send_test_mail');
+
+
+        onPanelLoad("user", function(){loadCards('user');});
+        onPanelLoad("common", function(){loadCards('common');});
+        onPanelLoad("dashboard", function(){loadCards('dashboard');});
+        onPanelLoad("stale_setting", function(){loadCards('stale_setting');});
+        onPanelLoad("fund_list", function(){loadCards('fund_list');});
+        onPanelLoad("contract_list", function(){loadCards('contract_list');});
+        onPanelLoad("leave_list", function(){loadCards('leave_list');});
+        onPanelLoad("project_list", function(){loadCards('project_list');});
+        onPanelLoad("staff_list", function(){loadCards('staff_list');});
+        onPanelLoad("mail_setting", function(){loadCards('mail_setting');});
+        onPanelLoad("auditlog_setting", function(){loadCards('auditlog_setting');});
+        onPanelLoad("calendar_setting", function(){loadCards('calendar_setting');});
+        onPanelLoad("users_admin", function(){loadCards('users_admin');});
+
+
+
+        enableSidebar('settings');
     })
 </script>
 {% endblock %}

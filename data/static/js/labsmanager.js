@@ -84,6 +84,21 @@ function labLoad(name, defaultValue) {
     }
 }
 
+// -------------------- function to load a card with class loadingCard and data-url pointing to the card view url -----//
+
+function loadCards(panel_id=""){
+    // console.log("start loadCards / panel :"+panel_id);
+    var selector = '.loadingCard';
+    if(panel_id){
+        selector = '#panel-'+panel_id+' '+selector;
+    }
+    $(selector).each(function(){
+        url=$(this).data('url');
+        if(url==undefined)return;
+        loadInTemplate(elt=$(this),url=url);
+    });
+}
+
   // ------------------  ajax load direct --------------  //
 
   function loadInTemplate(elt, url, data={}, callback=null,type="GET", replace=false){
