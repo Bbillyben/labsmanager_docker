@@ -120,3 +120,8 @@ def is_in_leavelist(d, d_list):
         if d>=ds.start_date and d<=ds.end_date:
             return True
     return False
+
+# return a  range for a given value, for loop with increment
+@register.filter
+def get_range(value):
+    return range(value)

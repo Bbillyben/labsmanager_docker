@@ -91,6 +91,7 @@ function getCalenderParams(){
    
     filters={
         type:leaveList,
+        type_exact:true, // to not get descendant when selecting type
         emp_status:emp_status,
         team:team,
         showResEventRadio:radioResEvent,
