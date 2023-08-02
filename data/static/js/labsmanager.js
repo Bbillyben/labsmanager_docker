@@ -24,6 +24,17 @@ function getCookie(name) {
 }
 
 /**
+ * get the Initials of words from sentence
+ * @param {*} words : the sentence you wish to get initial
+ * @returns array of initial in uppercase
+ */
+function getInitials(words) {
+    return words
+    .split(' ')
+    .map(word => word[0].toUpperCase());
+  }
+
+/**
  *  Test if an html element is empty
  * @param {*} el : the elemetn to test
  * @returns true if empty or false if filled

@@ -204,21 +204,21 @@
     function eventContentRender(event, createElement){
         // console.log('[eventContentRender] called')
         // console.log(JSON.stringify(event))
-
+        // console.log(event.view.type)
         htmlEvt = ""
         
         if (event.event.display == "background" )return  { html: "" }
 
         props = event.event.extendedProps
-        if(event.view.type.includes("resourceTimeline")){
-            htmlEvt += props.type;
+        if(event.view.type.includes("resource")){
+            htmlEvt += props.type + ' <span style="font-size:0.6em"> - '+ getInitials(props.employee).join('')+'</span>';
         }else if(event.view.type.includes("Grid")){
-            htmlEvt += props.employee;
+            htmlEvt += props.employee + ' <small>-'+ props.type+'</small>';
         }else{
             htmlEvt += props.employee + " - " + props.type;
         }
         if (props.start_period_di == "Middle" ||  props.end_period_di== "Middle"){
-            console.log(event)
+            // console.log(event)
             htmlEvt = '<span style="width:50%;">'+htmlEvt+'</span>'
         }
         return  { html: htmlEvt }
@@ -245,7 +245,7 @@
                 headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',
-                    right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek, timelineCustom'
+                    right: 'resourceTimelineMonth,resourceBiMensualCustom,resourceYearCustom,dayGridMonth,dayGridWeek,listWeek,timelineYearCustom'
                 },
             };
 
@@ -368,9 +368,10 @@
                 }
             }
 
-            // add year viewx
+            // add customs views
+            /* TODO : only add necessary views */
             globals.views= {
-                timelineCustom: {
+                timelineYearCustom: {
                     type: 'timeline',
                     buttonText: 'Year',
                     dateIncrement: { years: 1 },
@@ -395,7 +396,63 @@
                             end: end.toISOString()
                         };
                     }
-                }
+                }, 
+                resourceYearCustom: {
+                    type: 'resourceTimeline',
+                    buttonText: 'Year',
+                    dateIncrement: { years: 1 },
+                    slotDuration: { months: 1 },
+                    slotLabelInterval: {
+                        "month": 1
+                        },
+                        slotLabelFormat: [{
+                            month: 'long',
+                            week: "short",
+                        }, // top level of text
+                        ],
+                    visibleRange: function (currentDate) {
+                        const start = new Date(currentDate);
+                        start.setMonth(0);
+                        start.setDate(1);
+                        const end = new Date(currentDate);
+                        end.setMonth(11);
+                        end.setDate(31);
+                        return {
+                            start: start.toISOString(),
+                            end: end.toISOString()
+                        };
+                    }
+                }, 
+                resourceBiMensualCustom: {
+                    type: 'resourceTimeline',
+                    buttonText: 'Bi Mensual',
+                    dateIncrement: { months: 1 },
+                    slotDuration: { days: 1 },
+                    slotLabelInterval: {
+                        "weeks": 1
+                    },
+                    slotLabelFormat: [{
+                        month: 'long',
+                        week: "short",
+                    }, // top level of text
+                    {
+                        week: 'numeric',
+                
+                    }, // lower level of text
+                    ],
+                    visibleRange: function (currentDate) {
+                        const start = new Date(currentDate);
+                        start.setDate(1);
+                        const end = new Date(currentDate);
+                        end.setMonth(end.getMonth() + 2); // Ajoute 2 mois à la date de fin
+                        end.setDate(-1);
+                        return {
+                            start: start.toISOString(),
+                            end: end.toISOString()
+                        };
+                    }
+                }, 
+
             }
 
             eltCal=document.getElementById(this.attr('id'))
