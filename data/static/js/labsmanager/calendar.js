@@ -201,6 +201,7 @@
     function callEventCallback(settings){
         if(undefined != settings.eventCallback)settings.eventCallback();
     }
+    function getDayHtml(start, end){}
     function eventContentRender(event, createElement){
         // console.log('[eventContentRender] called')
         // console.log(JSON.stringify(event))
@@ -210,13 +211,28 @@
         if (event.event.display == "background" )return  { html: "" }
 
         props = event.event.extendedProps
-        if(event.view.type.includes("resource")){
+        if(event.view.type.toUpperCase().includes("RESOURCE")){
             htmlEvt += props.type + ' <span style="font-size:0.6em"> - '+ getInitials(props.employee).join('')+'</span>';
-        }else if(event.view.type.includes("Grid")){
+        }else if(event.view.type.toUpperCase().includes("GRID")){
             htmlEvt += props.employee + ' <small>-'+ props.type+'</small>';
         }else{
             htmlEvt += props.employee + " - " + props.type;
         }
+
+        if(event.view.type.toUpperCase().includes("YEAR")){
+            start=event.event.start
+            end = event.event.end         
+            if (end.getUTCHours() != 12 )end.setDate(end.getDate()-1)
+            const day1 = start.getDate();
+            const month1 = start.getMonth()+1;
+            const day2 = end.getDate();
+            const month2 = end.getMonth()+1;
+
+            dateField=day1 + (month1 != month2 ? "/" + month1:"") + ( day1 != day2 || month1 != month2 ? ' → ' + day2 + (month1 != month2 ? "/" + month2:""):"")
+            htmlEvt = ' <span style="font-size:0.7em;font-weight:italic;">'+ dateField +' ⦿ </span>'+" "+htmlEvt;
+        }
+
+
         if (props.start_period_di == "Middle" ||  props.end_period_di== "Middle"){
             // console.log(event)
             htmlEvt = '<span style="width:50%;">'+htmlEvt+'</span>'
