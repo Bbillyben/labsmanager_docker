@@ -245,7 +245,7 @@
                 headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',
-                    right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek'
+                    right: 'resourceTimelineMonth,dayGridMonth,dayGridWeek,listWeek, timelineCustom'
                 },
             };
 
@@ -365,6 +365,36 @@
         
                         }
                     },
+                }
+            }
+
+            // add year viewx
+            globals.views= {
+                timelineCustom: {
+                    type: 'timeline',
+                    buttonText: 'Year',
+                    dateIncrement: { years: 1 },
+                    slotDuration: { months: 1 },
+                    slotLabelInterval: {
+                        "month": 1
+                        },
+                        slotLabelFormat: [{
+                            month: 'long',
+                            week: "short",
+                        }, // top level of text
+                        ],
+                    visibleRange: function (currentDate) {
+                        const start = new Date(currentDate);
+                        start.setMonth(0);
+                        start.setDate(1);
+                        const end = new Date(currentDate);
+                        end.setMonth(11);
+                        end.setDate(31);
+                        return {
+                            start: start.toISOString(),
+                            end: end.toISOString()
+                        };
+                    }
                 }
             }
 
