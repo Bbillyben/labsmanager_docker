@@ -210,14 +210,6 @@
         
         if (event.event.display == "background" )return  { html: "" }
 
-        props = event.event.extendedProps
-        if(event.view.type.toUpperCase().includes("RESOURCE")){
-            htmlEvt += props.type + ' <span style="font-size:0.6em"> - '+ getInitials(props.employee).join('')+'</span>';
-        }else if(event.view.type.toUpperCase().includes("GRID")){
-            htmlEvt += props.employee + ' <small>-'+ props.type+'</small>';
-        }else{
-            htmlEvt += props.employee + " - " + props.type;
-        }
 
         if(event.view.type.toUpperCase().includes("YEAR")){
             start=event.event.start
@@ -231,6 +223,20 @@
             dateField=day1 + (month1 != month2 ? "/" + month1:"") + ( day1 != day2 || month1 != month2 ? ' → ' + day2 + (month1 != month2 ? "/" + month2:""):"")
             htmlEvt = ' <span style="font-size:0.7em;font-weight:italic;">'+ dateField +' ⦿ </span>'+" "+htmlEvt;
         }
+
+
+
+        props = event.event.extendedProps
+        if(event.view.type.toUpperCase().includes("RESOURCE")){
+            htmlEvt += "<span class='resource-name'>"+props.type+"</span>" + '<span class="initial-circle"><span class="initial-circle-inner">'+ getInitials(props.employee).join('')+'</span></span>';
+            htmlEvt = "<div class='ressource-cont'>"+htmlEvt+"</div>"
+        }else if(event.view.type.toUpperCase().includes("GRID")){
+            htmlEvt += props.employee + ' <small>-'+ props.type+'</small>';
+        }else{
+            htmlEvt += props.employee + " - " + props.type;
+        }
+
+        
 
 
         if (props.start_period_di == "Middle" ||  props.end_period_di== "Middle"){
