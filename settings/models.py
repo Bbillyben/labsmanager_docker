@@ -856,6 +856,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': 'en',
             'choices':LANGUAGES,
         },
+        'STICKY_NAVBAR': {
+            'name': _('Fixed Navbar'),
+            'description': _('navbar position fixed to the top of the screen'),
+            'default': False,
+            'validator': bool,
+        },
         
         
     }

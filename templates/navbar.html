@@ -1,8 +1,11 @@
 {% load static %}
 {% load i18n %}
 {% load view_breadcrumbs %}
+{% load customs_tags %}
 
 {% get_current_language as LANGUAGE_CODE %}
+{% settings_value 'STICKY_NAVBAR' user=request.user as sticky %}
+
 <nav class="navbar {% if sticky %}fixed-top{% endif %} navbar-expand-lg navbar-light">
     <div class="container-fluid">
       <div class="navbar-header clearfix content-heading">
@@ -111,6 +114,9 @@
 
     </div>
   </nav>
+{% if sticky %}
+<div class='navbar-spacer'></div>
+{% endif %}
   
   {% include "spacer.html" %}
   

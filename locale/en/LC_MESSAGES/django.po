@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-31 16:48+0200\n"
+"POT-Creation-Date: 2023-08-29 15:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: common/models.py:10 common/models.py:20 settings/models.py:882
-#: settings/models.py:883 settings/views.py:303 staff/models.py:30
+#: common/models.py:10 common/models.py:20 settings/models.py:888
+#: settings/models.py:889 settings/views.py:303 staff/models.py:30
 #: staff/ressources.py:196 templates/reports/html/employee_pdf_report.html:492
 #: templates/reports/html/project_pdf_report.html:627
 #: templates/staff/employee_desc_table.html:63
@@ -40,7 +40,7 @@ msgid "Your password has been changed"
 msgstr ""
 
 #: dashboard/views.py:29 templates/dashboard/global_dashboard.html:22
-#: templates/labmanager/index.html:93 templates/navbar.html:77
+#: templates/labmanager/index.html:93 templates/navbar.html:80
 #: templates/project/project_sidebar.html:24
 #: templates/settings/dashboard_settings.html:7
 msgid "Dashboard"
@@ -133,7 +133,7 @@ msgstr ""
 #: templates/employee/employee_single.html:25
 #: templates/expense/contract_table.html:30 templates/fund/budget_table.html:43
 #: templates/fund/contrib_table.html:41 templates/labmanager/index.html:44
-#: templates/navbar.html:21 templates/project/project_single.html:144
+#: templates/navbar.html:24 templates/project/project_single.html:144
 #: templates/project/project_single.html:429
 #: templates/reports/html/project_pdf_report.html:269
 #: templates/reports/html/project_pdf_report.html:358
@@ -160,7 +160,7 @@ msgstr ""
 #: templates/reports/html/employee_pdf_report.html:274
 #: templates/reports/html/employee_pdf_report.html:327
 #: templates/reports/html/employee_pdf_report.html:396
-#: templates/settings/sidebar.html:39 templates/team/team_single.html:162
+#: templates/settings/sidebar.html:43 templates/team/team_single.html:162
 msgid "Project"
 msgstr ""
 
@@ -393,7 +393,7 @@ msgstr ""
 #: expense/models.py:115 templates/dashboard/global_dashboard.html:88
 #: templates/employee/employee_sidebar.html:4
 #: templates/labmanager/index.html:58 templates/project/project_single.html:503
-#: templates/settings/sidebar.html:33
+#: templates/settings/sidebar.html:37
 msgid "Contract"
 msgstr ""
 
@@ -435,7 +435,7 @@ msgstr ""
 #: expense/views.py:18 staff/ressources.py:126
 #: templates/dashboard/dashboard_sidebar.html:10
 #: templates/employee/employee_base.html:77
-#: templates/employee/employee_single.html:145 templates/navbar.html:37
+#: templates/employee/employee_single.html:145 templates/navbar.html:40
 #: templates/project/project_sidebar.html:15
 #: templates/project/project_single.html:492
 #: templates/reports/html/employee_pdf_report.html:270
@@ -464,7 +464,7 @@ msgid "Manager"
 msgstr ""
 
 #: fund/admin.py:150 staff/ressources.py:138
-#: templates/employee/employee_base.html:83 templates/navbar.html:46
+#: templates/employee/employee_base.html:83 templates/navbar.html:49
 #: templates/reports/html/employee_pdf_report.html:323
 #: templates/team/team_sidebar.html:8
 msgid "Projects"
@@ -517,7 +517,7 @@ msgstr ""
 #: templates/reports/html/employee_pdf_report.html:400
 #: templates/reports/html/project_pdf_report.html:353
 #: templates/reports/html/project_pdf_report.html:404
-#: templates/settings/sidebar.html:30
+#: templates/settings/sidebar.html:34
 msgid "Fund"
 msgstr ""
 
@@ -920,7 +920,7 @@ msgstr ""
 msgid "Report template is enabled"
 msgstr ""
 
-#: settings/models.py:344 settings/models.py:875
+#: settings/models.py:344 settings/models.py:881
 msgid "Settings key (must be unique - case insensitive)"
 msgstr ""
 
@@ -1118,8 +1118,16 @@ msgstr ""
 msgid "choose the language for reports"
 msgstr ""
 
+#: settings/models.py:860
+msgid "Fixed Navbar"
+msgstr ""
+
+#: settings/models.py:861
+msgid "navbar position fixed to the top of the screen"
+msgstr ""
+
 #: settings/views.py:20 templates/labmanager/index.html:101
-#: templates/navbar.html:88 templates/settings/settings.html:18
+#: templates/navbar.html:91 templates/settings/settings.html:18
 #: templates/settings/sidebar.html:9
 msgid "Settings"
 msgstr ""
@@ -1286,7 +1294,7 @@ msgid "Team Mate"
 msgstr ""
 
 #: staff/views.py:219 templates/employee/employee_single.html:339
-#: templates/navbar.html:29 templates/reports/html/employee_pdf_report.html:365
+#: templates/navbar.html:32 templates/reports/html/employee_pdf_report.html:365
 msgid "Teams"
 msgstr ""
 
@@ -1435,7 +1443,7 @@ msgstr ""
 
 #: templates/account/password_reset_from_key.html:9
 #: templates/settings/user_settings.html:46
-#: templates/settings/user_settings.html:72
+#: templates/settings/user_settings.html:73
 msgid "Change Password"
 msgstr ""
 
@@ -1484,7 +1492,7 @@ msgstr ""
 
 #: templates/calendar/main_calendar.html:25
 #: templates/calendar/main_calendar.html:45 templates/labmanager/index.html:86
-#: templates/navbar.html:71
+#: templates/navbar.html:74
 msgid "Calendar"
 msgstr ""
 
@@ -1757,7 +1765,7 @@ msgstr ""
 #: templates/employee/employee_single.html:391
 #: templates/project/project_sidebar.html:21
 #: templates/reports/html/employee_pdf_report.html:457
-#: templates/settings/sidebar.html:36
+#: templates/settings/sidebar.html:40
 msgid "Leaves"
 msgstr ""
 
@@ -1829,23 +1837,23 @@ msgstr ""
 msgid "Welcome"
 msgstr ""
 
-#: templates/labmanager/index.html:30 templates/navbar.html:97
+#: templates/labmanager/index.html:30 templates/navbar.html:100
 msgid "Logout"
 msgstr ""
 
-#: templates/labmanager/index.html:108 templates/navbar.html:90
+#: templates/labmanager/index.html:108 templates/navbar.html:93
 msgid "Admin"
 msgstr ""
 
-#: templates/navbar.html:54
+#: templates/navbar.html:57
 msgid "Funds Finder"
 msgstr ""
 
-#: templates/navbar.html:94
+#: templates/navbar.html:97
 msgid "My Employee"
 msgstr ""
 
-#: templates/navbar.html:99
+#: templates/navbar.html:102
 msgid "Login"
 msgstr ""
 
@@ -2050,7 +2058,7 @@ msgid "Amount "
 msgstr ""
 
 #: templates/settings/auditlog_settings.html:7
-#: templates/settings/sidebar.html:55
+#: templates/settings/sidebar.html:59
 msgid "Audit Log"
 msgstr ""
 
@@ -2058,7 +2066,7 @@ msgstr ""
 msgid "Calendar Settings"
 msgstr ""
 
-#: templates/settings/common_settings.html:9 templates/settings/sidebar.html:15
+#: templates/settings/common_settings.html:9 templates/settings/sidebar.html:19
 msgid "Favorites and Subscriptions"
 msgstr ""
 
@@ -2072,6 +2080,11 @@ msgstr ""
 
 #: templates/settings/common_settings.html:34
 msgid "Sending"
+msgstr ""
+
+#: templates/settings/interface_setting.html:10
+#: templates/settings/sidebar.html:16
+msgid "Interface Settings"
 msgstr ""
 
 #: templates/settings/list_setting_panel_contract.html:8
@@ -2114,35 +2127,35 @@ msgstr ""
 msgid "User Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:18
+#: templates/settings/sidebar.html:22
 msgid "Dashboard Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:21
+#: templates/settings/sidebar.html:25
 msgid "Stale Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:26
+#: templates/settings/sidebar.html:30
 msgid "LabsManager Lists"
 msgstr ""
 
-#: templates/settings/sidebar.html:42
+#: templates/settings/sidebar.html:46
 msgid "Staff"
 msgstr ""
 
-#: templates/settings/sidebar.html:49
+#: templates/settings/sidebar.html:53
 msgid "LabsManager Settings"
 msgstr ""
 
-#: templates/settings/sidebar.html:52
+#: templates/settings/sidebar.html:56
 msgid "Mails"
 msgstr ""
 
-#: templates/settings/sidebar.html:58
+#: templates/settings/sidebar.html:62
 msgid "Calendar View"
 msgstr ""
 
-#: templates/settings/sidebar.html:61
+#: templates/settings/sidebar.html:65
 msgid "Users Management"
 msgstr ""
 
@@ -2162,7 +2175,7 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: templates/settings/user_settings.html:64
+#: templates/settings/user_settings.html:65
 msgid "Password Saved"
 msgstr ""
 
