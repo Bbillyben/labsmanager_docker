@@ -390,6 +390,11 @@
                 }
             }
 
+            // add pref save
+            globals.viewClassNames =function(arg){
+                localStorage.setItem(`labsmanager-calendar-view`, arg.view.type);
+            }
+
             // add customs views
             /* TODO : only add necessary views */
             globals.views= {
