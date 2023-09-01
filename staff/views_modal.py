@@ -107,12 +107,6 @@ class UserEmployeeUpdateView(LoginRequiredMixin, BSModalFormView):
     
     
     def post(self, request, *args, **kwargs):
-        print("[UserEmployeeUpdateView] - post")
-        for a in args:
-            print(f"  - arg :{a}")
-        for k, v in kwargs.items():
-            print(f"  - {k} :{v}")
-        print(f"  - request post :{request.POST}")  
         
         if not 'pk' in kwargs:
             raise ObjectDoesNotExist("User Pk not in post request")
