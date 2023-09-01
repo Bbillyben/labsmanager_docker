@@ -24,6 +24,17 @@ function getCookie(name) {
 }
 
 /**
+ * get the Initials of words from sentence
+ * @param {*} words : the sentence you wish to get initial
+ * @returns array of initial in uppercase
+ */
+function getInitials(words) {
+    return words
+    .split(' ')
+    .map(word => word[0].toUpperCase());
+  }
+
+/**
  *  Test if an html element is empty
  * @param {*} el : the elemetn to test
  * @returns true if empty or false if filled
@@ -82,6 +93,21 @@ function labLoad(name, defaultValue) {
     } else {
         return value;
     }
+}
+
+// -------------------- function to load a card with class loadingCard and data-url pointing to the card view url -----//
+
+function loadCards(panel_id=""){
+    // console.log("start loadCards / panel :"+panel_id);
+    var selector = '.loadingCard';
+    if(panel_id){
+        selector = '#panel-'+panel_id+' '+selector;
+    }
+    $(selector).each(function(){
+        url=$(this).data('url');
+        if(url==undefined)return;
+        loadInTemplate(elt=$(this),url=url);
+    });
 }
 
   // ------------------  ajax load direct --------------  //

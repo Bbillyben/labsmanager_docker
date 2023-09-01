@@ -287,3 +287,31 @@ class Favorite_List(LoginRequiredMixin, TemplateView):
             context["action"]["admin"] = 'admin:common_favorite_change'
         
         return render(request=request,template_name=self.template_name,context=context)
+    
+from django.contrib.auth.models import User    
+class EmployeeUser_list(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = User
+    
+    def get(self,request):
+   
+        context={
+            'url':reverse_lazy("api:settinglist-employeeuser"),
+            'title':_('Users'),
+            'columns':[
+                #{'name':_('User'),'item':'user.username',},
+                {'name':_('User'),'item':'username',},
+                {'name':_('Employee'),'item':'employee','formatter':'employeeFormatter'},
+            ], 
+            'action':{
+            },
+            'options':{
+            },         
+        }
+        if request.user.is_staff :
+            context["action"]["update"] = 'update_user_employee'
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:auth_user_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+    

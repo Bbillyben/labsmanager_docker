@@ -55,6 +55,8 @@ def serve_protected_media(request, path):
         raise Http404
 
 #   Get type list for filtering tables across labsmanager
+from django.db.models import Count, Value, CharField
+from django.db.models.functions import Concat
 def get_filters_lists(request, *args, **kwargs):
     data={}
     data['codes']=[]
@@ -66,7 +68,7 @@ def get_filters_lists(request, *args, **kwargs):
     })
     
     # for cost type 
-    costType = Cost_Type.objects.all().values(key=F('pk'), value=F('name'))
+    costType = Cost_Type.objects.all().values(key=F('pk'), value=F('name'), num_parent=F('level'))
     data['codes'].append({
         'name':'cost_type',
         'data':costType,
@@ -94,7 +96,7 @@ def get_filters_lists(request, *args, **kwargs):
     })
     
     # for leaves
-    l_type=Leave_Type.objects.all().values(key=F('pk'), value=F('name'))
+    l_type=Leave_Type.objects.all().values(key=F('pk'), value=F('name'), num_parent=F('level'))
     
     data['codes'].append({
         'name':'leave_type',

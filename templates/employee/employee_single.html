@@ -109,6 +109,7 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
                                                 {% trans 'Active' %}
                                             </th>
+                                            
                                             {% if perms.staff.change_employee_status or perms.staff.delete_employee_status %}
                                             <th data-sortable="false" class="th-inner" data-field="admin_action" 
                                             data-can-change="{{ perms.staff.change_employee_status }}"
@@ -480,9 +481,19 @@ $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     employee_id = JSON.parse(document.getElementById('employee_id').textContent);
     initEmployeeSingleView(user_id, employee_id);
-    initializeContractsTable(tableurl="{% url 'api:employee-contracts' pk=employee.pk %}", update_employee);
-    initializeBudgetTable();
-    initializeContribTable(update_employee);
+   
+    
+    
+
+    onPanelLoad("employee-contract", function(){  initializeContractsTable(tableurl="{% url 'api:employee-contracts' pk=employee.pk %}", update_employee);}) 
+    onPanelLoad("employee-budget", function(){ initializeBudgetTable();}) 
+    onPanelLoad("contribution", function(){ initializeContribTable(update_employee);}) 
+    onPanelLoad("employee-team", function(){$('#employee_team_table').bootstrapTable();}) 
+    onPanelLoad("employee-project", function(){initEmployeeProjectTable();}) 
+    onPanelLoad("employee-leave", function(){initEmployeeLeaveTable();}) 
+
+
+
     enableSidebar('employee');
 })
 </script>

@@ -23,7 +23,7 @@ def checkuser_notification_tasks(user):
     currSch = Schedule.objects.filter(name='send_notification_'+str(user.username))
     sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
     
-    print(f' checkuser_notification_tasks / user : {user} / enabled :{sub_enab} / curr prog :{currSch}')
+    logger.debug(f' checkuser_notification_tasks / user : {user} / enabled :{sub_enab} / curr prog :{currSch}')
     if not currSch and not sub_enab:
         return
     
@@ -73,7 +73,7 @@ def check_notifications_tasks():
 
 
 def send_notification(*args, **kwargs):
-    print("###############   [cdmmon.tasks.send_notification]    #######")
+    logger.debug("###############   [cdmmon.tasks.send_notification]    #######")
     pkU = kwargs.get("user_pk", None)
     if pkU == None:
         logger.error(f"Notification Send  has no user defined in kwargs : {kwargs}")

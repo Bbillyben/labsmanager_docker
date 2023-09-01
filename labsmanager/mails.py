@@ -266,6 +266,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         freq = LMUserSetting.get_setting("NOTIFCATION_FREQ",   user=user)
         choices=LMUserSetting.get_setting_choices("NOTIFCATION_FREQ")
         leaves_report=LMUserSetting.get_setting("NOTIFCATION_INC_LEAVE", user=user)
+        leaves_timeframe=LMUserSetting.get_setting("NOTIFCATION_LEAVE_TIMEFRAME", user=user)
         freq_name=get_choiceitem(choices, freq)
         
         if sub_enab == True:
@@ -283,10 +284,8 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         })
         # get subscription
         subs = subscription.objects.filter(user=user.pk)
-        # get subscription
-        subs = subscription.objects.filter(user=user.pk)
-        
-        
+        # # get subscription
+        # subs = subscription.objects.filter(user=user.pk)
         
         # for projects
         conttype_proj = ContentType.objects.get(app_label="project", model="project")
@@ -320,9 +319,14 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         teams = Team.objects.filter(pk__in = team_ids).order_by("name")
         self.context['teams']=teams 
         
-        slot = utils.getCurrentMonthTimeslot()
-        self.context['days']=[slot['from'] + datetime.timedelta(days=i) for i in range(slot["to"].day)] # [i for i in range(1, +1)]
-        
+        if leaves_timeframe== "current":
+            slot = utils.getCurrentMonthTimeslot()
+        elif leaves_timeframe== "31days":
+            slot = utils.getdaysTimeslot(-1,31)
+        else:
+            slot = utils.getCurrentMonthTimeslot()
+
+        self.context['days']=[slot['from'] + datetime.timedelta(days=i) for i in range((slot['to']  - slot['from'] ).days+1)]
         
         leaves_format=LMUserSetting.get_setting("NOTIFCATION_LEAVE_FORMAT", user=user)
         self.context['leave_format']=leaves_format 
@@ -333,7 +337,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
             tm = TeamMate.current.filter(team=t)
             tmE = Employee.objects.filter(Q(pk__in=tm.values('employee')) | Q(pk=t.leader.pk))
             self.context['teammate_'+str(t.name)]=tmE 
-            leave=Leave.objects.timeframe(slot).filter(employee__in=tmE).order_by('-end_date')    
+            leave=Leave.objects.timeframe(slot).filter(employee__in=tmE).order_by('-end_date')   
             self.context['leave_'+str(t.name)]=leave 
             lv_list=create_dict('employee', leave)
             #add team leader and teammant not in list for calendar

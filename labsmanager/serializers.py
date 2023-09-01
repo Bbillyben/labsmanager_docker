@@ -27,7 +27,7 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ['pk', 'url', 'name']
         
-        
+
 
 # ------------------------------------------------------------------------------------ #
 # ---------------------------    MINIMALIST SERIALISZER    --------------------------- #
@@ -82,7 +82,20 @@ class EmployeeSerialize_Min(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ['pk', 'user_name', 'is_active']    
-        
+ 
+ 
+class UserEmployeeSerializer(serializers.ModelSerializer):
+    employee=serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = ['pk','username', 'first_name','last_name','employee'] 
+    
+    def get_employee(self,obj):
+        try:
+            emp = Employee.objects.get(user=obj)
+            return EmployeeSerialize_Min(emp, many=False).data    
+        except:
+            return None
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Expense
 

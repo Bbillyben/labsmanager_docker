@@ -87,7 +87,7 @@ from expense import models as expense_model
 from leave import models as leave_model
 from project.models import Institution, GenericInfoTypeProject
 from staff import models as staff_model
-
+from django.contrib.auth import get_user_model   
 class SettingListViewSet(viewsets.ModelViewSet):
     queryset = None
     serializer_class = None
@@ -127,3 +127,8 @@ class SettingListViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='genericinfotypeproject', url_name='genericinfotypeproject')
     def genericinfotypeproject(self, request):
         return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(GenericInfoTypeProject.objects.all(), many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='employeeuser', url_name='employeeuser')
+    def employeeuser(self, request):
+        usermodel = get_user_model()
+        return JsonResponse(labserializers.UserEmployeeSerializer(usermodel.objects.all(), many=True).data, safe=False)

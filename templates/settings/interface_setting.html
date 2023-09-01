@@ -1,0 +1,33 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load account %}
+{% load crispy_forms_tags %}
+
+{% block label %}interface{% endblock %}
+
+{% block heading %}{% trans 'Interface Settings' %}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 100%; padding: 5px;">
+
+    <div class="row">
+        <div class="col">
+            <div class="card  mb-2">
+                <table class='table table-striped table-condensed'>
+                    <tbody>
+                        {% include "settings/setting.html" with key="STICKY_NAVBAR" user_setting=True icon='fa-bars-progress' %}
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+</div> <!-- end container -->
+
+{% endblock %}
+
+{% block panel_js %}
+{% endblock %}
+

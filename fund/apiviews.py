@@ -135,8 +135,12 @@ class FundItemViewSet(viewsets.ModelViewSet):
         queryset = super().filter_queryset(queryset)
         
         fund_type = params.get('fund_type', None)
+        exact = params.get('type_exact', False)
         if fund_type is not None:
-            queryset = queryset.filter(type=fund_type)
+            ftype = Cost_Type.objects.get(pk=fund_type)
+            if not exact:
+                ftype = ftype.get_descendants(include_self=True)
+            queryset = queryset.filter(type__in=ftype)
         
         available = params.get('available', None)
         if available is not None:

@@ -12,6 +12,10 @@
 {% trans "User Settings" as text %}
 {% include "sidebar_item.html" with label='user' text=text icon="fa-user" %}
 
+
+{% trans "Interface Settings" as text %}
+{% include "sidebar_item.html" with label='interface' text=text icon="fa-tablet-screen-button" %}
+
 {% trans "Favorites and Subscriptions" as text %}
 {% include "sidebar_item.html" with label='common' text=text icon="fa-message" %}
 
@@ -57,5 +61,8 @@
 
     {% trans "Calendar View" as text %}
     {% include "sidebar_item.html" with label='calendar_setting' text=text icon="fa-calendar" %}
+
+    {% trans "Users Management" as text %}
+    {% include "sidebar_item.html" with label='users_admin' text=text icon="fa-users" %}
 
 {% endif %}

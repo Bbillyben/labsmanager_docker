@@ -2,20 +2,9 @@ var user_id = 0;
 var team_id = 0;
 var userperms;
 var calapiURL;
-function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
-    user_id = user_idA;
-    team_id = team_idA;
-    userperms=permsA;
-    calapiURL=calapiURLA;
 
-    updateTeamMateBtnHandler()
-    update_team_desc();
-
-    // project table
-    // var filters = loadTableFilters('funditem');
-    // var filterOption={
-    //     download:true,
-    // }
+// initi function called on panel loading
+function initTeamProjectTable(){
     var options={
         //queryParams: {team:team_id},
         name:'teamProject',
@@ -24,9 +13,28 @@ function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
     }
     //setupFilterList('funditem', $('#fund_main_table'), '#filter-list-funditem',filterOption);
     $('#team_project_table').labTable(options);
+}
+
+// for calendar
+function initTeamCalendar(){
+    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
+    option={
+        selectable:canMod,
+        editable:canMod,
+        extraParams:{team:team_id},
+    }
+    calendar = $('#calendar-team-box').lab_calendar(option);
+}
 
 
+function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
+    user_id = user_idA;
+    team_id = team_idA;
+    userperms=permsA;
+    calapiURL=calapiURLA;
 
+    updateTeamMateBtnHandler()
+    update_team_desc();
 
 }
 function updateTeamMateBtnHandler(){
@@ -51,7 +59,6 @@ function updateTeamMateBtnHandler(){
             modal_title:"Delete Teammate",
         })
     });
-    initTeamCalendar();
 
 }
 function update_team_desc(){
@@ -96,16 +103,3 @@ function update_team_desc(){
     })    
 }
 
-
-// for calendar
-function initTeamCalendar(){
-    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
-    option={
-        selectable:canMod,
-        editable:canMod,
-        extraParams:{team:team_id},
-    }
-    calendar = $('#calendar-team-box').lab_calendar(option);
-    
-
-}

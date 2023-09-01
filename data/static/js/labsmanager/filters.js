@@ -241,7 +241,8 @@ function generateFilterInput(tableKey, filterKey) {
 
         for (var key in options) {
             var option = options[key];
-            html += `<option value='${key}'>${option.value}</option>`;
+            var optName = (option.prefix ? option.prefix : '') + option.value
+            html += `<option value='${option.key}'>${optName}</option>`;
         }
 
         html += `</select>`;
@@ -449,8 +450,7 @@ function getFilterOptionValue(tableKey, filterKey, valueKey) {
     // Iterate through a list of options
     if ('options' in filter) {
         for (var key in filter.options) {
-
-            if (key == valueKey) {
+            if (filter.options[key]['key'] == valueKey) {
                 return filter.options[key].value;
             }
         }

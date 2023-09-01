@@ -1311,6 +1311,35 @@ li.list-spacer{
     margin: 0em;
 
   }
+  .resource-name{
+    float: left;
+  }
+
+
+
+  .initial-circle{
+    background-color: rgba(255, 255, 255, 0.5);
+    color: black;
+    margin-right: 5px;
+    border-radius: 50%;
+  }
+  .initial-circle-inner{
+    font-size: 0.6em;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    text-decoration: none;
+    height: 15px;
+    width: 15px;
+    font-weight: bold;
+  }
+  .ressource-cont{
+    justify-content: space-between;
+    align-items: center;
+    display: flex;
+    overflow: hidden;
+    
+}
 
   /*  fro crum list template */
   .crumb-dropdown .dropdown-menu{

@@ -9,17 +9,21 @@ function initCalendar(userId){
 }
 
 function initFullCalendar(){
+
     var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
     const calendarEl = document.getElementById('calendar-box')
+    
     option={
         selectable:canMod,
         editable:canMod,
         extraParams:getCalenderParams,
         filterResourcesWithEvents:$("#ressource_event_radio_box input[name='ressource_event_radio']:checked").val()!='false',
     }
+    const view = localStorage.getItem(`labsmanager-calendar-view`);
+    if (view){
+        option.initialView = view
+    }
     calendar = $('#calendar-box').lab_calendar(option);
-   
-
 }
 function initPrintCalendar(options){
     // console.log('[initPrintCalendar]'+JSON.stringify(options))
@@ -91,6 +95,7 @@ function getCalenderParams(){
    
     filters={
         type:leaveList,
+        type_exact:true, // to not get descendant when selecting type
         emp_status:emp_status,
         team:team,
         showResEventRadio:radioResEvent,
