@@ -149,8 +149,8 @@
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
-    initFundFinder(user_id);
-    initializeBudgetTable()
+    onPanelLoad("fund", function(){initFundFinder(user_id);}) 
+    onPanelLoad("budget", function(){initializeBudgetTable();}) 
     enableSidebar('fund_finder')
 })
 </script>

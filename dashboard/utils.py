@@ -58,3 +58,21 @@ def getCurrentMonthTimeslot():
         'to':date_fin
     }
     return slot
+
+def get30daysTimeslot():
+    start_date = date.today() - timedelta(days=1)
+    date_fin = (start_date + timedelta(days=31))
+    slot={
+        'from':start_date,
+        'to':date_fin
+    }
+    return slot
+
+def getdaysTimeslot(fromDelta=-1, toDelta=31):
+    start_date = date.today() + timedelta(days=fromDelta)
+    date_fin = date.today() + timedelta(days=toDelta)
+    slot={
+        'from':start_date,
+        'to':date_fin
+    }
+    return slot

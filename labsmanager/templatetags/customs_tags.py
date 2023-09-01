@@ -92,6 +92,18 @@ def setting_object(key, *args, **kwargs):
     #     raise Warning("User Is not set for User settings display")
 
 @register.simple_tag()
+def settings_value(key, *args, **kwargs):
+    from settings.models import LMUserSetting, LabsManagerSetting
+    """Return a settings value specified by the given key."""
+    if 'user' in kwargs:
+        if not kwargs['user'] or (kwargs['user'] and kwargs['user'].is_authenticated is False):
+            return LMUserSetting.get_setting(key)
+        return LMUserSetting.get_setting(key, user=kwargs['user'])
+
+    return LabsManagerSetting.get_setting(key)
+
+
+@register.simple_tag()
 def get_filter_lists( *args, **kwargs):
     from labsmanager.views import get_filters_lists
     return get_filters_lists(None, safe=False)
@@ -120,3 +132,8 @@ def is_in_leavelist(d, d_list):
         if d>=ds.start_date and d<=ds.end_date:
             return True
     return False
+
+# return a  range for a given value, for loop with increment
+@register.filter
+def get_range(value):
+    return range(value)

@@ -1,16 +1,4 @@
 
-
-function loadDashboardCards(){
-    // console.log("start loadDashboardCards");
-    $('.panel-content .card').each(function(){
-        url=$(this).data('url');
-        if(url==undefined)return;
-
-        // console.log('start load : '+url);
-        loadInTemplate(elt=$(this),url=url);
-    });
-}
-
 function consumptionFormatter(value, row, index, field){
     if(isNaN(value))return '-'
     pr=row.ratio

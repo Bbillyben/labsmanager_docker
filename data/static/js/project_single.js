@@ -84,14 +84,26 @@ function initProjectSingleView(user_idA, project_idA){
 
     update_project();
     update_project_info();
-    initProjectCalendar();
-    loadProjectGraph();
+    
     
 
 
 }
 // for calendar
 function initProjectCalendar(){
+    var filterOption={
+        download:true,
+    }
+    setupFilterList('project-leave', $('#project_leave_item_table'), '#filter-list-project-leave', filterOption );
+    var options={
+        name:'leave',
+        //callback:updateParticipant,
+        search:false,
+        showColumns:false,
+        filters:projectleavequeryParams(),
+        
+    }
+    $('#project_leave_item_table').labTable(options);
     var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
     option={
         selectable:canMod,

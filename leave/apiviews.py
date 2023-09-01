@@ -39,6 +39,7 @@ class LeaveViewSet(viewsets.ModelViewSet):
         
         qset=queryset
         types= data.get('type', None)
+        exact = data.get('type_exact', False)
         if types is not None:
             if isinstance(types, str):
                 types=types.split(',')
@@ -46,7 +47,11 @@ class LeaveViewSet(viewsets.ModelViewSet):
                 types=[types,]
                  
             if all([isinstance(item, int) for item in types]) or all([item.isdigit() for item in types]):
-                qset= qset.filter(type__in=types)
+                if exact:
+                    ltype = Leave_Type.objects.filter(pk__in=types)
+                else:
+                    ltype = Leave_Type.objects.get_queryset_descendants(Leave_Type.objects.filter(pk__in=types), include_self=True)
+                qset= qset.filter(type__in=ltype)
             else:
                 qset= qset.filter(type__short_name__in=types)
                      

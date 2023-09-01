@@ -566,28 +566,16 @@ $(document).ready(function () {
     project_id = JSON.parse(document.getElementById('project_id').textContent);
     initProjectSingleView(user_id, project_id);
 
-    initializeMilestoneTable(tableurl="{% url 'api:milestones-project' pj_pk=project.pk  %}", 'project', update_project)
-
-    initializeContractsTable(tableurl="{% url 'api:project-contracts' pk=project.pk  %}", update_project);
-    initializeFundTable(null, update_project)
-    enableSidebar('project')
-
-    var filterOption={
-        download:true,
-    }
-    setupFilterList('project-leave', $('#project_leave_item_table'), '#filter-list-project-leave', filterOption );
-    var options={
-        name:'leave',
-        //callback:updateParticipant,
-        search:false,
-        showColumns:false,
-        filters:projectleavequeryParams(),
-        
-    }
     
-    $('#project_leave_item_table').labTable(options);
-    initializeBudgetTable();
-    initializeContribTable(update_project);
+    
+    onPanelLoad("project-milestone", function(){initializeMilestoneTable(tableurl="{% url 'api:milestones-project' pj_pk=project.pk  %}", 'project', update_project);}) 
+    onPanelLoad("project-contract", function(){initializeContractsTable(tableurl="{% url 'api:project-contracts' pk=project.pk  %}", update_project);}) 
+    onPanelLoad("project-fund", function(){initializeFundTable(null, update_project)}) 
+    onPanelLoad("budget", function(){initializeBudgetTable();}) 
+    onPanelLoad("contribution", function(){initializeContribTable(update_project);}) 
+    onPanelLoad("leave", function(){initProjectCalendar(); }) 
+    onPanelLoad("project-dashboard", function(){loadProjectGraph(); })
+    enableSidebar('project')
 
 })
 function projectleavequeryParams(params) {
@@ -597,6 +585,8 @@ function projectleavequeryParams(params) {
     params.end = "{{project.end_date|date:'Y-m-d'}}";
     return params
   }
+
+  
 </script>
 
 {% endblock %}
