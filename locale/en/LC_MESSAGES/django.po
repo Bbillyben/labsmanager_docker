@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-29 15:45+0200\n"
+"POT-Creation-Date: 2023-09-01 09:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: common/models.py:10 common/models.py:20 settings/models.py:888
-#: settings/models.py:889 settings/views.py:303 staff/models.py:30
+#: common/models.py:10 common/models.py:20 settings/models.py:897
+#: settings/models.py:898 settings/views.py:303 staff/models.py:30
 #: staff/ressources.py:196 templates/reports/html/employee_pdf_report.html:492
 #: templates/reports/html/project_pdf_report.html:627
 #: templates/staff/employee_desc_table.html:63
@@ -920,7 +920,7 @@ msgstr ""
 msgid "Report template is enabled"
 msgstr ""
 
-#: settings/models.py:344 settings/models.py:881
+#: settings/models.py:344 settings/models.py:890
 msgid "Settings key (must be unique - case insensitive)"
 msgstr ""
 
@@ -1111,18 +1111,34 @@ msgid "report all employee even without leaves in calendar views"
 msgstr ""
 
 #: settings/models.py:854
-msgid "Notification Report language"
+msgid "Notification Leaves Timeframe"
 msgstr ""
 
 #: settings/models.py:855
+msgid "choose which timeframe to report (current month or 31 days timeframe)"
+msgstr ""
+
+#: settings/models.py:858
+msgid "current month"
+msgstr ""
+
+#: settings/models.py:859
+msgid "31 days Timeframe"
+msgstr ""
+
+#: settings/models.py:863
+msgid "Notification Report language"
+msgstr ""
+
+#: settings/models.py:864
 msgid "choose the language for reports"
 msgstr ""
 
-#: settings/models.py:860
+#: settings/models.py:869
 msgid "Fixed Navbar"
 msgstr ""
 
-#: settings/models.py:861
+#: settings/models.py:870
 msgid "navbar position fixed to the top of the screen"
 msgstr ""
 
@@ -2074,11 +2090,11 @@ msgstr ""
 msgid " Notification Settings"
 msgstr ""
 
-#: templates/settings/common_settings.html:32
+#: templates/settings/common_settings.html:33
 msgid "Send Test Mail"
 msgstr ""
 
-#: templates/settings/common_settings.html:34
+#: templates/settings/common_settings.html:35
 msgid "Sending"
 msgstr ""
 

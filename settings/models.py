@@ -850,6 +850,15 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': False,
             'validator': bool,
         },
+        'NOTIFCATION_LEAVE_TIMEFRAME': {
+            'name': _('Notification Leaves Timeframe'),
+            'description': _('choose which timeframe to report (current month or 31 days timeframe)'),
+            'default': '31days',
+            'choices': [
+                ('current', _('current month')),
+                ('31days', _('31 days Timeframe'))
+            ],
+        },
         'NOTIFCATION_REPORT_LANGUAGE': {
             'name': _('Notification Report language'),
             'description': _('choose the language for reports'),
