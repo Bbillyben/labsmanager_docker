@@ -314,7 +314,7 @@ class FundSerialize(serializers.ModelSerializer):
     class Meta:
         model = Fund
         fields = ['pk', 'project', 'funder', 'institution', 'ref','start_date', 'end_date',
-                  'is_active','amount', 'expense', 'available', 'amount_f', 'expense_f', 'available_f',] 
+                  'is_active','amount', 'expense', 'available', 'amount_f', 'expense_f', 'available_f',]          
 
 class FundConsumptionSerialize(serializers.ModelSerializer):
     funder=Fund_InstitutionSerializer(many=False, read_only=True)
@@ -354,8 +354,22 @@ class FundItemSerialize(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Fund_Item
-        fields = ['pk', 'type', 'fund','amount',  'expense','available','value_date', 'entry_date',]    
+        fields = ['pk', 'type', 'fund','amount',  'expense','available','value_date', 'entry_date',]   
+        
+class FundItemSerializePlus(serializers.ModelSerializer):
+    fund=FundSerialize(many=False, read_only=True)
+    type=CostTypeSerialize(many=False, read_only=True)
+    contract=serializers.SerializerMethodField()
+    class Meta:
+        model = Fund_Item
+        fields = ['pk', 'type', 'fund','amount',  'expense','available','value_date', 'entry_date',
+                  'contract',] 
             
+    def get_contract(self,obj):
+        from expense.models import Contract
+        ct = Contract.objects.filter(fund = obj.fund, is_active = True)
+        return ContractSerializerSimple(ct, many=True).data
+
 class FundItemSerialize_min(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
@@ -426,7 +440,18 @@ class ContractSerializer(serializers.ModelSerializer):
         if obj.contract_type:
             return obj.contract_type.name
         return None 
+
+class ContractSerializerSimple(serializers.ModelSerializer):
+    contract_type = serializers.SerializerMethodField()
+    employee=EmployeeSerialize_Min(many = False, read_only = True)
+    class Meta:
+        model = Contract
+        fields = ['pk', 'employee', 'start_date', 'end_date','contract_type','total_amount', 'quotity', 'is_active',]
     
+    def get_contract_type(self,obj):
+        if obj.contract_type:
+            return obj.contract_type.name
+        return None     
           
 class ContractExpenseSerializer_min(serializers.ModelSerializer):
     fund = FundSerialize(many=False, read_only=True)

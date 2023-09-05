@@ -111,7 +111,7 @@ class FundViewSet(viewsets.ModelViewSet):
     
 class FundItemViewSet(viewsets.ModelViewSet):
     queryset = Fund_Item.objects.select_related('fund').all()
-    serializer_class = serializers.FundItemSerialize
+    serializer_class = serializers.FundItemSerializePlus #serializers.FundItemSerialize
     permission_classes = [permissions.IsAuthenticated]        
     filter_backends = (filters.DjangoFilterBackend,)
     

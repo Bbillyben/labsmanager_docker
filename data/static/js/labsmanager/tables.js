@@ -420,6 +420,22 @@ function moneyFormatter_alert(value, row, index, field){
     return response;
 }
 
+function availableFundItem_alert(value, row, index, field){
+    response = moneyFormatter_alert(value, row, index, field);
+    if(row.contract.length > 0){
+        var cc = "";
+        for (var i = 0; i < row.contract.length; i++) {
+            if(cc.length>1)cc+="\n";
+            cc+=row.contract[i].employee.user_name+' - '
+            if(row.contract[i].quotity)cc+=quotityFormatter(row.contract[i].quotity)
+            if(row.contract[i].contract_type)cc+=" - "+row.contract[i].contract_type
+            if(row.contract[i].end_date)cc+=" - "+row.contract[i].end_date;
+          }
+        response+='<span class="availContract" tabindex="0" data-toggle="tooltip" data-placement="top" title="'+cc+'">'+row.contract.length+"</span>";
+    }
+    return response;
+}
+
 function moneyFocusFormatter(value, row, index, field){
     //console.log("[moneyFocusFormatter] custom data :"+this.custom_param)
     str = moneyFormatter(value, row, index, field)
