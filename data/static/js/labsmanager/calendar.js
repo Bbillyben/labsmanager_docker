@@ -269,6 +269,7 @@
                     center: 'title',
                     right: 'resourceTimelineMonth,resourceBiMensualCustom,resourceYearCustom,dayGridMonth,dayGridWeek,listWeek,timelineYearCustom'
                 },
+                cal_type:'default'
             };
 
             // Extend default settings with provided options
@@ -392,7 +393,7 @@
 
             // add pref save
             globals.viewClassNames =function(arg){
-                localStorage.setItem(`labsmanager-calendar-view`, arg.view.type);
+                localStorage.setItem(`labsmanager-calendar-view_`+settingsCal.cal_type, arg.view.type);
             }
 
             // add customs views

@@ -22,6 +22,11 @@ function initTeamCalendar(){
         selectable:canMod,
         editable:canMod,
         extraParams:{team:team_id},
+        cal_type:'team',
+    }
+    const view = localStorage.getItem(`labsmanager-calendar-view_team`);
+    if (view){
+        option.initialView = view
     }
     calendar = $('#calendar-team-box').lab_calendar(option);
 }
