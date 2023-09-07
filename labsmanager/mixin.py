@@ -220,3 +220,22 @@ class CrumbListMixin():
             
         context['crumbs_list']=li
         return context
+    
+from bootstrap_modal_forms.generic import BSModalCreateView   
+class CreateModalNavigateMixin(BSModalCreateView):
+    object_id="pk"
+    success_single=""
+    object=None
+    def get_success_url(self, *args, **kwargs):
+        if self.object is not None:
+            if self.object.id:
+                return reverse(self.success_single, kwargs={self.object_id:self.object.id})
+        return super().get_success_url(*args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            self.form_valid(form)
+            return JsonResponse({'navigate':self.get_success_url()})
+        else:
+            return self.form_invalid(form)

@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
@@ -7,7 +7,7 @@ from django.shortcuts import render
 from . import models
 from .forms import ProjectModelForm, ParticipantModelForm, InstitutionModelForm, InstitutionModelFormDirect, GenericInfoProjectForm, GenericInfoTypeProjectForm
 
-
+from labsmanager.mixin import CreateModalNavigateMixin
 # Update
 class ProjectUpdateView(LoginRequiredMixin, BSModalUpdateView):
     model = models.Project
@@ -17,18 +17,35 @@ class ProjectUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
     
-class ProjectCreateView(LoginRequiredMixin, BSModalCreateView):
+class ProjectCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     template_name = 'form_base.html'
     form_class = ProjectModelForm
     success_message = 'Success: Employee was created.'
     success_url = reverse_lazy('project_index')
+    
+    success_single = 'project_single'
+    
+    # def get_success_url(self, *args, **kwargs):
+    #     if self.object is not None:
+    #         if self.object.id:
+    #             return reverse('project_single', kwargs={'pk':self.object.id})
+    #     return super().get_success_url(*args, **kwargs)
+    
+    # def post(self, request, *args, **kwargs):
+    #     self.object = None
+    #     form = self.get_form()
+    #     if form.is_valid():
+    #         self.form_valid(form)
+    #         return JsonResponse({'navigate':self.get_success_url()})
+    #     else:
+    #         return self.form_invalid(form)
     
 # remove
 class ProjectRemoveView(LoginRequiredMixin, BSModalDeleteView):
     model = models.Project
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm
-    success_url = reverse_lazy('employee_index')
+    success_url = reverse_lazy('project_index')
 
 
 
