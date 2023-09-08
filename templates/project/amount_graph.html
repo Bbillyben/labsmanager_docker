@@ -27,12 +27,12 @@
 </div>
 
 
-<script>
+<script> 
 var datas{{domid}}_graph = {{data|safe}};
 
 $( document ).ready(function(){
   // project_graph_initCard(datas);
-  $("#{{domid}}_graph").amountGraph("#{{domid}}_graph", datas{{domid}}_graph, "{{domid}}")
+  $("#{{domid}}_graph").amountGraph("#{{domid}}_graph", datas{{domid}}_graph, "{{domid}}", {{invert}})
 });
 
 </script>

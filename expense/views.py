@@ -83,6 +83,7 @@ class ExpenseGraphView(LoginRequiredMixin, View):
                  'type':'line',
                  'title':_("Project Expense Overview"),
                  'domid':"expense",
+                 'invert':1,
                  }  
         return render(request, self.template_general, context)
 

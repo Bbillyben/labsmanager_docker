@@ -1,20 +1,16 @@
 
 (function() {
-  // var datasFrame;
-  // var target;
-  // var projectChart;
-  // var domId;
-  $.fn.amountGraph = function(sel, datasGraph, id=""){
-    // datasFrame = datas;
-    // target=sel; //document.getElementById(sel);
-    // domId=id;
+
+  $.fn.amountGraph = function(sel, datasGraph, id="", invert=false){
+
     var datas= this.data("amountGraph");
     if (!datas) {
         datas = {
             datasFrame: datasGraph,
             target: sel,
             domId:id,
-            projectChart:null
+            projectChart:null,
+            invert:invert,
         };
         this.data('amountGraph', datas);
     }
@@ -35,7 +31,6 @@
 
   function updateGraph(target){
     var datas = $(target).data("amountGraph");
-
     var typeD= $(target).find("input[name='"+datas.domId+"-tabs']:checked").attr('id').replace(datas.domId+'-tab', '').toLowerCase();
     var typeG= $(target).find("input[name='"+datas.domId+"-graph']:checked").attr('id').replace(datas.domId+'-tab', '').toLowerCase();
 
@@ -70,6 +65,7 @@
               },
               y: {
                   stacked: isStacked,
+                  reverse: datas.invert,
                   title: {
                     display: true,
                     text: 'Value'
