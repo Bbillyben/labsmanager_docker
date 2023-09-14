@@ -12,6 +12,7 @@ from fund.models import Cost_Type, Fund
 from datetime import date
 
 from labsmanager.forms import DateInput
+from labsmanager.mixin import CleanedDataFormMixin
 
 class ContractModelForm(BSModalModelForm):
     class Meta:
@@ -126,7 +127,7 @@ class ExpenseTimepointModelForm(BSModalModelForm):
     def clean_amount(self):
         return -abs(self.cleaned_data['amount'])
 
-class ContractTypeModelForm(BSModalModelForm):
+class ContractTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.Contract_type
         fields = ['name',]

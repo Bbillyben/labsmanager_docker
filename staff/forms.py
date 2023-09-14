@@ -10,6 +10,8 @@ from django.utils.translation import gettext_lazy as _
 from labsmanager.forms import DateInput
 from django.contrib.auth import get_user_model
 
+from labsmanager.mixin import CleanedDataFormMixin
+
 class TeamMateForm(forms.ModelForm):
     model = TeamMate
     fields = [
@@ -26,7 +28,7 @@ class TeamMateForm(forms.ModelForm):
             self.fields['employee'].queryset = usersU
 
 
-class EmployeeModelForm(BSModalModelForm):
+class EmployeeModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = Employee
         fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', 'email','is_active',]
@@ -88,8 +90,10 @@ class EmployeeStatusForm(BSModalModelForm):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
             raise ValidationError(_('End Date (%s) should be later than start date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
         return self.cleaned_data['end_date']
-    
-class TeamModelForm(BSModalModelForm):
+
+
+
+class TeamModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = Team
         fields = ['name', 'leader',]
@@ -125,7 +129,7 @@ class TeamMateModelForm(BSModalModelForm):
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             self.fields['team'].widget.attrs['disabled'] = True
             
-class GenericInfoForm(BSModalModelForm):
+class GenericInfoForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = GenericInfo
         fields = ['info', 'employee', 'value',]
@@ -141,12 +145,12 @@ class GenericInfoForm(BSModalModelForm):
         if instance and instance.pk:
             self.fields['info'].disabled = True
             
-class EmployeeTypeModelForm(BSModalModelForm):
+class EmployeeTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = Employee_Type
         fields = ['name','shortname',]
         
-class GenericInfoTypeForm(BSModalModelForm):
+class GenericInfoTypeForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = GenericInfoType
         fields = ['name', 'icon',]

@@ -239,3 +239,23 @@ class CreateModalNavigateMixin(BSModalCreateView):
             return JsonResponse({'navigate':self.get_success_url()})
         else:
             return self.form_invalid(form)
+        
+        
+
+from django.utils.html import strip_tags
+from django.utils.html import escape
+from django import forms
+
+class CleanedDataFormMixin:
+    ''' Mixin class for Form to strip tags and escape textField before saviong
+    to prevent xss attack'''
+    def clean(self):
+        cleaned_data = super().clean()
+
+        for field_name, field in self.fields.items():
+            print(f'filed : {field_name}')
+            if isinstance(field, forms.CharField):
+                cleaned_data[field_name] = escape(strip_tags(cleaned_data[field_name]))
+        return super().clean()
+    
+    
