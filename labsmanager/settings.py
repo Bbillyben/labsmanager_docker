@@ -355,7 +355,8 @@ Q_CLUSTER = {
 
 # Session 
 SESSION_COOKIE_AGE = 6400
-
+# SESSION_COOKIE_NAME = '__Secure-sessionid'
+# CSRF_COOKIE_NAME = '__Secure-csrftoken'
 
 ## Import export options
 
