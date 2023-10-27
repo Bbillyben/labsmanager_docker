@@ -22,8 +22,7 @@ function initEmployeeLeaveTable(){
     }
     var options={
         queryParams: filters,
-        name:'leave',
-        
+        name:'leave',        
     }
     setupFilterList('leave', $('#employee_leave_table'), '#filter-list-leave',filterOption);
     $('#employee_leave_table').labTable(options);
@@ -106,6 +105,11 @@ function initEmployeeCalendar(){
         initialView:"dayGridMonth",
         extraParams:{employee:employee_id},
         eventCallback: function(){ $('#employee_leave_table').bootstrapTable('refresh')},
+        cal_type:'employee',
+    }
+    const view = localStorage.getItem(`labsmanager-calendar-view_employee`);
+    if (view){
+        option.initialView = view
     }
     calendar = $('#calendar-employee-box').lab_calendar(option);
     

@@ -119,8 +119,11 @@ function initProjectCalendar(){
 }
 function updateProjectCalendar(){
     $('#project_leave_item_table').bootstrapTable('refresh');
-    calendar.refetchEvents();  
-    calendar.refetchResources();  
+    if(undefined != calendar && calendar != null){
+        calendar.refetchEvents();  
+        calendar.refetchResources();  
+    }
+    
 }
 
 // for dashboard graph

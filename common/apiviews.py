@@ -20,8 +20,8 @@ class favoriteViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='current_user', url_name='current_user')
     def genericinfotype(self, request):
         
-        sub=favorite.objects.filter(user=request.user).order_by("content_type")
-        
+        sub=favorite.objects.filter(user=request.user) #.order_by("content_type")
+        sub = sorted(sub, key=lambda x: (x.content_type.name, x.content_object.__str__()))
         return JsonResponse(serializers.FavoriteSerialize(sub, many=True).data, safe=False)
     
     
@@ -35,5 +35,5 @@ class subscriptionViewSet(viewsets.ModelViewSet):
     def genericinfotype(self, request):
         
         sub=subscription.objects.filter(user=request.user).order_by("content_type")
-        
+        sub = sorted(sub, key=lambda x: (x.content_type.name, x.content_object.__str__()))
         return JsonResponse(serializers.FavoriteSerialize(sub, many=True).data, safe=False)

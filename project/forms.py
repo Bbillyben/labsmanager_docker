@@ -7,8 +7,9 @@ from django import forms
 from staff.models import Employee
 
 from labsmanager.forms import DateInput
+from labsmanager.mixin import CleanedDataFormMixin
 
-class ProjectModelForm(BSModalModelForm):
+class ProjectModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.Project
         fields = ['name', 'start_date', 'end_date','status',]
@@ -102,12 +103,12 @@ class InstitutionModelForm(BSModalModelForm):
         # if instance and instance.pk:
         #     self.fields['employee'].widget = forms.HiddenInput()
         #     self.fields['project'].widget = forms.HiddenInput()
-class InstitutionModelFormDirect(BSModalModelForm):
+class InstitutionModelFormDirect(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.Institution
         fields = ['name','short_name','adress',]
         
-class GenericInfoProjectForm(BSModalModelForm):
+class GenericInfoProjectForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.GenericInfoProject
         fields = ['info', 'project', 'value',]
@@ -123,7 +124,7 @@ class GenericInfoProjectForm(BSModalModelForm):
         if instance and instance.pk:
             self.fields['info'].disabled = True
             
-class GenericInfoTypeProjectForm(BSModalModelForm):
+class GenericInfoTypeProjectForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.GenericInfoTypeProject
         fields = ['name', 'icon',]

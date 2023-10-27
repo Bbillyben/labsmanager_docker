@@ -1422,7 +1422,19 @@ li.list-spacer{
         padding:4px 0px
     }
 
-
+    /* for Fund Search  */
+    .availContract{
+        float:right;
+        font-size: 0.75em;
+        text-align: center;
+        width:1.5em;
+        height:1.5em;
+        margin-left:0.5em;
+        border-radius:0.75em;
+        background-color: var(--label-yellow);
+        cursor: help;
+        
+    }
      /* for Focus / out focus cost type */
 
     .out-focus{

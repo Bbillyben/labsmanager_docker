@@ -19,7 +19,7 @@ function initTeam(userId,  perms){
 
     $('#team_create').labModalForm({
         formURL:Urls['create_team'](),
-        addModalFormFunction: team_refresh,
+        // addModalFormFunction: team_refresh,
         modal_title:"Create Team",
     })
 

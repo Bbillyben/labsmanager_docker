@@ -18,8 +18,9 @@ function initFullCalendar(){
         editable:canMod,
         extraParams:getCalenderParams,
         filterResourcesWithEvents:$("#ressource_event_radio_box input[name='ressource_event_radio']:checked").val()!='false',
+        cal_type:'main',
     }
-    const view = localStorage.getItem(`labsmanager-calendar-view`);
+    const view = localStorage.getItem(`labsmanager-calendar-view_main`);
     if (view){
         option.initialView = view
     }

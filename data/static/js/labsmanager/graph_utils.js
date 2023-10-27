@@ -1,4 +1,5 @@
 function createDataSet(datas, setLabel, setXAxis, setAmount, stacked=true, makeCumulative=true){
+
     var datasets=[];
     var indexDict={}
     if(setLabel in datas.schema.primaryKey){
@@ -6,7 +7,7 @@ function createDataSet(datas, setLabel, setXAxis, setAmount, stacked=true, makeC
     }
     var i=0;
     var ds;
-    var seq = palette('all', Math.min(datas.data.length, 30));
+    var seq = palette('mpn65',Math.min(datas.data.length, 30));// Math.min(Math.max(datas.data.length,20), 30));
   // cb-Paired cb-Pastel1
     for (var item in datas.data) {
         d=datas.data[item];
@@ -32,7 +33,7 @@ function createDataSet(datas, setLabel, setXAxis, setAmount, stacked=true, makeC
         }
         // get the value
         id=getIndexOf(d[setXAxis], ds.data,'x');
-        cAmount= Math.abs(d[setAmount])
+        cAmount= Number(d[setAmount]); //Math.abs(d[setAmount])
         if( id == -1){
             ds.data.push({x:d[setXAxis], y:cAmount});
         }else{
@@ -42,10 +43,8 @@ function createDataSet(datas, setLabel, setXAxis, setAmount, stacked=true, makeC
         }
      }
 
-    //  if(makeStackable)datasets = makeItStackable(datasets, compareDatasetDate, true);
-    //  if(makeCumulative)datasets = makeItCumulative(datasets);
     datasets = makeItStackable(datasets, compareDatasetDate, makeCumulative);
-     return datasets;
+    return datasets;
     
 }
 function makeItCumulative(datasets){
@@ -77,7 +76,7 @@ function makeItStackable(datasets, sortFunction, stackValues=False){
             
             // concat values 
             if(stackValues){
-                curr= (item.data[i]['y'])+curr;
+                curr= Number(item.data[i]['y'])+curr;
                 item.data[i]['y']=curr;
             }
             

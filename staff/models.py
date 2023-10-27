@@ -140,7 +140,7 @@ class Team(models.Model):
         """Metaclass defines extra model properties"""
         verbose_name = _("Team")
     
-    name = models.CharField(max_length=70, verbose_name=_('Team Name'))
+    name = models.CharField(max_length=70, verbose_name=_('Team Name'), unique=True)
     leader = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Team Leader'))
     history = AuditlogHistoryField()
     
