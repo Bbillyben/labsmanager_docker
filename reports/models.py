@@ -252,7 +252,18 @@ class EmployeeReport(TemplateReport):
            
     
     def get_context_data(self, request, options):
+        # print("######################   [EmployeeReport] get_context_data ######################")
+        # print(f"request : {request.GET}")
+                
         pk=options.get('pk', None)
+        start_date = request.GET.get("start_date", None)
+        end_date = request.GET.get("end_date", None)
+        slot={}
+        if start_date:
+            slot['from']=start_date
+        if end_date:
+            slot['to']=end_date
+            
         if not pk:
             return {}
         context=super().get_context_data(request, options)
@@ -274,7 +285,9 @@ class EmployeeReport(TemplateReport):
         partProj = Participant.objects.filter(employee=emp)
         context["project"]=partProj
         
-        leave = Leave.objects.filter(employee=emp)
+        
+        
+        leave = Leave.objects.timeframe(slot).filter(employee=emp)
         context["leave"]=leave
         
         context["Contribution"] = Contribution.objects.filter(employee=emp)
