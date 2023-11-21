@@ -250,11 +250,7 @@ class EmployeeReport(TemplateReport):
     class Meta:
         abstract = True
            
-    
-    def get_context_data(self, request, options):
-        # print("######################   [EmployeeReport] get_context_data ######################")
-        # print(f"request : {request.GET}")
-                
+    def get_context_data(self, request, options):              
         pk=options.get('pk', None)
         start_date = request.GET.get("start_date", None)
         end_date = request.GET.get("end_date", None)
@@ -276,21 +272,21 @@ class EmployeeReport(TemplateReport):
         
         info = GenericInfo.objects.filter(employee__pk=pk)
         context["info"]=info
-        status = Employee_Status.objects.filter(employee__pk=pk)
+        status = Employee_Status.objects.filter(employee__pk=pk).order_by('start_date')
         context["status"]=status
         
-        contract = Contract.objects.filter(employee__pk=pk)
+        contract = Contract.objects.filter(employee__pk=pk).order_by('start_date')
         context["contract"]=contract
         
-        partProj = Participant.objects.filter(employee=emp)
+        partProj = Participant.objects.filter(employee=emp).order_by('start_date')
         context["project"]=partProj
         
         
         
-        leave = Leave.objects.timeframe(slot).filter(employee=emp)
+        leave = Leave.objects.timeframe(slot).filter(employee=emp).order_by('-start_date')
         context["leave"]=leave
         
-        context["Contribution"] = Contribution.objects.filter(employee=emp)
+        context["Contribution"] = Contribution.objects.filter(employee=emp).order_by('start_date')
         
         tm = TeamMate.objects.filter(employee=emp).values("team")
         teams = Team.objects.filter(models.Q(leader=emp) | models.Q(pk__in=tm))
