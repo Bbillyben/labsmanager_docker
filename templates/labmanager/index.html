@@ -25,11 +25,16 @@
 <body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.jpg" %}); background-size: cover;'></body>
 {% if user.is_authenticated %}
 <nav class="navbar navbar-expand-lg navbar-light">
+    {% if user.employee %}
+    <div class="container-fluid"><span class="dropdown-item">{% trans 'Welcome' %} <b><i><a class="no_color" href="{% url 'employee' pk=user.employee.pk %}" title="{{user.employee}}">{{user.employee.first_name}}</a></i></b></span></div>
+    {%else%}
     <div class="container-fluid"><span class="dropdown-item">{% trans 'Welcome' %} <b><i>{{ user.get_username }}</i></b></span></div>
+    {% endif %}
     <div class="container-fluid" style="text-align: end;">
         <a class='dropdown-item' href="{% url 'account_logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a>
     </div>
 </nav>
+    
 {% endif %}   
 <div class='main body-wrapper flex'>
     <div class="liencont index-screen d-flex" style='width:75%; margin:auto;'>

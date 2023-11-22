@@ -1052,6 +1052,12 @@ a {
     text-decoration: none;
     background-color: transparent;
 }
+/* a.no_color{
+    color:#1e2125 !important;
+}
+a.no_color:hover{
+    color:#0a58ca !important;
+} */
 
 /* Quicksearch Panel */
 
