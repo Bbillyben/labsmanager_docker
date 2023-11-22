@@ -40,6 +40,10 @@ function getAvailableTableFilters(tableKey) {
                 type: 'bool',
                 title: 'Active',
             },
+            ongoing: {
+                type: 'bool',
+                title: 'Ongoing',
+            },
             name: {
                 title: 'Employee Name',
                 description: 'Employee Name',

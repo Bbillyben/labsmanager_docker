@@ -47,6 +47,18 @@ class ContractViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ContractFilter
     
+    def get_queryset(self):
+      
+      if self.request is not None:
+        ongoing = self.request.query_params.get('ongoing', None)
+        if ongoing is not None:
+          if ongoing == '1':
+            return Contract.current.select_related('employee', 'fund', 'contract_type').all()
+          else:
+            return Contract.past.select_related('employee', 'fund', 'contract_type').all()
+      return super().get_queryset()    
+      
+    
     def filter_queryset(self, queryset):
         params = self.request.query_params
           # print("[ContractViewSet.filter_queryset] start filtering")
@@ -104,6 +116,7 @@ class ContractViewSet(viewsets.ModelViewSet):
         return queryset
     
     def list(self, request, *args, **kwargs):
+        self.request = request
         export = request.GET.get('export', None)
         if export is not None:
             qs = self.filter_queryset(self.get_queryset())
