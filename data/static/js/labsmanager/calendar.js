@@ -267,7 +267,7 @@
                 headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',
-                    right: 'resourceTimelineMonth,resourceBiMensualCustom,resourceYearCustom,dayGridMonth,dayGridWeek,listWeek,timelineYearCustom'
+                    right: 'resourceTimelineMonth,resourceBiMensualCustom,resourceYearCustom,resourcefortnightCustom,dayGridMonth,dayGridWeek,listWeek,timelineYearCustom'
                 },
                 cal_type:'default'
             };
@@ -451,6 +451,40 @@
                         };
                     }
                 }, 
+                resourcefortnightCustom: {
+                    type: 'resourceTimeline',
+                    buttonText: 'fortnight',
+                    dateIncrement: { weeks: 1 },
+                    slotDuration: { day: 1 },
+                    slotLabelInterval: {
+                        "days": 1,
+                        },
+                        slotLabelFormat: [{
+                            month: 'long',
+                        }, // top level of text
+                        {
+                            weekday: 'short',
+                            day: 'numeric',
+                    
+                        }, // lower level of text
+                        ],
+                    slotDuration: {
+                            "hours": 12
+                          },
+                    slotLabelInterval: {
+                        "hours": 24
+                        },
+                    visibleRange: function (currentDate) {
+                        const start = new Date(currentDate);
+                        start.setDate(start.getDate() - (start.getDay() + 6) % 7); // previous monday
+                        const end = new Date(start);
+                        end.setDate(start.getDate()+13);
+                        return {
+                            start: start.toISOString(),
+                            end: end.toISOString()
+                        };
+                    }
+                }, 
                 resourceBiMensualCustom: {
                     type: 'resourceTimeline',
                     buttonText: 'Bi Mensual',
@@ -461,7 +495,6 @@
                     },
                     slotLabelFormat: [{
                         month: 'long',
-                        week: "short",
                     }, // top level of text
                     {
                         week: 'numeric',
