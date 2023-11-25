@@ -5,10 +5,7 @@
 // {% include "status_codes.html" with label='build' options=BuildStatus.list %}
 
 function getAvailableTableFilters(tableKey) {
-
     tableKey = tableKey.toLowerCase();
-
-
     // Filters for Bill of Materials table
     if (tableKey == 'employee') {
         return {
@@ -33,7 +30,7 @@ function getAvailableTableFilters(tableKey) {
             },
         };
     }
-    if (tableKey == 'contract') {
+    if (tableKey.substring(0,8) == 'contract') {
         return {
             
             active: {
@@ -186,7 +183,7 @@ function getAvailableTableFilters(tableKey) {
             }
         };
     }
-    if (tableKey == 'budget') {
+    if (tableKey.substring(0,6) == 'budget') {
         return {
             
             active: {
@@ -216,9 +213,9 @@ function getAvailableTableFilters(tableKey) {
             },
         };
     }
-    if (tableKey == 'contrib') {
+    if (tableKey.substring(0,7) == 'contrib') {
         return{
-            active: {
+            active_contrib: {
                 type: 'bool',
                 title: 'Active',
             },

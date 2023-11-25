@@ -19,6 +19,8 @@
 
     --icon-index-color:rgb(25, 150, 119);
 
+    --icon-info-color:#197db9;
+
 }
 
 main {
@@ -852,6 +854,10 @@ input[type="submit"] {
     border-radius: 1rem 0.25rem  1rem  1rem;
 }
 
+.panel-info{
+    color: var(--icon-info-color) !important;
+    padding: 0.2rem 0.2rem !important;
+}
 
 .panel {
     box-shadow: 2px 2px #DDD;
@@ -1454,3 +1460,4 @@ li.list-spacer{
         text-align: center;
         margin: 1em 0 1em 0 !important;
     }
+

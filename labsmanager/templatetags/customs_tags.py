@@ -137,3 +137,10 @@ def is_in_leavelist(d, d_list):
 @register.filter
 def get_range(value):
     return range(value)
+
+# define a filter list name
+@register.simple_tag
+def filter_name(type, sub_type=None):
+    if sub_type is None:
+        return type
+    return f'{type}_{sub_type}'

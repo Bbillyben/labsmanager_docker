@@ -16,7 +16,7 @@ function initTeamProjectTable(){
 }
 
 // for calendar
-function initTeamCalendar(){
+function initTeamCalendar(printURL, teamPk){
     var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
     option={
         selectable:canMod,
@@ -29,8 +29,23 @@ function initTeamCalendar(){
         option.initialView = view
     }
     calendar = $('#calendar-team-box').lab_calendar(option);
-}
 
+    $('#leave_print').on("click", function(){
+        print_team_calendar(printURL, teamPk);
+    })
+}
+function print_team_calendar(printUrl, teamPk){
+    options = {};
+    options['initialView']=calendar.view.type;
+    var d = calendar.view.activeStart
+    options['start']=d.toISOString();
+    d = calendar.view.activeEnd
+    options['end']=d.toISOString();
+    options['filterResourcesWithEvents']=calendar.getOption("filterResourcesWithEvents");
+    options['team']=teamPk;
+    var csrftoken = getCookie('csrftoken');
+    openWindowWithPost(printUrl, options, csrftoken)
+}
 
 function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
     user_id = user_idA;

@@ -1,9 +1,10 @@
 {% load i18n %}
 {% load customs_tags %}
+{% filter_name "contract" datatype as filterName %}
 {% if datatype == 'all' or datatype == 'project' %}
-<div id='tracking-table-toolbar_contract'>
+<div id='tracking-table-toolbar_{{filterName}}'>
     <div class='btn-group'>
-        {% include "filter_list.html" with id="contract" %}
+        {% include "filter_list.html" with id=filterName %}
     </div>
 </div>
 {% endif %}
@@ -12,9 +13,9 @@
     id="contract_table"
     data-id-table="contractTable"
     data-typeTable='{{ datatype }}'
-    {% if datatype == 'all' %}
+    {% if datatype == 'all' or datatype == 'project' %}
 
-        data-toolbar='#tracking-table-toolbar_contract'
+        data-toolbar='#tracking-table-toolbar_{{filterName}}'
     {% endif %}
 
     >

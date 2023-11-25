@@ -48,7 +48,7 @@ class ContractViewSet(viewsets.ModelViewSet):
     filterset_class = ContractFilter
     
     def get_queryset(self):
-      
+      print("======================= [ContractViewSet] get_queryset ")
       if self.request is not None:
         ongoing = self.request.query_params.get('ongoing', None)
         if ongoing is not None:
@@ -87,7 +87,6 @@ class ContractViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(fund__in=pjFund)
             
         pid = params.get('project_id', None)
-        print("[ContractViewSet.filter_queryset] pid:"+str(pid))
         if pid:
             pjFund=Fund.objects.filter(project__pk=pid).values('pk')
             queryset = queryset.filter(fund__in=pjFund)
@@ -116,6 +115,7 @@ class ContractViewSet(viewsets.ModelViewSet):
         return queryset
     
     def list(self, request, *args, **kwargs):
+        print("======================= [ContractViewSet] list ")
         self.request = request
         export = request.GET.get('export', None)
         if export is not None:

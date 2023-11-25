@@ -6,11 +6,15 @@ function initializeContribTable(callback=null){
 
     tableContribType=$("#contrib_table").data("type")
     tableContribPk=$("#contrib_table").data("pk")
-  
-    var filters = loadTableFilters('contrib');
-    var filterOption={
-        download:true,
-    }
+  // get table filter name
+  var fName = $('#contrib_table').data('toolbar');
+  if(fName != undefined){
+      fName = fName.replace("#tracking-table-toolbar_",'');
+      var filters = loadTableFilters(fName);
+      var filterOption={
+          download:true,
+      }
+  }
     var options={
         queryParams: filters,
         name:'contrib',
@@ -18,7 +22,7 @@ function initializeContribTable(callback=null){
     }
     if(callbackContrib!=null)options['callback']=callbackContrib;
 
-    setupFilterList('contrib', $('#contrib_table'), '#filter-list-contrib',filterOption);
+    setupFilterList(fName, $('#contrib_table'), '#filter-list-'+fName,filterOption);
     $('#contrib_table').labTable(options);
 
 

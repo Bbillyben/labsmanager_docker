@@ -238,11 +238,6 @@
             <div class="panel-content collapse show" id="Contribution-details">
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
-                        <div id='tracking-table-toolbar_funditem'>
-                            <div class='btn-group'>
-                                {% include "filter_list.html" with id="contrib" %}
-                            </div>
-                        </div>
                         <div class="card" id="project_budget_table">
                             {% url 'api:contribution-employee' emp_pk=employee.pk as ContribDataURL %}
                             {% include "fund/contrib_table.html" with datatype="employee" dataURL=ContribDataURL datapk=employee.pk idTable="contrib" %}

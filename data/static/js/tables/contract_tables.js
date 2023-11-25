@@ -4,11 +4,17 @@ var contract=0;
 function initializeContractsTable(tableurl, callback_contract=undefined, callback_contractExpense=undefined){
     callbackContract=callback_contract;
     callbackContractExpense=callback_contractExpense;
-
-    var filters = loadTableFilters('contract');
-    var filterOption={
-        download:true,
+    // get table filter name
+    var fName = $('#contract_table').data('toolbar');
+    if(fName != undefined){
+        fName = fName.replace("#tracking-table-toolbar_",'');
+        console.log("[initializeContractsTable] filter name :"+fName);
+        var filters = loadTableFilters(fName);
+        var filterOption={
+            download:true,
+        }
     }
+    
     var options={
             callback: updateContractSelection,
             url:tableurl,
@@ -17,7 +23,7 @@ function initializeContractsTable(tableurl, callback_contract=undefined, callbac
             onClickRow:contractRowclick, 
             
         }
-    setupFilterList('contract', $('#contract_table'), '#filter-list-contract', filterOption );
+    if(fName != undefined)setupFilterList(fName, $('#contract_table'), '#filter-list-'+fName, filterOption );
     $('#contract_table').labTable(options);
 
 }
