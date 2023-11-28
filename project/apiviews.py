@@ -107,6 +107,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         request.query_params._mutable = True
         request.query_params.update({"project_id": int(pk)})
         cv.request = request
+        
         export = request.GET.get('export', None)
         if export is not None:
             return cv.list(request)
