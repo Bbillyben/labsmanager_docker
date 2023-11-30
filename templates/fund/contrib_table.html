@@ -1,6 +1,12 @@
 {% load i18n %}
 {% load customs_tags %}
 
+{% filter_name "contrib" datatype as filterName %}
+<div id='tracking-table-toolbar_{{filterName}}'>
+    <div class='btn-group'>
+        {% include "filter_list.html" with id=filterName %}
+    </div>
+</div>
 
 <table
 class='table table-striped table-condensed'
@@ -9,6 +15,7 @@ data-id-table="{{idTable}}Table"
 data-url="{{ dataURL }}"
 data-type="{{ datatype }}"
 data-pk="{{ datapk }}"
+data-toolbar='#tracking-table-toolbar_{{filterName}}'
 >
 <thead class="">
     <tr>

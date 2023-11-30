@@ -6,10 +6,15 @@ function initializeBudgetTable(callback=null){
 
     tableBudgetType=$("#budget_table").data("type")
     tableBudgetPk=$("#budget_table").data("pk")
-  
-    var filters = loadTableFilters('budget');
-    var filterOption={
-        download:true,
+    
+    // get table filter name
+    var fName = $('#budget_table').data('toolbar');
+    if(fName != undefined){
+        fName = fName.replace("#tracking-table-toolbar_",'');
+        var filters = loadTableFilters(fName);
+        var filterOption={
+            download:true,
+        }
     }
     var options={
         queryParams: filters,
@@ -18,7 +23,7 @@ function initializeBudgetTable(callback=null){
     } 
     if(callbackBudget!=null)options['callback']=callbackBudget;
 
-    setupFilterList('budget', $('#budget_table'), '#filter-list-budget',filterOption);
+    if(fName != undefined)setupFilterList(fName, $('#budget_table'), '#filter-list-'+fName,filterOption);
     $('#budget_table').labTable(options);
 
 

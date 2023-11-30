@@ -78,6 +78,9 @@
                     <span class="flex" style="flex-grow: 1;"></span>   
                 
                     <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-secondary" id="leave_print" title="Print" aria-expanded="false">
+                            <i class='fa fa-print'></i>
+                        </button>
     
                     </div>             
                 </div>
@@ -103,6 +106,9 @@
         <div class="panel-heading">
             <div class="d-flex flex-wrap">
                 <h4>{% trans 'Budgets' %}</h4>
+                <sup class="btn panel-info" data-bs-toggle="tooltip" data-bs-placement="right" title="{% trans 'For team mate as leader or co-leader' %}">
+                    <i class="fa-regular fa-circle-question"></i>
+                </sup>
                 <span class="flex" style="flex-grow: 1;"></span>
                 {% if perms.fund.add_budget %}
                 <div class="btn-group" role="group">
@@ -142,6 +148,9 @@
             <div class="panel-heading">
                 <div class="d-flex flex-wrap">
                     <h4>{% trans 'TeamMate Projects' %}</h4>
+                    <sup class="btn panel-info" data-bs-toggle="tooltip" data-bs-placement="right" title="{% trans 'For team mate as leader or co-leader' %}">
+                        <i class="fa-regular fa-circle-question"></i>
+                    </sup>
                     <span class="flex" style="flex-grow: 1;"></span>   
                        
                 </div>
@@ -207,11 +216,12 @@ $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     team_id = JSON.parse(document.getElementById('team_id').textContent);
 
+
+
+
     initTeamSingleView(user_id, team_id, perms, "{% url 'api:leave-search-calendar' %}");
-    
 
-
-    onPanelLoad("team-leave", function(){initTeamCalendar();}) 
+    onPanelLoad("team-leave", function(){initTeamCalendar("{% url 'calendar_print' %}", '{{ team.pk }}');});
     onPanelLoad("team-budget", function(){initializeBudgetTable();}) 
     onPanelLoad("team-project", function(){initTeamProjectTable();}) 
 

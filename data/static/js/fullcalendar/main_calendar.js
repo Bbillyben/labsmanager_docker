@@ -28,6 +28,7 @@ function initFullCalendar(){
 }
 function initPrintCalendar(options){
     // console.log('[initPrintCalendar]'+JSON.stringify(options))
+
     var canMod=false;
     const calendarEl = document.getElementById('calendar-box')
     option={
@@ -35,10 +36,6 @@ function initPrintCalendar(options){
         editable:false,
         initialView:options["initialView"],
         extraParams:{
-            type:options["type"],
-            emp_status:options["emp_status"],
-            team:options["team"],
-            showResEventRadio:options["showResEventRadio"],
         },
         filterResourcesWithEvents:options["filterResourcesWithEvents"]!='false',
 
@@ -52,8 +49,14 @@ function initPrintCalendar(options){
             center: 'title',
             right: ''
         },
-
     }
+    if(options["type"]!='')option['extraParams']['type']=options["type"];
+    if(options["emp_status"]!='')option['extraParams']['emp_status']=options["emp_status"];
+    if(options["team"]!='')option['extraParams']['team']=options["team"];
+    if(options["showResEventRadio"]!='')option['extraParams']['showResEventRadio']=options["showResEventRadio"];
+
+
+
     calendar = $('#calendar-box').lab_calendar(option);
     calendar.gotoDate(options["start"]);
 

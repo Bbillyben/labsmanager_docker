@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="{% static 'css/labsmanager.css' %}">
 <link rel="stylesheet" href="{% static 'css/bootstrap-treeview.css' %}">
 
+
 <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}">
 <link rel="stylesheet" href="{% static 'bootstrap-table/bootstrap-table.min.css' %}">
 <link rel="stylesheet" href="{% static 'bootstrap-table/bootstrap-table.css' %}">
@@ -106,7 +107,7 @@
 <script type='text/javascript' src="{% static 'script/jquery-ui/jquery-ui.1.13.1.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'script/select2/js/select2.min.js' %}"></script>
 
-
+<script type="text/javascript" src="{% static 'popper/popper.min.js' %}"></script>
 
 <script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 <script type='text/javascript' src="{% static 'script/bootstrap/bootstrap-treeview.js' %}"></script>
@@ -160,6 +161,11 @@
         $.extend($.fn.bootstrapTable.defaults.icons, {
             advancedSearchIcon: 'fa-chevron-down',
         });
+        // iniitalise tooltip
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
         
 
         initialiseCollapsePanel();  
