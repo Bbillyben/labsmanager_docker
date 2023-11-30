@@ -120,6 +120,7 @@ class RecetteGraphView(LoginRequiredMixin, View):
                  'type':'line',
                  'title':_("Project Fund Overview"),
                  'domid':"recette",
+                 'invert':0,
                  }  
         return render(request, self.template_general, context)
 

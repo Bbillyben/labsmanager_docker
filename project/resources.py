@@ -8,10 +8,26 @@ from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
 from import_export.fields import Field
 
+class LeadertWidget(widgets.CharWidget):
+    
+    def render(self, value, obj=None):
+        pa=Participant.objects.filter(project=value, status="l")
+        
+        li=[]
+        for c in pa:
+            strC= str(c.employee.user_name) 
+            strC+= " - " +str(c.get_status_display())
+            strC+= " (" +str(c.start_date)
+            strC+= " > " +str(c.end_date)+')'
+            strC+= '#'+str(c.quotity)
+            li.append(strC)
+           
+        return "\n".join(li)
+    
 class ParticipantWidget(widgets.CharWidget):
     
     def render(self, value, obj=None):
-        pa=Participant.objects.filter(project=value)
+        pa=Participant.objects.filter(Q(project=value) & ~Q(status="l"))
         
         li=[]
         for c in pa:
@@ -52,6 +68,11 @@ class FundWidget(widgets.CharWidget):
     
        
 class ProjectResource(labResource):
+    leader = Field(
+        column_name=_('Leader'),
+        attribute='pk', 
+        widget=LeadertWidget(), readonly=True
+        )
     participants = Field(
         column_name=_('participant'),
         attribute='pk', 
@@ -82,6 +103,21 @@ class ProjectResource(labResource):
         attribute='get_funds_available', 
         widget=widgets.DecimalWidget(), readonly=True
     )
+    Total_fund_focus=Field(
+        column_name=_('Total Fund Focus'),
+        attribute='get_funds_amount_f', 
+        widget=widgets.DecimalWidget(), readonly=True
+    )
+    Total_expense_focus=Field(
+        column_name=_('Total Expense Focus'),
+        attribute='get_funds_expense_f', 
+        widget=widgets.DecimalWidget(), readonly=True
+    )
+    Total_Available_focus=Field(
+        column_name=_('Total Available Focus'),
+        attribute='get_funds_available_f', 
+        widget=widgets.DecimalWidget(), readonly=True
+    )
     info=Field(
         column_name=_('Infos'),
         attribute='info', 
@@ -99,9 +135,13 @@ class ProjectResource(labResource):
                       'start_date',
                       'end_date',
                       'institution',
+                      'leader',
                       'participants',
                       'Fund',
                       'Total_fund',
                       'Total_expense',
                       'Total_Available',
+                      'Total_fund_focus',
+                      'Total_expense_focus',
+                      'Total_Available_focus',
                       ]

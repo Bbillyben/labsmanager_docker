@@ -6,8 +6,8 @@ from django.db.models import Q
 from staff.models import TeamMate, Employee, Team
 
 from labsmanager.forms import DateInput,ColorInput
-
-class LeaveItemModelForm(BSModalModelForm):
+from labsmanager.mixin import CleanedDataFormMixin
+class LeaveItemModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.Leave
         fields = ['employee', 'type','start_date','start_period', 'end_date', 'end_period', 'comment', ]
@@ -39,7 +39,7 @@ class LeaveItemModelForm(BSModalModelForm):
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.fields['employee'].widget.attrs['disabled'] = True
     
-class LeaveTypeModelForm(BSModalModelForm):
+class LeaveTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.Leave_Type
         fields = ['parent','name','short_name','color',]

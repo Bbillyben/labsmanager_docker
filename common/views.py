@@ -17,8 +17,8 @@ def get_user_fav_obj(request):
 
 from django.apps import apps
 def get_user_favorite(request):
-    fav=favorite.objects.filter(user=request.user).order_by("content_type")
-    
+    fav=favorite.objects.filter(user=request.user) #.order_by("content_type")
+    fav = sorted(fav, key=lambda x: (x.content_type.name, x.content_object.__str__()))
     data={} #'favorites':FavoriteSerialize(fav, many=True).data}
     
     for el in fav:

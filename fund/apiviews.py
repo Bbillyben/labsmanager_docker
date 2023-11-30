@@ -111,7 +111,7 @@ class FundViewSet(viewsets.ModelViewSet):
     
 class FundItemViewSet(viewsets.ModelViewSet):
     queryset = Fund_Item.objects.select_related('fund').all()
-    serializer_class = serializers.FundItemSerialize
+    serializer_class = serializers.FundItemSerializePlus #serializers.FundItemSerialize
     permission_classes = [permissions.IsAuthenticated]        
     filter_backends = (filters.DjangoFilterBackend,)
     
@@ -278,9 +278,9 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
             # team leader and team mate
             tm = TeamMate.objects.filter(team=team).values('employee')
             tl=Team.objects.filter(pk=team).values("leader")
-            queryT =  (Q(employee__in=tm) | Q(employee__in=tl))
+            queryT =  (Q(employee__in=tm) | Q(employee__in=tl)) 
             # by project
-            pj = Participant.objects.filter(queryT).values("project")
+            pj = Participant.objects.filter(queryT & Q(status__in=["l", "cl"])).values("project")
             fu=Fund.objects.filter(project__in=pj)
             queryF = Q(fund__in=fu)
             query = queryT | queryF
@@ -342,9 +342,10 @@ class ContributionViewSet(BudgetAbstractViewSet):
         
     serializer_class = serializers.ContribSerializer
     
+        
     def get_queryset(self):
         params=self.get_params(self.request) 
-        active = params.get('active', None)
+        active = params.get('active_contrib', None)
         if active is not None:
             if str2bool(active):
                 queryset = self.__class__.Meta.model.current.select_related('fund', 'employee', 'cost_type').all()
@@ -352,18 +353,9 @@ class ContributionViewSet(BudgetAbstractViewSet):
                 queryset = self.__class__.Meta.model.past.select_related('fund', 'employee', 'cost_type').all()
         else:
             queryset = self.__class__.Meta.model.objects.select_related('fund', 'employee', 'cost_type').all()
-        return queryset
-        return self.__class__.Meta.model.objects.select_related('fund', 'employee', 'cost_type').all()
         
-    # queryset = Contribution.objects.select_related('fund', 'employee', 'cost_type').all()
-    
-    # def download_queryset(self, queryset, export_format):
-    #     """Download the filtered queryset as a data file"""
-    #     dataset = ContributionResource().export(queryset=queryset)
-    #     filedata = dataset.export(export_format)
-    #     dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
-    #     filename = f"Contributions_{dateSuffix}.{export_format}"
-    #     return DownloadFile(filedata, filename)
+        return queryset
+        
     
 class CostTypeViewSet(viewsets.ModelViewSet):
     queryset = Cost_Type.objects.all()

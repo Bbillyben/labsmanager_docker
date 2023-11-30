@@ -322,11 +322,6 @@
             <div class="panel-content collapse show" id="Budget-details">
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
-                        <div id='tracking-table-toolbar_funditem'>
-                            <div class='btn-group'>
-                                {% include "filter_list.html" with id="budget" %}
-                            </div>
-                        </div>
                         <div class="card" id="project_budget_table">
                             {% url 'api:budget-project' proj_pk=project.pk as BudgetDataURL %}
                             {% include "fund/budget_table.html" with datatype="project" dataURL=BudgetDataURL datapk=project.pk idTable="budget" %}
@@ -362,11 +357,6 @@
             <div class="panel-content collapse show" id="Contribution-details">
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
-                        <div id='tracking-table-toolbar_funditem'>
-                            <div class='btn-group'>
-                                {% include "filter_list.html" with id="contrib" %}
-                            </div>
-                        </div>
                         <div class="card" id="project_budget_table">
                             {% url 'api:contribution-project' proj_pk=project.pk as ContribDataURL %}
                             {% include "fund/contrib_table.html" with datatype="project" dataURL=ContribDataURL datapk=project.pk idTable="contrib" %}

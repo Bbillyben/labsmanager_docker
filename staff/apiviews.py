@@ -194,8 +194,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         if pk is None:
             raise Exception("/api/team/<pk>/projects/ => No team Pk Found")
         team=self.queryset.filter(pk=pk).first()
-        mate=TeamMate.objects.filter(team=team).values("employee")
-        parti=Participant.objects.filter(Q(employee__in=mate) | Q(employee=team.leader)).distinct('project') #.values("project")
+        mate=TeamMate.objects.filter(team=team).values("employee")      
+        parti=Participant.objects.filter((Q(employee__in=mate) | Q(employee=team.leader)) & Q(status__in=["l", "cl"])).distinct('project') #.values("project")
         #pjset=Project.objects.filter(pk__in=parti)
         
         return JsonResponse(serializers.TeamParticipantSerializer(parti, many=True).data, safe=False)

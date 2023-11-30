@@ -19,8 +19,9 @@ from labsmanager.mixin import TableViewMixin, CrumbListMixin
 from django.urls import reverse_lazy
 from .forms import EmployeeModelForm, EmployeeStatusForm,GenericInfoForm
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
-# Create your views here.
 
+
+from labsmanager.mixin import CreateModalNavigateMixin
 
 class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'employee/employee_base.html'
@@ -123,11 +124,13 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
 
 ###    FOR MODAL Modification EMPLOYEE
 
-class EmployeeCreateView(LoginRequiredMixin, BSModalCreateView):
+class EmployeeCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     template_name = 'form_base.html'
     form_class = EmployeeModelForm
     success_message = 'Success: Employee was created.'
     success_url = reverse_lazy('employee_index')
+    
+    success_single = 'employee'
 
 # Update
 class EmployeeUpdateView(LoginRequiredMixin, BSModalUpdateView):

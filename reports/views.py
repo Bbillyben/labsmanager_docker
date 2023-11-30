@@ -23,12 +23,31 @@ class WordBaseReportView(BSModalFormView):
     
     def post(self, request, *args, **kwargs):
         
+        form = self.get_form()
+        if form.is_valid():
+            self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+        
+        
+        
         template_id=request.POST.get("Template", None)
         emp_id=request.POST.get("pk", None)
+        start=request.POST.get("start_date", None)
+        end=request.POST.get("end_date", None)
+    
         
         # self.success_url = reverse('employee_report', kwargs={'pk':emp_id, 'template':template_id,})
         urlP = reverse(self.nav_url, kwargs={'pk':emp_id, 'template':template_id,})
         urlP = request.build_absolute_uri(urlP)
+        
+        # build GET parameter from post data
+        param=""
+        for ke in request.POST:
+            if ke != "Template" and ke!="pk" and ke!="csrfmiddlewaretoken":
+                param=param+str(ke)+"="+request.POST.get(ke, None)+"&"
+                
+        urlP = "%s?%s" % (urlP, param)
                 
         return  JsonResponse({'navigate':urlP})
     

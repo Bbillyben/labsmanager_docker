@@ -109,12 +109,6 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'auditlog.middleware.AuditlogMiddleware',
-    'django.contrib.sites.middleware.CurrentSiteMiddleware',
 ]
 MIDDLEWARE_CLASSES = (
     'labsmanager.UserEmployeeMiddleware',
@@ -128,10 +122,15 @@ logger.debug('CSP Policy enabled :'+str(use_csp))
 if use_csp:
     MIDDLEWARE+= ['csp.middleware.CSPMiddleware',]
     
-    CSP_DEFAULT_SRC = ["'self'"] #,"192.168.1.145","192.168.1.145:7000",]
+    CSP_DEFAULT_SRC = ["'self'"]
     p=get_setting("ADMIN_CSP_DEFAULT",'admin_csp_default', None)
     if p is not None:
         CSP_DEFAULT_SRC+= p.split(",")
+        
+    CSP_BASE_URI = [] + CSP_DEFAULT_SRC
+    p=get_setting("ADMIN_CSP_BASE_URI",'admin_csp_base_uri', None)
+    if p is not None:
+        CSP_BASE_URI +=  p.split(",")
     
     CSP_SCRIPT_SRC = [] + CSP_DEFAULT_SRC
     p=get_setting("ADMIN_CSP_SCRIPT",'admin_csp_script', None)
@@ -143,7 +142,7 @@ if use_csp:
     if p is not None:
         CSP_STYLE_SRC +=  p.split(",") 
         
-    CSP_FONT_SRC =[] +  CSP_DEFAULT_SRC # + ["'unsafe-inline'","'unsafe-eval'",]
+    CSP_FONT_SRC =[] +  CSP_DEFAULT_SRC
     p=get_setting("ADMIN_CSP_FONT",'admin_csp_font', None)
     if p is not None:
         CSP_FONT_SRC +=  p.split(",") 
@@ -163,8 +162,33 @@ if use_csp:
     if p is not None:
         CSP_MEDIA_SRC +=  p.split(",")
 
+    CSP_FRAME_ANCESTORS= [] #+ CSP_DEFAULT_SRC
+    p=get_setting("ADMIN_CSP_FRAME_ANCESTORS",'admin_csp_frame_ancestors', None)
+    if p is not None:
+        CSP_FRAME_ANCESTORS +=  p.split(",")
     
-    
+
+logger.debug('=========  CSP PARAMETERS  =========')
+logger.debug(f'  - CSP_DEFAULT_SRC: {CSP_DEFAULT_SRC}')
+logger.debug(f'  - CSP_BASE_URI: {CSP_BASE_URI}')
+logger.debug(f'  - CSP_SCRIPT_SRC: {CSP_SCRIPT_SRC}')
+logger.debug(f'  - CSP_STYLE_SRC: {CSP_STYLE_SRC}')
+
+logger.debug(f'  - CSP_FONT_SRC: {CSP_FONT_SRC}')
+logger.debug(f'  - CSP_DATA_SRC: {CSP_DATA_SRC}')
+logger.debug(f'  - CSP_IMG_SRC: {CSP_IMG_SRC}')
+logger.debug(f'  - CSP_MEDIA_SRC: {CSP_MEDIA_SRC}')
+logger.debug(f'  - CSP_FRAME_ANCESTORS: {CSP_FRAME_ANCESTORS}')
+logger.debug('=========  =========  =========')
+
+MIDDLEWARE +=[
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'auditlog.middleware.AuditlogMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
+]
     
 ROOT_URLCONF = 'labsmanager.urls'
 
@@ -216,7 +240,6 @@ DATABASES = {
 
 
 AUTHENTICATION_BACKENDS = [
-    'labsmanager.MailAutenticateBackend.MailAutenticateBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
     ]
@@ -224,6 +247,12 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_DEFAULT_HTTP_PROTOCOL=get_setting('ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'lab_default_http_protocol', 'http')
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE=False
 ACCOUNT_CONFIRM_EMAIL_ON_GET=False
+
+# allauth config
+ACCOUNT_AUTHENTICATION_METHOD  = 'username_email'
+
+ACCOUNT_SESSION_REMEMBER = False
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -331,7 +360,8 @@ Q_CLUSTER = {
 
 # Session 
 SESSION_COOKIE_AGE = 6400
-
+# SESSION_COOKIE_NAME = '__Secure-sessionid'
+# CSRF_COOKIE_NAME = '__Secure-csrftoken'
 
 ## Import export options
 
@@ -357,6 +387,36 @@ EMAIL_USE_SSL = get_boolean_setting('LAB_EMAIL_SSL', 'email.ssl', False)
 
 DEFAULT_FROM_EMAIL = EMAIL_SENDER
 
+
+# For Security design
+CSRF_COOKIE_SECURE  = get_boolean_setting('CSRF_COOKIE_SECURE', 'csrf_cookie_secure', True)
+CSRF_COOKIE_SAMESITE = get_setting('CSRF_COOKIE_SAMESITE', 'csrf_cookie_samesite', 'Strict')
+SESSION_COOKIE_SECURE = get_boolean_setting('SESSION_COOKIE_SECURE', 'session_cookie_secure', True)
+SECURE_BROWSER_XSS_FILTER = get_boolean_setting('SECURE_BROWSER_XSS_FILTER', 'secure_browser_xss_filter', True)
+SECURE_CONTENT_TYPE_NOSNIFF = get_boolean_setting('SECURE_CONTENT_TYPE_NOSNIFF', 'secure_content_type_nosniff', True)
+SECURE_SSL_REDIRECT =  get_boolean_setting('SECURE_SSL_REDIRECT', 'secure_ssl_redirect', True)
+X_FRAME_OPTIONS =  get_setting('X_FRAME_OPTIONS', 'x_frame_options', 'DENY')
+SECURE_HSTS_SECONDS = get_setting('SECURE_HSTS_SECONDS', 'secure_hsts_seconds', 300)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = get_boolean_setting('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'secure_hsts_include_subdomains', True)
+SECURE_HSTS_PRELOAD = get_boolean_setting('SECURE_HSTS_PRELOAD', 'secure_hsts_preload', True)
+
+logger.debug('=========  SECURE PARAMETERS  =========')
+logger.debug(f'  - USE CSP: {use_csp}')
+logger.debug(f'  - SESSION_COOKIE_SECURE: {SESSION_COOKIE_SECURE}')
+logger.debug(f'  - CSRF_COOKIE_SECURE: {CSRF_COOKIE_SECURE}')
+logger.debug(f'  - SECURE_SSL_REDIRECT: {SECURE_SSL_REDIRECT}')
+
+logger.debug(f'  - CSRF_COOKIE_SAMESITE: {CSRF_COOKIE_SAMESITE}')
+logger.debug(f'  - SECURE_BROWSER_XSS_FILTER: {SECURE_BROWSER_XSS_FILTER}')
+logger.debug(f'  - SECURE_CONTENT_TYPE_NOSNIFF: {SECURE_CONTENT_TYPE_NOSNIFF}')
+logger.debug(f'  - X_FRAME_OPTIONS: {X_FRAME_OPTIONS}')
+logger.debug(f'  - SECURE_HSTS_SECONDS: {SECURE_HSTS_SECONDS}')
+logger.debug(f'  - SECURE_HSTS_INCLUDE_SUBDOMAINS: {SECURE_HSTS_INCLUDE_SUBDOMAINS}')
+logger.debug(f'  - SECURE_HSTS_PRELOAD: {SECURE_HSTS_PRELOAD}')
+logger.debug('=========  =========  =========')
+
+
+# logger.debug(f'SECURE_SSL_REDIRECT: {SECURE_SSL_REDIRECT}')
 
 ## Admins
 ADMINS = []

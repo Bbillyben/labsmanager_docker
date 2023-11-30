@@ -19,6 +19,8 @@
 
     --icon-index-color:rgb(25, 150, 119);
 
+    --icon-info-color:#197db9;
+
 }
 
 main {
@@ -852,6 +854,10 @@ input[type="submit"] {
     border-radius: 1rem 0.25rem  1rem  1rem;
 }
 
+.panel-info{
+    color: var(--icon-info-color) !important;
+    padding: 0.2rem 0.2rem !important;
+}
 
 .panel {
     box-shadow: 2px 2px #DDD;
@@ -1052,6 +1058,12 @@ a {
     text-decoration: none;
     background-color: transparent;
 }
+/* a.no_color{
+    color:#1e2125 !important;
+}
+a.no_color:hover{
+    color:#0a58ca !important;
+} */
 
 /* Quicksearch Panel */
 
@@ -1422,7 +1434,19 @@ li.list-spacer{
         padding:4px 0px
     }
 
-
+    /* for Fund Search  */
+    .availContract{
+        float:right;
+        font-size: 0.75em;
+        text-align: center;
+        width:1.5em;
+        height:1.5em;
+        margin-left:0.5em;
+        border-radius:0.75em;
+        background-color: var(--label-yellow);
+        cursor: help;
+        
+    }
      /* for Focus / out focus cost type */
 
     .out-focus{
@@ -1436,3 +1460,4 @@ li.list-spacer{
         text-align: center;
         margin: 1em 0 1em 0 !important;
     }
+

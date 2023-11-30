@@ -28,10 +28,10 @@ def main_calendar_print(request):
     options["start"]=request.POST["start"]
     options["end"]=request.POST["end"]
     options["filterResourcesWithEvents"]=request.POST["filterResourcesWithEvents"]
-    options["type"]=request.POST["type"]
-    options["emp_status"]=request.POST["emp_status"]
-    options["team"]=request.POST["team"]
-    options["showResEventRadio"]=request.POST["showResEventRadio"]
+    options["type"]=request.POST.get("type", '') #request.POST["type"]
+    options["emp_status"]=request.POST.get("emp_status", '') #request.POST["emp_status"]
+    options["team"]=request.POST.get("team", '') #request.POST["team"]
+    options["showResEventRadio"]=request.POST.get("showResEventRadio", '') #request.POST["showResEventRadio"]
     context["options"]=options
     return render(request, 'calendar/main_calendar_print.html', context)
 

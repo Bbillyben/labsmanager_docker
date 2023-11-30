@@ -7,6 +7,7 @@ from django.shortcuts import render
 from . import models
 from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm, EmployeeUserModelForm, UserEmployeeModelForm
 
+from labsmanager.mixin import CreateModalNavigateMixin
 
 # Update
 class TeamUpdateView(LoginRequiredMixin, BSModalUpdateView):
@@ -17,25 +18,27 @@ class TeamUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
     
-class TeamCreateView(LoginRequiredMixin, BSModalCreateView):
+class TeamCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     template_name = 'form_base.html'
     form_class = TeamModelForm
     success_message = 'Success: Team was created.'
-    success_url = reverse_lazy('project_index')
+    success_url = reverse_lazy('team_index')
+    
+    success_single = 'team_single'
     
 # remove
 class TeamRemoveView(LoginRequiredMixin, BSModalDeleteView):
     model = models.Team
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm
-    success_url = reverse_lazy('employee_index')
+    success_url = reverse_lazy('team_index')
     
     
 class TeamMateCreateView(LoginRequiredMixin, BSModalCreateView):
     template_name = 'form_base.html'
     form_class = TeamMateModelForm
     success_message = 'Success: TeamMate was created.'
-    success_url = reverse_lazy('project_index')
+    success_url = reverse_lazy('team_index')
     
     def get(self, request, *args, **kwargs):
         initial={}
@@ -73,7 +76,7 @@ class EmployeeTypeCreateView(LoginRequiredMixin, BSModalCreateView):
     template_name = 'form_base.html'
     form_class = EmployeeTypeModelForm
     success_message = 'Success: Project was updated.'
-    success_url = reverse_lazy('project_index')
+    success_url = reverse_lazy('employee_index')
     label_confirm = "Confirm"
     model = models.Employee_Type
      
@@ -82,7 +85,7 @@ class EmployeeTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
     template_name = 'form_validate_base.html'
     form_class = EmployeeTypeModelForm
     success_message = 'Success: Leave was updated.'
-    success_url = reverse_lazy('project_index')
+    success_url = reverse_lazy('employee_index')
     label_confirm = "Confirm"
     
 
@@ -107,12 +110,6 @@ class UserEmployeeUpdateView(LoginRequiredMixin, BSModalFormView):
     
     
     def post(self, request, *args, **kwargs):
-        print("[UserEmployeeUpdateView] - post")
-        for a in args:
-            print(f"  - arg :{a}")
-        for k, v in kwargs.items():
-            print(f"  - {k} :{v}")
-        print(f"  - request post :{request.POST}")  
         
         if not 'pk' in kwargs:
             raise ObjectDoesNotExist("User Pk not in post request")
