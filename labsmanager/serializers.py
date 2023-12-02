@@ -539,11 +539,11 @@ class TeamMateSerializer_min(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
     leader=EmployeeSerialize_Min(many=False, read_only=True)
     team_mate=TeamMateSerializer_min(many=True, read_only=True)
-
+    has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model= Team
-        fields=['pk','name', 'leader', 'team_mate']
+        fields=['pk','name', 'leader', 'team_mate', 'has_perm']
 
 
 
