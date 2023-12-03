@@ -1,5 +1,5 @@
 from django.contrib import admin
-from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfoType, GenericInfo
+from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfoType, GenericInfo, Employee_Superior
 from django.utils.translation import gettext_lazy as _
 from .forms import TeamMateForm
 from labsmanager.admin import GenericInfoTypeAdmin
@@ -24,6 +24,10 @@ from .ressources import EmployeeAdminResource
 class EmployeeStatusInline(admin.TabularInline):
     model = Employee_Status
     extra = 0
+class EmployeeSuperiorInline(admin.TabularInline):
+    model = Employee_Superior
+    extra = 0
+    fk_name = "employee"
     
 class LeaveInline(admin.TabularInline):
     model = Leave
@@ -46,7 +50,7 @@ class EmployeeAdmin(ImportExportModelAdmin):
             'fields': ('user',)
         }),
     )
-    inlines = [EmployeeStatusInline, LeaveInline, GenericInfoInline]
+    inlines = [EmployeeStatusInline,EmployeeSuperiorInline,GenericInfoInline,  LeaveInline, ]
     list_filter=('entry_date' , 'exit_date')
     resource_classes = [EmployeeAdminResource]
      

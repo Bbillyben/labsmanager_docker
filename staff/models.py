@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, CheckConstraint, F
 from django.db.models import Sum
 
 from django.utils import timezone
@@ -58,7 +58,7 @@ class Employee(models.Model):
     def get_status(self):
         return Employee_Status.objects.filter(employee=self.pk)
     
-    @property
+    # @property
     def contracts(self):
         from expense.models import Contract
         return Contract.objects.filter(employee=self.pk)
@@ -69,7 +69,7 @@ class Employee(models.Model):
         from expense.models import Contract
         return Contract.objects.filter(Q(employee=self.pk) &  Q(start_date__lte=timezone.now()) & ( Q(end_date__gte=timezone.now()) | Q(end_date=None))).aggregate(Sum('quotity'))["quotity__sum"]
 
-    @property
+    # @property
     def projects(self):
         from project.models import Participant
         return Participant.objects.filter(employee=self.pk)
@@ -88,6 +88,14 @@ class Employee(models.Model):
         from fund.models import Contribution
         return Contribution.current.filter(employee=self.pk).aggregate(Sum('quotity'))["quotity__sum"]
     
+    @property
+    def get_current_superior(self):
+        from staff.models import Employee_Superior
+        return Employee_Superior.current.filter(employee=self.pk)
+    
+    def get_superior(self):
+        from staff.models import Employee_Superior
+        return Employee_Superior.objects.filter(employee=self.pk)
     
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""
@@ -120,7 +128,26 @@ class Employee_Status(ActiveDateMixin):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.employee.first_name} {self.employee.last_name}  : {self.type.name}"
     
-
+class Employee_Superior(ActiveDateMixin):
+    class Meta:
+        """Metaclass defines extra model properties"""
+        verbose_name = _("Superior")
+        verbose_name_plural = _("Superiors")
+        constraints = [
+            CheckConstraint(
+                check = ~Q(employee=F('superior')), 
+                name = 'check_emp_not_sup',
+                violation_error_message=_('Employee and Superior can not be the same person'),
+            )]
+           
+    def __str__(self):
+        """Return a string representation of the Status (for use in the admin interface)"""
+        return f"{self.superior})"
+    
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'), related_name="employee")
+    superior = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Superior'), related_name="superior_employee")
+    history = AuditlogHistoryField()
+        
 class Employee_Type(models.Model):
     
     class Meta:
@@ -218,3 +245,4 @@ auditlog.register(Employee_Status)
 auditlog.register(Team)
 auditlog.register(TeamMate)
 auditlog.register(GenericInfo)
+auditlog.register(Employee_Superior)

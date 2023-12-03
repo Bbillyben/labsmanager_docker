@@ -6,10 +6,10 @@ from django.views.generic.base import TemplateView
 from django.http import JsonResponse
 from django.db.models import Q
 # from django.views.generic import ListView
-from .models import Employee, Team, TeamMate, Employee_Status, Employee_Type, GenericInfo
+from .models import Employee, Team, TeamMate, Employee_Status, Employee_Superior, Employee_Type, GenericInfo
 from .filters import EmployeeFilter
 from expense.models import Contract
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin,AccessMixin
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -29,21 +29,55 @@ class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     model = Employee
     crumbs = [(_("Employee"),_("employee"))]
 
-
-
-class EmployeeView(LoginRequiredMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  TemplateView):
+from django.http import HttpResponseRedirect 
+from django.urls import reverse
+class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  TemplateView):
     template_name = 'employee/employee_single.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Employee
     # for CrumbListMixin
     reverseURL="employee"
     crumbListQuerySet=Employee.objects.filter(is_active=True)
+    crumbListPerm=(
+        #'common.employee_list',
+        'staff.view_employee',
+    )
     names_val=['first_name', 'last_name']
     # crumbs = [("Employee","./",),("employees",reverse("employee"))]
-
+    
+    
+    def test_func(self, *args, **kwargs):
+        # print("[EmployeeView] - test_func")
+        # for v in args:
+        #     print(f'  - arg : {v}')
+        # for k,v in kwargs.items():
+        #     print(f'  - {k} : {v}')
+        # print(self.request.user)
+        return True
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        print("[EmployeeView] - dispatch")
+        
+        if request.user.is_staff or request.user.has_perm('staff.view_employee'):
+            return super().dispatch(request, *args, **kwargs)
+        
+        userEmp = Employee.objects.get(pk=kwargs['pk']).user
+        if request.user == userEmp:
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse('employee_index'))
+    
+        
+        
     @cached_property
     def crumbs(self):
-        return [(_("Employee"),"./",) ,
+        if self.has_crumb_permission() or self.request.user.has_perm('common.employee_list'):
+            return [(_("Employee"),"./",) ,
+                (str(self.construct_crumb()) ,  ("A1","L1")),
+                ]
+        return [(_("Employee"),"",) ,
                 (str(self.construct_crumb()) ,  ("A1","L1")),
                 ]
 
@@ -220,8 +254,7 @@ class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     home_label = '<i class="fas fa-bars"></i>'
     model = Team
     crumbs = [(_("Teams"),"teams")]
-    
-    
+        
 
 class TeamView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin ,  TemplateView):
     template_name = 'team/team_single.html'

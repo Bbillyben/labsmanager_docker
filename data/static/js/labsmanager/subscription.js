@@ -61,25 +61,3 @@ function initSubscription(){
     })
 }
 
-function subsTypeIconFormatter(value, row, index, field){
-    response = "";
-    switch (row.content_type.model) {
-        case 'employee':
-            response += '<i class="icon icon-badge icon-inline fas fa-user" title="employee"></i>';
-            break;
-        case 'project':
-            response += '<i class="icon icon-badge icon-inline fas fa-flask" title="project"></i>';
-            break;
-        case 'team':
-            response += '<i class="icon icon-badge icon-inline fas fa-people-group" title="team"></i>';
-            break;
-        
-    }
-    return response
-}
-
-function subObjectUrlFormatter(value, row, index, field){
-    response = "";
-    response += "<a href='"+row.object_url+"'>"+value+"</a>";
-    return response
-}

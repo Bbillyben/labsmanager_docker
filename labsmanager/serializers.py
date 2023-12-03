@@ -1,7 +1,7 @@
 from multiprocessing import context
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfo, GenericInfoType
+from staff.models import Employee, Employee_Status, Employee_Superior, Employee_Type, Team, TeamMate, GenericInfo, GenericInfoType
 from expense.models import Expense_point, Contract, Contract_expense, Contract_type
 from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget, Contribution
 from project.models import Project, Institution, Participant,Institution_Participant, GenericInfoProject, GenericInfoTypeProject
@@ -511,20 +511,31 @@ class EmployeeStatusSerialize(serializers.ModelSerializer):
         
     def get_is_contractual(self,obj):
         return obj.get_is_contractual_display()
+
+class EmployeeSuperiorSerialize(serializers.ModelSerializer):
+    employee_superior=EmployeeSerialize_Min(many=False, read_only=True, source='superior')
+    class Meta:
+        model = Employee_Superior
+        fields = ['pk', 'employee','employee_superior', 'start_date', 'end_date', 
+                  'is_active',]
      
 class EmployeeSerialize(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
     get_status =EmployeeStatusSerialize(many=True, read_only=True)
-    contracts=ContractSerializer(many=True, read_only=True)
-    projects=ParticipantSerializer(many=True, read_only=True)
+    # contracts=ContractSerializer(many=True, read_only=True)
+    # projects=ParticipantSerializer(many=True, read_only=True)
     info=EmployeeInfoSerialize(many=True, read_only=True)
+    superior=EmployeeSuperiorSerialize(many=True, read_only=True, source='get_current_superior')
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Employee
         fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','email',
                   'is_team_leader','is_team_mate','get_status','is_active',
-                  'contracts', 'contracts_quotity',
-                  'projects','projects_quotity',
+                  'contracts_quotity',
+                  'projects_quotity',
                   'info',
+                  'superior',
+                  'has_perm',
                   ]
         
 class TeamMateSerializer_min(serializers.ModelSerializer):
@@ -537,11 +548,11 @@ class TeamMateSerializer_min(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
     leader=EmployeeSerialize_Min(many=False, read_only=True)
     team_mate=TeamMateSerializer_min(many=True, read_only=True)
-
+    has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model= Team
-        fields=['pk','name', 'leader', 'team_mate']
+        fields=['pk','name', 'leader', 'team_mate', 'has_perm']
 
 
 
