@@ -8,7 +8,7 @@ from project.models import Project, Institution, Participant,Institution_Partici
 from endpoints.models import Milestones
 from leave.models import Leave, Leave_Type
 from common.models import  favorite
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 
 from datetime import timedelta, datetime
@@ -518,6 +518,28 @@ class EmployeeSuperiorSerialize(serializers.ModelSerializer):
         model = Employee_Superior
         fields = ['pk', 'employee','employee_superior', 'start_date', 'end_date', 
                   'is_active',]
+        
+        
+from django.http import JsonResponse       
+class EmployeeOrganizationChartSerialize(serializers.ModelSerializer):
+    status = EmployeeStatusSerialize(many=True, read_only=True, source='get_status')
+    subordinate = serializers.SerializerMethodField()
+    subordinate_count = serializers.SerializerMethodField()
+
+   
+    class Meta:
+        model = Employee
+        fields = ['pk', 'user_name','status','subordinate_count', 'subordinate', ]
+    
+    def get_subordinate(self,obj):
+        sub = obj.get_current_subordinate()
+        emp=Employee.objects.filter(pk__in=sub.values('employee'))
+        print(f" Sub of {obj} are : {sub}")
+        return EmployeeOrganizationChartSerialize(emp,many=True).data
+        
+    def get_subordinate_count(self,obj):
+        sub = obj.get_current_subordinate()
+        return sub.count()
      
 class EmployeeSerialize(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)

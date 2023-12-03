@@ -1461,3 +1461,16 @@ li.list-spacer{
         margin: 1em 0 1em 0 !important;
     }
 
+/*   for bstreeview   */
+    .org-chart-count{
+        background-color: var(--primary-color-alpha);
+        margin-left: 2em;
+        border-radius: 50%;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+    }
+    .org-chart-status{
+        margin-left: 1em;
+        font-size: smaller;
+        color: gray;
+    }

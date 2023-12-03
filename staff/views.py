@@ -303,3 +303,12 @@ def get_team_mate(request, pk):
     data = {'mates': teamMate}
     
     return render(request, 'team/team_mate_table.html', data)
+
+# For Organisation Chart
+def get_organisation_chart_view(request):
+    return render(request, 'employee/organisation_chart.html')
+
+class OrganisationChartView(LoginRequiredMixin, AccessMixin,  BaseBreadcrumbMixin ,  TemplateView):
+    template_name = 'employee/organization_chart.html'
+    home_label = '<i class="fas fa-bars"></i>'
+    crumbs = [(_("Organisation Chart"),"organisation_chart")]

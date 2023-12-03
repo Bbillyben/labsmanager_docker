@@ -97,6 +97,10 @@ class Employee(models.Model):
         from staff.models import Employee_Superior
         return Employee_Superior.objects.filter(employee=self.pk)
     
+    def get_current_subordinate(self):
+        from staff.models import Employee_Superior
+        return Employee_Superior.current.filter(superior=self.pk) #.values('employee')
+    
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""
         return  f"{self.first_name} {self.last_name}"

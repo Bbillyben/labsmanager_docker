@@ -160,6 +160,15 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         
         return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
     
+    @action(methods=['get'], detail=False, url_path='organization-chart', url_name='organization-chart')
+    def organization_chart(self, request, pk=None):
+        no_sup=Employee_Superior.objects.all().values("employee")
+        emp = Employee.objects.filter(Q(is_active=True) & ~Q(pk__in=no_sup))
+        return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True).data, safe=False)
+        
+        
+        
+        
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.select_related('leader').all()
     serializer_class = serializers.TeamSerializer

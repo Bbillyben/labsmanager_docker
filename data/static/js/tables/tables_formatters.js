@@ -239,6 +239,24 @@ function leaveEmployeeFormatter(value, row, index, field){
     response =  '<a href="'+Urls['employee'](row.employee_pk)+'" title="/'+row.employee_pk+'/"> '+value+'</a>';
     return response;
 }
+
+function employeeSuperiorsFormatter(value, row, index, field){
+    if(!isIterable(value)){
+        value=[{"employee":value}];
+    }
+    response = "";
+    for (const item of value) {
+        // console.log("item :"+JSON.stringify(item));
+            if("employee" in item && item.employee!=null){
+                tm ="<a href='/staff/employee/"+item.employee_superior.pk+"'>"+item.employee_superior.user_name+"</a>";
+                response+= (response.length > 1 ? ', ' : '') + tm;
+            }else{
+                response +="-"
+            }
+            
+      }
+      return response;
+}
 // ------------------------------------------------------------ Employee Additional Info Formatter
 function statusFormatter(value, row, index, field){
     response = '';
@@ -246,6 +264,17 @@ function statusFormatter(value, row, index, field){
     for (const item of value) {
       if (item.is_active){
         response+= (response.length > 1 ? ', ' : '') + item.type.shortname
+      }
+    }
+  
+    return response;
+  }
+function fullStatusFormatter(value, row, index, field){
+    response = '';
+    //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
+    for (const item of value) {
+      if (item.is_active){
+        response+= (response.length > 1 ? ', ' : '') + item.type.name
       }
     }
   

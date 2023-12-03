@@ -8,6 +8,7 @@ urlpatterns = [
     path('employee/<int:pk>', views.EmployeeView.as_view(), name='employee'),
     path('team/', views.TeamIndexView.as_view(), name='team_index'),
     path('team/<int:pk>', views.TeamView.as_view(), name='team_single'),
+    path('organisation_chart/',views.OrganisationChartView.as_view(), name="organisation_chart_index")
 ]
 
 #  for ajax
