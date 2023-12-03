@@ -19,6 +19,7 @@ from staff.filters import EmployeeFilter
 from .ressources import EmployeeResource, TeamResource
 
 from datetime import datetime
+from django.db.models import BooleanField, Case, When, Value
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
@@ -53,6 +54,21 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(pk__in=inS)
         
         return queryset
+    
+    def get_queryset(self, *arg, **kwargs):
+
+        qset = super().get_queryset( *arg, **kwargs)
+        if self.request.user.has_perm('staff.view_employee'):
+            qset = qset.annotate(has_perm=Value(True))
+        else:    
+            qset = qset.annotate(
+                has_perm=Case(
+                    When(Q(user=self.request.user), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            )
+        return qset
     
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
@@ -92,9 +108,17 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     def teams(self, request, pk=None):
         emp = self.get_object()
         t1=Team.objects.filter(leader=emp.pk)
+        t1 = t1.annotate(has_perm=Value(True))
         tm = TeamMate.objects.filter(employee=emp.pk).values('team')
         t2=Team.objects.filter(pk__in=tm)
+        if self.request.user.has_perm('staff.view_team'):
+            t2 = t2.annotate(has_perm=Value(True))
+        else:    
+            t2 = t2.annotate(has_perm=Value(False))
+        
         t=t1.union(t2)
+        
+        
         
         return JsonResponse(serializers.TeamSerializer(t, many=True).data, safe=False)
     
@@ -142,6 +166,21 @@ class TeamViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     
+    def get_queryset(self, *arg, **kwargs):
+
+        qset = super().get_queryset( *arg, **kwargs)
+       
+        if self.request.user.has_perm('staff.view_team'):
+            qset = qset.annotate(has_perm=Value(True))
+        elif self.request.user.employee is not None:    
+            qset = qset.annotate(
+                has_perm=Case(
+                    When(Q(leader=self.request.user.employee), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            )
+        return qset
     
     def filter_queryset(self, queryset):
         params = self.request.query_params

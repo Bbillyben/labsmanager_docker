@@ -18,7 +18,7 @@
         <ul class="navbar-nav">
 
           <!-- For Employee-->
-          {% if perms.staff.view_employee %}
+          {% if perms.staff.view_employee or perms.common.employee_list %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'employee_index' %}">
               <span class='fas fa-user icon-header'></span>{% trans "Employee" %}
@@ -69,17 +69,21 @@
         <ul class='navbar-nav'>
 
             <!-- For Calendar -->
+          {% if perms.common.display_calendar %}
            <li class='nav-item'>
              <a class='nav-link' href="{% url 'calendar_main' %}">
                <span class='fas fa-calendar-days icon-header'></span>{% trans "Calendar" %}
              </a>
            </li>
+           {%endif%}
            <!-- For Dashboard -->
+           {% if perms.common.display_dashboard %}
            <li class='nav-item'>
              <a class='nav-link' href="{% url 'dashboard' %}">
                <span class='fas fa-chart-area icon-header'></span>{% trans "Dashboard" %}
              </a>
            </li>
+           {%endif%}
            {% include 'liste_spacer.html' %}
            <li class='nav-item dropdown'>
              <a class='nav-link dropdown-toggle' href='#' id='userMenuDropdown' role='button' data-bs-toggle='dropdown'>
