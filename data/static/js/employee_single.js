@@ -111,7 +111,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
 
 // for calendar
 function initEmployeeCalendar(){
-    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff");
+    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff") || USER_PERMS.includes("is_owner");
     var option={
         selectable:canMod,
         editable:canMod,
@@ -291,11 +291,5 @@ function adminActionLeave(value, row, index, field){
     return action;
 }
 
-// ----------------------  Formatter  ------------------- //
 
-function calDateFormatter(value, row, index, field){
-    if(value == null || value =="")return value
-    d=new Date(value)
-    if (d == "Invalid Date" )return value;
-    return d.toLocaleDateString() + " - "+ row[field+"_period_di"]
-}
+

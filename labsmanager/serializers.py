@@ -526,7 +526,7 @@ class EmployeeSerialize(serializers.ModelSerializer):
     # projects=ParticipantSerializer(many=True, read_only=True)
     info=EmployeeInfoSerialize(many=True, read_only=True)
     superior=EmployeeSuperiorSerialize(many=True, read_only=True, source='get_current_superior')
-    
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Employee
         fields = ['pk','first_name', 'last_name', 'user', 'birth_date', 'entry_date', 'exit_date','email',
@@ -535,6 +535,7 @@ class EmployeeSerialize(serializers.ModelSerializer):
                   'projects_quotity',
                   'info',
                   'superior',
+                  'has_perm',
                   ]
         
 class TeamMateSerializer_min(serializers.ModelSerializer):
@@ -547,11 +548,11 @@ class TeamMateSerializer_min(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
     leader=EmployeeSerialize_Min(many=False, read_only=True)
     team_mate=TeamMateSerializer_min(many=True, read_only=True)
-
+    has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model= Team
-        fields=['pk','name', 'leader', 'team_mate']
+        fields=['pk','name', 'leader', 'team_mate', 'has_perm']
 
 
 

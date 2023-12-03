@@ -201,12 +201,27 @@ class CrumbListMixin():
     crumbListQuerySet=None
     names_val=None
     id_name="id"
+    crumbListPerm=() #persmission to check to send crumb list to template
     
     class Meta:
         abstract = True
+    
+    def has_crumb_permission(self):
+        if not self.request.user.is_authenticated:
+            return False
+        if self.request.user.is_staff:
+            return True
+        for perm in self.crumbListPerm:
+            if self.request.user.has_perm(perm):
+                return True
+        return False
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        if not self.has_crumb_permission():
+            return context
+        
         sel=self.crumbListQuerySet.filter(~Q(pk=self.kwargs['pk'])).values() #'pk', self.names_val)
         li=[]
         for e in sel:
