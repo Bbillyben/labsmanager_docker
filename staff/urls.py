@@ -28,9 +28,15 @@ urlpatterns += [
     path('employee/<pk>/udpate_user', views_modal.EmployeeUserUpdateView.as_view(), name='update_employee_user'),  # modal update employee's user
     path('user/<pk>/udpate_emp', views_modal.UserEmployeeUpdateView.as_view(), name='update_user_employee'),  # modal update employee'user from admin
     
-    
+    # for status
     path('status/<pk>/update/', views.StatusUpdateView.as_view(), name='update_status_employee'),  # specific for status view
     path('status/<pk>/delete/', views.StatusDeleteView.as_view(), name='delete_status_employee'),  # specific for status view
+    # for Superior
+    path('employee/<employee>/superior/add/', views_modal.EmployeeSuperiorCreateView.as_view(), name='create_superior'),  # modal creation Team
+    path('superior/<pk>/udpate', views_modal.EmployeeSuperiorUpdateView.as_view(), name='update_superior'),  # modal update Team
+    path('superior/<pk>/delete', views_modal.EmployeeSuperiorDeleteView.as_view(), name='delete_superior'),  # modal delete Team
+    
+    
     # for info
     path('employee/<employee>/info/add/', views.EmployeeInfoCreateView.as_view(), name='create_info_employee'),
     path('info/<pk>/update/', views.EmployeeInfoUpdateView.as_view(), name='update_info_employee'),  # specific for status view

@@ -6,7 +6,7 @@ from django.views.generic.base import TemplateView
 from django.http import JsonResponse
 from django.db.models import Q
 # from django.views.generic import ListView
-from .models import Employee, Team, TeamMate, Employee_Status, Employee_Type, GenericInfo
+from .models import Employee, Team, TeamMate, Employee_Status, Employee_Superior, Employee_Type, GenericInfo
 from .filters import EmployeeFilter
 from expense.models import Contract
 from django.contrib.auth.mixins import LoginRequiredMixin
