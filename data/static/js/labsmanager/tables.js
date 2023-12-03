@@ -363,7 +363,23 @@ function getRowOrderByProperty(selector, key, value) {
     return result;
   }
 
-
+function employeeSuperiorsFormatter(value, row, index, field){
+    if(!isIterable(value)){
+        value=[{"employee":value}];
+    }
+    response = "";
+    for (const item of value) {
+        // console.log("item :"+JSON.stringify(item));
+            if("employee" in item && item.employee!=null){
+                tm ="<a href='/staff/employee/"+item.employee_superior.pk+"'>"+item.employee_superior.user_name+"</a>";
+                response+= (response.length > 1 ? ', ' : '') + tm;
+            }else{
+                response +="-"
+            }
+            
+      }
+      return response;
+}
 // --------------------     Basic Table Sorter    ------------------- // 
 
 function nameSorter(fieldA, fieldB){

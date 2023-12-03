@@ -73,20 +73,20 @@
                             {% trans 'Infos' %}
                         </th>
                         {% endif %}
-                        <th data-sortable="true" class="th-inner sortable both" data-field="contracts" data-formatter="contractsFormatter">
+                        <!-- <th data-sortable="true" class="th-inner sortable both" data-field="contracts" data-formatter="contractsFormatter">
                             {% trans 'Contracts' %}
-                        </th>
+                        </th> -->
                         <th data-sortable="true" class="th-inner sortable both" data-field="contracts_quotity" data-formatter="quotityAlertFormatter" data-cell-style="styleAlignMiddle">
                             {% trans 'Contracts Quotity' %}
                         </th>
-                        <th data-sortable="true" class="th-inner sortable both" data-field="projects" data-formatter="projectsFormatter">
+                        <!-- <th data-sortable="true" class="th-inner sortable both" data-field="projects" data-formatter="projectsFormatter">
                             {% trans 'Projects' %}
-                        </th>
+                        </th> -->
                         <th data-sortable="true" class="th-inner sortable both" data-field="projects_quotity" data-formatter="quotityAlertFormatter" data-cell-style="styleAlignMiddle">
                             {% trans 'Projects Quotity' %}
                         </th>
-                        <th data-sortable="true" class="th-inner sortable both" data-field="has_perm">
-                            {% trans 'Has Perm' %}
+                        <th data-sortable="true" class="th-inner sortable both" data-field="superior" data-formatter="employeeSuperiorsFormatter">
+                            {% trans 'Superior' %}
                         </th>
                         <th class="th-inner sortable both"
                             data-field="is_active"

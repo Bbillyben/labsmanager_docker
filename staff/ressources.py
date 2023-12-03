@@ -58,7 +58,14 @@ class ProjectWidget(widgets.CharWidget):
            
         return "\n".join(li)
     
-
+class SuperiorWidget(widgets.CharWidget):
+     def render(self, value, obj=None):
+        li=[]
+        for c in value:
+            strC= str(c.superior.user_name) 
+            li.append(strC)
+           
+        return ", ".join(li)
     
 class EmployeeResource(labResource, SkipErrorRessource):
     first_name = Field(
@@ -122,28 +129,34 @@ class EmployeeResource(labResource, SkipErrorRessource):
         widget=StatusWidget(param='is_contractual'), 
         readonly=True
         ) 
-    contract = Field(
-        column_name=_('Contracts'),
-        attribute='contracts', 
-        widget=ContractWidget(), 
-        readonly=True
-        )
+    # contract = Field(
+    #     column_name=_('Contracts'),
+    #     attribute='contracts', 
+    #     widget=ContractWidget(), 
+    #     readonly=True
+    #     )
     contracts_quotity = Field(
         column_name=_('contracts quotity'),
         attribute='contracts_quotity', 
         widget=percentageWidget(), 
         readonly=True
         )
-    project = Field(
-        column_name=_('Projects'),
-        attribute='projects', 
-        widget=ProjectWidget(),
-        readonly=True
-        )  
+    # project = Field(
+    #     column_name=_('Projects'),
+    #     attribute='projects', 
+    #     widget=ProjectWidget(),
+    #     readonly=True
+    #     )  
     projects_quotity = Field(
         column_name=_('projects quotity'),
         attribute='projects_quotity', 
         widget=percentageWidget(), 
+        readonly=True
+        )    
+    superior= Field(
+        column_name=_('Superior'),
+        attribute='get_current_superior', 
+        widget=SuperiorWidget(), 
         readonly=True
         )    
     class Meta:

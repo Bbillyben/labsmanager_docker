@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm, EmployeeUserModelForm, UserEmployeeModelForm
+from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm, EmployeeUserModelForm, UserEmployeeModelForm, EmployeeSuperiorForm
 
 from labsmanager.mixin import CreateModalNavigateMixin
 
@@ -156,3 +156,35 @@ class GenericInfoTypeUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_message = 'Success: Leave was updated.'
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
+    
+    
+class EmployeeSuperiorCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = EmployeeSuperiorForm
+    success_message = 'Success: Employee  was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+    model = models.Employee_Superior
+    
+    def get(self, request, *args, **kwargs):
+        if 'employee' in kwargs:
+            form = self.form_class(initial={'employee': kwargs['employee']})
+        else:
+            form = self.form_class()
+        
+        context = {'form': form}
+        return render(request, self.template_name , context)
+    
+class EmployeeSuperiorUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.Employee_Superior    
+    template_name = 'form_validate_base.html'
+    form_class = EmployeeSuperiorForm
+    success_message = 'Success: EMployee was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+    
+class EmployeeSuperiorDeleteView(LoginRequiredMixin, BSModalDeleteView):
+    model = models.Employee_Superior
+    template_name = 'form_delete_base.html'
+    # form_class = EmployeeModelForm
+    success_url = reverse_lazy('employee_index')

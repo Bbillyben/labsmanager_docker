@@ -42,7 +42,15 @@ function initEmployeeSingleView(user_idA, employee_idA){
     }
     $('#employee_status_table').labTable(options_status);
 
-    
+    // for superior table
+    var options_superior={
+        url:$('#employee_superior_table').data("url"),
+        name:'surperior',
+        disablePagination:true,
+        search:false,
+        showColumns:false,
+    }
+    $('#employee_superior_table').labTable(options_superior);
     // MOdal for employee edition
     $('#edit-employee').labModalForm({
         formURL: '/staff/employee/'+employee_id+'/udpate',
@@ -59,6 +67,11 @@ function initEmployeeSingleView(user_idA, employee_idA){
         formURL:  Urls['create_info_employee'](employee_id),
         addModalFormFunction: update_employee_info,
         modal_title:"Add Info",
+    })
+    $('#add-superior').labModalForm({
+        formURL:  Urls['create_superior'](employee_id),
+        addModalFormFunction: function(){$('#employee_superior_table').bootstrapTable('refresh');},
+        modal_title:"Add Superior",
     })
 
     $('#add_project').labModalForm({
@@ -235,6 +248,14 @@ function empStatusFormatter(value, row, index, field){
     return action;
 }
 
+function empActionSsuperiorFormatter(value, row, index, field){
+    //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
+    action = "<span class='icon-left-cell btn-group'>";
+    if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='"+Urls['update_superior'](row.pk)+"'' ><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='"+Urls['delete_superior'](row.pk)+"' ><i type = 'button' class='fas fa-trash'></i></button>";
+    action += "</span>"
+    return action;
+}
 
 // ----------------------  table Project  ------------------- //
 function updateParticipant(){

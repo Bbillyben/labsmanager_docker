@@ -6,7 +6,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from labsmanager import serializers  # UserSerializer, GroupSerializer, EmployeeSerialize, EmployeeStatusSerialize, ContractEmployeeSerializer, TeamSerializer, ParticipantSerializer, ProjectSerializer
-from staff.models import Employee, Employee_Status, Team, TeamMate
+from staff.models import Employee, Employee_Status, Team, TeamMate, Employee_Superior
 from expense.models import  Contract
 from project.models import Participant, Project
 
@@ -90,6 +90,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     def status(self, request, pk=None):
         status = Employee_Status.objects.filter(employee=pk).order_by('end_date')
         return JsonResponse(serializers.EmployeeStatusSerialize(status,many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=True,url_path='superior', url_name='superior')
+    def superior(self, request, pk=None):
+        superior = Employee_Superior.objects.filter(employee=pk).order_by('end_date')
+        return JsonResponse(serializers.EmployeeSuperiorSerialize(superior,many=True).data, safe=False)
+    
     
     @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
     def contracts(self,request, pk=None):
