@@ -329,10 +329,10 @@ function ProjectFormatter(value, row, index, field){
       }
       return response;
 }
-// function ProjectFormatter(value, row, index, field){
-//     response =  '<span class="icon-right-cell"><a href="'+row.pk+'" title="/'+row.ipkd+'/"> '+value+'</a>';
-//     return response;
-// }
+function ProjectFormatterList(value, row, index, field){
+    response =  '<span class="icon-right-cell"><a href="'+row.pk+'" title="/'+row.ipkd+'/"> '+value+'</a>';
+    return response;
+}
 
 function projectsFormatter(value, row, index, field){
     //console.log('contractsFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);

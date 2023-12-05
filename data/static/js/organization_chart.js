@@ -1,6 +1,5 @@
 function update_organization_chart(){
     var urlOC = Urls['api:employee-organization-chart']()
-    console.log("[update_organization_chart] at url :"+urlOC)
     $.ajax({
         url: urlOC,
         type: 'GET',
@@ -19,19 +18,21 @@ function update_organization_chart(){
 
 // https://github.com/nhmvienna/bs5treeview/tree/main
 function build_organization_chart(datas){
-    console.log("build_organization_chart");
-    console.log(datas);
     tree =[];
     //datas.forEach((employee) => build_employee_chart(employee, tree) );
     datas.sort(comparteSubordinate)
     for(var index in datas){
         build_employee_chart(datas[index], tree);
     }
-   
-    $('#chart-container').bstreeview({ 
-        data: tree,
-        indent: 3,
-    });
+    for (sup in tree){
+        $('#chart-container').append("<div class='col'><div id='chart_cont_"+sup+"'></div></div>")
+        $('#chart-container #chart_cont_'+sup).bstreeview({ 
+            data: [tree[sup]],
+            indent: 2,
+            openNodeLinkOnNewTab:false,
+        });
+
+    }
 }
 
 function build_employee_chart(employee, c_tree){
@@ -41,7 +42,7 @@ function build_employee_chart(employee, c_tree){
     //n_tree.icon='fa fa-user';
     n_tree.expanded = true;
     if(employee.status){
-        n_tree.text+="<span class='org-chart-status'>"+fullStatusFormatter(employee.status)+'</span>';
+        n_tree.text+="<span class='org-chart-status'>"+statusFormatter(employee.status)+'</span>';
     }
     // pour le status
     if(employee.subordinate_count>0){

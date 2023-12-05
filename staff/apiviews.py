@@ -166,9 +166,59 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         emp = Employee.objects.filter(Q(is_active=True) & ~Q(pk__in=no_sup))
         return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True).data, safe=False)
         
+    @action(methods=['get'], detail=True, url_path='emp_organization', url_name='emp_organization')
+    def emp_organization(self, request, pk=None):
+        print(f'emp_organization for pk:{pk}')
+        emp = Employee.objects.get(pk=pk)
         
+        c_down = Employee_Superior.objects.filter(superior = emp)
+        # build child
+        c_node = {'sup':serializers.EmployeeSerialize_Min(emp, many=False).data, 'current':True, 'sub':[]}
+        if c_down.exists():
+            print("Has subordinate")
+            for down in c_down:
+                c_node['sub'].append({'sup':serializers.EmployeeSerialize_Min(down.employee, many=False).data,'sub':[]})
+                self.__class__.build_tree_down(down.employee, c_node['sub'][len(c_node['sub']) - 1])
         
+        c_sup = Employee_Superior.objects.filter(employee = emp)
+        tree={}
+        Full_Tree=[]
+        if c_sup.exists():
+            print("Has Superior")
+            for sup in c_sup:
+                print(f'  - sup : {sup.superior}')
+                tree['sup']=serializers.EmployeeSerialize_Min(sup.superior, many=False).data
+                tree['sub']=[c_node.copy()]
+                
+                Full_Tree.append(self.__class__.build_tree_up(sup.superior, tree))
+        else:
+            Full_Tree.append(c_node)     
+        return JsonResponse(Full_Tree, safe=False)
+    
+    @classmethod    
+    def build_tree_down(cls, sup, tree):
+        c_down = Employee_Superior.objects.filter(superior = sup)
+        if c_down.exists():
+            for sup2 in c_down:
+                tree['sub'].append({'sup':serializers.EmployeeSerialize_Min(sup2.employee, many=False).data, 'sub':[]})
+                cls.build_tree_down(sup2.employee, tree['sub'][len(tree['sub'])-1])
+    
+    @classmethod    
+    def build_tree_up(cls, sup, tree):
+        print(f' build_tree_up for sup : {sup}')
+        c_sup = Employee_Superior.objects.filter(employee = sup)
+        child_tree = tree.copy()
+        node={}
+        if c_sup.exists() :
+            for sup2 in c_sup:
+                node['sup']=serializers.EmployeeSerialize_Min(sup2.superior, many=False).data
+                node['sub']=[child_tree]
+                node = cls.build_tree_up(sup2.superior, node)
+                return node.copy()
+        else:
+            return child_tree
         
+    
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.select_related('leader').all()
     serializer_class = serializers.TeamSerializer

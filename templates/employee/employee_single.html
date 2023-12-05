@@ -7,6 +7,10 @@
 {% trans "LabManager Employee" %} - {{ employee }}
 {% endblock %}
 
+{% block link %}
+<link rel="stylesheet" href="{% static 'bstreeview/bstreeview.css' %}">
+{% endblock %}
+
 {% block breadcrumb_list %}
 {% endblock %}
 
@@ -51,11 +55,6 @@
                         {% if perms.staff.add_genericinfo %}
                         <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
                             <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
-                        </a></li>
-                        {% endif %}
-                        {% if perms.staff.add_employee_superior %}
-                        <li><a class="dropdown-item" href="#" id="add-superior" title="Add Superior">
-                            <i class='fa fa-cubes'></i> {% trans 'Add Superior' %}
                         </a></li>
                         {% endif %}
                         {% if perms.reports.view_employeewordreport or user.employee.pk == pk %}
@@ -136,6 +135,20 @@
                     <div class="card  mb-2">
                         <div class="row">
                             <div class="col">
+                                <div class="d-flex flex-wrap subheading">
+                                    <h4><i class="fa-solid fa-sitemap"></i>  {% trans 'Employee\'s Organization Chart' %}</h4> 
+                                    <span class="flex" style="flex-grow: 1;"></span>
+                                    <div class="btn-group" role="group">
+                                        {% if perms.staff.add_employee_superior %}
+                                        <button type="button" class="btn btn-secondary" id="add-superior" title="Add Superior" >
+                                            <span class='fa fas fa-plus'></span>
+                                        </button>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-success" id="show_emp_chart" title="Show Chart" data-employeepk="{{ pk }}" >
+                                            <span class='fa-solid fa-sitemap'>
+                                        </button>
+                                    </div>                      
+                                </div>
                                 <table
                                 class='table table-striped table-condensed'
                                 id="employee_superior_table"
@@ -175,6 +188,7 @@
                             </div>
                         </div>
                     </div>
+                    
 
                     
                     
@@ -519,6 +533,8 @@
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/contribution_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script type='text/javascript' src="{% static 'bstreeview/bstreeview.js' %}"></script>
+
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);

@@ -1474,3 +1474,6 @@ li.list-spacer{
         font-size: smaller;
         color: gray;
     }
+    .employee_orga_chart{
+        background-color: var(--primary-color-alpha);   
+    }

@@ -101,13 +101,19 @@ function initEmployeeSingleView(user_idA, employee_idA){
         asyncSettings: {directUpdate:true,closeOnSubmit:true,},
         modal_title:"Export PDF",
     })
-
+    
+    $('#show_emp_chart').labModal({
+        templateURL: Urls['employee_org_chart_modal'](employee_id),
+        modal_title:"Employee Organisation",
+    })
 
     update_employee();
     update_employee_info();
     
+    
     //updateLeaveBtnHandler();
 }
+
 
 // for calendar
 function initEmployeeCalendar(){

@@ -248,6 +248,10 @@ def get_employee_info_table(request, pk):
     info=GenericInfo.objects.filter(employee__pk=pk)
     return render(request, 'employee/employee_info_table.html', {'infoEmployee': info})
 
+## Get the employee info table
+def get_employee_organisation_chart_modal(request, pk):
+    return render(request, 'employee/org_chart_modal.html', {'employeePK': pk})
+
 # TEAMS views
 class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'team/team_base.html'

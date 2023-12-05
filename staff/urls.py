@@ -45,6 +45,7 @@ urlpatterns += [
     # for sub template 
     path('ajax/<pk>/activ', views.get_employee_valid, name='user_valid_temp'),  # template for user valid check box
     path('ajax/<pk>/info', views.get_employee_info_table, name='employee_info_table'), 
+    path('ajax/<pk>/org_chart_modal', views.get_employee_organisation_chart_modal, name='employee_org_chart_modal'), 
     # for team
     path('team/add/', views_modal.TeamCreateView.as_view(), name='create_team'),  # modal creation Team
     path('team/<pk>/udpate', views_modal.TeamUpdateView.as_view(), name='update_team'),  # modal update Team
