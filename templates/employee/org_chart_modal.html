@@ -45,8 +45,13 @@ function update_emp_orga_chart(emp_pk){
     }
     function build_employee_chart(employee, c_tree){
         var n_tree={};
-        n_tree.text=employeeFormatter(employee.sup);
-        if(employee.current==true)n_tree.text="<span class='employee_orga_chart'>"+n_tree.text+"</span>"
+        
+        if(employee.current==true){
+            n_tree.text=employee.sup.user_name;
+            n_tree.text=n_tree.text+"<sup class='employee_orga_chart'><i class='fa fa-user'></i></sup>"
+        }else{
+            n_tree.text=employeeFormatter(employee.sup);
+        }
         n_tree.expanded = true;
         if(employee.sub.length>0){
             n_tree.nodes=[];

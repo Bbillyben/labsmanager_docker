@@ -26,11 +26,12 @@ function build_organization_chart(datas){
     }
     for (sup in tree){
         console.log(JSON.stringify(tree[sup]))
-        $('#chart-container').append("<div class='row'><div id='chart_cont_"+sup+"'></div></div>")
+        $('#chart-container').append("<div class='row'><div class='org-chart-cont' id='chart_cont_"+sup+"'></div></div>")
         $('#chart-container #chart_cont_'+sup).orgchart({ 
             data: tree[sup],
             nodeContent: "title",
             pan:true,
+            //zoom:true,
             verticalLevel:3,
 
             
