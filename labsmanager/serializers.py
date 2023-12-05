@@ -534,7 +534,6 @@ class EmployeeOrganizationChartSerialize(serializers.ModelSerializer):
     def get_subordinate(self,obj):
         sub = obj.get_current_subordinate()
         emp=Employee.objects.filter(pk__in=sub.values('employee'))
-        print(f" Sub of {obj} are : {sub}")
         return EmployeeOrganizationChartSerialize(emp,many=True).data
         
     def get_subordinate_count(self,obj):

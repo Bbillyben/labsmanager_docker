@@ -168,14 +168,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         
     @action(methods=['get'], detail=True, url_path='emp_organization', url_name='emp_organization')
     def emp_organization(self, request, pk=None):
-        print(f'emp_organization for pk:{pk}')
         emp = Employee.objects.get(pk=pk)
         
         c_down = Employee_Superior.objects.filter(superior = emp)
         # build child
         c_node = {'sup':serializers.EmployeeSerialize_Min(emp, many=False).data, 'current':True, 'sub':[]}
         if c_down.exists():
-            print("Has subordinate")
             for down in c_down:
                 c_node['sub'].append({'sup':serializers.EmployeeSerialize_Min(down.employee, many=False).data,'sub':[]})
                 self.__class__.build_tree_down(down.employee, c_node['sub'][len(c_node['sub']) - 1])
@@ -184,9 +182,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         tree={}
         Full_Tree=[]
         if c_sup.exists():
-            print("Has Superior")
             for sup in c_sup:
-                print(f'  - sup : {sup.superior}')
                 tree['sup']=serializers.EmployeeSerialize_Min(sup.superior, many=False).data
                 tree['sub']=[c_node.copy()]
                 
@@ -205,7 +201,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     
     @classmethod    
     def build_tree_up(cls, sup, tree):
-        print(f' build_tree_up for sup : {sup}')
         c_sup = Employee_Superior.objects.filter(employee = sup)
         child_tree = tree.copy()
         node={}

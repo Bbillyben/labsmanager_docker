@@ -12,6 +12,7 @@
 
 {% block link %}
 <link rel="stylesheet" href="{% static 'bstreeview/bstreeview.css' %}">
+<link rel="stylesheet" href="{% static 'orgchart/jquery.orgchart.css' %}">
 {% endblock %}
 
 {% block sidebar %}
@@ -21,7 +22,6 @@
 
 
 {% block content %}
-
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-organization-chart" style="display: block;">
         <div class="panel-heading">
@@ -36,7 +36,7 @@
         <div class="panel-content">
             <div class="col">
                 <div class="card  mb-2">
-                    <div class ="row" id="chart-container">
+                    <div class ="col" id="chart-container">
                     </div>
                 </div>
 
@@ -58,6 +58,7 @@
 {% endblock %}
 {% block js %}
 <script type='text/javascript' src="{% static 'bstreeview/bstreeview.js' %}"></script>
+<script type='text/javascript' src="{% static 'orgchart/jquery.orgchart.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/organization_chart.js' %}"></script>
 
 {% endblock %}
