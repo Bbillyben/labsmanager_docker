@@ -14,15 +14,19 @@
             if(settings.modal_title){
                 $(settings.modalID+" #modal-title").html(settings.modal_title)
             }
+
+            $(settings.modalID).find('.modal-content')
+            .resizable({
+              handles: 'n, e, s, w, ne, sw, se, nw',
+            })
         });
     };
 
 
     $.fn.labModal = function(options) {
         var defaults = {
-            modalID:"#create-modal",
-            modalContent:".modal-content",
-            modalForm:".modal-content form",
+            modalID:"#single-modal",
+            modalContent:".modal-body",
         };
         var settings = $.extend(defaults, options);
 

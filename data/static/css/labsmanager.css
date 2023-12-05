@@ -665,8 +665,8 @@ main {
 }
 
 .modal-dialog {
-    width: 65%;
-    max-width: 80%;
+    width: 500px !important;
+    max-width: 50% !important;
 }
 
 .modal-secondary .modal-dialog {

@@ -216,8 +216,8 @@ function labTableUpdate(eventName, table, options, playCallback=true){
 
    var defaults = {
         modalID:"#create-modal",
-        modalContent:".modal-content",
-        modalForm:".modal-content form",
+        modalContent:".modal-body",
+        modalForm:".modal-body form",
     };
     settings = $.extend(defaults, options);
 
