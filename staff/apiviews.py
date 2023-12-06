@@ -42,7 +42,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         name = params.get('name', None)
         if name:
             queryset = queryset.filter( Q(first_name__icontains=name) | Q(last_name__icontains=name))
-             
+            
+        sup_name = params.get('superior_name', None)
+        if sup_name:
+            empsup=Employee_Superior.current.filter(Q(superior__first_name__icontains=sup_name) | Q(superior__last_name__icontains=sup_name)).values('employee')
+            queryset = queryset.filter(pk__in=empsup)
+            
         empStatus = params.get('status', None)
         if empStatus:
             inS=Employee_Status.objects.filter(type=empStatus).values('employee')
@@ -165,7 +170,21 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         no_sup=Employee_Superior.objects.all().values("employee")
         emp = Employee.objects.filter(Q(is_active=True) & ~Q(pk__in=no_sup))
         return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True).data, safe=False)
-        
+    
+    
+    @action(methods=['get'], detail=True, url_path='emp_team_lead', url_name='emp_team_lead')
+    def emp_team_lead(self, request, pk=None):
+        tm = TeamMate.objects.filter(employee=pk).values('team')
+        tl=Team.objects.filter(Q(pk__in=tm)|Q(leader=pk)).annotate(
+            is_leader=Case(
+                When(leader__pk=pk, then=Value(True)), 
+                default=Value(False),
+                output_field=BooleanField())
+            )
+
+        return JsonResponse(serializers.TeamSerializer_min(tl, many=True).data, safe=False)
+    
+    
     @action(methods=['get'], detail=True, url_path='emp_organization', url_name='emp_organization')
     def emp_organization(self, request, pk=None):
         emp = Employee.objects.get(pk=pk)
@@ -190,6 +209,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         else:
             Full_Tree.append(c_node)     
         return JsonResponse(Full_Tree, safe=False)
+    
+    
     
     @classmethod    
     def build_tree_down(cls, sup, tree):

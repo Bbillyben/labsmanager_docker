@@ -1,8 +1,8 @@
 (function ($) {
 
     var labModalSimple = function (settings) {
-        console.log("THis is modal click")
-        console.log(JSON.stringify(settings))
+        // console.log("THis is modal click")
+        // console.log(JSON.stringify(settings))
 
         url=settings.templateURL;
         

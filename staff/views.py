@@ -252,6 +252,9 @@ def get_employee_info_table(request, pk):
 def get_employee_organisation_chart_modal(request, pk):
     return render(request, 'employee/org_chart_modal.html', {'employeePK': pk})
 
+def get_employee_teams_lead(request, pk):
+    return render(request, 'employee/emp_teal_lead_modal.html', {'employeePK': pk})
+
 # TEAMS views
 class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'team/team_base.html'

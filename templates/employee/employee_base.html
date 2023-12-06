@@ -7,6 +7,10 @@
 {% trans "LabManager Employee" %}
 {% endblock %}
 
+{% block link %}
+<link rel="stylesheet" href="{% static 'bstreeview/bstreeview.css' %}">
+{% endblock %}
+
 {% block breadcrumb_list %}
 {% endblock %}
 
@@ -18,6 +22,7 @@
 
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
+{% include 'modals.html' with modal_id='single-modal' modal_title='Single' %}
 
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
@@ -126,85 +131,22 @@
 
 
 {% block js_load %}
-
-<script>
- // ajax call
-
-function SetCliCListenerStaff(){
-    //console.log('SetCliCListenerStaff');
-    $('.user_action').click(function(){
-
-        data_action = $(this).data('action-type');
-        item_pk= $(this).data('pk');
-        user_id = JSON.parse(document.getElementById('user_id').textContent);
-        $.ajax({
-            type:"POST",
-            url: "{% url 'ajax_staff' %}",
-            data:{
-                    action_type: data_action,
-                    pk:item_pk,
-                    csrfmiddlewaretoken: '{{ csrf_token }}',
-            },
-            success: function( data )
-            {
-                $('#employee_main_table').bootstrapTable('refresh');
-            },
-            error:function( err )
-            {
-                alert('User mod Error :'+err);
-            }
-        })
-    });
-
-}
+<script type='text/javascript' src="{% static 'js/employee_base.js' %}"></script>
+<script type='text/javascript' src="{% static 'bstreeview/bstreeview.js' %}"></script>
 
 
-
-function update_windows_function(){
-    $('#employee_main_table').bootstrapTable('refresh');
-
-    // initialise Modal Form Employee add
-    $("#employee_create").labModalForm({
-        formURL:  "{% url 'create_employee' %}",
-        addModalFormFunction: update_windows_function,
-    })
-
-}
-
-
-$(document).ready(function () {
-    // $.extend($.fn.bootstrapTable.defaults.icons, {
-    //     advancedSearchIcon: 'fa-chevron-down',
-    // });
-    var filters = loadTableFilters('employee');
-    var filterOption={
-        download:true,
-    }
-    var options={
-        callback: SetCliCListenerStaff,
-        url:"/api/employee/",
-        queryParams: filters,
-        name:'employee',
-        
-    }
-    
-    setupFilterList('employee', $('#employee_main_table'), '#filter-list-employee',  filterOption);
-
-    $('#employee_main_table').labTable(options);
-       
-    update_windows_function();
- })
-
-
-</script>
 {% endblock %}
 
 
 {% block js %}
-<script type='text/javascript' src="{% static 'js/employee_base.js' %}"></script>
-
 <script>
 
-</script>
+
+    $(document).ready(function () {
+        initialiseBaseEmployee()
+     })
+    
+    
+    </script>
 {% endblock %}
 

@@ -156,11 +156,16 @@ function userFormatter(value, row, index, field){
     
     response += '<span class="icon-left-cell">';
   if(row.is_team_leader){
-    response+='<i class="fas fa-crown icon-spaced" style="color: coral" title="team leader"></i>'
+    response+='<span type="button" class="icon-spaced show_teamlead" data-emp_pk="'+row.pk+'" ><i class="fas fa-crown icon-spaced" style="color: coral" title="team leader"></i></span>';
   }
   if(row.is_team_mate){
-    response+='<i class="fas fa-user-friends icon-spaced" style="color: cadetblue" title="team mate"></i>'
+    response+='<span type="button" class="icon-spaced show_teamlead" data-emp_pk="'+row.pk+'" ><i class="fas fa-user-friends" style="color: cadetblue" title="team mate"></i></span>';
   }
+
+    if(row.has_subordinate){
+        response+='<span type="button"  class="icon-spaced show_orgchart" data-emp_pk="'+row.pk+'" ><i  class="fas fa-sitemap" style="color: var(--primary-color)" title="subordinate"></i></span>';
+    }
+
   response += '</span>';
 
     return response;

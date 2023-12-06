@@ -18,6 +18,10 @@ function getAvailableTableFilters(tableKey) {
                 title: 'Employee Name',
                 description: 'Employee Name',
             },
+            superior_name:{
+                title: 'Responsible Name',
+                description: 'Responsible Name',
+            },
             status:{
                 title : 'Employee Status',
                 description: 'Employee Status Code',

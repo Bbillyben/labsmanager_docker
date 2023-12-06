@@ -547,6 +547,7 @@ class EmployeeSerialize(serializers.ModelSerializer):
     # projects=ParticipantSerializer(many=True, read_only=True)
     info=EmployeeInfoSerialize(many=True, read_only=True)
     superior=EmployeeSuperiorSerialize(many=True, read_only=True, source='get_current_superior')
+    #has_subordinate=EmployeeSuperiorSerialize(many=True, read_only=True)
     has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Employee
@@ -555,7 +556,7 @@ class EmployeeSerialize(serializers.ModelSerializer):
                   'contracts_quotity',
                   'projects_quotity',
                   'info',
-                  'superior',
+                  'superior','has_subordinate',
                   'has_perm',
                   ]
         
@@ -565,7 +566,17 @@ class TeamMateSerializer_min(serializers.ModelSerializer):
         model = TeamMate
         fields=['pk', 'employee', 'start_date', 'end_date', 'is_active',]
     
+
+class TeamSerializer_min(serializers.ModelSerializer):  
+    url = serializers.SerializerMethodField()
+    is_leader=serializers.BooleanField(read_only=True)
+    class Meta:
+        model= Team
+        fields=['pk','name', 'url','is_leader',]
     
+    def get_url(self, obj):
+        return reverse('team_single', kwargs={'pk':obj.pk})
+        
 class TeamSerializer(serializers.ModelSerializer):
     leader=EmployeeSerialize_Min(many=False, read_only=True)
     team_mate=TeamMateSerializer_min(many=True, read_only=True)

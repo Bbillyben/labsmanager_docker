@@ -39,22 +39,12 @@ class Employee(models.Model):
     def user_name(self):
         return self.first_name+" "+self.last_name
     
-    @property
     def is_team_leader(self):
-        teams=Team.objects.filter(leader=self.pk).values("pk")
-        if teams:
-            return True
-        return False
-    
-    @property
+        return Team.objects.filter(leader=self.pk).exists()
+
     def is_team_mate(self):
-        teams=TeamMate.objects.filter(employee=self.pk).values("pk")
-        if teams:
-            return True
-        return False
+        return TeamMate.objects.filter(employee=self.pk).exists()
     
-    
-    @property
     def get_status(self):
         return Employee_Status.objects.filter(employee=self.pk)
     
@@ -64,31 +54,28 @@ class Employee(models.Model):
         return Contract.objects.filter(employee=self.pk)
     
     #ItemPrice.objects.aggregate(Sum('price'))
-    @property
     def contracts_quotity(self):
         from expense.models import Contract
-        return Contract.objects.filter(Q(employee=self.pk) &  Q(start_date__lte=timezone.now()) & ( Q(end_date__gte=timezone.now()) | Q(end_date=None))).aggregate(Sum('quotity'))["quotity__sum"]
+        return Contract.current.filter(employee=self).aggregate(Sum('quotity'))["quotity__sum"]
 
     # @property
     def projects(self):
         from project.models import Participant
         return Participant.objects.filter(employee=self.pk)
     
-    @property
     def projects_quotity(self):
         from project.models import Participant
         return Participant.objects.filter(Q(employee=self.pk) & Q(project__status=True) &  Q(start_date__lte=timezone.now())  & ( Q(end_date__gte=timezone.now()) | Q(end_date=None)) ).aggregate(Sum('quotity'))["quotity__sum"]
-    @property
+    
+    
     def info(self):
         return GenericInfo.objects.filter(employee=self.pk)
     
     
-    @property
     def contribution_quotity(self):
         from fund.models import Contribution
         return Contribution.current.filter(employee=self.pk).aggregate(Sum('quotity'))["quotity__sum"]
     
-    @property
     def get_current_superior(self):
         from staff.models import Employee_Superior
         return Employee_Superior.current.filter(employee=self.pk)
@@ -96,6 +83,17 @@ class Employee(models.Model):
     def get_superior(self):
         from staff.models import Employee_Superior
         return Employee_Superior.objects.filter(employee=self.pk)
+    
+    def has_subordinate(self):
+        return Employee_Superior.current.filter(superior=self.pk).exists()
+    
+    def get_current_subordinate(self):
+        from staff.models import Employee_Superior
+        return Employee_Superior.current.filter(superior=self.pk)
+    
+    def get_subordinate(self):
+        from staff.models import Employee_Superior
+        return Employee_Superior.objects.filter(superior=self.pk)
     
     def get_current_subordinate(self):
         from staff.models import Employee_Superior
