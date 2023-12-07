@@ -271,7 +271,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
         # fields = ['pk', 'project_pk', 'project_name', 'project_start_date', 'project_end_date', 'project_status', 'status', 'quotity' ]
-        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity' ]
+        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity', 'is_active', ]
     
     def get_status(self,obj):
         return obj.get_status_display()

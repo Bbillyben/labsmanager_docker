@@ -65,7 +65,7 @@ class Employee(models.Model):
     
     def projects_quotity(self):
         from project.models import Participant
-        return Participant.objects.filter(Q(employee=self.pk) & Q(project__status=True) &  Q(start_date__lte=timezone.now())  & ( Q(end_date__gte=timezone.now()) | Q(end_date=None)) ).aggregate(Sum('quotity'))["quotity__sum"]
+        return Participant.current.filter(Q(employee=self.pk) & Q(project__status=True)  ).aggregate(Sum('quotity'))["quotity__sum"]
     
     
     def info(self):
