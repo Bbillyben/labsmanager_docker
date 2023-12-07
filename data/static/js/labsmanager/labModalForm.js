@@ -1,8 +1,8 @@
 $.fn.labModalForm = function(options) {
     var defaults = {
         modalID:"#create-modal",
-        modalContent:".modal-content",
-        modalForm:".modal-content form",
+        modalContent:".modal-body",
+        modalForm:".modal-body form",
         isDeleteForm: false,
         addModalFormFunction:null,
         forceExitFunction: false,
@@ -41,3 +41,5 @@ $.fn.labModalForm = function(options) {
         }
     });
 }
+
+

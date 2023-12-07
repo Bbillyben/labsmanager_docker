@@ -15,7 +15,7 @@ https://github.com/trco/django-bootstrap-modal-forms
             $(settings.modalID).modal("show");
             $(settings.modalForm).attr("action", settings.formURL);
             if(settings.modal_title){
-                $(settings.modalID+" #modal-title").html(settings.modal_title)
+                $(settings.modalID).find("#modal-title").html(settings.modal_title)
             }
             addEventHandlers(settings);
         });
@@ -186,8 +186,8 @@ https://github.com/trco/django-bootstrap-modal-forms
         // Default settings
         var defaults = {
             modalID: "#modal",
-            modalContent: ".modal-content",
-            modalForm: ".modal-content form",
+            modalContent: ".modal-body",
+            modalForm: ".modal-body form",
             formURL: null,
             params:{},
             isDeleteForm: false,

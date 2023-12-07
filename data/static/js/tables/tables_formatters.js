@@ -156,11 +156,16 @@ function userFormatter(value, row, index, field){
     
     response += '<span class="icon-left-cell">';
   if(row.is_team_leader){
-    response+='<i class="fas fa-crown icon-spaced" style="color: coral" title="team leader"></i>'
+    response+='<span type="button" class="icon-spaced show_teamlead" data-emp_pk="'+row.pk+'" ><i class="fas fa-crown icon-spaced" style="color: coral" title="team leader"></i></span>';
   }
   if(row.is_team_mate){
-    response+='<i class="fas fa-user-friends icon-spaced" style="color: cadetblue" title="team mate"></i>'
+    response+='<span type="button" class="icon-spaced show_teamlead" data-emp_pk="'+row.pk+'" ><i class="fas fa-user-friends" style="color: cadetblue" title="team mate"></i></span>';
   }
+
+    if(row.has_subordinate){
+        response+='<span type="button"  class="icon-spaced show_orgchart" data-emp_pk="'+row.pk+'" ><i  class="fas fa-sitemap" style="color: var(--primary-color)" title="subordinate"></i></span>';
+    }
+
   response += '</span>';
 
     return response;
@@ -239,6 +244,24 @@ function leaveEmployeeFormatter(value, row, index, field){
     response =  '<a href="'+Urls['employee'](row.employee_pk)+'" title="/'+row.employee_pk+'/"> '+value+'</a>';
     return response;
 }
+
+function employeeSuperiorsFormatter(value, row, index, field){
+    if(!isIterable(value)){
+        value=[{"employee":value}];
+    }
+    response = "";
+    for (const item of value) {
+        // console.log("item :"+JSON.stringify(item));
+            if("employee" in item && item.employee!=null){
+                tm ="<a href='/staff/employee/"+item.employee_superior.pk+"'>"+item.employee_superior.user_name+"</a>";
+                response+= (response.length > 1 ? ', ' : '') + tm;
+            }else{
+                response +="-"
+            }
+            
+      }
+      return response;
+}
 // ------------------------------------------------------------ Employee Additional Info Formatter
 function statusFormatter(value, row, index, field){
     response = '';
@@ -246,6 +269,17 @@ function statusFormatter(value, row, index, field){
     for (const item of value) {
       if (item.is_active){
         response+= (response.length > 1 ? ', ' : '') + item.type.shortname
+      }
+    }
+  
+    return response;
+  }
+function fullStatusFormatter(value, row, index, field){
+    response = '';
+    //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
+    for (const item of value) {
+      if (item.is_active){
+        response+= (response.length > 1 ? ', ' : '') + item.type.name
       }
     }
   
@@ -300,7 +334,7 @@ function ProjectFormatter(value, row, index, field){
       }
       return response;
 }
-function ProjectFormatter(value, row, index, field){
+function ProjectFormatterList(value, row, index, field){
     response =  '<span class="icon-right-cell"><a href="'+row.pk+'" title="/'+row.ipkd+'/"> '+value+'</a>';
     return response;
 }

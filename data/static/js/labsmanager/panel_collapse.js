@@ -8,6 +8,8 @@ function initialiseCollapsePanel(){
 }
 
 function collapseListener(e){
+    if(this!=e.target)return
+
     id=this.id
     type = e.type
     localStorage.setItem(`labsmanager-panel-collapse-${id}`, type);

@@ -42,7 +42,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         name = params.get('name', None)
         if name:
             queryset = queryset.filter( Q(first_name__icontains=name) | Q(last_name__icontains=name))
-             
+            
+        sup_name = params.get('superior_name', None)
+        if sup_name:
+            empsup=Employee_Superior.current.filter(Q(superior__first_name__icontains=sup_name) | Q(superior__last_name__icontains=sup_name)).values('employee')
+            queryset = queryset.filter(pk__in=empsup)
+            
         empStatus = params.get('status', None)
         if empStatus:
             inS=Employee_Status.objects.filter(type=empStatus).values('employee')
@@ -159,6 +164,76 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             t1= t1.filter(pk__in=empS)
         
         return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='organization-chart', url_name='organization-chart')
+    def organization_chart(self, request, pk=None):
+        no_sup=Employee_Superior.objects.all().values("employee")
+        emp = Employee.objects.filter(Q(is_active=True) & ~Q(pk__in=no_sup))
+        return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True).data, safe=False)
+    
+    
+    @action(methods=['get'], detail=True, url_path='emp_team_lead', url_name='emp_team_lead')
+    def emp_team_lead(self, request, pk=None):
+        tm = TeamMate.objects.filter(employee=pk).values('team')
+        tl=Team.objects.filter(Q(pk__in=tm)|Q(leader=pk)).annotate(
+            is_leader=Case(
+                When(leader__pk=pk, then=Value(True)), 
+                default=Value(False),
+                output_field=BooleanField())
+            )
+
+        return JsonResponse(serializers.TeamSerializer_min(tl, many=True).data, safe=False)
+    
+    
+    @action(methods=['get'], detail=True, url_path='emp_organization', url_name='emp_organization')
+    def emp_organization(self, request, pk=None):
+        emp = Employee.objects.get(pk=pk)
+        
+        c_down = Employee_Superior.objects.filter(superior = emp)
+        # build child
+        c_node = {'sup':serializers.EmployeeSerialize_Min(emp, many=False).data, 'current':True, 'sub':[]}
+        if c_down.exists():
+            for down in c_down:
+                c_node['sub'].append({'sup':serializers.EmployeeSerialize_Min(down.employee, many=False).data,'sub':[]})
+                self.__class__.build_tree_down(down.employee, c_node['sub'][len(c_node['sub']) - 1])
+        
+        c_sup = Employee_Superior.objects.filter(employee = emp)
+        tree={}
+        Full_Tree=[]
+        if c_sup.exists():
+            for sup in c_sup:
+                tree['sup']=serializers.EmployeeSerialize_Min(sup.superior, many=False).data
+                tree['sub']=[c_node.copy()]
+                
+                Full_Tree.append(self.__class__.build_tree_up(sup.superior, tree))
+        else:
+            Full_Tree.append(c_node)     
+        return JsonResponse(Full_Tree, safe=False)
+    
+    
+    
+    @classmethod    
+    def build_tree_down(cls, sup, tree):
+        c_down = Employee_Superior.objects.filter(superior = sup)
+        if c_down.exists():
+            for sup2 in c_down:
+                tree['sub'].append({'sup':serializers.EmployeeSerialize_Min(sup2.employee, many=False).data, 'sub':[]})
+                cls.build_tree_down(sup2.employee, tree['sub'][len(tree['sub'])-1])
+    
+    @classmethod    
+    def build_tree_up(cls, sup, tree):
+        c_sup = Employee_Superior.objects.filter(employee = sup)
+        child_tree = tree.copy()
+        node={}
+        if c_sup.exists() :
+            for sup2 in c_sup:
+                node['sup']=serializers.EmployeeSerialize_Min(sup2.superior, many=False).data
+                node['sub']=[child_tree]
+                node = cls.build_tree_up(sup2.superior, node)
+                return node.copy()
+        else:
+            return child_tree
+        
     
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.select_related('leader').all()
