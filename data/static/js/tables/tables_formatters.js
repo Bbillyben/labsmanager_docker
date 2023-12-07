@@ -162,7 +162,7 @@ function userFormatter(value, row, index, field){
     response+='<span type="button" class="icon-spaced show_teamlead" data-emp_pk="'+row.pk+'" ><i class="fas fa-user-friends" style="color: cadetblue" title="team mate"></i></span>';
   }
 
-    if(row.has_subordinate){
+    if(row.has_subordinate || row.superior.length>0){
         response+='<span type="button"  class="icon-spaced show_orgchart" data-emp_pk="'+row.pk+'" ><i  class="fas fa-sitemap" style="color: var(--primary-color)" title="subordinate"></i></span>';
     }
 

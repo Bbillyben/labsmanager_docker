@@ -76,6 +76,9 @@ class Employee(models.Model):
         from fund.models import Contribution
         return Contribution.current.filter(employee=self.pk).aggregate(Sum('quotity'))["quotity__sum"]
     
+    def has_superior(self):
+        return Employee_Superior.current.filter(employee=self.pk).exists()
+    
     def get_current_superior(self):
         from staff.models import Employee_Superior
         return Employee_Superior.current.filter(employee=self.pk)
