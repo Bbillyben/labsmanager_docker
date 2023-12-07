@@ -1441,13 +1441,22 @@ li.list-spacer{
         float:right;
         font-size: 0.75em;
         text-align: center;
-        width:1.5em;
+        width:auto;
         height:1.5em;
         margin-left:0.5em;
         border-radius:0.75em;
         background-color: var(--label-yellow);
-        cursor: help;
-        
+        cursor: help;        
+    }
+    .availContract .aicon{
+        color: #644a00;
+        display: inline;
+        margin: 0 0.3em 0 0.6em;
+    }
+    .availContract .anum{
+        margin-right:0.5em;
+        font-weight: bold;
+
     }
      /* for Focus / out focus cost type */
 

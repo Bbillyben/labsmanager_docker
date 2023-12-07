@@ -417,7 +417,7 @@ function availableFundItem_alert(value, row, index, field){
             if(row.contract[i].contract_type)cc+=" - "+row.contract[i].contract_type
             if(row.contract[i].end_date)cc+=" - "+row.contract[i].end_date;
           }
-        response+='<span class="availContract" tabindex="0" data-toggle="tooltip" data-placement="top" title="'+cc+'">'+row.contract.length+"</span>";
+        response+='<span class="availContract" tabindex="0" data-toggle="tooltip" data-placement="top" title="'+cc+'"><span class="aicon fa fa-file-signature"> </span><span class="anum">'+row.contract.length+"</span></span>";
     }
     return response;
 }
