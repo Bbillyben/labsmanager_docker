@@ -111,7 +111,7 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="is_contractual">
                                                 {% trans 'Job type' %}
                                             </th>
-                                            <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
+                                            <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                                                 {% trans 'Active' %}
                                             </th>
                                             
@@ -167,7 +167,7 @@
                                         <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                                             {% trans 'End Date' %}
                                         </th>
-                                        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
+                                        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                                             {% trans 'Active' %}
                                         </th>
                                         
@@ -352,9 +352,6 @@
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="project.end_date" data-formatter="baseDateFormatter">
                                                     {% trans 'Project End Date' %}
                                                 </th>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="project.status" data-cell-style="styleAlignMiddle" data-formatter="basicBoolean">
-                                                    {% trans 'Project Status' %}
-                                                </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="status">
                                                     {% trans 'Participant Status' %}
                                                 </th>
@@ -364,8 +361,8 @@
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                                                     {% trans 'End Date' %}
                                                 </th>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-cell-style="styleAlignMiddle" data-formatter="basicBoolean">
-                                                    {% trans 'Participation Status' %}
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-cell-style="styleAlignMiddle" data-formatter="ParticipantStatusFormatter">
+                                                    {% trans 'Status' %}
                                                 </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="quotity" data-formatter="quotityFormatter">
                                                     {% trans 'Quotity' %}

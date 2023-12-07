@@ -239,6 +239,13 @@ function ParticipantFormatter(value, row, index, field){
       }
       return response;
 }
+// ------------------------------------------------------------ Generic  Formatter 
+function ParticipantStatusFormatter(value, row, index, field){
+    response = "<span>"
+    response+="<i class='icon-spaced  fa fa-flask "+(row.project.status? "icon-green":"icon-red")+"' title='Project active'></i>"
+    response+="<i class='icon-spaced fa fa-user "+(row.is_active? "icon-green":"icon-red")+"' title='participant active'></i>"
+    return response
+}
 
 function leaveEmployeeFormatter(value, row, index, field){
     response =  '<a href="'+Urls['employee'](row.employee_pk)+'" title="/'+row.employee_pk+'/"> '+value+'</a>';
