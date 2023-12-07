@@ -122,7 +122,7 @@ class Contract(DateMixin):
     history = AuditlogHistoryField()
     
     def __str__(self):
-        return f'{self.employee.__str__()} - {self.fund.__str__()}'
+        return f'{self.employee.__str__()} - {self.fund.__str__()} / {self.contract_type}'
     
     @property
     def total_amount(self):

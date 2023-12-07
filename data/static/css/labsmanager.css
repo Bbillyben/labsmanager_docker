@@ -1,6 +1,7 @@
 :root {
     --primary-color: #335d88;
     --primary-color-alpha: #335d8862;
+    --primary-color-alpha-dark: #2646669d;
     --secondary-color: #eef3f7;
     --highlight-color: #ffffff;
 
@@ -586,13 +587,14 @@ main {
 }
 
 .modal-header {
-    padding: 3px;
+    padding: 0.5em 0.5em !important;
+    /* padding: 3px;
     padding-top: 5px;
     padding-left: 15px;
-    padding-right: 25px;
-    color: var(--bs-body-color);
-    background-color: var(--secondary-color);
-    border-bottom: 1px solid var(--border-color);
+    padding-right: 25px; */
+    color: var(--bs-body-color) !important;
+    background-color: var(--headings-color) !important;
+    border-bottom: None !important;
     width: 100%;
 }
 .modal-header > button {
@@ -663,8 +665,8 @@ main {
 }
 
 .modal-dialog {
-    width: 65%;
-    max-width: 80%;
+    width: 500px !important;
+    max-width: 50% !important;
 }
 
 .modal-secondary .modal-dialog {
@@ -1461,3 +1463,37 @@ li.list-spacer{
         margin: 1em 0 1em 0 !important;
     }
 
+/*   for bstreeview   */
+    .org-chart-count{
+        background-color: var(--primary-color-alpha);
+        margin-left: 2em;
+        border-radius: 50%;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+    }
+    .org-chart-status{
+        margin-left: 1em;
+        font-size: smaller;
+        color: gray;
+    }
+    .org-chart-cont{
+        margin-bottom: 3em;
+    }
+    .org-chart-cont:after {
+        content: " ";
+        width: 70%;
+        border-bottom: 2px solid var(--primary-color-alpha);
+        position: absolute;
+        display: block;
+        left:15%;
+        margin-top:1.5em;
+    }
+    .employee_orga_chart{ 
+        display: inline-block;
+        background-color: var(--primary-color-alpha-dark);
+        border-radius: 50%;
+        margin-left: 0.2em;
+        padding:0.3em;
+        color:white;
+
+    }

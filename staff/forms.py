@@ -102,6 +102,13 @@ class EmployeeSuperiorForm(BSModalModelForm):
         
     def __init__(self, *args, **kwargs): 
         
+        query = Q(is_active=True)
+        if ('initial' in kwargs and 'employee' in kwargs['initial']):
+            query =query & ~Q(pk=kwargs['initial']['employee'])
+        
+        self.base_fields['superior'] = forms.ModelChoiceField(
+            queryset=Employee.objects.filter( query ),
+        )
         self.base_fields['employee'] = forms.ModelChoiceField(
             queryset=Employee.objects.all(),
             widget=forms.HiddenInput
@@ -110,16 +117,6 @@ class EmployeeSuperiorForm(BSModalModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             self.fields['superior'].disabled = True
-    # def __init__(self, *args, **kwargs): 
-        
-    #     self.base_fields['employee'] = forms.ModelChoiceField(
-    #         queryset=Employee.objects.all(),
-    #         widget=forms.HiddenInput
-    #     )
-    #     super().__init__(*args, **kwargs)
-    #     instance = getattr(self, 'instance', None)
-    #     if instance and instance.pk:
-    #         self.fields['type'].disabled = True
         
         
     def clean_end_date(self):

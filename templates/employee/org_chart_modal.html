@@ -1,0 +1,71 @@
+
+
+<div class="card mb-2">
+    <div class="row" id="employee_oragnization_chart_cont"></div>
+    </div>  
+</div>
+
+<script>
+    // for Organizational Chart
+function update_emp_orga_chart(emp_pk){
+        $('#employee_oragnization_chart_cont').empty()//.html("<div id='chart_cont'></div>")
+        var urlOC = Urls['api:employee-emp_organization'](emp_pk)
+        $.ajax({
+            url: urlOC,
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json',
+            accepts: {
+                json: 'application/json',
+            },
+            success: function(response){build_emp_organization_chart(response);},
+            error: function(xhr) {
+                // TODO: Handle error
+                console.error(`Error in update_organization_chart at '${urlOC}'`);
+            }
+        });
+
+    }
+    function build_emp_organization_chart(datas){
+        tree =[];
+        //datas.forEach((employee) => build_employee_chart(employee, tree) );
+        for(var index in datas){
+            build_employee_chart(datas[index], tree);
+        }
+        for (sup in tree){
+            $('#employee_oragnization_chart_cont').append("<div class='col'><div id='chart_cont_"+sup+"'></div></div>")
+            $('#employee_oragnization_chart_cont #chart_cont_'+sup).bstreeview({ 
+                data: [tree[sup]],
+                indent: 2,
+                openNodeLinkOnNewTab:false,
+            });
+
+        }
+       
+    }
+    function build_employee_chart(employee, c_tree){
+        var n_tree={};
+        
+        if(employee.current==true){
+            n_tree.text=employee.sup.user_name;
+            n_tree.text=n_tree.text+"<sup class='employee_orga_chart'><i class='fa fa-user'></i></sup>"
+        }else{
+            n_tree.text=employeeFormatter(employee.sup);
+        }
+        n_tree.expanded = true;
+        if(employee.sub.length>0){
+            n_tree.nodes=[];
+            for(var index in employee.sub){
+                build_employee_chart(employee.sub[index], n_tree.nodes)
+            }
+        }
+        c_tree.push(n_tree)
+    }
+
+
+    $(document).ready(function () {
+        employee_idA = '{{ employeePK }}';
+        update_emp_orga_chart(employee_idA);
+
+    });
+</script>

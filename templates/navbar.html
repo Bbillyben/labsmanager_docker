@@ -58,11 +58,18 @@
             </a>
           </li>
           {% endif %}
+          <li class='nav-item dropdown'>
+            <a class='nav-link dropdown-toggle' href='#' id='toolMenuDropdown' role='button' data-bs-toggle='dropdown'>
+              <span class='fa-solid fa-screwdriver-wrench'></span>{% trans 'Tools' %}
+            </a>
+            <ul class='dropdown-menu dropdown-menu-end labsmanager-navbar-menu'>
+              <li><a class='dropdown-item' href="{% url 'organisation_chart_index' %}"><span class="fa-solid fa-sitemap"></span> {% trans "Organization Chart" %}</a></li>
+            </ul>
+          </li>
           <!-- For Favorite -->
           <li class='nav-item' id="favorites">
 
           </li>
-          
 
         </ul>
         <span class="flex" style="flex-grow: 1;"></span>

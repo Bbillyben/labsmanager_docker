@@ -199,26 +199,26 @@ function visibleColumnString(columns) {
 }
 
 function labTableUpdate(eventName, table, options, playCallback=true){
-
+    // console.log(eventName)
     switch(eventName){
-
         case 'load-success.bs.table':
             if(options.callback && playCallback)options.callback();
             break;
         case "refresh.bs.table":
         case "search.bs.table":
-        case "refresh.bs.table":
             if(options.callback)options.callback();
             break;
     }
 
     if(eventName!="post-body.bs.table")return;
+    
+    if(options.post_body_callback)options.post_body_callback();
 
-   var defaults = {
-        modalID:"#create-modal",
-        modalContent:".modal-content",
-        modalForm:".modal-content form",
-    };
+    var defaults = {
+            modalID:"#create-modal",
+            modalContent:".modal-body",
+            modalForm:".modal-body form",
+        };
     settings = $.extend(defaults, options);
 
     $(table).find('.edit').each(function(){
@@ -245,7 +245,6 @@ function labTableUpdate(eventName, table, options, playCallback=true){
     })    
 }
 $.fn.labTable = function(options) {
-
     var table = this;
 
     var tableName = options.name || 'table';
@@ -363,23 +362,7 @@ function getRowOrderByProperty(selector, key, value) {
     return result;
   }
 
-function employeeSuperiorsFormatter(value, row, index, field){
-    if(!isIterable(value)){
-        value=[{"employee":value}];
-    }
-    response = "";
-    for (const item of value) {
-        // console.log("item :"+JSON.stringify(item));
-            if("employee" in item && item.employee!=null){
-                tm ="<a href='/staff/employee/"+item.employee_superior.pk+"'>"+item.employee_superior.user_name+"</a>";
-                response+= (response.length > 1 ? ', ' : '') + tm;
-            }else{
-                response +="-"
-            }
-            
-      }
-      return response;
-}
+
 // --------------------     Basic Table Sorter    ------------------- // 
 
 function nameSorter(fieldA, fieldB){

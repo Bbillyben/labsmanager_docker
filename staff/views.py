@@ -248,6 +248,13 @@ def get_employee_info_table(request, pk):
     info=GenericInfo.objects.filter(employee__pk=pk)
     return render(request, 'employee/employee_info_table.html', {'infoEmployee': info})
 
+## Get the employee info table
+def get_employee_organisation_chart_modal(request, pk):
+    return render(request, 'employee/org_chart_modal.html', {'employeePK': pk})
+
+def get_employee_teams_lead(request, pk):
+    return render(request, 'employee/emp_teal_lead_modal.html', {'employeePK': pk})
+
 # TEAMS views
 class TeamIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'team/team_base.html'
@@ -303,3 +310,12 @@ def get_team_mate(request, pk):
     data = {'mates': teamMate}
     
     return render(request, 'team/team_mate_table.html', data)
+
+# For Organisation Chart
+def get_organisation_chart_view(request):
+    return render(request, 'employee/organisation_chart.html')
+
+class OrganisationChartView(LoginRequiredMixin, AccessMixin,  BaseBreadcrumbMixin ,  TemplateView):
+    template_name = 'employee/organization_chart.html'
+    home_label = '<i class="fas fa-bars"></i>'
+    crumbs = [(_("Organisation Chart"),"organisation_chart")]

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block page_title %}
+{% trans "LabManager Employee" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block link %}
+<link rel="stylesheet" href="{% static 'bstreeview/bstreeview.css' %}">
+<link rel="stylesheet" href="{% static 'orgchart/jquery.orgchart.css' %}">
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}
+
+
+
+{% block content %}
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-organization-chart" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Organization Chart' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                <div class="btn-group" role="group">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-content">
+            <div class="col">
+                <div class="card  mb-2">
+                    <div class ="col" id="chart-container">
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+</div>
+{{ request.user.id|json_script:"user_id" }}
+{% endblock %}
+{% block js_load %}
+<script>
+    $(document).ready(function () {
+        update_organization_chart();
+    })
+
+
+</script>
+{% endblock %}
+{% block js %}
+<script type='text/javascript' src="{% static 'bstreeview/bstreeview.js' %}"></script>
+<script type='text/javascript' src="{% static 'orgchart/jquery.orgchart.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/organization_chart.js' %}"></script>
+
+{% endblock %}

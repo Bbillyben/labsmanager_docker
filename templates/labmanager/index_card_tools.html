@@ -1,0 +1,27 @@
+{% load static %}
+{% load i18n %}
+
+<div class="col-sm-2 lab-card-col">
+        <div class="card lab-card" style="">
+            <img class="card-img-top" src="{% static 'img/icons/tools.png' %}" alt="Card image cap"
+            type="button" data-bs-toggle="collapse" data-bs-target="#tools_acc"
+            >
+            <div class="lab-card-body">
+            
+                <div class="lab-card-link">
+                    <span data-bs-toggle="collapse" data-bs-target="#tools_acc">
+                        {% trans "Tools" %}
+                    </span> 
+                </div>
+                <div class='nav-item collapse' id="tools_acc">
+                    <div class="accordion-item">
+                        <a class='dropdown-item small'  href="{% url 'organisation_chart_index' %}">
+                            {% trans "Organization Chart" %}
+                        </a>
+                    </div>
+
+                </div>
+                
+            </div>
+        </div>
+</div>
