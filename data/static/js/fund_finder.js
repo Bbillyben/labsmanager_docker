@@ -10,7 +10,7 @@ function initFundFinder(user_idA){
     var options={
         queryParams: filters,
         name:'funditem',
-        callback:updateFundFinderTagble,
+        post_body_callback:updateFundFinderTagble,
         
     }
     setupFilterList('funditem', $('#fund_main_table'), '#filter-list-funditem',filterOption);
