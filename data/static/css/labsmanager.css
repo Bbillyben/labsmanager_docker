@@ -1458,6 +1458,14 @@ li.list-spacer{
         font-weight: bold;
 
     }
+    .availContTooltip{
+        font-size:0.8em !important;
+    }
+    .availContTooltip .tooltip-inner{
+        max-width: 1000px !important;
+        width: auto !important;
+        text-align: left;
+    }
      /* for Focus / out focus cost type */
 
     .out-focus{
