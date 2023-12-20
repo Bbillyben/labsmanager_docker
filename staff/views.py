@@ -271,6 +271,10 @@ class TeamView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin ,  Templa
     reverseURL="team_single"
     crumbListQuerySet=Team.objects.all()
     names_val=['name']
+    crumbListPerm=(
+        #'common.employee_list',
+        'staff.view_team',
+    )
     
     @cached_property
     def crumbs(self):

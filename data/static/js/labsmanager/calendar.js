@@ -353,7 +353,10 @@
 
 
             }
-
+            // activate plugins
+            // globals.plugins=[
+            //     adaptivePlugin,
+            // ]
             // add date picker button
             if (settingsCal.useDatePicker == true){
                 globals.customButtons={
@@ -547,6 +550,7 @@
             calendar = new FullCalendar.Calendar(eltCal, globals)
             calendar.render();
 
+            console.log(calendar.adaptive)
             return calendar;
         };
 
