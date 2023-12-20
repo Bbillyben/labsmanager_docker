@@ -1479,7 +1479,7 @@ li.list-spacer{
         text-align: center;
         margin: 1em 0 1em 0 !important;
     }
-
+    
 /*   for bstreeview   */
     .org-chart-count{
         background-color: var(--primary-color-alpha);

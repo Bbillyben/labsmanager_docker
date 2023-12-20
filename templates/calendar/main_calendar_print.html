@@ -4,6 +4,16 @@
 {% load customs_tags %}
 {% load js_reverse %}
 
+{% block css %}
+    {% if full_print%}
+        @media print {
+            body{
+            -webkit-print-color-adjust: exact; /*chrome & webkit browsers*/
+            color-adjust: exact; /*firefox & IE */
+            } 
+        }
+    {% endif %}
+{% endblock %}
 
 {% block page_title %}
 {% trans "LabManager Calendar" %} - {% trans 'Print' %}
