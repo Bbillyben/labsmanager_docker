@@ -1165,9 +1165,10 @@ col.column-Sum{
 
 .subheading{
     background-color: var(--subheading-color);
+    padding-left:0.5rem;
 }
 .subheading h4{
-    margin-left: 0.5rem;
+    /* margin-left: 0.5rem; */
     margin-top: 0.35rem;
     font-size:1rem;
 }
@@ -1512,5 +1513,14 @@ li.list-spacer{
         margin-left: 0.2em;
         padding:0.3em;
         color:white;
-
     }
+    .bstreeview .inactive, .bstreeview .inactive a{
+        color:grey;
+        font-style: italic;
+    }
+    /* for inactive node */
+   .node.inactive .title, .node.inactive .title a{
+        background-color: lightgray  !important;
+        color: grey !important;
+        font-style: italic;
+   }

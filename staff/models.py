@@ -92,15 +92,11 @@ class Employee(models.Model):
     
     def get_current_subordinate(self):
         from staff.models import Employee_Superior
-        return Employee_Superior.current.filter(superior=self.pk)
+        return Employee_Superior.current.filter(superior=self.pk, employee__is_active=True)
     
     def get_subordinate(self):
         from staff.models import Employee_Superior
         return Employee_Superior.objects.filter(superior=self.pk)
-    
-    def get_current_subordinate(self):
-        from staff.models import Employee_Superior
-        return Employee_Superior.current.filter(superior=self.pk) #.values('employee')
     
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""

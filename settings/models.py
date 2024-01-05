@@ -877,6 +877,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': True,
             'validator': bool,
         },
+        'SHOW_PAST_ORG': {
+            'name': _('Display Only Current Organisation'),
+            'description': _('show/hide past hierarchical links'),
+            'default': True,
+            'validator': bool,
+        },
         
         
     }

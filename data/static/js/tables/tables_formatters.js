@@ -213,7 +213,21 @@ function teamMateFormatter(value, row, index, field){
       }
       return response;
 }
+function organisationEmployeeFormatter(value, row, index, field){
+    response = "";
+    can_see = USER_PERMS.includes('staff.view_employee')
+    active = !(!value.is_active || (row.is_active != undefined && !row.is_active));
+    response+='<span class="'+(active?"active":"inactive")+'">';
+    if(can_see){
+        response +="<a href='/staff/employee/"+value.pk+"'>"+value.user_name+"</a>";
+    }else{
+        response +=value.user_name;
+    }
+    response+='</span>';
+    
+    return response;
 
+}
 function ParticipantFormatter(value, row, index, field){
     // console.log('ParticipantFormatter'+JSON.stringify(value))
     // console.log('ParticipantFormatter'+JSON.stringify(row))

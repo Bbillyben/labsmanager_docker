@@ -524,21 +524,51 @@ from django.http import JsonResponse
 class EmployeeOrganizationChartSerialize(serializers.ModelSerializer):
     status = EmployeeStatusSerialize(many=True, read_only=True, source='get_status')
     subordinate = serializers.SerializerMethodField()
-    subordinate_count = serializers.SerializerMethodField()
-
+    active = serializers.SerializerMethodField()
    
     class Meta:
         model = Employee
-        fields = ['pk', 'user_name','status','subordinate_count', 'subordinate', ]
+        fields = ['pk', 'user_name', 'status',
+                  'active', 
+                  'subordinate', ]
+    
+    def get_active(self,obj):
+        return True
+    def get_subordinate(self,obj):
+        show_pas = self.context.get("show_pas")
+        if show_pas:
+            sub = obj.get_current_subordinate()
+        else:
+            sub = obj.get_subordinate()
+        # emp=Employee.objects.filter(pk__in=sub.values('employee'))
+        return EmployeeOrganizationChartOrgSerialize(sub,many=True, context=self.context).data
+    
+class EmployeeOrganizationChartOrgSerialize(serializers.ModelSerializer):
+    status = EmployeeStatusSerialize(many=True, read_only=True, source='employee.get_status')
+    subordinate = serializers.SerializerMethodField()
+    active = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+    pk = serializers.SerializerMethodField()
+   
+    class Meta:
+        model = Employee
+        fields = ['pk', 'user_name', 'status',
+                  'active', 
+                  'subordinate', ]
+    def get_user_name(self,obj):
+        return obj.employee.user_name
+    def get_pk(self,obj):
+        return obj.employee.pk
+    def get_active(self,obj):
+        return obj.is_active and obj.employee.is_active
     
     def get_subordinate(self,obj):
-        sub = obj.get_current_subordinate()
-        emp=Employee.objects.filter(pk__in=sub.values('employee'))
-        return EmployeeOrganizationChartSerialize(emp,many=True).data
-        
-    def get_subordinate_count(self,obj):
-        sub = obj.get_current_subordinate()
-        return sub.count()
+        show_pas = self.context.get("show_pas")
+        if show_pas:
+            sub = obj.employee.get_current_subordinate()
+        else:
+            sub = obj.employee.get_subordinate()
+        return EmployeeOrganizationChartOrgSerialize(sub,many=True, context=self.context).data
      
 class EmployeeSerialize(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
