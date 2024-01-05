@@ -16,6 +16,10 @@ class GenericInfoTypeAdmin(admin.ModelAdmin):
         css = {
             'all':('/static/fontawesome/css/all.css','/static/css/adminsmall.css',), 
         }
+        js = (
+            'script/jquery-3.6.1.min.js', # jquery
+        )
+
      
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model

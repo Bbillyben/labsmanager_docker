@@ -192,7 +192,7 @@ class GenericInfoTypeForm(CleanedDataFormMixin, BSModalModelForm):
     def media(self):
         response = super().media
         response._js_lists.clear()
-        response._js_lists.append(['js/faicon_in/list.min.js'])
         response._js_lists.append(['js/faicon_in/faicon.js'])
+        response._js_lists.append(['faicon/js/list.min.js'])
         return response
     

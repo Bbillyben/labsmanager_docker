@@ -162,7 +162,7 @@ function userFormatter(value, row, index, field){
     response+='<span type="button" class="icon-spaced show_teamlead" data-emp_pk="'+row.pk+'" ><i class="fas fa-user-friends" style="color: cadetblue" title="team mate"></i></span>';
   }
 
-    if(row.has_subordinate){
+    if(row.has_subordinate || row.superior.length>0){
         response+='<span type="button"  class="icon-spaced show_orgchart" data-emp_pk="'+row.pk+'" ><i  class="fas fa-sitemap" style="color: var(--primary-color)" title="subordinate"></i></span>';
     }
 
@@ -213,7 +213,21 @@ function teamMateFormatter(value, row, index, field){
       }
       return response;
 }
+function organisationEmployeeFormatter(value, row, index, field){
+    response = "";
+    can_see = USER_PERMS.includes('staff.view_employee')
+    active = !(!value.is_active || (row.is_active != undefined && !row.is_active));
+    response+='<span class="'+(active?"active":"inactive")+'">';
+    if(can_see){
+        response +="<a href='/staff/employee/"+value.pk+"'>"+value.user_name+"</a>";
+    }else{
+        response +=value.user_name;
+    }
+    response+='</span>';
+    
+    return response;
 
+}
 function ParticipantFormatter(value, row, index, field){
     // console.log('ParticipantFormatter'+JSON.stringify(value))
     // console.log('ParticipantFormatter'+JSON.stringify(row))
@@ -238,6 +252,13 @@ function ParticipantFormatter(value, row, index, field){
         }
       }
       return response;
+}
+// ------------------------------------------------------------ Generic  Formatter 
+function ParticipantStatusFormatter(value, row, index, field){
+    response = "<span>"
+    response+="<i class='icon-spaced  fa fa-flask "+(row.project.status? "icon-green":"icon-red")+"' title='Project active'></i>"
+    response+="<i class='icon-spaced fa fa-user "+(row.is_active? "icon-green":"icon-red")+"' title='participant active'></i>"
+    return response
 }
 
 function leaveEmployeeFormatter(value, row, index, field){
@@ -411,13 +432,13 @@ function availableFundItem_alert(value, row, index, field){
     if(row.contract.length > 0){
         var cc = "";
         for (var i = 0; i < row.contract.length; i++) {
-            if(cc.length>1)cc+="\n";
+            if(cc.length>1)cc+="<br>";
             cc+=row.contract[i].employee.user_name+' - '
             if(row.contract[i].quotity)cc+=quotityFormatter(row.contract[i].quotity)
             if(row.contract[i].contract_type)cc+=" - "+row.contract[i].contract_type
             if(row.contract[i].end_date)cc+=" - "+row.contract[i].end_date;
           }
-        response+='<span class="availContract" tabindex="0" data-toggle="tooltip" data-placement="top" title="'+cc+'">'+row.contract.length+"</span>";
+        response+='<span class="availContract" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="'+cc+'"><span class="aicon fa fa-file-signature"> </span><span class="anum">'+row.contract.length+"</span></span>";
     }
     return response;
 }

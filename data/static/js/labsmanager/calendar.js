@@ -267,7 +267,7 @@
                 headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',
-                    right: 'resourceTimelineMonth,resourceBiMensualCustom,resourceYearCustom,resourcefortnightCustom,dayGridMonth,dayGridWeek,listWeek,timelineYearCustom'
+                    right: 'resourceTimelineMonth,resourceBiMensualCustom,resourceYearCustom,resourcefortnightCustom dayGridMonth,dayGridWeek,listWeek,timelineYearCustom resourceMensualWeekSlide'
                 },
                 cal_type:'default'
             };
@@ -353,7 +353,10 @@
 
 
             }
-
+            // activate plugins
+            // globals.plugins=[
+            //     adaptivePlugin,
+            // ]
             // add date picker button
             if (settingsCal.useDatePicker == true){
                 globals.customButtons={
@@ -455,19 +458,15 @@
                     type: 'resourceTimeline',
                     buttonText: 'fortnight',
                     dateIncrement: { weeks: 1 },
-                    slotDuration: { day: 1 },
-                    slotLabelInterval: {
-                        "days": 1,
-                        },
-                        slotLabelFormat: [{
-                            month: 'long',
-                        }, // top level of text
-                        {
-                            weekday: 'short',
-                            day: 'numeric',
-                    
-                        }, // lower level of text
-                        ],
+                    slotLabelFormat: [{
+                        month: 'long',
+                    }, // top level of text
+                    {
+                        weekday: 'short',
+                        day: 'numeric',
+                
+                    }, // lower level of text
+                    ],
                     slotDuration: {
                             "hours": 12
                           },
@@ -479,6 +478,37 @@
                         start.setDate(start.getDate() - (start.getDay() + 6) % 7); // previous monday
                         const end = new Date(start);
                         end.setDate(start.getDate()+13);
+                        return {
+                            start: start.toISOString(),
+                            end: end.toISOString()
+                        };
+                    }
+                }, 
+                resourceMensualWeekSlide: {
+                    type: 'resourceTimeline',
+                    buttonText: 'Month',
+                    dateIncrement: { weeks: 1 },
+                    slotDuration: {
+                        "hours": 12
+                      },
+                    slotLabelInterval: {
+                        "hours": 24
+                    },
+                    slotLabelFormat: [{
+                        month: 'long',
+                    }, // top level of text
+                    {
+                        weekday: 'short',
+                        day: 'numeric',
+                
+                    }, // lower level of text
+                    ],
+                    visibleRange: function (currentDate) {
+                        const start = new Date(currentDate);
+                        start.setDate(start.getDate() - (start.getDay() + 6) % 7); // previous monday
+                        const end = new Date(start);
+                        end.setDate(start.getDate()+31);
+                        end.setDate(end.getDate() - (end.getDay() + 6) % 7);
                         return {
                             start: start.toISOString(),
                             end: end.toISOString()
@@ -520,6 +550,7 @@
             calendar = new FullCalendar.Calendar(eltCal, globals)
             calendar.render();
 
+            console.log(calendar.adaptive)
             return calendar;
         };
 

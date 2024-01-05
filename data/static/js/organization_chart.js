@@ -25,7 +25,7 @@ function build_organization_chart(datas){
         build_employee_chart(datas[index], tree);
     }
     for (sup in tree){
-        console.log(JSON.stringify(tree[sup]))
+        //console.log(JSON.stringify(tree[sup]))
         $('#chart-container').append("<div class='row'><div class='org-chart-cont' id='chart_cont_"+sup+"'></div></div>")
         $('#chart-container #chart_cont_'+sup).orgchart({ 
             data: tree[sup],
@@ -48,8 +48,9 @@ function build_employee_chart(employee, c_tree){
     }else{
         n_tree.title=""
     }
+    n_tree.className=(employee.active?"active":"inactive");
     // pour le status
-    if(employee.subordinate_count>0){
+    if(employee.subordinate.length>0){
         employee.subordinate.sort(comparteSubordinate);
         n_tree.children=[];
         for(var index in employee.subordinate){

@@ -21,6 +21,8 @@ from .ressources import EmployeeResource, TeamResource
 from datetime import datetime
 from django.db.models import BooleanField, Case, When, Value
 
+from settings.models import LMUserSetting
+
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Employee to be viewed or edited.
@@ -167,9 +169,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='organization-chart', url_name='organization-chart')
     def organization_chart(self, request, pk=None):
+        # get user preference to see past organization
+        show_pas = LMUserSetting.get_setting("SHOW_PAST_ORG", user=request.user)
+        
         no_sup=Employee_Superior.objects.all().values("employee")
         emp = Employee.objects.filter(Q(is_active=True) & ~Q(pk__in=no_sup))
-        return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True).data, safe=False)
+        return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True, context={'show_pas': show_pas}).data, safe=False)
     
     
     @action(methods=['get'], detail=True, url_path='emp_team_lead', url_name='emp_team_lead')
@@ -187,14 +192,21 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True, url_path='emp_organization', url_name='emp_organization')
     def emp_organization(self, request, pk=None):
-        emp = Employee.objects.get(pk=pk)
         
-        c_down = Employee_Superior.objects.filter(superior = emp)
+        # get user preference to see past organization
+        show_pas = LMUserSetting.get_setting("SHOW_PAST_ORG", user=request.user)
+        
+        emp = Employee.objects.get(pk=pk)
+        if show_pas:
+            c_down = Employee_Superior.current.filter(superior = emp, employee__is_active=True)
+        else:
+            c_down = Employee_Superior.objects.filter(superior = emp)
+            
         # build child
         c_node = {'sup':serializers.EmployeeSerialize_Min(emp, many=False).data, 'current':True, 'sub':[]}
         if c_down.exists():
             for down in c_down:
-                c_node['sub'].append({'sup':serializers.EmployeeSerialize_Min(down.employee, many=False).data,'sub':[]})
+                c_node['sub'].append({'sup':serializers.EmployeeSerialize_Min(down.employee, many=False).data, 'is_active':down.is_active, 'sub':[]})
                 self.__class__.build_tree_down(down.employee, c_node['sub'][len(c_node['sub']) - 1])
         
         c_sup = Employee_Superior.objects.filter(employee = emp)

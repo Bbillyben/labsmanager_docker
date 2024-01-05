@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'reports.apps.ReportsConfig',
     'common.apps.CommonConfig',
     'settings.apps.SettingsConfig',
+    'infos.apps.InfosConfig',
     
     
 ]

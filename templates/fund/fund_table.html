@@ -34,7 +34,7 @@ data-url={{ dataURL }}
         <th data-sortable="true" class="th-inner sortable both" data-field="available" data-formatter="moneyFormatter_alert">
             {% trans 'Available' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
+        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
             {% trans 'Active' %}
         </th>
         <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionFund"
