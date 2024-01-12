@@ -14,6 +14,10 @@ from django.db.models import Sum, Count
 from datetime import timedelta, datetime
 
 
+
+
+
+
  # User and Group Serailizer ########### ------------------------------------ ###########
        
 class UserSerializer(serializers.ModelSerializer):
@@ -38,7 +42,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
         model = Institution
-        fields = ['pk', 'short_name', 'name', 'adress',]  
+        fields = ['pk', 'short_name', 'name',]  
         
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -235,6 +239,18 @@ class FavoriteSerialize(serializers.ModelSerializer):
             return reverse('employee', args=[obj.object_id])
         if obj.content_type.model == 'team':
             return reverse('team_single', args=[obj.object_id])
+        if obj.content_type.model == 'institution':
+            return reverse('orga_single', kwargs={
+                'pk':obj.object_id,
+                'app':'project',
+                'model':'institution'
+                })
+        if obj.content_type.model == 'fund_institution':
+            return reverse('orga_single', kwargs={
+                'pk':obj.object_id,
+                'app':'fund',
+                'model':'fund_institution'
+                })
 
         return "-"
     
@@ -716,8 +732,35 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     #     fund = Fund.objects.filter(project = obj.pk)
     #     return Fund_Item.objects.filter(fund__in=fund).aggregate(Sum('amount'))["amount__sum"]
     
-    
-    
+# ------------------------------------------------------------------------------------- #
+# ---------------------------    APP infos / SERIALISZER    --------------------------- #
+# ------------------------------------------------------------------------------------- #
+from infos.models import ContactType, OrganizationInfos, Contact
+class ContactTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactType
+        fields = ['pk','name',]    
+ 
+class ContactSerializer(serializers.ModelSerializer):
+    type=ContactTypeSerializer(many=False, read_only=True)
+    class Meta:
+        model = Contact
+        fields = ['pk','first_name','last_name','type', 'comment',]
+        
+          
+class OrganizationInfoSerializer(serializers.ModelSerializer):
+     content_type=ContentTypeSerialize(many=False, read_only=True)
+     info=ProjectInfoTypeIconSerialize(many=False, read_only=True)
+     class Meta:
+        model = OrganizationInfos
+        fields = ['pk',
+                  'content_type',
+                  'object_id',
+                  'info', 
+                  'value', 'comment',]
+            
+
+  
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
 class BudgetSerializer(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)

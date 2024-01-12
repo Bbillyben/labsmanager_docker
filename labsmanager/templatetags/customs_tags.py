@@ -67,6 +67,11 @@ def makeID(dynvarname):
     return re.sub("[^a-zA-Z0-9]", "", str(dynvarname), count=0, flags=0)
     #return strV.upper()
 
+@register.filter(name='nospace')
+def nospace(value):
+    """ Returns the value of dynvarname with wpace replaced by - """
+    return value.replace(' ', '-')
+    
 
 @register.simple_tag(name='unikId')
 def unikId():

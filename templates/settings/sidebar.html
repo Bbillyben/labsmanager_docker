@@ -46,8 +46,10 @@
 {% trans "Staff" as text %}
 {% include "sidebar_item_accordion.html" with label='staff_list' text=text icon="fa-user" %}
 
-{% include "sidebar_header_accordion_end.html" %}
+{% trans "Organization" as text %}
+{% include "sidebar_item_accordion.html" with label='orga_list' text=text icon="fa-landmark" %}
 
+{% include "sidebar_header_accordion_end.html" %}
 
 {% if request.user.is_staff %}
     {% trans "LabsManager Settings" as text %}

@@ -41,7 +41,7 @@ class ProjectView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixin, B
     @cached_property
     def crumbs(self):
         return [(_("Project"),"./",) ,
-                (str(self.construct_crumb()) ,  reverse("project_single", kwargs={'pk':'4'} ) ),
+                (str(self.construct_crumb()) ,  reverse("project_single", kwargs={'pk':'0'} ) ),
                 ]
 
     def construct_crumb(self):

@@ -1,0 +1,44 @@
+{% load customs_tags %}
+{% load i18n %}
+<table class="table table-striped table-condensed table-desc" id="orga_infos_table">
+    <colgroup>
+        <col width="2">
+    </colgroup>
+    <tbody>
+        
+    {% for i in info %}
+    <tr>
+        <td>{% get_faIcon i.info.icon %}</i></td>
+        <td  class="desc_title">{{i.info}}</td>
+        <td>{{i.value}}
+            {% if i.comment %}
+                <span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="{{i.comment}}"><span class="aicon fa fa-comment"> </span></span>
+            {%endif%}
+        </td>
+        <td>
+            <span class="icon-left-cell btn-group">
+                {% if request.user.is_staff %}
+                <a href='{% url "admin:infos_organizationinfos_change" object_id=i.pk %}'><button class='icon admin_info btn btn-primary '  ><i type = 'button' class='fas fa-shield-halved'></i></button></a>
+                {% endif %}
+                {% if perms.infos.change_organizationinfos %}
+                <button class='icon update_info btn btn-success ' data-form-url='{% url "update_orgainfo" pk=i.pk %}' ><i type = 'button' class='fas fa-pen-to-square'></i></button>
+                {% endif %}
+                {% if perms.infos.delete_organizationinfos %}
+                <button class='icon delete_info btn btn-danger ' data-form-url='{% url "delete_orgainfo" pk=i.pk %}' ><i type = 'button' class='fas fa-trash'></i></button>
+                {% endif %}
+            </span>
+        </td>
+
+    </tr>
+    {%endfor%}
+    {% if perms.infos.add_organizationinfos %}
+        <td colspan="12" class="text-center">
+            
+            <button type="button" class="btn btn-success" id="info_create" title="Add New Info" data-type="{{type.app}}.{{type.model}}" data-orga-id="{{i.pk}}" data-form-url='{% url "add_orgainfo" app=type.app model=type.model obj_id=object_id %}'>
+                <span class='fa fa-notes-medical'></span>
+                {% trans 'Add Info' %}
+            </button>
+        </td>
+        {% endif %}
+    </tbody>
+</table>

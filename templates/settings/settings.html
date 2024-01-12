@@ -37,6 +37,8 @@
 {% include "settings/list_setting_panel_leave.html" %}
 {% include "settings/list_setting_panel_project.html" %}
 {% include "settings/list_setting_panel_staff.html" %}
+{% include "settings/list_setting_panel_orga.html" %}
+
 
 {% if request.user.is_staff %}
 
@@ -89,6 +91,7 @@
         onPanelLoad("leave_list", function(){loadCards('leave_list');});
         onPanelLoad("project_list", function(){loadCards('project_list');});
         onPanelLoad("staff_list", function(){loadCards('staff_list');});
+        onPanelLoad("orga_list", function(){loadCards('orga_list');});
         onPanelLoad("mail_setting", function(){loadCards('mail_setting');});
         onPanelLoad("auditlog_setting", function(){loadCards('auditlog_setting');});
         onPanelLoad("calendar_setting", function(){loadCards('calendar_setting');});

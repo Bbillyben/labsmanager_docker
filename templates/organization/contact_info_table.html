@@ -1,0 +1,42 @@
+{% load customs_tags %}
+{% load i18n %}
+<table class="table table-striped table-condensed table-desc" id="orga_contact_infos_table">
+    <colgroup>
+        <col width="2">
+    </colgroup>
+    <tbody>
+        
+    {% for i in infos_contact %}
+    <tr>
+        <td>{% get_faIcon i.info.icon %}</i></td>
+        <td  class="desc_title">{{i.info}}</td>
+        <td>{{i.value}}
+            {% if i.comment and i.comment != "None" %}
+                <span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="{{i.comment}}"><span class="aicon fa fa-comment"> </span></span>
+            {%endif%}
+        </td>
+        <td>
+            <span class="icon-left-cell btn-group">
+                {% if perms.infos.change_contactinfo %}
+                <button class='icon update_info btn btn-success ' data-form-url='{% url "update_contact_info" pk=i.pk %}' ><i type = 'button' class='fas fa-pen-to-square'></i></button>
+                {% endif %}
+                {% if perms.infos.delete_contactinfo %}
+                <button class='icon delete_info btn btn-danger ' data-form-url='{% url "delete_contact_info" pk=i.pk %}' ><i type = 'button' class='fas fa-trash'></i></button>
+                {% endif %}
+            </span>
+        </td>
+
+    </tr>
+    {%endfor%}
+    {% if perms.infos.add_contactinfos %}
+        <td colspan="12" class="text-center">
+            
+            <button type="button" class="btn btn-success" id="contact_info_create" title="Add New Info"  data-form-url='{% url "add_contact_info" id=object_id %}'>
+                <span class='fa fa-notes-medical'></span>
+                {% trans 'Add Info' %}
+            </button>
+        </td>
+        {% endif %}
+    </tbody>
+</table>
+

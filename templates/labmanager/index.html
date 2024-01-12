@@ -83,14 +83,7 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
-                
-                {% if perms.fund.view_fund %}
-                {% url 'fund_finder' as urlCard %}
-                {% trans 'Fund' as txtCard %}
-                {% static 'img/icons/fund.png' as imgURL%}
-
-                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
-                {% endif %}
+                {% include 'labmanager/index_card_tools.html' %}
 
             </div>
             <div class="row align-items-center justify-content-center" style="width:100%;">
@@ -111,7 +104,7 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
-                {% include 'labmanager/index_card_tools.html' %}
+                
 
                 
                 <div id="favorites" style="display: contents;"></div>

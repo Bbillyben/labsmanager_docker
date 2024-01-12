@@ -12,7 +12,7 @@ data-url={{ dataURL }}
         <th data-sortable="true" class="th-inner sortable both" data-field="funder.short_name" >
             {% trans 'Funder' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="institution.short_name">
+        <th data-sortable="true" class="th-inner sortable both" data-field="institution.short_name" data-formatter="institution_project_formatter">
             {% trans 'Institution' %}
         </th>
 

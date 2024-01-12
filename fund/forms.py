@@ -95,13 +95,11 @@ class BudgetModelForm(BSModalModelForm):
         self.base_fields['employee'].queryset=Employee.objects.filter(is_active=True)
         
         if ('initial' in kwargs and 'project' in kwargs['initial']):
-            print("is project")
             self.base_fields['fund'].queryset=models.Fund.objects.filter(project=kwargs['initial']['project'])
         else:
             self.base_fields['fund'].queryset= models.Fund.objects.all()
         
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
-            print("is ezmployee")
             self.base_fields['employee'].disabled = True
             self.base_fields['cost_type'].queryset= models.Cost_Type.objects.get(short_name="RH").get_descendants(include_self=True)
         else:
@@ -164,12 +162,12 @@ class FundInstitutionModelForm(CleanedDataFormMixin, BSModalModelForm):
         model = models.Fund_Institution
         fields = ['short_name','name',]
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        instance = getattr(self, 'instance', None)
-        if instance and instance.pk:
-            self.fields['short_name'].disabled = True
-            self.fields['name'].disabled = True
-        else:
-            self.fields['short_name'].disabled = False
-            self.fields['name'].disabled = False
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     instance = getattr(self, 'instance', None)
+    #     if instance and instance.pk:
+    #         self.fields['short_name'].disabled = True
+    #         self.fields['name'].disabled = True
+    #     else:
+    #         self.fields['short_name'].disabled = False
+    #         self.fields['name'].disabled = False

@@ -18,7 +18,24 @@
                 <table class='table table-striped table-condensed'>
                     <tbody>
                         {% include "settings/setting.html" with key="STICKY_NAVBAR" user_setting=True icon='fa-bars-progress' %}
+                    </tbody>
+                </table>
+                
+            </div>
+            <div class="card  mb-2">
+                <div class="subheading">{%trans 'Printing Setting' %}</div>
+                <table class='table table-striped table-condensed'>
+                    <tbody>
                         {% include "settings/setting.html" with key="PRINT_FULL_BOXES" user_setting=True icon='fa-print' %}
+                    </tbody>
+                </table>
+                
+            </div>
+            <div class="subheading">{%trans 'Organization Setting' %}</div>
+            <div class="card  mb-2">
+                <table class='table table-striped table-condensed'>
+                    <tbody>
+                        {% include "settings/setting.html" with key="SHOW_PAST_ORG" user_setting=True icon='fa-sitemap' %}
                     </tbody>
                 </table>
                 
@@ -26,7 +43,6 @@
         </div>
     </div>
 </div> <!-- end container -->
-
 {% endblock %}
 
 {% block panel_js %}

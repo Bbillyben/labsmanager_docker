@@ -14,9 +14,15 @@
                     </span> 
                 </div>
                 <div class='nav-item collapse' id="tools_acc">
+                    {% if perms.fund.view_fund %}
+                    <div class="accordion-item">
+                        <a class='dropdown-item small'  href="{% url 'fund_finder' %}">
+                            <span class='fas fa-filter-circle-dollar icon-header'></span>{% trans "Fund Finder" %}
+                        </a>
+                    </div>{% endif %}
                     <div class="accordion-item">
                         <a class='dropdown-item small'  href="{% url 'organisation_chart_index' %}">
-                            {% trans "Organization Chart" %}
+                            <span class="fa-solid fa-sitemap"></span>{% trans "Organization Chart" %}
                         </a>
                     </div>
 

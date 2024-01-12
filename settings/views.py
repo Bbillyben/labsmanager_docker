@@ -66,7 +66,7 @@ class SettingList_fundInstitution_type(LoginRequiredMixin, TemplateView):
             },         
         }
         if request.user.has_perm("fund.change_fund_institution"):
-            context["action"]["update"] = "update_fundinstitution"
+            context["action"]["update"] = "update_fund_fund_institution"
         if request.user.has_perm("fund.add_fund_institution"):
             context["action"]["add"] = reverse('add_fundinstitution')
         if request.user.is_staff :
@@ -141,7 +141,6 @@ class SettingList_Institution(LoginRequiredMixin, TemplateView):
             'columns':[
                 {'name':_('name'),'item':'name',},
                 {'name':_('Short name'),'item':'short_name'},
-                {'name':_('Adress'),'item':'adress'},
             ], 
             'action':{
             },
@@ -149,7 +148,7 @@ class SettingList_Institution(LoginRequiredMixin, TemplateView):
             },         
         }
         if request.user.has_perm("project.change_institution"):
-            context["action"]["update"] = "update_institution_direct"
+            context["action"]["update"] = "update_project_institution"
         if request.user.has_perm("project.add_institution"):
             context["action"]["add"] = reverse('add_institution_direct')
         if request.user.is_staff :
@@ -237,7 +236,83 @@ class SettingList_GenericInfoProject(LoginRequiredMixin, TemplateView):
         
         return render(request=request,template_name=self.template_name,context=context)
     
+from infos.models import OrganizationInfosType, ContactInfoType, ContactType
+
+class SettingList_OrganizationInfosType(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = OrganizationInfosType
     
+    def get(self,request):
+        context={
+            'url':reverse_lazy("api:settinglist-organizationinfostype"),
+            'title':_('Organization\'s info type'),
+            'columns':[
+                {'name':_('name'),'item':'name',},
+                {'name':_('Icon'),'item':'icon_val', 'formatter':'iconFormatter'},
+            ], 
+            'action':{
+            },
+            'options':{
+            },         
+        }
+        if request.user.has_perm("project.change_organizationinfostype"):
+            context["action"]["update"] = "update_orgainfotype"
+        if request.user.has_perm("project.add_organizationinfostype"):
+            context["action"]["add"] = reverse('add_orgainfotype')
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:infos_organizationinfostype_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+
+class SettingList_ContactInfosType(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = ContactInfoType
+    
+    def get(self,request):
+        context={
+            'url':reverse_lazy("api:settinglist-contactinfostype"),
+            'title':_('Contact\'s info type'),
+            'columns':[
+                {'name':_('name'),'item':'name',},
+                {'name':_('Icon'),'item':'icon_val', 'formatter':'iconFormatter'},
+            ], 
+            'action':{
+            },
+            'options':{
+            },         
+        }
+        if request.user.has_perm("project.change_contactinfotype"):
+            context["action"]["update"] = "update_contactinfotype"
+        if request.user.has_perm("project.add_contactinfotype"):
+            context["action"]["add"] = reverse('add_contactinfotype')
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:infos_contactinfotype_change'
+        return render(request=request,template_name=self.template_name,context=context)
+    
+class SettingList_ContactType(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = ContactType
+    
+    def get(self,request):
+        context={
+            'url':reverse_lazy("api:settinglist-contacttype"),
+            'title':_('Contact type'),
+            'columns':[
+                {'name':_('name'),'item':'name',},
+            ], 
+            'action':{
+            },
+            'options':{
+            },         
+        }
+        if request.user.has_perm("project.change_contacttype"):
+            context["action"]["update"] = "update_contacttype"
+        if request.user.has_perm("project.add_contacttype"):
+            context["action"]["add"] = reverse('add_contacttype')
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:infos_contacttype_change'
+                    
+        return render(request=request,template_name=self.template_name,context=context)   
     
 class Subscription_List(LoginRequiredMixin, TemplateView):
     template_name = 'settings/setting_table.html'

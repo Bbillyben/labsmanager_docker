@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load customs_tags %}
+<div id='tracking-table-toolbar_contact_orga'>
+    <div class='btn-group'>
+        {% include "filter_list.html" with id="contact_orga" %}
+    </div>
+</div>
+
+<table
+class='table table-striped table-condensed'
+id="contact_table"
+data-url= "{% url 'api:organization-orga_contact' app=app model=model id=id %}"
+>
+    <thead class="">
+        <tr>
+            <th data-sortable="true" class="th-inner sortable both" data-field="first_name" >
+                {% trans 'First Name' %}
+            </th>
+            <th data-sortable="true" class="th-inner sortable both" data-field="last_name" data-formatter="">
+                {% trans 'Last Name' %}
+            </th>
+
+            <th data-sortable="true" class="th-inner sortable both" data-field="type.name" data-formatter="typeContactFormatter">
+                {% trans 'type' %}
+            </th>
+            <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminContactFormatter"
+            data-can-change="{{ perms.infos.change_contact }}"
+            data-can-delete="{{ perms.infos.delete_contact }}"
+            data-is-staff="{{ request.user.is_staff }}"
+            >
+                {% trans 'Action' %}
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>

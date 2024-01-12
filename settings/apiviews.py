@@ -86,8 +86,10 @@ from fund import models as fund_model
 from expense import models as expense_model
 from leave import models as leave_model
 from project.models import Institution, GenericInfoTypeProject
+from infos.models import OrganizationInfosType, ContactInfoType, ContactType
 from staff import models as staff_model
 from django.contrib.auth import get_user_model   
+
 class SettingListViewSet(viewsets.ModelViewSet):
     queryset = None
     serializer_class = None
@@ -127,6 +129,19 @@ class SettingListViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='genericinfotypeproject', url_name='genericinfotypeproject')
     def genericinfotypeproject(self, request):
         return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(GenericInfoTypeProject.objects.all(), many=True).data, safe=False)
+
+    @action(methods=['get'], detail=False, url_path='organizationinfostype', url_name='organizationinfostype')
+    def organizationinfostype(self, request):
+        return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(OrganizationInfosType.objects.all(), many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='contactinfostype', url_name='contactinfostype')
+    def contactinfostype(self, request):
+        return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(ContactInfoType.objects.all(), many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='contacttype', url_name='contacttype')
+    def contacttype(self, request):
+        return JsonResponse(labserializers.ContactTypeSerializer(ContactType.objects.all(), many=True).data, safe=False)
+    
     
     @action(methods=['get'], detail=False, url_path='employeeuser', url_name='employeeuser')
     def employeeuser(self, request):

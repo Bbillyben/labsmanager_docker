@@ -30,6 +30,7 @@ from endpoints import apiviews as endPointApiViews
 from leave import apiviews as leaveApiViews
 from common import apiviews as commonApiViews
 from settings import apiviews as settingAppiViews
+from infos import apiviews as infoApiViews
 from django.conf.urls.i18n import i18n_patterns
 from django_js_reverse import views as jsrev_views
 
@@ -49,6 +50,7 @@ urlpatterns = [
     path('calendar/', include('leave.urls')),
     path('common/', include('common.urls')),
     path('reports/', include('reports.urls')),
+    path('infos/', include('infos.urls')),
 ]
 #  Authentications : 
 urlpatterns += [
@@ -83,6 +85,7 @@ router.register(r'milestones', endPointApiViews.MilestonesViewSet, basename='mil
 router.register(r'leave', leaveApiViews.LeaveViewSet, basename='leave')
 router.register(r'favorite', commonApiViews.favoriteViewSet, basename='favorite')
 router.register(r'subscription', commonApiViews.subscriptionViewSet, basename='subscription')
+router.register(r'organization', infoApiViews.organisationViewSet, basename='organization')
 # router.register(r'settings', UserSettingsDetail.as_view(), basename='settings')
 
 urlpatterns += [

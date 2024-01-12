@@ -50,20 +50,27 @@
             </a>
           </li>
           {% endif %}
-          <!-- For Fund Items-->
-          {% if perms.fund.view_fund %}
+          <!-- For Project-->
+          {% if perms.common.display_infos %}
           <li class='nav-item'>
-            <a class='nav-link' href="{% url 'fund_finder' %}">
-              <span class='fas fa-filter-circle-dollar icon-header'></span>{% trans "Funds Finder" %}
+            <a class='nav-link' href="{% url 'orga_index' %}">
+              <span class='fas fa-landmark icon-header'></span>{% trans "Organizations" %}
             </a>
           </li>
           {% endif %}
+          
           <li class='nav-item dropdown'>
             <a class='nav-link dropdown-toggle' href='#' id='toolMenuDropdown' role='button' data-bs-toggle='dropdown'>
               <span class='fa-solid fa-screwdriver-wrench'></span>{% trans 'Tools' %}
             </a>
             <ul class='dropdown-menu dropdown-menu-end labsmanager-navbar-menu'>
-              <li><a class='dropdown-item' href="{% url 'organisation_chart_index' %}"><span class="fa-solid fa-sitemap"></span> {% trans "Organization Chart" %}</a></li>
+              <!-- For Fund Items-->
+              {% if perms.fund.view_fund %}
+              <li><a class='nav-link dropdown-item' href="{% url 'fund_finder' %}"><span class='fas fa-filter-circle-dollar icon-header'></span>{% trans "Funds Finder" %}</a></li>
+              {% endif %}
+              <!-- Organigramme -->
+              <li><a class='nav-link dropdown-item' href="{% url 'organisation_chart_index' %}"><span class="fa-solid fa-sitemap"></span> {% trans "Organization Chart" %}</a></li>
+              
             </ul>
           </li>
           <!-- For Favorite -->

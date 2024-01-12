@@ -72,6 +72,8 @@ class ParticipantDeleteView(LoginRequiredMixin, BSModalDeleteView):
         self.object.delete()
         return HttpResponse("okok", status=200)
     
+    
+from pprint import pprint
 class ParticipantCreateView(LoginRequiredMixin, BSModalCreateView):
     template_name = 'form_base.html'
     form_class = ParticipantModelForm
@@ -105,7 +107,7 @@ class InstitutionCreateView(LoginRequiredMixin, BSModalCreateView):
         elif 'institution' in kwargs:
             form = self.form_class(initial={'institution': kwargs['institution']})
         else:
-            form = self.form_class()
+            form = self.form_class(initial={'only_active': True})
         
         context = {'form': form}
         return render(request, self.template_name , context)

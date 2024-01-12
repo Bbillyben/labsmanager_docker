@@ -109,7 +109,20 @@ function getAvailableTableFilters(tableKey) {
 
         };
     }
+    if (tableKey == 'project_orga') {
+        return {
+            
+            status: {
+                type: 'bool',
+                title: 'Active',
+            },
+            project_name: {
+                title: 'Project Name',
+                description: 'Project Name',
+            }           
 
+        };
+    }
     if (tableKey == 'funditem') {
         return {
             fund_type:{

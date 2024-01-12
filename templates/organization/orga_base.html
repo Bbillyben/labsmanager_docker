@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block page_title %}
+{% trans "LabManager Organizations" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'organization/orga_base_sidebar.html' %}
+{% endblock %}
+
+
+
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='Organization' %}
+
+
+<div id='detail-panels'>
+    <div class="panel panel-visible" id="panel-institution-orga" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Institutions' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                <div class="btn-group" role="group">
+                    {% if perms.project.add_institution %}
+                    <button type="button" class="btn btn-success" id="add_institution" title="Create New Institution">
+                        <span class='fa fa-house-medical'></span>
+                        {% trans 'Add Institution' %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="panel-content">
+            <table
+                class='table table-striped table-condensed'
+                id="institution_main_table"
+                data-toolbar='#tracking-table-toolbar_project'
+                >
+                <thead class="">
+                    <tr>
+                        <th data-sortable="true"  class="th-inner sortable both" data-app="{{type_I.app}}" data-model="{{type_I.model}}" data-field="short_name" data-formatter="organization_formatter">
+                            {% trans 'Abbreviation' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-app="{{type_I.app}}" data-model="{{type_I.model}}" data-field="name" data-formatter="organization_formatter">
+                            {% trans 'Name' %}
+                        </th>
+            
+                        
+                        {% if perms.project.change_institution %}
+                        <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="InstutionActionFormatter"
+                        data-can-change="{{ perms.project.change_institution}}"
+                        data-is-staff="{{ request.user.is_staff }}"
+                        >
+                            {% trans 'Action' %}
+                        </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div><!-- end Panel -->
+    <div class="panel panel-hidden panel-visible" id="panel-fund-orga" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Funders' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                <div class="btn-group" role="group">
+                    {% if perms.fund.add_fund_institution %}
+                    <button type="button" class="btn btn-success" id="add_funder" title="Create New Funder">
+                        <span class='fa fa-kit-medical'></span>
+                        {% trans 'Add Funder' %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="panel-content">
+            <table
+                class='table table-striped table-condensed'
+                id="funder_main_table"
+                data-toolbar='#tracking-table-toolbar_project'
+                >
+                <thead class="">
+                    <tr>
+                        <th data-sortable="true"  class="th-inner sortable both" data-app="{{type_F.app}}" data-model="{{type_F.model}}" data-field="short_name" data-formatter="organization_formatter">
+                            {% trans 'Abbreviation' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-app="{{type_F.app}}" data-model="{{type_F.model}}" data-field="name" data-formatter="organization_formatter">
+                            {% trans 'Name' %}
+                        </th>
+            
+                        
+                        {% if perms.project.change_institution %}
+                        <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="funderActionFormatter"
+                        data-can-change="{{ perms.fund.change_fund_institution }}"
+                        data-is-staff="{{ request.user.is_staff }}"
+                        >
+                            {% trans 'Action' %}
+                        </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div><!-- end Panel -->
+</div>
+<div id='detail-panels'>
+    
+</div>
+
+
+
+
+{{ request.user.id|json_script:"user_id" }}
+{% endblock %}
+
+
+{% block js_load %}
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/orga_base.js' %}"></script>
+<script>
+$(document).ready(function () {
+    user_id = JSON.parse(document.getElementById('user_id').textContent);
+    onPanelLoad("institution-orga", function(){initInstitutionBaseView(tableurl="{% url 'api:settinglist-projectinstitution' %}", user_id );}) 
+    onPanelLoad("fund-orga", function(){initFunderBaseView(tableurl="{% url 'api:settinglist-fundinstitution' %}", user_id );}) 
+    enableSidebar('organization');
+
+})
+</script>
+
+{% endblock %}
