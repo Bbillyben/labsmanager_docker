@@ -538,6 +538,42 @@ function institution_fund_formatter(value, row, index, field){
     }
     return responseI
 }
+
+function infoTypeFormatter(value, row, index, field){
+    responseI = "";
+    if(value.toUpperCase() !="NONE"){
+        responseI =value
+     }else{
+        responseI ="-";
+    }
+    return responseI
+}
+
+function typeContactFormatter(value, row, index, field){
+    response = value;
+    if (row.comment && row.comment != "None"){
+        response += '<span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="'+row.comment+'"><span class="aicon fa fa-comment"> </span></span>'
+    }
+    return response;
+}
+
+
+function contactInfoFormatter(value, row, index, field){
+    response = ""
+    if(validateEmail(value) || row.type == "mail"){
+        response+='<a href="mailto:'+value+'">'+value+'</a>';
+    }else if(row.type=="tel"){
+        response+='<a href="tel:'+value+'">'+value+'</a>';
+        
+    }else if(row.type=="link"){
+        response+='<a href="'+formatAsHTMLLink(value)+'">'+value+'</a>';
+    }else{
+        response += value
+    }
+    return response;
+
+}
+
 // ------------------------------------------------------------ Admin Actions  Formatter
 
 function adminActionFormatter(value, row, index, field){

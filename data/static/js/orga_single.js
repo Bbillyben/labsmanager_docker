@@ -51,6 +51,12 @@ function updateInfoTableBtn(){
         modal_title:"Add Organization Info",
         }
     )
+    // for format info type
+    $('#orga_infos_table').find('.applyContactFormatter').each(function(){
+        value=$(this).html();
+        type=$(this).data("type");
+        $(this).html(contactInfoFormatter(value, {'type':$(this).data("type")}));
+     });
 }
 function loadInfosPanel(){
     loadCards('info', updateInfoTableBtn);
@@ -175,6 +181,13 @@ function updateContactInfoBtn(){
        new bootstrap.Tooltip(this, options)
     });
 
+    // apply formatter
+    $('#orga_contact_infos_table').find('.applyContactFormatter').each(function(){
+        value=$(this).html();
+        type=$(this).data("type");
+        $(this).html(contactInfoFormatter(value, {'type':$(this).data("type")}));
+     });
+
 }
 function adminContactFormatter(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
@@ -185,10 +198,4 @@ function adminContactFormatter(value, row, index, field){
     return action;
 }
 
-function typeContactFormatter(value, row, index, field){
-    response = value;
-    if (row.comment && row.comment != "None"){
-        response += '<span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="'+row.comment+'"><span class="aicon fa fa-comment"> </span></span>'
-    }
-    return response;
-}
+

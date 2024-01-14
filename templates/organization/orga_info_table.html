@@ -10,7 +10,7 @@
     <tr>
         <td>{% get_faIcon i.info.icon %}</i></td>
         <td  class="desc_title">{{i.info}}</td>
-        <td>{{i.value}}
+        <td><span class="applyContactFormatter" data-type="{{i.info.type}}">{{i.value}}</span>
             {% if i.comment %}
                 <span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="{{i.comment}}"><span class="aicon fa fa-comment"> </span></span>
             {%endif%}

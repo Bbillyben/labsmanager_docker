@@ -132,3 +132,32 @@ function openWindowWithPost(url, data, csrftoken) {
   form.submit();
   document.body.removeChild(form);
 }
+
+/**
+ * Validate if a string is a valid email 
+ * @returns true/false
+ */
+function validateEmail(email){
+  return email.match(
+    /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  );
+};
+
+/**
+ * Validate if a string is a valid phone number 
+ * @returns true/false
+ */
+function validatePhone(phone){
+  return phone.match(
+    /^[\+]?[(]?(?:[0-9]{2,3}[)]?[-\s\.\-])?[0-9]{1,3}(?:[-\s\.\-]?[0-9]{2,6})+$/im
+    );
+};
+
+/**
+ * Format a url type string to add protocole 
+ * @returns true/false
+ */
+function formatAsHTMLLink(inputURL, defaultProtocol="https"){
+  url = inputURL.startsWith("http://") || inputURL.startsWith("https://") ? inputURL : defaultProtocol+'://'+ inputURL;
+  return url
+}

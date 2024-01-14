@@ -735,7 +735,14 @@ class ProjectFullSerializer(serializers.ModelSerializer):
 # ------------------------------------------------------------------------------------- #
 # ---------------------------    APP infos / SERIALISZER    --------------------------- #
 # ------------------------------------------------------------------------------------- #
-from infos.models import ContactType, OrganizationInfos, Contact
+from infos.models import ContactType, OrganizationInfos, Contact, InfoTypeClass, OrganizationInfosType
+class OrgaInfoTypeSerializer(ProjectInfoTypeIconSerialize):
+    icon_val=serializers.SerializerMethodField()
+    class Meta:
+        fields = ['pk', 'name', 'icon_val', 'type']
+        model = OrganizationInfosType
+
+
 class ContactTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactType
@@ -750,7 +757,7 @@ class ContactSerializer(serializers.ModelSerializer):
           
 class OrganizationInfoSerializer(serializers.ModelSerializer):
      content_type=ContentTypeSerialize(many=False, read_only=True)
-     info=ProjectInfoTypeIconSerialize(many=False, read_only=True)
+     info=OrgaInfoTypeSerializer(many=False, read_only=True)
      class Meta:
         model = OrganizationInfos
         fields = ['pk',

@@ -132,11 +132,11 @@ class SettingListViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='organizationinfostype', url_name='organizationinfostype')
     def organizationinfostype(self, request):
-        return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(OrganizationInfosType.objects.all(), many=True).data, safe=False)
+        return JsonResponse(labserializers.OrgaInfoTypeSerializer(OrganizationInfosType.objects.all(), many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='contactinfostype', url_name='contactinfostype')
     def contactinfostype(self, request):
-        return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(ContactInfoType.objects.all(), many=True).data, safe=False)
+        return JsonResponse(labserializers.OrgaInfoTypeSerializer(ContactInfoType.objects.all(), many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='contacttype', url_name='contacttype')
     def contacttype(self, request):

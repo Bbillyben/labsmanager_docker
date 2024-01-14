@@ -249,15 +249,16 @@ class SettingList_OrganizationInfosType(LoginRequiredMixin, TemplateView):
             'columns':[
                 {'name':_('name'),'item':'name',},
                 {'name':_('Icon'),'item':'icon_val', 'formatter':'iconFormatter'},
+                {'name':_('Type'),'item':'type','formatter':'infoTypeFormatter',},
             ], 
             'action':{
             },
             'options':{
             },         
         }
-        if request.user.has_perm("project.change_organizationinfostype"):
+        if request.user.has_perm("infos.change_organizationinfostype"):
             context["action"]["update"] = "update_orgainfotype"
-        if request.user.has_perm("project.add_organizationinfostype"):
+        if request.user.has_perm("infos.add_organizationinfostype"):
             context["action"]["add"] = reverse('add_orgainfotype')
         if request.user.is_staff :
             context["action"]["admin"] = 'admin:infos_organizationinfostype_change'
@@ -275,15 +276,16 @@ class SettingList_ContactInfosType(LoginRequiredMixin, TemplateView):
             'columns':[
                 {'name':_('name'),'item':'name',},
                 {'name':_('Icon'),'item':'icon_val', 'formatter':'iconFormatter'},
+                {'name':_('Type'),'item':'type','formatter':'infoTypeFormatter',},
             ], 
             'action':{
             },
             'options':{
             },         
         }
-        if request.user.has_perm("project.change_contactinfotype"):
+        if request.user.has_perm("infos.change_contactinfotype"):
             context["action"]["update"] = "update_contactinfotype"
-        if request.user.has_perm("project.add_contactinfotype"):
+        if request.user.has_perm("infos.add_contactinfotype"):
             context["action"]["add"] = reverse('add_contactinfotype')
         if request.user.is_staff :
             context["action"]["admin"] = 'admin:infos_contactinfotype_change'
@@ -305,9 +307,9 @@ class SettingList_ContactType(LoginRequiredMixin, TemplateView):
             'options':{
             },         
         }
-        if request.user.has_perm("project.change_contacttype"):
+        if request.user.has_perm("infos.change_contacttype"):
             context["action"]["update"] = "update_contacttype"
-        if request.user.has_perm("project.add_contacttype"):
+        if request.user.has_perm("infos.add_contacttype"):
             context["action"]["add"] = reverse('add_contacttype')
         if request.user.is_staff :
             context["action"]["admin"] = 'admin:infos_contacttype_change'

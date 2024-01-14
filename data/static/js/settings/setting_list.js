@@ -1,5 +1,5 @@
 function settingListActionFormatter(value, row, index, field){
-    actions = ""
+    actions = "<span class='icon-left-cell btn-group'>";
     if(this.urladmin != undefined && this.urladmin!="" && this.urladmin!='None'){
         actions += "<a href='"+Urls[this.urladmin](row.pk)+"'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>";
     }
@@ -10,6 +10,7 @@ function settingListActionFormatter(value, row, index, field){
     if(this.urldelete != undefined && this.urldelete!="" && this.urldelete!='None'){
         actions += "<button class='icon delete btn btn-danger' data-form-url='" + Urls[this.urldelete](row.pk) + "' ><i type = 'button' class='fas fa-trash'></i></button>";
     }
+    actions += "</span>"
     return actions;
 }
 

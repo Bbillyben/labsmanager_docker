@@ -8,13 +8,13 @@ class OrganizationInfosTypeForm(CleanedDataFormMixin, IconFormMixin, BSModalMode
 
     class Meta:
         model = OrganizationInfosType
-        fields = ['name', 'icon',]
+        fields = ['name', 'icon', 'type',]
 
 class ContactInfoTypeForm(CleanedDataFormMixin, IconFormMixin,  BSModalModelForm):
 
     class Meta:
         model = ContactInfoType
-        fields = ['name', 'icon',]
+        fields = ['name', 'icon','type',]
 
 class ContactTypeForm(CleanedDataFormMixin, BSModalModelForm):
 

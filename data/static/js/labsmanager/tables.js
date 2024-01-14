@@ -315,7 +315,6 @@ $.fn.labTable = function(options) {
     // Load visible column list from memory
     // Load visible column list
     var visibleColumns = labLoad(`table_columns_${tableName}`, null);
-
     // If a set of visible columns has been saved, load!
     if (visibleColumns) {
         var columns = visibleColumns.split(',');

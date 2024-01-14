@@ -14,17 +14,33 @@ from auditlog.registry import auditlog
 ######  informations about institution or funder
 ## 1 type / icon + name
 ## 2 info with generic foreign key
+class InfoTypeClass(models.Model):
+    class Meta:
+        abstract = True
+        
+    name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
+    icon = FAIconField(null=True,)
+    type_choices=[("none",_("None")), ("tel",_("Phone Number")), ("mail", _("EMail")), ("link", _("Link")), ]
+    type = models.CharField(
+        max_length=4,
+        choices=type_choices,
+        blank=False,
+        default=type_choices[0][0], 
+        verbose_name=_('Type'),        
+    )
+    
+    def __str__(self):
+       return self.name
+    
 
-class OrganizationInfosType(models.Model):
+class OrganizationInfosType(InfoTypeClass):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Type of Organization Info")
     
-    name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
-    icon = FAIconField(null=True,)
+
     
-    def __str__(self):
-       return self.name
+    
 
 class OrganizationInfos(models.Model):
     class Meta:
@@ -65,16 +81,10 @@ class ContactType(models.Model):
     def __str__(self):
        return self.name
 
-class ContactInfoType(models.Model):
+class ContactInfoType(InfoTypeClass):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Type of Contact Info")
-    
-    name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
-    icon = FAIconField(null=True,)
-    
-    def __str__(self):
-       return self.name
 
 
 
