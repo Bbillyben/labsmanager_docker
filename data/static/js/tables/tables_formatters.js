@@ -522,7 +522,7 @@ function institution_project_formatter(value, row, index, field){
     responseI = "";
     can_see = USER_PERMS.includes('common.display_infos');
     if(can_see){
-        responseI ="<a href='"+Urls['institution_single'](row.institution.pk)+"'>"+value+"</a>";
+        responseI ="<a href='"+Urls['orga_single']('project', 'institution', row.institution.pk)+"'>"+value+"</a>";
     }else{
         responseI =value;
     }
@@ -532,7 +532,28 @@ function institution_fund_formatter(value, row, index, field){
     responseI = "";
     can_see = USER_PERMS.includes('common.display_infos');
     if(can_see){
-        responseI ="<a href='"+Urls['institution_single'](row.fund.institution.pk)+"'>"+value+"</a>";
+        responseI ="<a href='"+Urls['orga_single']('project', 'institution', row.fund.institution.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+
+function funder_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('fund', 'fund_institution', row.funder.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+function contract_funder_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('fund', 'fund_institution', row.fund.funder.pk)+"'>"+value+"</a>";
     }else{
         responseI =value;
     }

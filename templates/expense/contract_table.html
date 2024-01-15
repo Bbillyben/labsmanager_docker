@@ -31,7 +31,7 @@
                 {% trans 'Employee' %}
             </th>
             {% endif %}
-            <th data-sortable="true" class="th-inner sortable both" data-field="fund.funder.name">
+            <th data-sortable="true" class="th-inner sortable both" data-field="fund.funder.name" data-formatter="contract_funder_formatter">
                 {% trans 'Funder' %}
             </th>
             <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">

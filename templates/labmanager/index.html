@@ -83,10 +83,18 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
-                {% include 'labmanager/index_card_tools.html' %}
+                {% if perms.common.display_infos %}
+                {% url 'orga_index' as urlCard %}
+                {% static 'img/icons/castle.png' as imgURL%}
+                {% trans 'Organization' as txtCard %}
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+
+                
 
             </div>
             <div class="row align-items-center justify-content-center" style="width:100%;">
+                {% include 'labmanager/index_card_tools.html' %}
                 
                 {% if perms.common.display_calendar or perms.leave.view_leave %}
                 {% url 'calendar_main' as urlCard %}
