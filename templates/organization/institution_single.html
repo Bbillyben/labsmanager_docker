@@ -21,7 +21,7 @@
     <div class="panel" id="panel-orga" style="display: block;">
         <div class="panel-heading">
             <div class="d-flex flex-wrap" >
-                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#project_description">{% trans 'Organization' %} : {{ orga.name }}</h4>
+                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#orga_description">{% trans 'Organization' %} : {{ orga.name }}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
                 
                 <div class="btn-group" role="group">
@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <div class="panel-content" id="orga_description" >
+        <div class="panel-content collapse show" id="orga_description" >
             <div class="row">
                 <div class="col col-md-6">
                     <div class="card  mb-2">
@@ -197,6 +197,26 @@
             </div>  
     </div><!-- end panel general-->
 
+    <!-- #########################  CONTRACT PANEL ###########################" "-->
+    <div class="panel panel-hidden panel-visible" id="panel-contract" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap" >
+                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#project_description">{% trans 'Contract' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                
+                <div class="btn-group" role="group">
+                  
+                </div>
+                
+            </div>
+        </div>
+        <div class="panel-content" id="orga_contact" >
+                <div class="row">
+                    {% include 'expense/contract_table.html' with datatype="all" filterName="contract_orga"%}
+                </div>
+        </div>
+    </div><!-- end panel general-->
+
 </div>
 
 {{ request.user.id|json_script:"user_id" }}
@@ -207,6 +227,7 @@
 {% block js_load %}
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/orga_single.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/contract_tables.js' %}"></script>
 {% endblock %}
 
 {% block js %}
@@ -214,12 +235,17 @@
     $(document).ready(function () {
         user_id = JSON.parse(document.getElementById('user_id').textContent);
         orga_id = JSON.parse(document.getElementById('orga_id').textContent);
+        initOrgaSingleView(user_id, orga_id, '{{type.app}}.{{type.model}}'); 
+
+
         loadCards('orga');
         onPanelLoad("info", function(){loadInfosPanel(); })
         onPanelLoad("project", function(){initProjectPanelOrga(); })
         onPanelLoad("contact", function(){initContactPanel(); })
+        onPanelLoad("contract", function(){initContractPanelOrga(); })
+        
         enableSidebar('orga_single');
-        initOrgaSingleView();   
+          
     
     })
     

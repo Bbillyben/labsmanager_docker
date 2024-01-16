@@ -131,6 +131,13 @@ class Contract(DateMixin):
             return exp.aggregate(Sum('amount'))["amount__sum"]
         return 0
     
+    @property
+    def man_month(self):
+        if not self.start_date or not self.end_date or not self.quotity:
+            return 0
+        return ((self.end_date.year - self.start_date.year) * 12 + self.end_date.month - self.start_date.month)*self.quotity
+        
+    
     @classmethod
     def staleFilter(cls):
         monthToGo=LMUserSetting.get_setting('DASHBOARD_CONTRACT_STALE_TO_MONTH')

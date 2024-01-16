@@ -16,6 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import OrganizationInfos, Contact
 from project.models import Project, Institution, Institution_Participant
 from fund.models import Fund_Institution, Fund
+from expense.models import Contract
 
 class organisationViewSet(viewsets.ViewSet):
     queryset = OrganizationInfos.objects.all()
@@ -35,13 +36,16 @@ class organisationViewSet(viewsets.ViewSet):
         orga = get_object_or_404(model_class, pk=id)
         
         if model_class == Institution:
-            ip = Institution_Participant.objects.filter(institution=orga).values('project')
-            
+            ip1 = Institution_Participant.objects.filter(institution=orga).values('project')
+            ip2 = Fund.objects.filter(institution=orga).values('project')
+            ip= ip1.union(ip2)
         elif model_class == Fund_Institution:
             ip = Fund.objects.filter(funder=orga).values('project')
         
         proj = Project.objects.filter(pk__in=ip) 
         
+        
+        ###   Filters
         params = request.GET
         status = params.get('status', None)
         if status:
@@ -57,5 +61,26 @@ class organisationViewSet(viewsets.ViewSet):
         info = Contact.objects.filter(content_type = ct, object_id = id)
         
         return JsonResponse(serializers.ContactSerializer(info, many=True).data, safe=False)
+
+    @action(methods=['get'], detail=False, url_path='(?P<app>[^/.]+)/(?P<model>[^/.]+)/(?P<id>[0-9]+)/contract', url_name='orga_contract')
+    def get_orga_contract(self, request, app, model, id):
+        from expense.apiviews import ContractViewSet
+     
+        _mutable = request.query_params._mutable
+        request.query_params._mutable = True
+
+        if model == 'institution':
+            request.query_params.update({'institution_name':id})
+        elif model == 'fund_institution':
+            request.query_params.update({'funder':id})
+        # set mutable flag back
+        request.query_params._mutable = _mutable      
+        
+        cvs = ContractViewSet()
+        cvs.request = request
+        
+        qs = cvs.filter_queryset(cvs.get_queryset())
+        
+        return JsonResponse(serializers.ContractSerializer(qs, many=True).data, safe=False)
         
     

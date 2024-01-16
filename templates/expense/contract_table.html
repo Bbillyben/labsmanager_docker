@@ -1,6 +1,9 @@
 {% load i18n %}
 {% load customs_tags %}
-{% filter_name "contract" datatype as filterName %}
+{% if not filterName %}
+    {% filter_name "contract" datatype as filterName %}
+{%endif%}
+
 {% if datatype == 'all' or datatype == 'project' %}
 <div id='tracking-table-toolbar_{{filterName}}'>
     <div class='btn-group'>

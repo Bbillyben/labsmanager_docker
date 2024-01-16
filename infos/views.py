@@ -7,13 +7,14 @@ from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseNotFound
-from django.db.models import F, Sum
+from django.db.models import F, Sum, ExpressionWrapper, IntegerField
 
 from view_breadcrumbs import BaseBreadcrumbMixin
 from labsmanager.mixin import CrumbListMixin
 
 from project.models import Institution, Project, Institution_Participant
 from fund.models import Fund_Institution, Fund
+from expense.models import Contract
 
 from .models import OrganizationInfos, ContactInfo
 class OrganizationIndexView(LoginRequiredMixin, PermissionRequiredMixin, BaseBreadcrumbMixin, TemplateView):
@@ -101,14 +102,44 @@ def get_orga_resume(request, app, model, pk):
     orga = get_object_or_404(model_class, pk=pk)
     data = {'orga': orga}
     ## Info supp
-    # projects 
+    # contracts 
     if model_class == Institution:
-        ip = Institution_Participant.objects.filter(institution=orga).values('project')
+        ip = Fund.objects.filter(institution=orga).values('project')
         fu=Fund.objects.filter(project__in=ip)
         
     elif model_class == Fund_Institution:
         fu=Fund.objects.filter(funder=orga)
         ip = fu.values('project')
+        
+    coT = Contract.objects.filter(fund__in=fu)
+    coC = Contract.current.filter(fund__in=fu)
+    data['contract']={
+        'total':coT.count(),
+        'total_active':coT.filter(is_active=True).count(),
+        'total_MM':coT.annotate(
+                man_month_sum=ExpressionWrapper(
+                    F('end_date__year') - F('start_date__year'),
+                    output_field=IntegerField()
+                ) * 12 + F('end_date__month') - F('start_date__month')
+            ).aggregate(Sum('man_month_sum'))["man_month_sum__sum"],
+        'current':coC.count(),
+        'current_active':coC.filter(is_active=True).count(),
+        'current_MM':coC.annotate(
+                man_month_sum=ExpressionWrapper(
+                    F('end_date__year') - F('start_date__year'),
+                    output_field=IntegerField()
+                ) * 12 + F('end_date__month') - F('start_date__month')
+            ).aggregate(Sum('man_month_sum'))["man_month_sum__sum"],
+    }
+    
+    
+    # projects 
+    if model_class == Institution:
+        ip1 = Institution_Participant.objects.filter(institution=orga).values('project')
+        ip2 = Fund.objects.filter(institution=orga).values('project')
+        ip= ip1.union(ip2)
+        fu=Fund.objects.filter(project__in=ip)
+        
     
     proj = Project.objects.filter(pk__in=ip)
     data['project']={
@@ -123,6 +154,10 @@ def get_orga_resume(request, app, model, pk):
         
     }
         
+    
+    
+    
+    
     
     return render(request, 'organization/orga_desc_table.html', data)
 

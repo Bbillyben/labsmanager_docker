@@ -22,6 +22,11 @@
                 <table class="table table-sm">
                     <thead class="thead-light">
                         <tr>
+                            <th colspan="100%" class="desc_title" style="font-weight:inherit;">
+                                {%trans 'Project Involvement' %}
+                            </th>
+                        </tr>
+                        <tr>
                             <th></th>
                             <th>{% trans 'Project'  %}</th>
                             <th>{% trans 'Total Amount'  %}</th>
@@ -45,6 +50,41 @@
                             <td>{% moneyFormat project.open_avail_f %}</td>
                         </tr>
                     </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td><i class="fas fa-flask"></i></td>
+            <td colspan="2">
+                <table class="table table-sm">
+                    <thead class="thead-light">
+                        <tr>
+                            <th colspan="100%" class="desc_title" style="font-weight:inherit;">
+                                {%trans 'Contract' %}
+                            </th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>{% trans 'Total'  %}</th>
+                            <th>{% trans 'Current'  %}</th>
+                            <th>{% trans 'Man Month'  %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{% trans 'Number' %}</td>
+                            <td>{{contract.total}}</td>
+                            <td>{{contract.total_active}}</td>
+                            <td>{{contract.total_MM}}</td>
+                        </tr>
+                        <tr>
+                            <td>{% trans 'Active' %}</td>
+                            <td>{{contract.current}}</td>
+                            <td>{{contract.current_active}}</td>
+                            <td>{{contract.current_MM}}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </td>
         </tr>
     </tbody>

@@ -68,7 +68,7 @@ function loadInfosPanel(){
 
 function initProjectPanelOrga(){
 
-    var filters = loadTableFilters('project_orga');
+    var filters = loadTableFilters('contrat_orga');
     var filterOption={
         download:false,
     }
@@ -82,8 +82,15 @@ function initProjectPanelOrga(){
     $('#project_orga_table').labTable(options);
 }
 
-
-
+// #################### For Cotnract Panel
+function initContractPanelOrga(){
+    console.log(" >>>>  initContractPanelOrga  <<<<")
+    console.log(orga_type)
+    app = orga_type.split(".")[0];
+    model = orga_type.split(".")[1];
+    console.log(app+" / "+model)
+    initializeContractsTable(tableurl=Urls['api:organization-orga_contract'](app, model, orga_id));
+}
 // #################### For Contact Panel
 var contact=0;
 function initContactPanel(){
