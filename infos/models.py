@@ -98,8 +98,8 @@ class Contact(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     
-    first_name = models.CharField(max_length=50, unique=True, verbose_name=_('First Name'))
-    last_name = models.CharField(max_length=50, unique=True, verbose_name=_('Last Name'))  
+    first_name = models.CharField(max_length=50, verbose_name=_('First Name'))
+    last_name = models.CharField(max_length=50, verbose_name=_('Last Name'))  
     type =  models.ForeignKey(ContactType, on_delete=models.CASCADE, verbose_name=_('Contact Type'))
     comment = models.TextField(max_length=350, blank=True, null=True, verbose_name=_('comment'))
     history = AuditlogHistoryField()
