@@ -104,8 +104,8 @@ def get_orga_resume(request, app, model, pk):
     ## Info supp
     # contracts 
     if model_class == Institution:
-        ip = Fund.objects.filter(institution=orga).values('project')
-        fu=Fund.objects.filter(project__in=ip)
+        # ip = Fund.objects.filter(institution=orga).values('project')
+        fu=Fund.objects.filter(institution=orga)
         
     elif model_class == Fund_Institution:
         fu=Fund.objects.filter(funder=orga)
@@ -130,18 +130,18 @@ def get_orga_resume(request, app, model, pk):
                     output_field=IntegerField()
                 ) * 12 + F('end_date__month') - F('start_date__month')
             ).aggregate(Sum('man_month_sum'))["man_month_sum__sum"],
-    }
-    
+    }   
     
     # projects 
     if model_class == Institution:
         ip1 = Institution_Participant.objects.filter(institution=orga).values('project')
         ip2 = Fund.objects.filter(institution=orga).values('project')
         ip= ip1.union(ip2)
-        fu=Fund.objects.filter(project__in=ip)
+        # fu=Fund.objects.filter(project__in=ip)
         
     
     proj = Project.objects.filter(pk__in=ip)
+    
     data['project']={
         'total':proj.count(),
         'open':proj.filter(status=True).count(),
