@@ -26,6 +26,7 @@ es_formats.DATETIME_FORMAT = "d M Y H:i:s"
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -307,7 +308,8 @@ STATICFILES_DIRS = [
 ]
 
 # Color Themes Directory
-STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_URL, 'css', 'color-themes')
+STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_ROOT, 'css', 'color-themes')
+
 
 
 

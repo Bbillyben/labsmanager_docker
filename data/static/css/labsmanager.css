@@ -588,12 +588,6 @@ main {
 
 .modal-header {
     padding: 0.5em 0.5em !important;
-    /* padding: 3px;
-    padding-top: 5px;
-    padding-left: 15px;
-    padding-right: 25px; */
-    color: var(--bs-body-color) !important;
-    background-color: var(--headings-color) !important;
     border-bottom: None !important;
     width: 100%;
 }
@@ -1139,9 +1133,7 @@ a.no_color:hover{
 
 
 /* ################  for table customisation */
-.select-row{
-    background-color: #7ed4d4;
-}
+
 .table-desc{
 
 }
@@ -1164,7 +1156,6 @@ col.column-Sum{
 
 
 .subheading{
-    background-color: var(--subheading-color);
     padding-left:0.5rem;
 }
 .subheading h4{
@@ -1181,10 +1172,7 @@ li.list-spacer{
     border-right: 0.1rem solid var(--border-color);
     margin: 0.5rem .25rem 0.5rem .25rem;
 }
-/* overrride bootstrap style */
-.list-group-item.active{
-    background-color: #53825f !important;
-}
+
 /* for list in table */
 .th-inner ul {
 	text-align: left;
@@ -1299,8 +1287,6 @@ li.list-spacer{
     width: 100%;
     height: 2em;
     text-align: center;
-    background-color:var(--headings-color);
-    color: white;
     font-weight: bold;
     font-size: larger
   }
@@ -1493,15 +1479,12 @@ li.list-spacer{
     
 /*   for bstreeview   */
     .org-chart-count{
-        background-color: var(--primary-color-alpha);
         margin-left: 2em;
         border-radius: 50%;
         padding-left: 0.5em;
         padding-right: 0.5em;
     }
     .org-chart-status{
-        margin-left: 1em;
-        font-size: smaller;
         color: gray;
     }
     .org-chart-cont{
@@ -1510,7 +1493,6 @@ li.list-spacer{
     .org-chart-cont:after {
         content: " ";
         width: 70%;
-        border-bottom: 2px solid var(--primary-color-alpha);
         position: absolute;
         display: block;
         left:15%;
@@ -1518,19 +1500,15 @@ li.list-spacer{
     }
     .employee_orga_chart{ 
         display: inline-block;
-        background-color: var(--primary-color-alpha-dark);
         border-radius: 50%;
         margin-left: 0.2em;
         padding:0.3em;
-        color:white;
+
     }
     .bstreeview .inactive, .bstreeview .inactive a{
-        color:grey;
         font-style: italic;
     }
     /* for inactive node */
    .node.inactive .title, .node.inactive .title a{
-        background-color: lightgray  !important;
-        color: grey !important;
         font-style: italic;
    }

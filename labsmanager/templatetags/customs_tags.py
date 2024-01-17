@@ -149,3 +149,16 @@ def filter_name(type, sub_type=None):
     if sub_type is None:
         return type
     return f'{type}_{sub_type}'
+
+
+from labsmanager.themes import LabTheme
+from labsmanager import settings
+from settings.models import LMUserSetting, LabsManagerSetting
+import os
+
+@register.simple_tag()
+def get_color_theme(user):
+    ctName = LMUserSetting.get_setting("LAB_THEME", user=user)
+    ct = LabTheme.get_theme(ctName)
+    cssPath = os.path.join("/",settings.STATIC_URL,'css', 'color-themes', ct + '.css')
+    return cssPath

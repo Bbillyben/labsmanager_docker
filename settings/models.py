@@ -25,6 +25,7 @@ import labsmanager.ready
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR
 
 from labsmanager.settings import LANGUAGES
+from labsmanager.themes import LabTheme
 
 from decimal import Decimal
 
@@ -883,6 +884,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': True,
             'validator': bool,
         },
+        'LAB_THEME': {
+            'name': _('Theme'),
+            'description': _('Color theme for LabsManager'),
+            'default': LabTheme.default_color_theme[0],
+            'choices':LabTheme.get_themes_choices(),
+        },
         
         
     }
@@ -923,3 +930,5 @@ class LMUserSetting(BaseLabsManagerSetting):
         return {
             'user': self.user,
         }
+    
+    
