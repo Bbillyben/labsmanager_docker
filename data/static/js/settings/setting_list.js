@@ -47,8 +47,8 @@ function settingListActionFormatter(value, row, index, field){
                         formURL: $(this).data("form-url"),
                         modal_title:"Add",
                         addModalFormFunction:function(){
-                            console.log("refresh from add modal")
-                            console.log(table)
+                            // console.log("refresh from add modal")
+                            // console.log(table)
                             $(table).bootstrapTable('refresh');
                         },
                     }   

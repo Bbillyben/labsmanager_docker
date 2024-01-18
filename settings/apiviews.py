@@ -12,7 +12,6 @@ class UserSettingsDetail(generics.RetrieveUpdateAPIView):
     """Detail view for an individual "user setting" object.
     - User can only view / edit settings their own settings objects
     """
-
     lookup_field = 'key'
     queryset = models.LMUserSetting.objects.all()
     serializer_class = serializers.UserSettingsSerializer
@@ -20,7 +19,6 @@ class UserSettingsDetail(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Attempt to find a user setting object with the provided key."""
         key = self.kwargs['key']
-
         if key not in models.LMUserSetting.SETTINGS.keys():
             raise NotFound()
 

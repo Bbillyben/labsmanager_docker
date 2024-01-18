@@ -384,7 +384,7 @@ EMAIL_PORT = get_setting('LAB_EMAIL_PORT', 'email.port', 25, typecast=int)
 EMAIL_HOST_USER = get_setting('LAB_EMAIL_USERNAME', 'email.username', '')
 EMAIL_SENDER = get_setting('LAB_EMAIL_SENDER', 'email.sender', '')
 EMAIL_HOST_PASSWORD = get_setting('LAB_EMAIL_PASSWORD', 'email.password', '')
-EMAIL_SUBJECT_PREFIX = get_setting('LAB_EMAIL_PREFIX', 'email.prefix', '[InvenTree] ')
+EMAIL_SUBJECT_PREFIX = get_setting('LAB_EMAIL_PREFIX', 'email.prefix', '[Labsmanager] ')
 EMAIL_USE_TLS = get_boolean_setting('LAB_EMAIL_TLS', 'email.tls', False)
 EMAIL_USE_SSL = get_boolean_setting('LAB_EMAIL_SSL', 'email.ssl', False)
 

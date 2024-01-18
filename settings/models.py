@@ -383,7 +383,7 @@ class BaseLabsManagerSetting(models.Model):
             self.run_validator(validator)
 
         options = self.valid_options()
-        print("############# clean Setting : "+ str(self.key)+" - value : "+str(self.value))
+        # print("############# clean Setting : "+ str(self.key)+" - value : "+str(self.value))
         if options and self.value not in options:
             raise ValidationError(_("Chosen value is not a valid option"))
 
@@ -721,8 +721,6 @@ class LabsManagerSetting(BaseLabsManagerSetting):
     }       
         
     class Meta:
-        """Meta options for InvenTreeSetting."""
-
         verbose_name = "LabsManager Setting"
         verbose_name_plural = "LabsManager Settings"
         
