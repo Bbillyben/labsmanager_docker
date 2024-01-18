@@ -622,17 +622,20 @@ class TeamSerializer_min(serializers.ModelSerializer):
     
     def get_url(self, obj):
         return reverse('team_single', kwargs={'pk':obj.pk})
-        
+from operator import attrgetter    
 class TeamSerializer(serializers.ModelSerializer):
     leader=EmployeeSerialize_Min(many=False, read_only=True)
-    team_mate=TeamMateSerializer_min(many=True, read_only=True)
+    team_mate=serializers.SerializerMethodField()
     has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model= Team
         fields=['pk','name', 'leader', 'team_mate', 'has_perm']
 
-
+    def get_team_mate(self, obj):
+        tm = TeamMate.objects.filter(team=obj)
+        sorted_team_mates = sorted(tm, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)
+        return TeamMateSerializer_min(sorted_team_mates, many=True, read_only=True).data
 
 class ParticipantProjectSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
