@@ -227,6 +227,8 @@ class CrumbListMixin():
             return False
         if self.request.user.is_staff:
             return True
+        if len(self.crumbListPerm) == 0:
+            return True
         for perm in self.crumbListPerm:
             if self.request.user.has_perm(perm):
                 return True
