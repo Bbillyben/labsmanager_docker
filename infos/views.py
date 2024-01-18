@@ -164,7 +164,7 @@ def get_orga_resume(request, app, model, pk):
 
 def get_orga_info(request, app, model, pk):
     ct = ContentType.objects.get(app_label=app, model=model)
-    info = OrganizationInfos.objects.filter(content_type = ct, object_id = pk)
+    info = OrganizationInfos.objects.filter(content_type = ct, object_id = pk).order_by('info__name')
     data = {'info': info} 
     data['object_id']=pk
     data['type'] = {
@@ -177,7 +177,7 @@ def get_orga_info(request, app, model, pk):
 # ------------------------- FOR Contact -------------------------- 
 # ---------------------------------------------------------------
 def get_orga_contact_info(request, id):
-    ci = ContactInfo.objects.filter(contact=id)
+    ci = ContactInfo.objects.filter(contact=id).order_by('info__name')
     data={'infos_contact':ci}
     data['object_id']=id
     return render(request, 'organization/contact_info_table.html', data)

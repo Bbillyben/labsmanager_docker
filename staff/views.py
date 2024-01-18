@@ -308,10 +308,12 @@ def get_team_resume(request, pk):
     data = {'team': team}
     
     return render(request, 'team/team_desc_table.html', data)
-
+from operator import attrgetter
 def get_team_mate(request, pk):
     teamMate = TeamMate.objects.filter(team=pk)
-    data = {'mates': teamMate}
+    # sorted_team_mates = sorted(teamMate, key=lambda x: x.is_active, reverse=True)
+    sorted_team_mates = sorted(teamMate, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)
+    data = {'mates': sorted_team_mates}
     
     return render(request, 'team/team_mate_table.html', data)
 

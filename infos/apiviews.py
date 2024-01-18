@@ -58,7 +58,7 @@ class organisationViewSet(viewsets.ViewSet):
     @action(methods=['get'], detail=False, url_path='(?P<app>[^/.]+)/(?P<model>[^/.]+)/(?P<id>[0-9]+)/contact', url_name='orga_contact')
     def get_orga_contact(self, request, app, model, id):
         ct = ContentType.objects.get(app_label=app, model=model)
-        info = Contact.objects.filter(content_type = ct, object_id = id)
+        info = Contact.objects.filter(content_type = ct, object_id = id).order_by('type__name')
         
         return JsonResponse(serializers.ContactSerializer(info, many=True).data, safe=False)
 

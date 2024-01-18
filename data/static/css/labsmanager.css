@@ -1194,18 +1194,12 @@ li.list-spacer{
   
   .radiolabel {
     width: 100%;
-    background: #e5e5e5;
     cursor: pointer;
     text-align:center;
   }
   
-  .radiolabel:active {
-    background: var(--highlight-color);  
-  }
-  
   .radiotab:checked + .radiolabel {
     display: block;
-    background: var(--subheading-color); 
   }
 
 
