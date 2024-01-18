@@ -3820,3 +3820,15 @@ embed[type="application/pdf"] { filter: invert(100%) contrast(90%); }
     background-color:#0f3a48 ;
     color: white;
   }
+
+  .availContract .anum{
+    color:var(--darkreader-neutral-background);
+
+}
+/* Fullcalendar spe */
+.fc-bg-event.vacation{
+    background-color: #6e5b84 !important;
+}
+.fc-bg-event.dayoff{
+    background-color: #8e57a2  !important;
+}

@@ -71,3 +71,15 @@
     background-color:var(--headings-color);
     color: white;
   }
+
+
+/* Fullcalendar spe */
+.fc-bg-event.vacation{
+    background-color: lightblue !important;
+}
+.fc-bg-event.dayoff{
+    background-color: lightskyblue !important;
+}
+.fc-timeline-slot-lane.fc-day-today, .fc-timeline-slot-lane.fc-slot-today, .fc-daygrid-day.fc-day-today, .fc-daygrid-day.fc-slot-today{
+    background-color: var(--primary-color-alpha) !important;
+}
