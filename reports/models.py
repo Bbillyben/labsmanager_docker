@@ -17,6 +17,7 @@ import sys
 from io import BytesIO
 from django.http import FileResponse, JsonResponse
 from docxtpl import DocxTemplate
+from django_weasyprint import WeasyTemplateResponseMixin
 import jinja2
 import json
 from django.core.serializers.json import DjangoJSONEncoder
@@ -217,8 +218,6 @@ class WordReport(TemplateReport):
                                 )
         return response
     
-    
-from django_weasyprint import WeasyTemplateResponseMixin
 class WeasyprintReportMixin(WeasyTemplateResponseMixin):
     """Class for rendering a HTML template to a PDF."""
 

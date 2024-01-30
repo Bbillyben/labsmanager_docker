@@ -162,3 +162,17 @@ def get_color_theme(user):
     ct = LabTheme.get_theme(ctName)
     cssPath = os.path.join("/",settings.STATIC_URL,'css', 'color-themes', ct + '.css')
     return cssPath
+
+@register.simple_tag()
+def get_color_theme_browser(request):
+    if request.user and not request.user.is_anonymous:
+        return get_color_theme(request.user)
+    
+    accept_header = request.META.get('HTTP_ACCEPT', '')
+    if 'dark' in accept_header:
+        ctName = "dark-reader"
+    else:
+        ctName = "default"
+    ct = LabTheme.get_theme(ctName)
+    cssPath = os.path.join("/",settings.STATIC_URL,'css', 'color-themes', ct + '.css')
+    return cssPath
