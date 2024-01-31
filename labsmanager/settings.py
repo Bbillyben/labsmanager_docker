@@ -310,12 +310,6 @@ STATICFILES_DIRS = [
 # Color Themes Directory
 STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_ROOT, 'css', 'color-themes')
 
-
-
-
-
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -446,3 +440,13 @@ logger.debug('ADMIN_HEADER :'+str(ADMIN_HEADER))
 logger.debug('ADMIN_SITE_TITLE :'+str(ADMIN_SITE_TITLE))
 
 logger.debug('ADMIN_INDEX_TITLE :'+str(ADMIN_INDEX_TITLE))
+
+logger.debug('=========  FOLDER PATH  =========')
+
+logger.debug(f'  - BASE_DIR: {BASE_DIR}')
+logger.debug(f'  - STATIC_URL: {STATIC_URL}')
+logger.debug(f'  - STATIC_ROOT: {STATIC_ROOT}')
+logger.debug(f'  - MEDIA_ROOT: {MEDIA_ROOT}')
+logger.debug(f'  - STATICFILES_DIRS: {STATICFILES_DIRS}')
+logger.debug(f'  - STATIC_COLOR_THEMES_DIR: {STATIC_COLOR_THEMES_DIR}')
+logger.debug('=========  =========  =========')

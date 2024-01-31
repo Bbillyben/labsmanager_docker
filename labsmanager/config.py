@@ -133,7 +133,6 @@ def get_media_dir(create=True):
     """Return the absolute path for the 'media' directory (where uploaded files are stored)"""
 
     md = get_setting('LABSMANAGER_MEDIA_ROOT', 'media_root')
-
     if not md:
         raise FileNotFoundError('LABSMANAGER_MEDIA_ROOT not specified')
 
