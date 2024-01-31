@@ -1,4 +1,3 @@
-
 """  Credit : Inventree https://github.com/inventree/InvenTree """
 import io
 from wsgiref.util import FileWrapper

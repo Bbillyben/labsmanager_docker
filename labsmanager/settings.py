@@ -442,7 +442,6 @@ logger.debug('ADMIN_SITE_TITLE :'+str(ADMIN_SITE_TITLE))
 logger.debug('ADMIN_INDEX_TITLE :'+str(ADMIN_INDEX_TITLE))
 
 logger.debug('=========  FOLDER PATH  =========')
-
 logger.debug(f'  - BASE_DIR: {BASE_DIR}')
 logger.debug(f'  - STATIC_URL: {STATIC_URL}')
 logger.debug(f'  - STATIC_ROOT: {STATIC_ROOT}')
