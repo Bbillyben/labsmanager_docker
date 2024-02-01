@@ -223,8 +223,9 @@ class WordReport(TemplateReport):
                                 content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 )
         return response
-    
-class WeasyprintReportMixin():
+
+from django_weasyprint import WeasyTemplateResponseMixin
+class WeasyprintReportMixin(WeasyTemplateResponseMixin):
     """Class for rendering a HTML template to a PDF."""
 
     pdf_filename = 'report.pdf'
