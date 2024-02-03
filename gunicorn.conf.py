@@ -1,12 +1,12 @@
-"""Gunicorn configuration for InvenTree."""
+"""Gunicorn configuration for LabsManager   ."""
 
 import logging
 import multiprocessing
 import os
 
-logger = logging.getLogger('inventree')
+logger = logging.getLogger('labsmanager')
 
-workers = os.environ.get('INVENTREE_GUNICORN_WORKERS', None)
+workers = os.environ.get('LABSMANAGER_GUNICORN_WORKERS', None)
 
 if workers is not None:
     try:
