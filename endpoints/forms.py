@@ -27,15 +27,6 @@ class MilestonesModelForm(CleanedDataFormMixin, BSModalModelForm):
             self.base_fields['project'] = forms.ModelChoiceField(
                 queryset=Project.objects.all(),
             )
-        # if ('initial' in kwargs and 'employee' in kwargs['initial']):
-        #     self.base_fields['employee'] = forms.ModelChoiceField(
-        #         queryset=Employee.objects.all(),
-        #         widget=forms.HiddenInput
-        #     )
-        # else:
-        #     self.base_fields['employee'] = forms.ModelChoiceField(
-        #         queryset=Employee.objects.filter(is_active=True),
-        #     )
             
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)

@@ -22,7 +22,7 @@ from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, 
 
 
 from labsmanager.mixin import CreateModalNavigateMixin
-
+from operator import attrgetter
 class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'employee/employee_base.html'
     home_label = '<i class="fas fa-bars"></i>'
@@ -311,7 +311,9 @@ def get_team_resume(request, pk):
 
 def get_team_mate(request, pk):
     teamMate = TeamMate.objects.filter(team=pk)
-    data = {'mates': teamMate}
+    # sorted_team_mates = sorted(teamMate, key=lambda x: x.is_active, reverse=True)
+    sorted_team_mates = sorted(teamMate, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)
+    data = {'mates': sorted_team_mates}
     
     return render(request, 'team/team_mate_table.html', data)
 

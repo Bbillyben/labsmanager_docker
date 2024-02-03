@@ -32,16 +32,17 @@ class ProjectView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixin, B
     permission_required='project.view_project'
     template_name = 'project/project_single.html'
     model = Project
-    # crumbs = [("Project","project")]
+    
     # for CrumbListMixin
     reverseURL="project_single"
     crumbListQuerySet=Project.objects.filter(status=True)
     names_val=['name']
+    crumbListPerm=['project.view_project']
     
     @cached_property
     def crumbs(self):
         return [(_("Project"),"./",) ,
-                (str(self.construct_crumb()) ,  reverse("project_single", kwargs={'pk':'4'} ) ),
+                (str(self.construct_crumb()) ,  reverse("project_single", kwargs={'pk':'0'} ) ),
                 ]
 
     def construct_crumb(self):

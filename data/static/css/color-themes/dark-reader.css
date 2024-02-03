@@ -3783,3 +3783,63 @@ gr-main-header {
     background-color: #0f3a48 !important;
 }
 embed[type="application/pdf"] { filter: invert(100%) contrast(90%); }
+
+
+
+/* =============== LABS MANAGER SPECIFICTY ====================== */
+.subheading{
+    color: var(--darkreader-text--bs-body-color);
+    background-color: var(--darkreader-bg--secondary-color);
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 5px 5px;
+    border-bottom: 1px solid var(--darkreader-border--border-color);
+} 
+
+/* table specific */
+.select-row{
+    background-color: var(--darkreader-bg--bs-body-color);
+}
+
+/* full calendar */
+.fc .fc-scrollgrid-section-sticky > * {
+    background-color: var(--darkreader-bg--secondary-color) !important;
+}
+/*   for bstreeview   */
+.bstreeview .inactive, .bstreeview .inactive a{
+    color:grey;
+}
+/* for inactive node */
+.orgchart .node .content {
+    background-color: var(--darkreader-bg--secondary-color) !important;
+}
+.node.inactive .title, .node.inactive .title a{
+    background-color: #555353   !important;
+    color: grey !important;
+}
+
+.card .lab-card-link{
+    background-color:#0f3a48 ;
+    color: white;
+  }
+
+  .availContract .anum{
+    color:var(--darkreader-neutral-background);
+
+}
+/* Fullcalendar spe */
+.fc-bg-event.vacation{
+    background-color: #6e5b84 !important;
+}
+.fc-bg-event.dayoff{
+    background-color: #8e57a2  !important;
+}
+  /* orderable chart eg project dashboard */
+
+  .radiolabel {
+    background: #292d2f;
+  }
+  .radiolabel:active {
+    background: var(--darkreader-bg--bs-body-color);  
+  }
+  .radiotab:checked + .radiolabel {
+    background: var(--darkreader-bg--bs-body-color); 
+  }

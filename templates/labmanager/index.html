@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load customs_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -17,12 +18,12 @@
 <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
 <link rel="stylesheet" href="{% static 'fontawesome/css/brands.min.css' %}">
 <link rel="stylesheet" href="{% static 'fontawesome/css/solid.min.css' %}">
-
-<link rel="stylesheet" href="{% static 'css/color-themes/default.css' %}">
-
+<link rel="stylesheet" href="{% get_color_theme user %}">
 
 
-<body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.jpg" %}); background-size: cover;'></body>
+
+
+<body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.png" %}); background-size: cover;'></body>
 {% if user.is_authenticated %}
 <nav class="navbar navbar-expand-lg navbar-light">
     {% if user.employee %}
@@ -83,17 +84,18 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
-                
-                {% if perms.fund.view_fund %}
-                {% url 'fund_finder' as urlCard %}
-                {% trans 'Fund' as txtCard %}
-                {% static 'img/icons/fund.png' as imgURL%}
-
+                {% if perms.common.display_infos %}
+                {% url 'orga_index' as urlCard %}
+                {% static 'img/icons/castle.png' as imgURL%}
+                {% trans 'Organization' as txtCard %}
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
+                
+
             </div>
             <div class="row align-items-center justify-content-center" style="width:100%;">
+                {% include 'labmanager/index_card_tools.html' %}
                 
                 {% if perms.common.display_calendar or perms.leave.view_leave %}
                 {% url 'calendar_main' as urlCard %}
@@ -111,7 +113,7 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
-                {% include 'labmanager/index_card_tools.html' %}
+                
 
                 
                 <div id="favorites" style="display: contents;"></div>

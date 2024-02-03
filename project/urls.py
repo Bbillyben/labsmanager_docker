@@ -39,7 +39,7 @@ urlpatterns += [
     path('ajax/<pk>/institution/add', views_modal.InstitutionCreateView.as_view(), name='add_institution'),
     
     path('institution/add', views_modal.InstitutionDirectCreateView.as_view(), name='add_institution_direct'),
-    path('institution/<pk>/update/', views_modal.InstitutionUpdateView.as_view(), name='update_institution_direct'),
+    path('institution/<pk>/update/', views_modal.InstitutionUpdateView.as_view(), name='update_project_institution'),
     
     path('genericinfotype/add/', views_modal.GenericInfoTypeProjectCreateView.as_view(), name='add_genericinfotypeproject'),
     path('genericinfotype/<pk>/update/', views_modal.GenericInfoTypeProjectUpdateView.as_view(), name='update_genericinfotypeproject'), 

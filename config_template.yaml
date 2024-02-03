@@ -33,7 +33,7 @@ admin_index_title: "Menu"
 
 
 static_root: '/home/labsmanager/data/static/'
-media_root: "/home/labsmanager/data/static/media/"
+media_root: "/home/labsmanager/data/media/"
 
 # CSP policy
 admin_use_csp: 'true'
@@ -44,3 +44,15 @@ admin_csp_font: "'unsafe-inline','unsafe-eval', data:"
 admin_csp_data: "'unsafe-inline','unsafe-eval'"
 admin_csp_img: "data:"
 # admin_csp_media: ""
+
+#security issues 
+csrf_cookie_secure: 'true'
+csrf_cookie_samesite: 'Strict'
+session_cookie_secure: 'false'
+secure_browser_xss_filter: 'true'
+secure_content_type_nosniff: 'true'
+secure_ssl_redirect: 'false'
+x_frame_options: 'DENY'
+secure_hsts_seconds: 300
+secure_hsts_include_subdomains: 'true'
+secure_hsts_preload: 'true'

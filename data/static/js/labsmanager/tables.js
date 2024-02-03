@@ -95,7 +95,7 @@ function convertQueryParameters(params, filters) {
  *
  * - The API endpoint supports data download (on the server side)
  * - The table is "flat" (does not support multi-level loading, etc)
- * - The table has been loaded using the inventreeTable() function, not bootstrapTable()
+ * - The table has been loaded using the LabsmanagerTable() function, not bootstrapTable()
  *   (Refer to the "reloadTableFilters" function to see why!)
  */
  function downloadTableData(table, opts={}) {
@@ -315,7 +315,6 @@ $.fn.labTable = function(options) {
     // Load visible column list from memory
     // Load visible column list
     var visibleColumns = labLoad(`table_columns_${tableName}`, null);
-
     // If a set of visible columns has been saved, load!
     if (visibleColumns) {
         var columns = visibleColumns.split(',');

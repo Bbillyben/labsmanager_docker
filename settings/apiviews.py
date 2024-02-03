@@ -12,7 +12,6 @@ class UserSettingsDetail(generics.RetrieveUpdateAPIView):
     """Detail view for an individual "user setting" object.
     - User can only view / edit settings their own settings objects
     """
-
     lookup_field = 'key'
     queryset = models.LMUserSetting.objects.all()
     serializer_class = serializers.UserSettingsSerializer
@@ -20,7 +19,6 @@ class UserSettingsDetail(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Attempt to find a user setting object with the provided key."""
         key = self.kwargs['key']
-
         if key not in models.LMUserSetting.SETTINGS.keys():
             raise NotFound()
 
@@ -86,8 +84,10 @@ from fund import models as fund_model
 from expense import models as expense_model
 from leave import models as leave_model
 from project.models import Institution, GenericInfoTypeProject
+from infos.models import OrganizationInfosType, ContactInfoType, ContactType
 from staff import models as staff_model
 from django.contrib.auth import get_user_model   
+
 class SettingListViewSet(viewsets.ModelViewSet):
     queryset = None
     serializer_class = None
@@ -127,6 +127,19 @@ class SettingListViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='genericinfotypeproject', url_name='genericinfotypeproject')
     def genericinfotypeproject(self, request):
         return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(GenericInfoTypeProject.objects.all(), many=True).data, safe=False)
+
+    @action(methods=['get'], detail=False, url_path='organizationinfostype', url_name='organizationinfostype')
+    def organizationinfostype(self, request):
+        return JsonResponse(labserializers.OrgaInfoTypeSerializer(OrganizationInfosType.objects.all(), many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='contactinfostype', url_name='contactinfostype')
+    def contactinfostype(self, request):
+        return JsonResponse(labserializers.OrgaInfoTypeSerializer(ContactInfoType.objects.all(), many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='contacttype', url_name='contacttype')
+    def contacttype(self, request):
+        return JsonResponse(labserializers.ContactTypeSerializer(ContactType.objects.all(), many=True).data, safe=False)
+    
     
     @action(methods=['get'], detail=False, url_path='employeeuser', url_name='employeeuser')
     def employeeuser(self, request):

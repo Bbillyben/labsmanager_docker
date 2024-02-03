@@ -1,6 +1,9 @@
 {% load i18n %}
 {% load customs_tags %}
-{% filter_name "contract" datatype as filterName %}
+{% if not filterName %}
+    {% filter_name "contract" datatype as filterName %}
+{%endif%}
+
 {% if datatype == 'all' or datatype == 'project' %}
 <div id='tracking-table-toolbar_{{filterName}}'>
     <div class='btn-group'>
@@ -31,7 +34,7 @@
                 {% trans 'Employee' %}
             </th>
             {% endif %}
-            <th data-sortable="true" class="th-inner sortable both" data-field="fund.funder.name">
+            <th data-sortable="true" class="th-inner sortable both" data-field="fund.funder.name" data-formatter="contract_funder_formatter">
                 {% trans 'Funder' %}
             </th>
             <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
@@ -40,7 +43,7 @@
             <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                 {% trans 'End Date' %}
             </th>
-            <th data-sortable="true" class="th-inner sortable both" data-field="fund.institution.short_name">
+            <th data-sortable="true" class="th-inner sortable both" data-field="fund.institution.short_name" data-formatter="institution_fund_formatter">
                 {% trans 'Institution' %}
             </th>
             <th data-sortable="true" class="th-inner sortable both" data-field="contract_type">

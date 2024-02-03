@@ -48,7 +48,7 @@ class ContractViewSet(viewsets.ModelViewSet):
     filterset_class = ContractFilter
     
     def get_queryset(self):
-      print("======================= [ContractViewSet] get_queryset ")
+      # print("======================= [ContractViewSet] get_queryset ")
       if self.request is not None:
         ongoing = self.request.query_params.get('ongoing', None)
         if ongoing is not None:
@@ -115,7 +115,7 @@ class ContractViewSet(viewsets.ModelViewSet):
         return queryset
     
     def list(self, request, *args, **kwargs):
-        print("======================= [ContractViewSet] list ")
+        # print("======================= [ContractViewSet] list ")
         self.request = request
         export = request.GET.get('export', None)
         if export is not None:

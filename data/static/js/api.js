@@ -149,7 +149,7 @@ function showApiError(xhr, url) {
     // No response
     case 0:
         title = '{% trans "No Response" %}';
-        message = '{% trans "No response from the InvenTree server" %}';
+        message = '{% trans "No response from the LabsManager server" %}';
         break;
     // Bad request
     case 400:

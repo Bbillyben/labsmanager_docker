@@ -1,0 +1,269 @@
+
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+<!-- { html_message true } -->
+<style>
+    
+    /* @page {
+        @top-center {
+                content:  string(title);
+            }
+    }
+
+    header {
+        width: 0;
+        height: 0;
+        visibility: hidden;
+        string-set: title content();
+        background-color:#EEF3F7;
+    } */
+    @page {
+        margin: 2cm 2cm 2cm 2cm;
+        size: A4;
+        /* @bottom-right{
+            content: "p." counter(page) "/" counter(pages);
+            font-size: 1em;
+        } */
+    }
+   
+    header, footer {
+        position: fixed;
+        left: -2cm;
+        right: -2cm;
+    }
+    header {
+        /* subtract @page margin */
+        top: -2cm;
+        height: 2cm
+    }
+    footer {
+        /* subtract @page margin */
+        bottom: -2cm;
+        height: -2cm;
+    }
+    /* ################################## HEADER AND FOOTER  */
+    #header_bar, #footer_bar{
+      width:100%;
+      background-color:#333F50;
+      padding: 10px;
+      color:white;
+    }
+    #header_bar img{
+      display: inline;
+      width:32px;
+      height:32px;
+      vertical-align:middle;
+      margin-left:10px;
+      margin-right: 20px;
+
+    }
+    #header_bar .inline{
+      margin-right: auto;
+      font-weight: bold;
+      font-size: larger;
+    }
+    /* ################################## GENERAL */
+    body{
+        font-family: 'Calibri';
+        font-size: 10px;
+    }
+    .highlight{
+        font-weight: bold;
+    }
+    .spacer{
+        padding: 1em;
+    }
+    .spacer-small{
+        padding: 0.3em;
+    }
+    .small{
+        font-size: smaller;
+    }
+    /* ################################## TABLES  */
+    .table_title{
+        width:100%;
+        background-color:#333F50;
+        color:white;
+        font-size: larger;
+        padding-top: 0.2em;
+        padding-bottom: 0.2em;
+    }
+    .table_title span,  .table_subtitle span{
+        padding-left: 1em;
+    }
+    .table_title_secondary{
+        width:100%;
+        background-color:#6a88b1;
+        color:white;
+        font-size: larger;
+        padding-top: 0.2em;
+        padding-bottom: 0.2em;
+        text-align: center;
+    }
+    .table_subtitle{
+        width:100%;
+        background-color:#8496B0;
+        color:white;
+        padding-top: 0.1em;
+        padding-bottom: 0.1em;
+    }
+    .table_td_fullspan{
+        colspan:"100%";
+    }
+    table{
+        width: 100%;
+        border-collapse: collapse;
+
+    }
+    table th, table td {
+    border: 1px solid;
+    }
+    table td{
+        vertical-align: middle;
+    }
+    table td.cell_title, table th.cell_title{
+
+        background-color:#D5DCE4;
+        font-weight: normal;
+    }
+    table .cell_head{
+        background-color:#8496B0;
+        text-align: left;
+    }
+    table .cell_head span.right {
+        float: right;
+    }
+    table td.cell_center{
+        text-align: center;
+    }
+
+
+</style>
+
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=">
+  </head>
+  <body>
+    <header>
+        <div id="header_bar"> 
+            <img src="{% static 'img/labsmanager/labsmanager_icon_small.png' %}" alt="logo image">
+            
+            <span class="inline"> Employee Leave Report - {{ employee.first_name }}  {{ employee.last_name }}</span>
+        </div>
+        
+    </header>
+    
+
+
+<!-- ##################################   General Information Table   ################################## -->
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "General Information" %}</span>
+        
+    </div>
+    <table class="table">
+        <tbody>
+            <tr>
+                <td class="cell_title">
+                    {% trans "First Name" %}
+                </td>
+                <td class="highlight cell_center">
+                    {{ employee.first_name  }}
+                </td>
+                <td class="cell_title">
+                    {% trans "Last Name" %}
+                </td>
+                <td class="highlight cell_center">
+                    {{ employee.last_name }}
+                </td>
+            </tr>
+            <tr>
+                <td class="cell_title">
+                    {% trans "Start Period" %}
+                </td>
+                <td >                    
+                    {{ request.GET.start_date  }}
+                </td>
+                <td class="cell_title">
+                    {% trans "End Period" %}
+                </td>
+                <td >                    
+                    {{ request.GET.end_date  }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>  
+
+
+<!-- ##################################    Leaces    ################################## -->
+{% if leave   %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Leaves" %}</span>
+    </div>
+    <table class="table">
+        <!-- <thead>
+            <th class="cell_title">{% trans 'Type' %}</th>
+            <th class="cell_title">{% trans 'Start Date' %}</th>
+            <th class="cell_title">{% trans 'End Date' %}</th>
+            <th class="cell_title">{% trans 'Comment' %}</th>
+        </thead> -->
+        <tbody>
+            {% for item in leave  %}
+            {% ifchanged item.end_date.month %}
+            <tr>
+                <td class="table_title_secondary" colspan="5">{{item.start_date|date:"F"}} {{item.start_date.year}}</td>
+            </tr>
+            <tr>
+                <td class="cell_title">{% trans 'Type' %}</td>
+                <td class="cell_title">{% trans 'Start Date' %}</td>
+                <td class="cell_title">{% trans 'End Date' %}</td>
+                <td class="cell_title">{% trans 'Half Day' %}</td>
+                <td class="cell_title">{% trans 'Comment' %}</td>
+            </tr>
+            {% endifchanged %}
+            <tr>
+                <td >
+                    {{ item.type.short_name  }}
+                </td>
+                <td>
+                    {{ item.start_date }} 
+                </td>
+                <td>
+                    {{item.end_date }} 
+                </td>
+                <td>
+                    {% if item.start_period == "MI" %}AM{% endif %}{% if item.end_period == "MI" %}PM{% endif %}
+                </td>
+                <td>
+                    {{item.comment  }}
+                </td>
+            </tr>    
+            {%endfor %}        
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>
+{% endif %}
+
+<!-- ##################################    Footer    ################################## -->
+<footer>
+    <div id="footer_bar">         
+        <span class="inline"> {{ request.site.name }} - {%trans 'User' %} :{{ request.user }} - {% trans 'Date' %} : {{current_date}} - {% trans 'template' %} : {{template.name}} </span>
+    </div>
+    
+</footer>
+
+  </body>
+</html>
+
+
+
+
+
+

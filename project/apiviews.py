@@ -61,7 +61,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         institution_name= params.get('institution_name', None)  
         if institution_name is not None :
             pjI=Institution_Participant.objects.filter(institution=institution_name).values('project')
-            queryset = queryset.filter(pk__in=pjI)
+            pjF=Fund.objects.filter(institution=institution_name).values('project')
+            queryset = queryset.filter(pk__in=pjI.union(pjF))
+            
         
         return queryset
     

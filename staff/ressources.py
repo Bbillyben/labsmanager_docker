@@ -27,7 +27,23 @@ class StatusWidget(widgets.CharWidget):
             return strV 
         else:
             return "-"
+class AllStatusWidget(widgets.CharWidget):
     
+    param=[]
+    def __init__(self, param=''):
+        super().__init__()
+        self.param = param
+        
+    def render(self, value, obj=None):
+        # print(str(value))
+        v = value.order_by('-end_date')
+        v=v.values("type__shortname", "type__name", "start_date", "end_date")
+        if v:
+            strV = '\n '.join(f'{key["type__shortname"]} : {key["type__name"]} - {key["start_date"]} # {key["end_date"]}' for key in v)
+            return strV 
+        else:
+            return "-"
+          
 class ContractWidget(widgets.CharWidget):
     def render(self, value, obj=None):
         
@@ -117,6 +133,12 @@ class EmployeeResource(labResource, SkipErrorRessource):
         widget=StatusWidget(param='end_date'), 
         readonly=True
         ) 
+    all_status = Field(
+        column_name=_('All Status'),
+        attribute='get_status', 
+        widget=AllStatusWidget(), 
+        readonly=True
+        )
     info=Field(
         column_name=_('Infos'),
         attribute='info', 

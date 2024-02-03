@@ -66,25 +66,6 @@ function initSettingsPage(){
         });
     });
 
-    $("#edit-user").on('click', function() {
-        launchModalForm(
-            "{% url 'edit-user' %}",
-            {
-                reload: true,
-            }
-        );
-    });
-
-    $("#edit-password").on('click', function() {
-        launchModalForm(
-            "{% url 'set-password' %}",
-            {
-                reload: true,
-            }
-        );
-    });
-
-
 }
 
 
@@ -169,7 +150,7 @@ function editSetting(key, options={}) {
                     return data;
                 },
                 onSuccess: function(response) {
-
+                    showMessage("Setting Updated");
                     var setting_pk = response.pk;
                     var setting_typ = response.typ;
 

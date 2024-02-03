@@ -59,9 +59,12 @@
     {%endif%}
 
         var idTable="setting_card_{% makeId title %}";
+
         $( document ).ready(function(){
             var options={};
             options["table"]=card_option
+            if(!options["table"]["name"])options["table"]["name"]=idTable
+
             // options["table_id"]='setting_cardtable_{{idT}}'
             //options["card_id"]="setting_card_cont_{{idT}}"
             $("#setting_card_cont_{{idT}}").lab_settinglist(options)

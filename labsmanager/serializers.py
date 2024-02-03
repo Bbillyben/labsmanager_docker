@@ -14,6 +14,10 @@ from django.db.models import Sum, Count
 from datetime import timedelta, datetime
 
 
+
+
+
+
  # User and Group Serailizer ########### ------------------------------------ ###########
        
 class UserSerializer(serializers.ModelSerializer):
@@ -38,7 +42,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
         model = Institution
-        fields = ['pk', 'short_name', 'name', 'adress',]  
+        fields = ['pk', 'short_name', 'name',]  
         
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -235,6 +239,18 @@ class FavoriteSerialize(serializers.ModelSerializer):
             return reverse('employee', args=[obj.object_id])
         if obj.content_type.model == 'team':
             return reverse('team_single', args=[obj.object_id])
+        if obj.content_type.model == 'institution':
+            return reverse('orga_single', kwargs={
+                'pk':obj.object_id,
+                'app':'project',
+                'model':'institution'
+                })
+        if obj.content_type.model == 'fund_institution':
+            return reverse('orga_single', kwargs={
+                'pk':obj.object_id,
+                'app':'fund',
+                'model':'fund_institution'
+                })
 
         return "-"
     
@@ -606,17 +622,20 @@ class TeamSerializer_min(serializers.ModelSerializer):
     
     def get_url(self, obj):
         return reverse('team_single', kwargs={'pk':obj.pk})
-        
+from operator import attrgetter    
 class TeamSerializer(serializers.ModelSerializer):
     leader=EmployeeSerialize_Min(many=False, read_only=True)
-    team_mate=TeamMateSerializer_min(many=True, read_only=True)
+    team_mate=serializers.SerializerMethodField()
     has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model= Team
         fields=['pk','name', 'leader', 'team_mate', 'has_perm']
 
-
+    def get_team_mate(self, obj):
+        tm = TeamMate.objects.filter(team=obj)
+        sorted_team_mates = sorted(tm, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)
+        return TeamMateSerializer_min(sorted_team_mates, many=True, read_only=True).data
 
 class ParticipantProjectSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
@@ -716,8 +735,42 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     #     fund = Fund.objects.filter(project = obj.pk)
     #     return Fund_Item.objects.filter(fund__in=fund).aggregate(Sum('amount'))["amount__sum"]
     
-    
-    
+# ------------------------------------------------------------------------------------- #
+# ---------------------------    APP infos / SERIALISZER    --------------------------- #
+# ------------------------------------------------------------------------------------- #
+from infos.models import ContactType, OrganizationInfos, Contact, InfoTypeClass, OrganizationInfosType
+class OrgaInfoTypeSerializer(ProjectInfoTypeIconSerialize):
+    icon_val=serializers.SerializerMethodField()
+    class Meta:
+        fields = ['pk', 'name', 'icon_val', 'type']
+        model = OrganizationInfosType
+
+
+class ContactTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactType
+        fields = ['pk','name',]    
+ 
+class ContactSerializer(serializers.ModelSerializer):
+    type=ContactTypeSerializer(many=False, read_only=True)
+    class Meta:
+        model = Contact
+        fields = ['pk','first_name','last_name','type', 'comment',]
+        
+          
+class OrganizationInfoSerializer(serializers.ModelSerializer):
+     content_type=ContentTypeSerialize(many=False, read_only=True)
+     info=OrgaInfoTypeSerializer(many=False, read_only=True)
+     class Meta:
+        model = OrganizationInfos
+        fields = ['pk',
+                  'content_type',
+                  'object_id',
+                  'info', 
+                  'value', 'comment',]
+            
+
+  
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
 class BudgetSerializer(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)

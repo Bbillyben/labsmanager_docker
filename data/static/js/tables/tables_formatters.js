@@ -318,6 +318,16 @@ function infoFormatter(value, row, index, field){
   }
 
 // ------------------------------------------------------------ Institution  Formatter
+function institution_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']("project", "institution", row.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
 function InstitutionParticipantFormatter(value, row, index, field){
     if(!isIterable(value)){
         value=[{"institution":value}];
@@ -325,11 +335,9 @@ function InstitutionParticipantFormatter(value, row, index, field){
     response = "";
     value = value.sort(leaderSorter);
     for (const item of value) {
-        //console.log("item :"+JSON.stringify(item));
-
-            tm =""+item.institution.short_name;
+            tm = institution_formatter(item.institution.short_name, item.institution);
             if(item.status == "c"){
-                tm+= '<sup><i class="fas fa-star icon-spaced" style="color: coral" title="team leader"></i></sup>';
+                tm+= '<sup><i class="fas fa-star icon-spaced" style="color: coral" title="leader"></i></sup>';
             }
             //tm+="</a>";
             response+= (response.length > 1 ? ', ' : '') + tm;
@@ -356,7 +364,7 @@ function ProjectFormatter(value, row, index, field){
       return response;
 }
 function ProjectFormatterList(value, row, index, field){
-    response =  '<span class="icon-right-cell"><a href="'+row.pk+'" title="/'+row.ipkd+'/"> '+value+'</a>';
+    response =  '<span class="icon-right-cell"><a href="'+Urls['project_single'](row.pk)+'" title="/'+row.ipkd+'/"> '+value+'</a>';
     return response;
 }
 
@@ -482,6 +490,12 @@ function subsTypeIconFormatter(value, row, index, field){
         case 'team':
             response += '<i class="icon icon-badge icon-inline fas fa-people-group" title="team"></i>';
             break;
+        case 'institution':
+            response += '<i class="icon icon-badge icon-inline fas fa-landmark" title="Institution"></i>';
+            break;
+        case 'fund_institution':
+            response += '<i class="icon icon-badge icon-inline fas fa-piggy-bank" title="Institution"></i>';
+            break;
         
     }
     return response
@@ -491,6 +505,94 @@ function subObjectUrlFormatter(value, row, index, field){
     response = "";
     response += "<a href='"+row.object_url+"'>"+value+"</a>";
     return response
+}
+// ------------------------------------------------------------ Organization  Formatter
+
+function organization_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single'](this.app, this.model, row.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+function institution_project_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('project', 'institution', row.institution.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+function institution_fund_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('project', 'institution', row.fund.institution.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+
+function funder_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('fund', 'fund_institution', row.funder.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+function contract_funder_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('fund', 'fund_institution', row.fund.funder.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+
+function infoTypeFormatter(value, row, index, field){
+    responseI = "";
+    if(value.toUpperCase() !="NONE"){
+        responseI =value
+     }else{
+        responseI ="-";
+    }
+    return responseI
+}
+
+function typeContactFormatter(value, row, index, field){
+    response = value;
+    if (row.comment && row.comment != "None"){
+        response += '<span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="'+row.comment+'"><span class="aicon fa fa-comment"> </span></span>'
+    }
+    return response;
+}
+
+
+function contactInfoFormatter(value, row, index, field){
+    response = ""
+    if(validateEmail(value) || row.type == "mail"){
+        response+='<a href="mailto:'+value+'">'+value+'</a>';
+    }else if(row.type=="tel"){
+        response+='<a href="tel:'+value+'">'+value+'</a>';
+        
+    }else if(row.type=="link"){
+        response+='<a href="'+formatAsHTMLLink(value)+'">'+value+'</a>';
+    }else{
+        response += value
+    }
+    return response;
+
 }
 
 // ------------------------------------------------------------ Admin Actions  Formatter
@@ -504,6 +606,7 @@ function adminActionFormatter(value, row, index, field){
     return action;
   }
   
+
 
 
 

@@ -26,6 +26,7 @@ es_formats.DATETIME_FORMAT = "d M Y H:i:s"
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -307,12 +308,7 @@ STATICFILES_DIRS = [
 ]
 
 # Color Themes Directory
-STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_URL, 'css', 'color-themes')
-
-
-
-
-
+STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_ROOT, 'css', 'color-themes')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -382,7 +378,7 @@ EMAIL_PORT = get_setting('LAB_EMAIL_PORT', 'email.port', 25, typecast=int)
 EMAIL_HOST_USER = get_setting('LAB_EMAIL_USERNAME', 'email.username', '')
 EMAIL_SENDER = get_setting('LAB_EMAIL_SENDER', 'email.sender', '')
 EMAIL_HOST_PASSWORD = get_setting('LAB_EMAIL_PASSWORD', 'email.password', '')
-EMAIL_SUBJECT_PREFIX = get_setting('LAB_EMAIL_PREFIX', 'email.prefix', '[InvenTree] ')
+EMAIL_SUBJECT_PREFIX = get_setting('LAB_EMAIL_PREFIX', 'email.prefix', '[Labsmanager] ')
 EMAIL_USE_TLS = get_boolean_setting('LAB_EMAIL_TLS', 'email.tls', False)
 EMAIL_USE_SSL = get_boolean_setting('LAB_EMAIL_SSL', 'email.ssl', False)
 
@@ -444,3 +440,12 @@ logger.debug('ADMIN_HEADER :'+str(ADMIN_HEADER))
 logger.debug('ADMIN_SITE_TITLE :'+str(ADMIN_SITE_TITLE))
 
 logger.debug('ADMIN_INDEX_TITLE :'+str(ADMIN_INDEX_TITLE))
+
+logger.debug('=========  FOLDER PATH  =========')
+logger.debug(f'  - BASE_DIR: {BASE_DIR}')
+logger.debug(f'  - STATIC_URL: {STATIC_URL}')
+logger.debug(f'  - STATIC_ROOT: {STATIC_ROOT}')
+logger.debug(f'  - MEDIA_ROOT: {MEDIA_ROOT}')
+logger.debug(f'  - STATICFILES_DIRS: {STATICFILES_DIRS}')
+logger.debug(f'  - STATIC_COLOR_THEMES_DIR: {STATIC_COLOR_THEMES_DIR}')
+logger.debug('=========  =========  =========')
