@@ -16,7 +16,7 @@ $.urlParam = function(name) {
 function labsmanagerGet(url, filters={}, options={}) {
 
     // Middleware token required for data update
-    var csrftoken = getCookie('csrftoken');
+    var token = getCookie('csrftoken');
 
     return $.ajax({
         beforeSend: function(xhr) {

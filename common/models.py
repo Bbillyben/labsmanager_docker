@@ -47,6 +47,7 @@ class RightsSupport(models.Model):
             ('display_calendar', 'Permission to see main calendar'),
             ('display_dashboard', 'Permission to see dasgboard'), 
             ('display_infos', 'Permission to see organization informations'),
+            ('import', 'Permission to import'),
         )
 
 # from django.contrib.auth.models import Permission, Group
