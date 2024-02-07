@@ -158,6 +158,7 @@ class ExpensePointResource(labResource, SkipErrorRessource):
     
     
     class Meta:
+        name=_("Expense Point Resource")
         model = Expense_point
         skip_unchanged = True
         clean_model_instances = False

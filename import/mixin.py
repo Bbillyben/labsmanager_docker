@@ -12,7 +12,6 @@ from import_export.forms import ConfirmImportForm, ImportExportFormBase
 from import_export.signals import post_import
 import import_export.admin
 
-from .forms import ImportForm
 import warnings
 class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
         """
@@ -37,12 +36,17 @@ class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
             """
             return self.post(request, *args, **kwargs)
 
-
+        def has_import_permission(self, request):
+            if request.user.is_staff:
+                return True
+            if request.user.has_perm('common.import'):
+                return True
+            return False
+        
         def post(self, request, *args, **kwargs):
             """
             Overriding the POST part of ImportMixin.import_action method to be used without site_admin
             """
-            print(">>>>>>>>>>>>>>>>>>>>>>>>    [ImportViewMixin] - POST   <<<<<<<<<<<<<<<<<<<<<<<<<<<")
             
             if not self.has_import_permission(request):
                 raise PermissionDenied
@@ -62,7 +66,7 @@ class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
                         import_formats,
                         request.POST or None,
                         request.FILES or None,
-                        resources=self.get_import_resource_classes(),
+                        # resources=self.get_import_resource_classes(),
                         **form_kwargs,
                     )
                 else:
@@ -88,12 +92,6 @@ class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
                 import_file = import_form.cleaned_data["import_file"]
 
                 if getattr(settings, "IMPORT_EXPORT_SKIP_ADMIN_CONFIRM", False):
-                    # This setting means we are going to skip the import confirmation step.
-                    # Go ahead and process the file for import in a transaction
-                    # If there are any errors, we roll back the transaction.
-                    # rollback_on_validation_errors is set to True so that we rollback on
-                    # validation errors. If this is not done validation errors would be
-                    # silently skipped.
                     data = bytes()
                     for chunk in import_file.chunks():
                         data += chunk
@@ -145,6 +143,7 @@ class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
                         imp_kwargs = self.get_import_data_kwargs(
                             request, *args, form=import_form, **kwargs
                         )
+                        
                         result = resource.import_data(
                             dataset,
                             dry_run=True,
@@ -155,7 +154,6 @@ class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
                         )
 
                         context["result"] = result
-
                         if not result.has_errors() and not result.has_validation_errors():
                             if getattr(self.get_form_kwargs, "is_original", False):
                                 # Use new API
@@ -181,7 +179,6 @@ class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
                     resource_class(**res_kwargs) for resource_class in resource_classes
                 ]
 
-            # context.update(self.admin_site.each_context(request))
 
             context["title"] = _("Import")
             context["form"] = import_form
@@ -195,10 +192,7 @@ class ImportViewMixin(import_export.admin.ImportMixin, generic.View):
                 for resource in resources
             ]
 
-            # request.current_app = self.admin_site.name
             return TemplateResponse(request, [self.import_template_name], context)
-            # resource = self.get_import_resource_classes()[0](**self.get_import_resource_kwargs(request,*args,**kwargs))
-
             
 class ConfirmImportViewMixin(import_export.admin.ImportMixin, generic.View):
         """

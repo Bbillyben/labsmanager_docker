@@ -1506,3 +1506,31 @@ li.list-spacer{
    .node.inactive .title, .node.inactive .title a{
         font-style: italic;
    }
+
+
+   /* for file selector button */
+   input::file-selector-button {
+        color: #fff;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        -webkit-appearance: button;
+        text-transform: none;
+        margin: 0;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        margin-right: 0.5em;
+    }
+
+    input[name="confirm"] {
+        color: #fff;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        -webkit-appearance: button;
+        text-transform: none;
+        margin: 0;
+        font-family: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        margin-right: 0.5em;
+      }

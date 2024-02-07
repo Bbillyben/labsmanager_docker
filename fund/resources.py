@@ -210,6 +210,7 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
         
     class Meta:
         """Metaclass"""
+        name=_("Fund Item Resource")
         model = Fund_Item
         skip_unchanged = True
         clean_model_instances = False

@@ -28,7 +28,7 @@ function init_import(){
                 details: 'ajax call error',
                 icon: 'fas fa-cross',
             })
-             $("body").html(err.responseText)
+             $("#file_selection").html(err.responseText)
             console.log(JSON.stringify(err));
         },
     });
@@ -100,7 +100,7 @@ function initFileSelectForm(){
                     details: 'ajax call error',
                     icon: 'fas fa-cross',
                 })
-                $("#import_table").html(err.responseText)
+                $("#file_selection").html(err.responseText)
                 console.log(JSON.stringify(err));
             },
         });
@@ -157,7 +157,7 @@ function ini_confirm(){
                     details: 'ajax call error',
                     icon: 'fas fa-cross',
                 })
-                $("#import_table").html(err.responseText)
+                $("#file_selection").html(err.responseText)
                 console.log(JSON.stringify(err));
             },
         });
