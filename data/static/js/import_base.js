@@ -157,7 +157,7 @@ function ini_confirm(){
                     details: 'ajax call error',
                     icon: 'fas fa-cross',
                 })
-                $("#file_selection").html(err.responseText)
+                $("#import_table").html(err.responseText)
                 console.log(JSON.stringify(err));
             },
         });
