@@ -38,8 +38,6 @@ function init_import(){
 }
 
 function initFileSelectForm(){
-    console.log("initFileSelectForm called")
-
     // for extension guess format from guess_format of import export
     $('input.guess_format[type="file"]').change(function () {
         var files = this.files;
@@ -59,16 +57,17 @@ function initFileSelectForm(){
         }
       });
 
+    // buton for template import 
+    $("#get_import_template").click(function(e){downloadImportTemplate();})
+
 
     $("#file_select").submit(function (event) {
         event.preventDefault();
         var formData = new FormData(this);
         
-        console.log("file_select Ajax Call :");
         var object = {};
         formData.forEach(function(value, key){
             object[key] = value;
-            console.log(' - %s : %s', key, value)
         });
 
         var csrftoken = getCookie('csrftoken');
@@ -112,21 +111,17 @@ function initFileSelectForm(){
 
 }
 function ini_confirm(){
-    console.log("ini_confirm called")
     $("#back_to_select").click(function(){
         init_import();
-        console.log("btn clicked")
     });
 
     $("#file_confirm").submit(function (event) {
         event.preventDefault();
         var formData = new FormData(this);
         
-        console.log("file_select Ajax Call :");
         var object = {};
         formData.forEach(function(value, key){
             object[key] = value;
-            console.log(' - %s : %s', key, value)
         });
         
         var csrftoken = getCookie('csrftoken');
@@ -167,10 +162,47 @@ function ini_confirm(){
 }
 
 function ini_import_out(){
-    console.log("ini_import_out called")
     $("#import_back_select").click(function(){
         init_import();
-        console.log("btn clicked")
     });
 }
       
+
+
+
+function downloadImportTemplate(e) {
+
+    res_id=$("#id_resource").val();
+    url = Urls["get_import_template"]()
+    query_params = {resource:res_id}
+
+    url += '?';
+
+    constructFormBody({}, {
+        title: 'Download Import Template',
+        fields: {
+            format: {
+                label: 'Format',
+                help_text: 'Select File Format',
+                required: true,
+                type: 'choice',
+                value: 'csv',
+                choices: exportFormatOptions(),
+            }
+        },
+        onSubmit: function(fields, form_options) {
+            var format = getFormFieldValue('format', fields['format'], form_options);
+
+            // Hide the modal
+            $(form_options.modal).modal('hide');
+
+            for (const [key, value] of Object.entries(query_params)) {
+                url += `${key}=${value}&`;
+            }
+
+            url += `export=${format}`;
+
+            location.href = url;
+        }
+    });
+}

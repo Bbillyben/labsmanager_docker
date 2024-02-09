@@ -104,30 +104,54 @@ class ExpensePointResource(labResource, SkipErrorRessource):
         readonly=False
     )
     entry_date=DateField(
-        column_name=_('entry_date'),
+        column_name=_('Entry Date'),
         attribute='entry_date', 
         widget=widgets.DateWidget(),
         readonly=False
     )
     value_date=DateField(
-        column_name=_('value_date'),
+        column_name=_('Value Date'),
         attribute='value_date',
         widget=widgets.DateWidget(),
         readonly=False
     )
     
-    # def skip_row(self, instance, original, row, import_validation_errors=None):
-    #     print("------------ skip_row")
-    #     print("  - instance :"+str(instance))
-    #     print("  - original :"+str(original))
-    #     print("  - row :"+str(row))
-    #     print("  - import_validation_errors :"+str(import_validation_errors))
-        
-    #     for field in self.get_import_fields():
-    #         print("  - field :"+str(field))
-    #         print("     -> field.get_value(instance) :"+str(field.get_value(instance)))
-    #         print("     -> field.get_value(instance) :"+str(field.get_value(original)))
-    #     return super().skip_row(instance, original, row, import_validation_errors)
+    def skip_row(self, instance, original, row, import_validation_errors=None):
+        print(" >>>>>>>>>>>>>>>>>>> skip_row <<<<<<<<<<<<<<<<<<")
+        if (
+            not self._meta.skip_unchanged
+            or self._meta.skip_diff
+            or import_validation_errors
+        ):
+            return False
+        for field in self.get_import_fields():
+            # For fields that are models.fields.related.ManyRelatedManager
+            # we need to compare the results
+            if isinstance(field.widget, widgets.ManyToManyWidget):
+                # #1437 - handle m2m field not present in import file
+                if field.column_name not in row.keys():
+                    continue
+                # m2m instance values are taken from the 'row' because they
+                # have not been written to the 'instance' at this point
+                instance_values = list(field.clean(row))
+                original_values = (
+                    list()
+                    if original.pk is None
+                    else list(field.get_value(original).all())
+                )
+                if len(instance_values) != len(original_values):
+                    return False
+
+                if sorted(v.pk for v in instance_values) != sorted(
+                    v.pk for v in original_values
+                ):
+                    return False
+            else:
+                if field.get_value(instance) != field.get_value(original):
+                    print(f" {field.column_name} | instance : {field.get_value(instance)} ## original :{field.get_value(original)}")
+                    print(f" comp ={field.get_value(instance) == field.get_value(original)}")
+                    return False
+        return True
         
         
     def before_import_row(self, row, row_number=None, **kwargs):

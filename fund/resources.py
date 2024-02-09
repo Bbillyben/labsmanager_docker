@@ -1,15 +1,12 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource, SkipErrorRessource, percentageWidget,ContenTypeObjectWidget
+from labsmanager.ressources import labResource, SkipErrorRessource, percentageWidget,ContenTypeObjectWidget, DecimalField, DateField
 from .models import Fund_Item, Fund, Cost_Type, Budget, Contribution, AmountHistory
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
 from import_export.fields import Field
 
-
-        
-        
 class FundItemResource(labResource):
     available=Field(
         column_name=_('Total Available'),
@@ -53,7 +50,7 @@ class FundItemResource(labResource):
         attribute='fund', 
         widget=widgets.ForeignKeyWidget(Fund, 'ref'), readonly=True
     )
-    
+
     class Meta:
         """Metaclass"""
         model = Fund_Item
@@ -72,14 +69,6 @@ class FundItemResource(labResource):
                       'available',
                       ]
         
-
-class FundItemField(Field):
-     def clean(self, data, **kwargs):
-        if data[self.column_name] is None:
-            data[self.column_name]= 0
-        
-        return super().clean(data, **kwargs)
-
 class FundField(Field):
      def clean(self, data, **kwargs):
         query = Q(amount__gte=-1)
@@ -102,7 +91,7 @@ class FundField(Field):
         fu = Fund.objects.filter(query).first()
         return fu
    
-
+import datetime
 class FundDateField(FundField):
     def clean(self, data, **kwargs):   
         fu = super().clean(data, **kwargs)
@@ -113,6 +102,12 @@ class FundDateField(FundField):
             setattr(fu, field, nAttr)
             fu.save()        
         return fu
+    def get_value(self, obj):
+        val=super().get_value(obj)
+        value = getattr(val, self.widget.field)
+        if isinstance(value, datetime.datetime):
+            return value.date()
+        return value
     
 class FundItemAdminResource(labResource, SkipErrorRessource):
     fund=FundField(
@@ -158,25 +153,36 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
         readonly=False
     )
     
-    amount=FundItemField(
+    amount=DecimalField(
         column_name=_('Budget'),
         attribute='amount', 
         widget=widgets.DecimalWidget(),
         readonly=False
     )
-    expense=FundItemField(
+    expense=DecimalField(
         column_name=_('expense'),
         attribute='expense', 
         widget=widgets.DecimalWidget(),
         readonly=True
     )
-    available=FundItemField(
+    available=DecimalField(
         column_name=_('available'),
         attribute='available', 
         widget=widgets.DecimalWidget(),
         readonly=True
     )
-            
+    entry_date=DateField(
+        column_name=_('Entry Date'),
+        attribute='entry_date', 
+        widget=widgets.DateWidget(),
+        readonly=False
+    )
+    value_date=DateField(
+        column_name=_('Value Date'),
+        attribute='value_date', 
+        widget=widgets.DateWidget(),
+        readonly=False
+    )
         
     def before_import_row(self, row, row_number=None, **kwargs):
         query = Q(amount__gte=-1)
@@ -206,7 +212,7 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
         else:
             row["id"] = None
         return fu
-    
+
         
     class Meta:
         """Metaclass"""
@@ -227,7 +233,8 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
                       'expense',
                       'available',
                       ]
-        
+    
+    
 from staff.models import Employee_Type
 from labsmanager.ressources import EmployeeWidget, FundWidget
 from expense.models import Contract_type
