@@ -58,6 +58,9 @@ function initFileSelectForm(){
       });
 
     // buton for template import 
+    //ad it after selectot
+    $("#btn_imp_cont").appendTo($("#id_resource").parent());
+    $("#id_resource").parent().css("display", "flex");
     $("#get_import_template").click(function(e){downloadImportTemplate();})
 
 
@@ -179,7 +182,7 @@ function downloadImportTemplate(e) {
     url += '?';
 
     constructFormBody({}, {
-        title: 'Download Import Template',
+        title: $( "#id_resource option:selected" ).text()+' Template',
         fields: {
             format: {
                 label: 'Format',
