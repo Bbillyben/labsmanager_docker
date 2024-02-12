@@ -7,9 +7,6 @@ from fund.models import Fund, Cost_Type
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
-
-from import_export.fields import Field
-from import_export.widgets import ForeignKeyWidget
 from import_export import resources, results
 
 from labsmanager.ressources import SimpleError, SkipErrorRessource, DateField
@@ -76,25 +73,25 @@ class ExpensePointResource(labResource, SkipErrorRessource):
     fund=FundField(
         column_name='Ref',
         attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'ref'),
+        widget=widgets.ForeignKeyWidget(Fund, 'ref'),
         readonly=True
         )
     type=Field(
         column_name='type',
         attribute='type',
-        widget=ForeignKeyWidget(Cost_Type, 'short_name'),
+        widget=widgets.ForeignKeyWidget(Cost_Type, 'short_name'),
         readonly=True
         )
     project=FundField(
         column_name='project',
         attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'project__name'),
+        widget=widgets.ForeignKeyWidget(Fund, 'project__name'),
         readonly=True
         )
     institiution=FundField(
         column_name='institution',
         attribute='fund',
-        widget=ForeignKeyWidget(Fund, 'institution__short_name'),
+        widget=widgets.ForeignKeyWidget(Fund, 'institution__short_name'),
         readonly=True
         )
     amount=Field(
@@ -114,45 +111,7 @@ class ExpensePointResource(labResource, SkipErrorRessource):
         attribute='value_date',
         widget=widgets.DateWidget(),
         readonly=False
-    )
-    
-    def skip_row(self, instance, original, row, import_validation_errors=None):
-        print(" >>>>>>>>>>>>>>>>>>> skip_row <<<<<<<<<<<<<<<<<<")
-        if (
-            not self._meta.skip_unchanged
-            or self._meta.skip_diff
-            or import_validation_errors
-        ):
-            return False
-        for field in self.get_import_fields():
-            # For fields that are models.fields.related.ManyRelatedManager
-            # we need to compare the results
-            if isinstance(field.widget, widgets.ManyToManyWidget):
-                # #1437 - handle m2m field not present in import file
-                if field.column_name not in row.keys():
-                    continue
-                # m2m instance values are taken from the 'row' because they
-                # have not been written to the 'instance' at this point
-                instance_values = list(field.clean(row))
-                original_values = (
-                    list()
-                    if original.pk is None
-                    else list(field.get_value(original).all())
-                )
-                if len(instance_values) != len(original_values):
-                    return False
-
-                if sorted(v.pk for v in instance_values) != sorted(
-                    v.pk for v in original_values
-                ):
-                    return False
-            else:
-                if field.get_value(instance) != field.get_value(original):
-                    print(f" {field.column_name} | instance : {field.get_value(instance)} ## original :{field.get_value(original)}")
-                    print(f" comp ={field.get_value(instance) == field.get_value(original)}")
-                    return False
-        return True
-        
+    )        
         
     def before_import_row(self, row, row_number=None, **kwargs):
         
