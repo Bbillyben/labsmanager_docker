@@ -269,7 +269,7 @@ def export_records(c, filename='data.json', overwrite=False, include_permissions
     tmpfile = f"{filename}.tmp"
 
 
-    cmd = f"dumpdata {contentorder() if useorder else ''} --indent 2 --output '{tmpfile}' {content_excludes()}"
+    cmd = f"dumpdata {contentorder() if use_order else ''} --indent 2 --output '{tmpfile}' {content_excludes()}"
     print(f'>> cmd : {cmd}')
     # Dump data to temporary file
     manage(c, cmd, pty=True)
