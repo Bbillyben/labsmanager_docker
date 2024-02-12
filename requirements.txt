@@ -14,7 +14,7 @@ django-bootstrap-modal-forms==2.2.0
 django-crispy-forms==1.14.0
 django-dbbackup==4.0.2
 django-filter==22.1
-django-import-export==3.0.1
+django-import-export==3.3.7
 django-js-asset==2.0.0
 django-mptt==0.14.0
 django-pivot==1.9.0
@@ -78,7 +78,7 @@ requests-toolbelt==0.9.1
 six==1.16.0
 sqlparse==0.4.3
 stevedore==4.0.0
-tablib==3.2.1
+tablib==3.5.0
 texttable==1.6.3
 types-cryptography==3.3.23
 urllib3==1.26.5
