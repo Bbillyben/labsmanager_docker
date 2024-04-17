@@ -17,7 +17,7 @@ from labsmanager.mixin import CleanedDataFormMixin
 class ContractModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract
-        fields = ['employee', 'fund','start_date','end_date', 'contract_type', 'quotity','is_active',]
+        fields = ['employee', 'fund','start_date','end_date', 'contract_type', 'quotity','is_active','status']
         widgets = {
             'start_date': DateInput(),
             'end_date': DateInput(),
@@ -48,6 +48,13 @@ class ContractModelForm(BSModalModelForm):
         if instance and instance.pk:
             self.fields['employee'].widget = forms.HiddenInput()
             self.fields['fund'].widget = forms.HiddenInput()
+            if instance.status == "prov":
+                self.fields['is_active'].widget = forms.HiddenInput()
+                self.fields['contract_type'].required = False
+                
+            else:
+                self.fields['status'].widget = forms.HiddenInput()
+                self.fields['contract_type'].required = True
 
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):

@@ -463,7 +463,28 @@ function TeamFormatter(value, row, index, field){
 }
 
 // ------------------------------------------------------------ Contract  Formatter
+function ContractProjectFormatter(value, row, index, field){
+    // console.log("ContractProjectFormatter :"+JSON.stringify(row.status))
+    response = '<i class="fa-solid fa-circle-check contractlist ';
+    response+= row.status;
+    response+= '"';
+    response+='title="'+(row.status=="effe"?"effective":"provisionnal")+'"';
+    response+='></i>'+" ";
 
+    response += ProjectFormatter(value, row, index, field);
+    return response;
+}
+function ContractEmployeeFormatter(value, row, index, field){
+    // console.log("ContractProjectFormatter :"+JSON.stringify(row.status))
+    response = '<i class="fa-solid fa-circle-check contractlist ';
+    response+= row.status;
+    response+= '"';
+    response+='title="'+(row.status=="effe"?"effective":"provisionnal")+'"';
+    response+='></i>'+" ";
+
+    response += employeeFormatter(value, row, index, field);
+    return response;
+}
 function contractsFormatter(value, row, index, field){
     //console.log('contractsFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
     response = '<ul>';

@@ -1,0 +1,59 @@
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load import_export_tags %}
+
+
+
+
+{% if confirm_form %}
+  {% csrf_token %}
+  {{ confirm_form | crispy}}
+  <div class="row">
+    <div><button class="btn btn-primary" id="back_to_select"> <i class="fa-solid fa-rotate-left"></i>{% trans 'Back To File Selection' %}</button></div>
+  </div>
+    {% block confirm_import_form %}
+      <form id="file_confirm" action="" method="POST">
+        {{ confirm_form.as_p }}
+        <p>
+          {% trans "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'" %}
+        </p>
+        <div class="submit-row">
+          <input type="submit" class="default" name="confirm" value="{% trans "Confirm import" %}">
+        </div>
+      </form>
+    {% endblock %}
+{% else %}
+<div class="col col-sm-3">
+    <form id="file_select" action="" method="post" enctype="multipart/form-data">
+
+
+      {{ form | crispy }} 
+
+      <div class="submit-row">
+          <button class="btn-primary" type="">{% trans 'Import' %}</button>
+      </div>
+    </form>
+</div>
+<div class="row" style="margin-top:1em;">
+  <span id="btn_imp_cont">
+    <button id="get_import_template" class="btn btn-secondary" type="" title="{% trans 'Get Import Template' %}"><span class='fas fa-download'></span> </button>
+  </span>
+  
+</div>
+{% endif %}
+
+{% if result_all %}
+  {% for res in result_all%}
+    {% include 'import/import_result.html' with data_result=res %}
+  {% endfor %}
+{% elif result%}
+  {% include 'import/import_result.html' with data_result=result %}
+{% endif %}
+
+
+<script type='text/javascript'>
+  $(document).ready(function () {
+    initFileSelectForm();
+  })
+</script>

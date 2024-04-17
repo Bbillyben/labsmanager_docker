@@ -46,19 +46,9 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
     # crumbs = [("Employee","./",),("employees",reverse("employee"))]
     
     
-    def test_func(self, *args, **kwargs):
-        # print("[EmployeeView] - test_func")
-        # for v in args:
-        #     print(f'  - arg : {v}')
-        # for k,v in kwargs.items():
-        #     print(f'  - {k} : {v}')
-        # print(self.request.user)
-        return True
-    
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
-        print("[EmployeeView] - dispatch")
         
         if request.user.is_staff or request.user.has_perm('staff.view_employee'):
             return super().dispatch(request, *args, **kwargs)
@@ -113,7 +103,7 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
         if participant:
             context['team_part']=participant
 
-        contracts = Contract.objects.filter(employee=id)
+        contracts = Contract.effective.filter(employee=id)
         if contracts:
             context['contracts']=contracts
          

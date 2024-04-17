@@ -4,7 +4,7 @@
     {% filter_name "contract" datatype as filterName %}
 {%endif%}
 
-{% if datatype == 'all' or datatype == 'project' %}
+{% if datatype == 'all' or datatype == 'project' or datatype == 'employee'%}
 <div id='tracking-table-toolbar_{{filterName}}'>
     <div class='btn-group'>
         {% include "filter_list.html" with id=filterName %}
@@ -16,7 +16,7 @@
     id="contract_table"
     data-id-table="contractTable"
     data-typeTable='{{ datatype }}'
-    {% if datatype == 'all' or datatype == 'project' %}
+    {% if datatype == 'all' or datatype == 'project' or datatype == 'employee'%}
 
         data-toolbar='#tracking-table-toolbar_{{filterName}}'
     {% endif %}
@@ -24,12 +24,20 @@
     >
     <thead class="">
         <tr>
-            {% if datatype == 'employee' or datatype == 'all' %}
-            <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="ProjectFormatter" data-sorter="projectNameSorter" data-search-formatter='false'>
+            {% if datatype == 'employee' %}
+            <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="ContractProjectFormatter" data-sorter="projectNameSorter" data-search-formatter='false'>
                 {% trans 'Project' %}
             </th>
             {% endif %}
-            {% if datatype == 'project' or datatype == 'all' %}
+            {% if datatype == 'project' %}
+            <th data-sortable="true" class="th-inner sortable both" data-field="employee" data-formatter="ContractEmployeeFormatter">
+                {% trans 'Employee' %}
+            </th>
+            {% endif %}
+            {% if datatype == 'all' %}
+            <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-formatter="ContractProjectFormatter" data-sorter="projectNameSorter" data-search-formatter='false'>
+                {% trans 'Project' %}
+            </th>
             <th data-sortable="true" class="th-inner sortable both" data-field="employee" data-formatter="employeeFormatter">
                 {% trans 'Employee' %}
             </th>

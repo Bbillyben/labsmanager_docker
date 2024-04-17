@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+
+
+
+{% block page_title %}
+{% trans "LabManager Import" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}
+
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='Import' %}
+
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-import" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Import' %}</h4>
+            </div>
+        </div>
+        <div class="panel-content" >
+            <div id="file_selection">                
+            </div>
+
+        </div>
+    </div>
+</div>
+{{ request.user.id|json_script:"user_id" }}
+{% endblock %}
+
+
+{% block js_load %}
+<script type='text/javascript' src="{% static 'js/import_base.js' %}"></script>
+
+{% endblock %}
+
+
+{% block js %}
+
+<script type='text/javascript'>
+    $(document).ready(function () {
+        init_import();
+    })
+</script>
+{% endblock %}

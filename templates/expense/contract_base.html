@@ -11,18 +11,26 @@
 {% endblock %}
 
 {% block sidebar %}
+    {% include 'expense/contract_sidebar.html' %}
+{% endblock %}
+
+{% block css %}
+#filter-list-contractfunditem{
+    display: initial !important;
+}
 
 {% endblock %}
 
+
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
-
+{% include 'modals.html' with modal_id='single-modal' modal_title='Infos' %}
 
 <div id='detail-panels'>
-    <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
+    <div class="panel panel-hidden panel-visible" id="panel-contract-list" style="display: block;">
         <div class="panel-heading">
             <div class="d-flex flex-wrap">
-                <h4>{% trans 'Contract List' %} </h4> 
+                <h4>{% trans 'Contract List' %}</h4> 
                 <span class="flex" style="flex-grow: 1;"></span>
                 <div class="btn-group" role="group">
                     {% if perms.expense.add_contract %}
@@ -38,13 +46,39 @@
         <div class="panel-content">
             <!-- Table should be loaded here -->
             {% include 'expense/contract_table.html' with datatype="all" %}
+            
+        </div>
+        <div class="card" id="contract_expense_detail">
+                        
+                        
+        </div>
+    </div><!-- end Panel contract list-->
+    
+
+    <div class="panel panel-hidden panel-visible" id="panel-contract-prospect" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Contract Prospective Imputation' %}</h4> 
+                <span class="flex" style="flex-grow: 1;"></span>
+                <div class="btn-group" role="group">
+                </div>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="row">
+                <div class="col col-sm-9"><!-- left column-->
+                    <div id="contrat_calendar"></div>
+                </div><!-- END left column-->
+                <div class="col col-sm-3"><!-- Right column-->
+                    {% include 'expense/contract_funditem_list.html' %}
+                </div><!-- END Right column-->
+                                
+            </div>
         </div>
     </div>
-</div>
-<div class="card" id="contract_expense_detail">
-                        
-                        
-</div>
+</div><!-- end Panel contract Prospective-->
+
+
 
 
 {{ request.user.id|json_script:"user_id" }}
@@ -54,11 +88,16 @@
 {% block js_load %}
 <script type='text/javascript' src="{% static 'js/contract_base.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/contract_tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/contract_cal.js' %}"></script>
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
-    initContractBaseView(user_id);
-    initializeContractsTable(tableurl='/api/contract/');
+    
+    onPanelLoad("contract-list", function(){initContractBaseView(user_id);})
+    onPanelLoad("contract-prospect", function(){initializeProspectiveView(user_id);})
+
+    enableSidebar('contract')
 })
 </script>
 

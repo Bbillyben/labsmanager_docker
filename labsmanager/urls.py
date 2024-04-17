@@ -51,6 +51,7 @@ urlpatterns = [
     path('common/', include('common.urls')),
     path('reports/', include('reports.urls')),
     path('infos/', include('infos.urls')),
+    path('import/', include('import.urls')),
 ]
 #  Authentications : 
 urlpatterns += [

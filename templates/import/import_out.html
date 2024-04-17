@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load static %}
+
+
+<div class="row">
+    
+    <div class="card w-50">
+        <div class="card-body">
+            <h5 class="card-title">{% trans 'Import Summary' %}</h5>
+            <p class="card-text">
+<table class="table table-striped table-condensed ">
+            <thead>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{% trans 'Total' %}</td>
+                    <td>{{result.totals.total_rows}}</td>
+                </tr>
+                <tr>
+                    <td>{% trans 'New' %}</td>
+                    <td>{{result.totals.new}}</td>
+                </tr>
+                <tr>
+                    <td>{% trans 'Updated' %}</td>
+                    <td>{{result.totals.update}}</td>
+                </tr>
+                <tr>
+                    <td>{% trans 'Deleted' %}</td>
+                    <td>{{result.totals.delete}}</td>
+                </tr>
+                <tr>
+                    <td>{% trans 'Skipped' %}</td>
+                    <td>{{result.totals.skip}}</td>
+                </tr>
+                <tr>
+                    <td>{% trans 'In Error' %}</td>
+                    <td>{{result.totals.error}}</td>
+                </tr>
+                <tr>
+                    <td>{% trans 'Invalid' %}</td>
+                    <td>{{result.totals.invalid}}</td>
+                </tr>
+            </tbody>
+        </table>
+            </p>
+
+            <a href="#" id="import_back_select" class="btn btn-primary"><i class="fa-solid fa-rotate-left"></i>{% trans 'Back To File Import' %}</a>
+        </div>
+        
+    </div>
+</div>

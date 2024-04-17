@@ -281,13 +281,14 @@ class EmployeeReport(TemplateReport):
         status = Employee_Status.objects.filter(employee__pk=pk).order_by('start_date')
         context["status"]=status
         
-        contract = Contract.objects.filter(employee__pk=pk).order_by('start_date')
+        contract = Contract.effective.filter(employee__pk=pk).order_by('start_date')
         context["contract"]=contract
+        
+        contract_provisionnal = Contract.provisionnal.filter(employee__pk=pk).order_by('start_date')
+        context["contract_prov"]=contract_provisionnal
         
         partProj = Participant.objects.filter(employee=emp).order_by('start_date')
         context["project"]=partProj
-        
-        
         
         leave = Leave.objects.timeframe(slot).filter(employee=emp).order_by('-start_date')
         context["leave"]=leave
@@ -336,7 +337,7 @@ class ProjectReport(TemplateReport):
         
         context["participant"] = Participant.objects.filter(project=pk)
         
-        context["contract"] = Contract.objects.filter(fund__project=pk)
+        context["contract"] = Contract.effective.filter(fund__project=pk)
         
         context["budget"] = Budget.objects.filter(fund__project=pk)
         

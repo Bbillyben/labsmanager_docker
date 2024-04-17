@@ -106,8 +106,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
     def contracts(self,request, pk=None):
+        from expense.apiviews import ContractViewSet
         emp = self.get_object()
-        contract=Contract.objects.filter(employee=emp.pk).order_by('end_date')
+        cvs = ContractViewSet() 
+        cvs.request = request
+        contract=cvs.filter_queryset(cvs.get_queryset())
+        contract= contract.filter(employee=emp.pk).order_by('end_date')
+        # Contract.objects.filter(employee=emp.pk).order_by('end_date')
         return JsonResponse(serializers.ContractSerializer(contract, many=True).data, safe=False)
     
     
@@ -167,6 +172,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         
         return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
     
+    @action(methods=['get'], detail=False, url_path='contract-resource', url_name='contract-resource')
+    def employee_contract(self, request, pk=None):
+        sts = Employee_Status.current.filter(Q(is_contractual="c")).values('employee')
+        t1=Employee.objects.filter(pk__in=sts, is_active= True).order_by('first_name')
+        return JsonResponse(serializers.EmployeeContractProsp(t1, many=True).data, safe=False)
+        
     @action(methods=['get'], detail=False, url_path='organization-chart', url_name='organization-chart')
     def organization_chart(self, request, pk=None):
         # get user preference to see past organization

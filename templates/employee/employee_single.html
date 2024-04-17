@@ -39,7 +39,7 @@
                     {% if perms.common.change_subscription %}
                     <div class="subscription" data-type="staff.employee" data-pk='{{employee.pk}}'><button class='icon subscription btn btn-secondary' ><i type = 'button' class='fas fa-bell'></i></button></div>
                     {%endif%}
-                    {% if perms.common.change_favorite %}
+                    {% if perms.common.change_favorite and user.employee != employee %}
                     <div class="favorite" data-type="staff.employee" data-pk='{{employee.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
                     {%endif%}
                     {% if perms.staff.change_employee or user.employee.pk == pk %}

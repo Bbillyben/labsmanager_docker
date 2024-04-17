@@ -95,7 +95,7 @@
                         {% if perms.project.change_project or perms.project.delete_participant %}
                         <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionFormatter"
                         data-can-change="{{ perms.project.change_project }}"
-                        data-can-delete="{{ perms.project.delete_participant }}"
+                        data-can-delete="{{ perms.project.delete_project }}"
                         data-is-staff="{{ request.user.is_staff }}"
                         >
                             {% trans 'Action' %}

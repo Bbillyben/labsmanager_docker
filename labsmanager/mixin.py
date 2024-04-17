@@ -10,7 +10,7 @@ import django.dispatch
 from dateutil.rrule import *
 
 
-from .manager import Current_date_Manager, outof_date_Manager, date_manager, focus_manager
+from .manager import Current_date_Manager, outof_date_Manager, date_manager, focus_manager,futur_date_Manager
 
 from datetime import date, datetime
 import copy
@@ -152,6 +152,7 @@ class DateMixin(models.Model):
     objects = date_manager()
     current = Current_date_Manager()
     past = outof_date_Manager()
+    futur = futur_date_Manager()
     
     
     @property
@@ -167,7 +168,19 @@ class DateMixin(models.Model):
             se = self.end_date
             d1=sn-sd
             d2=se-sd
-            r = (d1.days)/(d2.days)
+            r = max(min((d1.days)/(d2.days), 1), 0)
+        except:
+            r="-"
+        return r
+    
+    def get_left_time_ratio(self):
+        try:
+            sn=date.today()
+            sd = self.start_date
+            se = self.end_date
+            d1=se-sn
+            d2=se-sd
+            r = max(min((d1.days)/(d2.days), 1), 0)
         except:
             r="-"
         return r

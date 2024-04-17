@@ -2,6 +2,9 @@ from import_export.resources import ModelResource
 from import_export import results, widgets
 from import_export.fields import Field
 import datetime
+
+from decimal import Decimal
+from django.utils.encoding import force_str, smart_str
 # ressource for import export 
 class SimpleError(results.Error):
     def __init__(self, error, traceback=None, row=None):
@@ -79,12 +82,23 @@ class SkipErrorRessource(ModelResource):
 ################################ Field COMMON #################################    
 
 class DateField(Field):
-    
+        
     def get_value(self, obj):
         val=super().get_value(obj)
         if isinstance(val, datetime.datetime):
             return val.date()
         return val   
+    
+class DecimalField(Field):
+    def clean(self, data, **kwargs):
+        ''' Force Value 0 if not set
+        '''
+        if data[self.column_name] is None:
+            data[self.column_name]= 0
+        
+        return super().clean(data, **kwargs)
+    
+    
 ################################ WIDGETS COMMON #################################
 from staff.models import Employee
 class EmployeeWidget(widgets.CharWidget):

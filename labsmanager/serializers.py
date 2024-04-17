@@ -205,7 +205,7 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ['id', 'title', ]  
-        
+
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Common
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
@@ -385,7 +385,46 @@ class FundItemSerializePlus(serializers.ModelSerializer):
         from expense.models import Contract
         ct = Contract.objects.filter(fund = obj.fund, is_active = True)
         return ContractSerializerSimple(ct, many=True).data
+    
+    
+class FundItemSerializeContract(serializers.ModelSerializer):
+    fund=FundSerialize(many=False, read_only=True)
+    type=CostTypeSerialize(many=False, read_only=True)
+    contract_effective=serializers.SerializerMethodField()
+    amount_left_effective=serializers.SerializerMethodField()
+    contract_prov=serializers.SerializerMethodField()
+    amount_left_prov=serializers.SerializerMethodField()
 
+    class Meta:
+        model = Fund_Item
+        fields = ['pk', 'type', 'fund','amount',  'expense','available','value_date', 'entry_date',
+                  'contract_effective','amount_left_effective',
+                  'contract_prov','amount_left_prov',
+                  ] 
+            
+    def get_contract_effective(self,obj):
+        from expense.models import Contract
+        ct = Contract.objects.filter(fund = obj.fund, is_active = True, status="effe")
+        return ct.count()
+    def get_amount_left_effective(self,obj): 
+        ct = Contract.objects.filter(fund = obj.fund, is_active = True, status="effe")
+        amount = 0 
+        for c in ct :
+            amount += c.remain_amount
+        return amount
+    
+    def get_contract_prov(self,obj):
+        from expense.models import Contract
+        ct = Contract.futur.filter(fund = obj.fund, status="prov")
+        return ct.count()
+    
+    def get_amount_left_prov(self,obj): 
+        ct = Contract.objects.filter(fund = obj.fund, status="prov")
+        amount = 0 
+        for c in ct :
+            amount += c.remain_amount
+        return amount
+    
 class FundItemSerialize_min(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
@@ -450,7 +489,7 @@ class ContractSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     class Meta:
         model = Contract
-        fields = ['pk', 'employee', 'start_date', 'end_date', 'fund', 'contract_type','total_amount', 'quotity', 'is_active',]
+        fields = ['pk', 'employee', 'start_date', 'end_date', 'fund', 'contract_type','total_amount', 'quotity', 'is_active','status']
     
     def get_contract_type(self,obj):
         if obj.contract_type:
@@ -462,7 +501,7 @@ class ContractSerializerSimple(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     class Meta:
         model = Contract
-        fields = ['pk', 'employee', 'start_date', 'end_date','contract_type','total_amount', 'quotity', 'is_active',]
+        fields = ['pk', 'employee', 'start_date', 'end_date','contract_type','total_amount', 'quotity', 'is_active','status']
     
     def get_contract_type(self,obj):
         if obj.contract_type:
@@ -794,3 +833,48 @@ class ContribSerializer(BudgetSerializer):
         model = Contribution
         fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type','desc',
                   'start_date', 'end_date', 'is_active'] 
+        
+        
+        
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> For COntract Prospective
+class EmployeeContractProsp(serializers.ModelSerializer):
+    id = serializers.CharField(source='pk')
+    status = EmployeeStatusSerialize(many=True, read_only=True, source='get_current_status')
+    class Meta:
+        model = Employee
+        fields = ['id', 'user_name', 'status',] 
+        
+class ContractSerializer1DCal(serializers.ModelSerializer):
+    resourceId= serializers.CharField(source='employee.pk')
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    fund = FundSerialize(many=False, read_only=True)
+    contract_type = serializers.SerializerMethodField()
+    employee_username = serializers.CharField(source='employee.user_name')
+    class Meta:
+        model = Contract
+        fields = ['pk', 'employee','employee_username',
+                    'contract_type',  
+                    'start',  'end',
+                    'resourceId',
+                    'fund', 
+                    'total_amount','remain_amount',
+                    'status',
+                  ]  
+    def get_start(self,obj):
+        if obj.start_date:
+            st= obj.start_date.isoformat()
+            return st
+        return None
+    
+    def get_end(self,obj):
+        if obj.end_date:
+            ed=datetime.combine(obj.end_date ,datetime.min.time())
+            ed = ed +timedelta(days=1)
+            return ed
+        return None
+    
+    def get_contract_type(self,obj):
+        if obj.contract_type:
+            return obj.contract_type.name
+        return None 
