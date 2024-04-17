@@ -1,7 +1,7 @@
-from django.http import JsonResponse
-from django.db.models import Q, Value, Count, F, CharField, Max
+from django.http import JsonResponse, HttpResponse
+from django.db.models import Q, Value, Count, F, CharField, Max, Sum
 from django.db.models.functions import Concat
-
+from django.shortcuts import render
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
@@ -15,10 +15,15 @@ from labsmanager.utils import str2bool
 from staff.filters import EmployeeFilter
 from expense.filters import ContractFilter
 from project.models import Project
-from fund.models import Fund
+from fund.models import Fund, Fund_Item
 from dashboard.utils import getDashboardContractTimeSlot
 
+from staff.models import Employee
+from django.core.exceptions import ObjectDoesNotExist
+
 from datetime import datetime
+
+from project.views import get_fund_overviewReport_bytType
 
 class ExpensePOintViewSet(viewsets.ModelViewSet):
     queryset = Expense_point.objects.all()
@@ -68,6 +73,11 @@ class ContractViewSet(viewsets.ModelViewSet):
           # print("[ContractViewSet.filter_queryset] is_active:"+str(is_active))
         if is_active:
             queryset = queryset.filter(is_active=is_active)
+            
+        status = params.get('status', None) or params.get('cont_status', None)
+        # print("[ContractViewSet.filter_queryset] status:"+str(status))
+        if status:
+            queryset = queryset.filter(status=status)
         
         name = params.get('name', None)
           # print("[ContractViewSet.filter_queryset] name:"+str(name))
@@ -103,6 +113,22 @@ class ContractViewSet(viewsets.ModelViewSet):
         if institution_name is not None :
             pjI=Fund.objects.filter(institution=institution_name).values('pk')
             queryset = queryset.filter(fund__in=pjI)
+            
+        start_date= params.get('start', None) 
+        if start_date is not None:
+            if isinstance(start_date, list):
+                start_date=start_date[0] 
+            start_date=start_date.split("T")[0]
+            query=Q(start_date__gte=start_date) | (Q(start_date__lt=start_date) & Q(end_date__gte=start_date))
+            queryset= queryset.filter(query)
+        
+        end_date= params.get('end', None) 
+        if end_date is not None:
+            if isinstance(end_date, list):
+                end_date=end_date[0]
+            end_date=end_date.split("T")[0]
+            query=Q(end_date__lte=end_date) | (Q(start_date__lt=end_date) & Q(end_date__gte=end_date))
+            queryset= queryset.filter(query)
         
         isStale = params.get('stale', None)
           # print("[ContractViewSet.filter_queryset] isStale:"+str(isStale))
@@ -142,4 +168,88 @@ class ContractViewSet(viewsets.ModelViewSet):
         slots=getDashboardContractTimeSlot(request)
         cont=Contract.current.timeframe(slots).select_related('employee', 'fund', 'contract_type').filter( Q(fund__project__status=True) & Q(is_active=True)).order_by('-end_date')
         return JsonResponse(serializers.ContractSerializer(cont, many=True).data, safe=False) 
+      
+    @action(methods=['get'], detail=False, url_path='contract_calendar', url_name='contract_calendar')
+    def get_contract_cal(self, request):
+        qset=self.filter_queryset(self.queryset)
+        return JsonResponse(serializers.ContractSerializer1DCal(qset, many=True).data, safe=False) 
+    
+    @action(methods=['get'], detail=False, url_path='contract_fund_modal/(?P<fund_id>[0-9]+)', url_name='contract_fund_modal')
+    def get_contract_fund_modal(self, request, fund_id):
+        qset = Contract.objects.futur().select_related('employee', 'fund', 'contract_type').all()
+        qset=self.filter_queryset(qset)
+        qset=qset.filter(fund=fund_id)
+        data = {'contracts': qset}
+        fu = Fund.objects.get(pk=fund_id)
+        data["fund"]= fu
         
+        fuT = Fund_Item.objects.filter(fund=fu) # get_fund_overviewReport_bytType(fund_id)
+        data["fund_overview"]=fuT
+        
+        
+        
+        effe = qset.filter(status='effe')
+        effe_am = 0
+        effe_am_left = 0
+        for c in effe :
+            effe_am += c.total_amount
+            effe_am_left += c.remain_amount
+            
+        data["effective_amount"]=effe_am
+        data["effective_amount_left"]=effe_am_left
+        
+        prov = qset.filter(status='prov')
+        prov_am = 0
+        prov_am_left = 0
+        for c in prov :
+            prov_am += c.total_amount
+            prov_am_left += c.remain_amount
+            
+        data["prov_amount"]=prov_am
+        data["prov_amount_left"]=prov_am_left
+        
+        data["total_amount_left"]=fu.available_f-effe_am_left-prov_am_left
+        return render(request, 'expense/contract_fund_modal.html', data)
+        
+      
+    # methods to manage calendar API call
+    
+    @action(methods=['post'], detail=False, url_path='contract_add', url_name='contract_add')
+    def add_contract(self, request):
+        emp = Employee.objects.get(pk=request.data['employee'])
+        if(not emp):
+          raise ObjectDoesNotExist(f" Employee '{request.data['employee']}' not found in database")
+        # emp = emp.first()
+        fu = Fund.objects.get(pk=request.data['fund'])
+        if(not emp):
+          raise ObjectDoesNotExist(f" Fund '{request.data['employee']}' not found in database")
+        cont=Contract(
+          employee = emp,
+          fund = fu,
+          start_date = request.data['start_date'],
+          end_date = request.data['end_date'],
+          is_active =False,
+          status = "prov",          
+        )
+        cont.save()
+        return HttpResponse("Ok")
+      
+    @action(methods=['post'], detail=False, url_path='contract_update', url_name='contract_update')
+    def update_contract(self, request):
+        cont = Contract.objects.get(pk=request.data['pk'])
+        if(not cont):
+          raise ObjectDoesNotExist(f" Contract '{request.data['pk']}' not found in database")
+        
+        if("employee" in request.data):
+          emp = Employee.objects.get(pk=request.data['employee'])
+          if(not emp):
+            raise ObjectDoesNotExist(f" Employee '{request.data['employee']}' not found in database")
+          cont.employee = emp
+          
+        if("start_date" in request.data):
+          cont.start_date = request.data['start_date']
+          
+        if("end_date" in request.data):
+          cont.end_date = request.data['end_date']  
+        result = cont.save()
+        return HttpResponse(f"Ok :{result}")

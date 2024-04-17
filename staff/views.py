@@ -103,7 +103,7 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
         if participant:
             context['team_part']=participant
 
-        contracts = Contract.objects.filter(employee=id)
+        contracts = Contract.effective.filter(employee=id)
         if contracts:
             context['contracts']=contracts
          

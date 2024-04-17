@@ -95,7 +95,7 @@ class Project(ActiveDateMixin):
         from expense.models import Contract
         from fund.models import Fund, Fund_Item
         fundP=Fund.objects.filter(project=self.pk).only('pk').all()
-        cont=Contract.objects.filter(Q(fund__in = fundP) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
+        cont=Contract.effective.filter(Q(fund__in = fundP) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
         return cont.aggregate(Sum('quotity'))["quotity__sum"]   
     
     @property

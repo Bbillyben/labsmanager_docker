@@ -83,6 +83,8 @@ select:-webkit-autofill {
    --darkreader-neutral-text: #d8d4cf;
    --darkreader-selection-background: #004daa;
    --darkreader-selection-text: #e8e6e3;
+
+   --primary-color-dark: #264666;
 }
 
 /* Modified CSS */

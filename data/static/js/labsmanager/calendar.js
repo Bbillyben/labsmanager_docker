@@ -350,8 +350,6 @@
                 
                   eventContent:eventContentRender,  
                   eventDisplay:'block',
-
-
             }
             // activate plugins
             // globals.plugins=[

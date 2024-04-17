@@ -108,17 +108,34 @@ class Contract_type(models.Model):
     
     def __str__(self):
         return f'{self.name}'
-    
+
+from .manager import effective_Manager, provisionnal_Manager
+import decimal
 class Contract(DateMixin):
+    
+    provisionnal = provisionnal_Manager()
+    effective = effective_Manager()
+    
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Contract")
+        default_manager_name = "objects"
         
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
-    quotity = models.DecimalField(max_digits=4, decimal_places=3, default=0, validators=PERCENTAGE_VALIDATOR, verbose_name=_('Time quotity'))
+    quotity = models.DecimalField(max_digits=4, decimal_places=3, default=1, validators=PERCENTAGE_VALIDATOR, verbose_name=_('Time quotity'))
     fund=models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'))
-    contract_type=models.ForeignKey(Contract_type,null=True, on_delete=models.SET_NULL, verbose_name=_('Contract Type'))
+    contract_type=models.ForeignKey(Contract_type,null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_('Contract Type'))
     is_active=models.BooleanField(default=True, verbose_name=_('is Active'))
+    
+    type_cont=(("effe",_("Effective")), ("prov", _("Provisionnal")))
+    status = models.CharField(
+        max_length=4,
+        choices=type_cont,
+        blank=False,
+        default='effe', 
+        verbose_name=_('Status'),        
+    )
+    
     history = AuditlogHistoryField()
     
     def __str__(self):
@@ -129,6 +146,14 @@ class Contract(DateMixin):
         exp = Contract_expense.objects.filter(contract=self.pk)
         if exp:
             return exp.aggregate(Sum('amount'))["amount__sum"]
+        return 0
+    
+    @property
+    def remain_amount(self):
+        ratio = self.get_left_time_ratio()
+        amount = self.total_amount
+        if ratio != "-" and amount:
+            return decimal.Decimal(ratio)*amount
         return 0
     
     @property

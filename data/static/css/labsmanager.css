@@ -3,6 +3,7 @@
     --primary-color-alpha: #335d8862;
     --primary-color-alpha-dark: #2646669d;
     --secondary-color: #eef3f7;
+    --third-color-dark:#1e867c;
     --highlight-color: #ffffff;
 
     --border-color: #ccc;
@@ -21,6 +22,9 @@
     --icon-index-color:rgb(25, 150, 119);
 
     --icon-info-color:#197db9;
+
+    --icon-deactivate: #dedddd;;
+
 
 }
 
@@ -659,7 +663,8 @@ main {
 }
 
 .modal-dialog {
-    width: 500px !important;
+    /* width: 500px !important; */
+    width: fit-content !important;
     max-width: 50% !important;
 }
 
@@ -1340,6 +1345,93 @@ li.list-spacer{
     
 }
 
+  /* for calendard Contract view */
+  .ressource-cont-pros{
+    align-items: center;
+    display: flex;
+    overflow: hidden;
+    
+    }
+    .ressource-cont-pros .date-field{
+        margin-right: 0.5em;
+    }
+    .fc-event:has(.ressource-cont-pros.prospect){
+        background-color: green;
+        border-color:  green;
+    }
+    .fc-event:has(.ressource-cont-pros.contract.effe){
+        background-color: var(--primary-color-dark);
+        border-color:  var(--primary-color-dark);
+    }
+    .fc-event:has(.ressource-cont-pros.contract.prov){
+        background-color: var(--third-color-dark);
+        border-color: var(--third-color-dark);
+    }
+    .fc-event:has(.ressource-cont-pros.contract.prov.date-error), .fc-event:has(.ressource-cont-pros.prospect.date-error){
+        background-color: red;
+        border-color:  red;
+    }
+    .fc-event:has(.ressource-cont-pros.contract.prov.avail-error), .fc-event:has(.ressource-cont-pros.prospect.avail-error){
+        background-color: purple;
+        border-color:  purple;
+    }
+
+    /* for modal fund description in contract view */
+    .popover-body .show_contract_fund, .card-title .show_contract_fund{
+        color: #0dcaf0 !important;
+        line-height: initial;
+        padding: revert;
+        margin-left: 0.1em;
+        font-size: 89%;
+    }
+    
+    .modal_fund .title{
+        font-weight: bold;
+        margin-bottom: 0.3em;
+    }
+    .modal_fund .dates{
+        float: inline-end;
+        font-style: italic;
+    }
+    .modal_fund .flex_cont{
+        display:flex;
+
+    }
+    .modal_fund .amount{
+        margin-bottom: 1em;
+    }
+    .modal_fund .amount.alert_sum{
+        color:red;
+    }   
+
+    .modal_fund div[data-bs-toggle="collapse"][aria-expanded="false"]:after{
+        content: ' ';
+        display: inline-block;
+      
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 5px solid currentColor;
+      
+        vertical-align: middle;
+        margin-right: .7rem;
+        transform: translateY(-2px);
+      
+        transition: transform .2s ease-out;
+    }
+    .modal_fund div[data-bs-toggle="collapse"][aria-expanded="true"]:after{
+        content: ' ';
+        display: inline-block;
+      
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 5px solid currentColor;
+      
+        vertical-align: middle;
+        margin-right: .7rem;
+        transform: rotate(90deg) translateX(-1px);
+        transition: transform .2s ease-out;
+    }
+      
   /*  fro crum list template */
   .crumb-dropdown .dropdown-menu{
     max-height: 15em;
@@ -1457,6 +1549,62 @@ li.list-spacer{
         margin-left:0.4em;
         color:var(--primary-color);
     }
+
+    .availContractCal{
+        font-size: 0.75em;
+        margin-left:0.5em;
+        border-radius:0.75em;
+        background-color: var(--label-yellow);
+    }
+    .availContractCal.effe{
+        background-color: var(--primary-color-dark);
+    }
+    .availContractCal.prov{
+        background-color: var(--third-color-dark);
+    }
+    .availContractCal .aicon{
+        color: white;
+        display: inline;
+        margin: 0 0.3em 0 0.6em;
+    }
+    .availContractCal .anum{
+        margin-right:0.5em;
+        font-weight: bold;
+        color: white;
+
+    }
+
+    .fc-event .contract .contract-info{
+        float:right;
+        margin: auto;
+    }
+    .fund-cont .amount{
+        float:right;
+    }
+    .fund-avail{
+        text-align: end;
+    }
+    .contract_funditem{
+        line-height: 12px;
+    }
+    .contract_funditem .text-danger{
+        margin-right: 0.5em;
+    }
+    .contract_funditem .fund-dates{
+        margin-bottom: 1em !important;
+    }
+    .contract_funditem .card-title{
+        margin-bottom: 0!important;
+    }
+
+    /* For Contract tables */
+    .contractlist.effe{
+        color: var(--primary-color);
+    }
+    .contractlist.prov{
+        color: var(--icon-deactivate);
+    }
+
      /* for Focus / out focus cost type */
 
     .out-focus{
