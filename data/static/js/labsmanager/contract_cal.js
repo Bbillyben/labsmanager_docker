@@ -269,7 +269,7 @@
         }
 
 
-        if(USER_PERMS.includes("expense.change_contract") || USER_PERMS.includes("expense.delete_contract") || USER_PERMS.includes("staff.view_employee")){
+        if(USER_PERMS.includes("expense.change_contract") || USER_PERMS.includes("expense.delete_contract") || USER_PERMS.includes("common.delete_prov") || USER_PERMS.includes("staff.view_employee")){
             textP +="<hr/>";
             textP +="<div class='d-flex flex-wrap btn-group btn-group-sm' role='group'>";
             //textP +="<span class='btn-group'>";
@@ -279,7 +279,7 @@
             if(USER_PERMS.includes("is_staff"))textP +="<a role='button' class=' btn btn-primary'  href='"+Urls["admin:expense_contract_change"](props.pk)+"' title='see in admin'><i type = 'button' class='fas fa-shield-halved'></i></a>"; 
            
             //textP += '<span class="flex" style="flex-grow: 1;min-width:1.5em;"></span>';
-            if(props.status != "effe" && USER_PERMS.includes("expense.delete_contract"))textP +="<button class='icon delete_contract btn btn-danger ' data-form-url='"+Urls["delete_contract_open"](props.pk)+"' title='delete leave'><i type = 'button' class='fas fa-trash'></i></button>";
+            if(props.status != "effe" && (USER_PERMS.includes("expense.delete_contract") ||  USER_PERMS.includes("common.delete_prov")) )textP +="<button class='icon delete_contract btn btn-danger ' data-form-url='"+Urls["delete_contract_open"](props.pk)+"' title='delete leave'><i type = 'button' class='fas fa-trash'></i></button>";
             //textP +="</span>";
 
             textP +="</div>";

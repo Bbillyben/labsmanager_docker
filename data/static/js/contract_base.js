@@ -62,7 +62,7 @@ function updateFundItemDrag(){
 function funditem_DnD_formatter(value, row, index, field){
     // console.log(JSON.stringify(row))
     active = (row.fund.is_active);
-    var amount = row.fund.available;
+    var amount = row.fund.available_f;
     if(row.amount_left_effective || row.amount_left_prov)amount = amount - row.amount_left_effective - row.amount_left_prov;
 
     row["create"]=false;
@@ -86,7 +86,7 @@ function funditem_DnD_formatter(value, row, index, field){
    
     html += '</div>';
     html +='<div class="col col-sd-6">';
-    html +='<div class="fund-avail"> Total :'+moneyDisplay(row.fund.available)+'</div>';
+    html +='<div class="fund-avail"> Total :'+moneyDisplay(row.fund.available_f)+'</div>';
     html +='<div class="fund-avail row"><small> (line :'+moneyDisplay(row.available)+')</small></div>';
     if(row.amount_left_effective || row.amount_left_prov){
         html +='<div class="fund-avail row '+(amount<=0?"text-danger":"")+'"><small>'+(moneyDisplay(amount))+'<small></div>'

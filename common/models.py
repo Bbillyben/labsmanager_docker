@@ -48,6 +48,7 @@ class RightsSupport(models.Model):
             ('display_dashboard', 'Permission to see dasgboard'), 
             ('display_infos', 'Permission to see organization informations'),
             ('import', 'Permission to import'),
+            ('delete_prov', 'Permission to delete provionnal contract'),
         )
 
 # from django.contrib.auth.models import Permission, Group
