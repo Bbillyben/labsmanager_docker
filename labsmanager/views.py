@@ -13,7 +13,7 @@ from django.db.models import F
 
 from staff.models import Employee_Type
 from fund.models import Cost_Type
-from expense.models import Contract_type
+from expense.models import Contract_type, Contract
 from fund.models import Fund_Institution
 from project.models import Institution
 from leave.models import Leave_Type
@@ -80,7 +80,12 @@ def get_filters_lists(request, *args, **kwargs):
         'name':'contract_type',
         'data':contType,
     })
-    
+    contStatus = [{'key': key, 'value': value} for key, value in Contract.type_cont]
+    # for contract status
+    data['codes'].append({
+        'name':'contract_status',
+        'data':contStatus,
+    })
     # for funder
     fundIns=Fund_Institution.objects.all().values(key=F('pk'), value=F('name'))
     data['codes'].append({

@@ -31,7 +31,7 @@
 <link rel="stylesheet" href="{% static 'fontawesome/css/solid.min.css' %}">
 <link rel="stylesheet" href="{% static 'script/jquery-ui/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'script/select2/css/select2.min.css' %}">
-<link rel="stylesheet" href="{% static 'css/color-themes/default.css' %}">
+<link rel="stylesheet" href="{% get_color_theme user %}">
 
 {% block link %}
 {% endblock %}

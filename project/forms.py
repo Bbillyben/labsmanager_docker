@@ -7,7 +7,7 @@ from django import forms
 from staff.models import Employee
 
 from labsmanager.forms import DateInput
-from labsmanager.mixin import CleanedDataFormMixin
+from labsmanager.mixin import CleanedDataFormMixin, IconFormMixin
 
 class ProjectModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
@@ -52,21 +52,36 @@ class ParticipantModelForm(BSModalModelForm):
             self.base_fields['project'] = forms.ModelChoiceField(
                 queryset=models.Project.objects.all(),
             )
+            
+        # if ('initial' in kwargs and 'employee' in kwargs['initial']):
+        #     self.base_fields['employee'] = forms.ModelChoiceField(
+        #         queryset=Employee.objects.all(),
+        #         # widget=forms.HiddenInput
+        #     )
+        # else:
+        #     self.base_fields['employee'] = forms.ModelChoiceField(
+        #         queryset=Employee.objects.filter(is_active=True),
+        #     )
+        print(f" kwargs : {kwargs['initial']}")
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
-            self.base_fields['employee'] = forms.ModelChoiceField(
-                queryset=Employee.objects.all(),
-                widget=forms.HiddenInput
-            )
+            self.base_fields['employee'].disabled = True
         else:
-            self.base_fields['employee'] = forms.ModelChoiceField(
-                queryset=Employee.objects.filter(is_active=True),
-            )
+            self.base_fields['employee'].disabled = False
             
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
+
+        if ('initial' in kwargs and 'employee' in kwargs['initial']):
+            self.fields['employee'].widget = forms.HiddenInput()
+            self.fields['employee'].queryset=Employee.objects.filter()
+        elif('initial' in kwargs and 'project' in kwargs['initial']):
+            self.fields['employee'].queryset=Employee.objects.filter(is_active=True)
+             
         if instance and instance.pk:
             self.fields['employee'].widget = forms.HiddenInput()
             self.fields['project'].widget = forms.HiddenInput()
+            self.fields['employee'].disabled = True
+            self.fields['project'].disabled = True
         
         
             
@@ -106,7 +121,7 @@ class InstitutionModelForm(BSModalModelForm):
 class InstitutionModelFormDirect(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.Institution
-        fields = ['name','short_name','adress',]
+        fields = ['name','short_name',]
         
 class GenericInfoProjectForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:
@@ -124,15 +139,7 @@ class GenericInfoProjectForm(CleanedDataFormMixin, BSModalModelForm):
         if instance and instance.pk:
             self.fields['info'].disabled = True
             
-class GenericInfoTypeProjectForm(CleanedDataFormMixin, BSModalModelForm):
+class GenericInfoTypeProjectForm(CleanedDataFormMixin,IconFormMixin,  BSModalModelForm):
     class Meta:
         model = models.GenericInfoTypeProject
         fields = ['name', 'icon',]
-
-    @property
-    def media(self):
-        response = super().media
-        response._js_lists.clear()
-        response._js_lists.append(['js/faicon_in/list.min.js'])
-        response._js_lists.append(['js/faicon_in/faicon.js'])
-        return response

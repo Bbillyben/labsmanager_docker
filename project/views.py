@@ -32,16 +32,17 @@ class ProjectView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixin, B
     permission_required='project.view_project'
     template_name = 'project/project_single.html'
     model = Project
-    # crumbs = [("Project","project")]
+    
     # for CrumbListMixin
     reverseURL="project_single"
     crumbListQuerySet=Project.objects.filter(status=True)
     names_val=['name']
+    crumbListPerm=['project.view_project']
     
     @cached_property
     def crumbs(self):
         return [(_("Project"),"./",) ,
-                (str(self.construct_crumb()) ,  reverse("project_single", kwargs={'pk':'4'} ) ),
+                (str(self.construct_crumb()) ,  reverse("project_single", kwargs={'pk':'0'} ) ),
                 ]
 
     def construct_crumb(self):
@@ -178,8 +179,23 @@ def get_project_fund_overviewReport_bytType(pk):
         )
     return a
 
-
-
+def get_fund_overviewReport_bytType(pk):
+    
+    print("[get_fund_overviewReport_bytType]")
+    print(pk)
+    a=Fund_Item.objects.filter(fund=pk)
+    if not a:
+        return None
+    
+    a = a.values('type').annotate(
+        type_name=F('type__name'), 
+        type_focus=F('type__in_focus'), 
+        type_count=Count('type'), 
+        total_amount=Sum('amount'),
+        total_expense=Sum('expense'),
+        total_available = F("total_amount")+F("total_expense"),
+        )
+    return a
 
 ## Get the project info table
 def get_project_info_table(request, pk):

@@ -187,7 +187,7 @@
                     {% trans "Exit Date" %}
                 </td>
                 <td >                    
-                    {{ employee.entry_date  }}
+                    {{ employee.exit_date  }}
                 </td>
             </tr>
             <tr>
@@ -470,10 +470,10 @@
                     {{ item.type.short_name  }}
                 </td>
                 <td>
-                    {{ item.start_date }}
+                    {{ item.start_date }} {% if item.start_period == "MI" %}  - {{item.get_start_period_display }} {% endif %}
                 </td>
                 <td>
-                    {{item.end_date }}
+                    {{item.end_date }} {% if item.end_period == "MI" %}   - {{ item.get_end_period_display }}{% endif %}
                 </td>
                 <td>
                     {{item.comment  }}

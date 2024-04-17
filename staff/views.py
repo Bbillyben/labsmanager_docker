@@ -22,7 +22,7 @@ from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, 
 
 
 from labsmanager.mixin import CreateModalNavigateMixin
-
+from operator import attrgetter
 class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'employee/employee_base.html'
     home_label = '<i class="fas fa-bars"></i>'
@@ -46,19 +46,9 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
     # crumbs = [("Employee","./",),("employees",reverse("employee"))]
     
     
-    def test_func(self, *args, **kwargs):
-        # print("[EmployeeView] - test_func")
-        # for v in args:
-        #     print(f'  - arg : {v}')
-        # for k,v in kwargs.items():
-        #     print(f'  - {k} : {v}')
-        # print(self.request.user)
-        return True
-    
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
-        print("[EmployeeView] - dispatch")
         
         if request.user.is_staff or request.user.has_perm('staff.view_employee'):
             return super().dispatch(request, *args, **kwargs)
@@ -113,7 +103,7 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
         if participant:
             context['team_part']=participant
 
-        contracts = Contract.objects.filter(employee=id)
+        contracts = Contract.effective.filter(employee=id)
         if contracts:
             context['contracts']=contracts
          
@@ -271,6 +261,10 @@ class TeamView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin ,  Templa
     reverseURL="team_single"
     crumbListQuerySet=Team.objects.all()
     names_val=['name']
+    crumbListPerm=(
+        #'common.employee_list',
+        'staff.view_team',
+    )
     
     @cached_property
     def crumbs(self):
@@ -307,7 +301,9 @@ def get_team_resume(request, pk):
 
 def get_team_mate(request, pk):
     teamMate = TeamMate.objects.filter(team=pk)
-    data = {'mates': teamMate}
+    # sorted_team_mates = sorted(teamMate, key=lambda x: x.is_active, reverse=True)
+    sorted_team_mates = sorted(teamMate, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)
+    data = {'mates': sorted_team_mates}
     
     return render(request, 'team/team_mate_table.html', data)
 

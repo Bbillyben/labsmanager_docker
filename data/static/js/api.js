@@ -1,22 +1,22 @@
 /* Credit : Inventree https://github.com/inventree/InvenTree
 */
 
-$.urlParam = function(name) {
-    // eslint-disable-next-line no-useless-escape
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+// $.urlParam = function(name) {
+//     // eslint-disable-next-line no-useless-escape
+//     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
 
-    if (results == null) {
-        return null;
-    }
+//     if (results == null) {
+//         return null;
+//     }
 
-    return decodeURI(results[1]) || 0;
-};
+//     return decodeURI(results[1]) || 0;
+// };
 
 
 function labsmanagerGet(url, filters={}, options={}) {
 
     // Middleware token required for data update
-    var csrftoken = getCookie('csrftoken');
+    var token = getCookie('csrftoken');
 
     return $.ajax({
         beforeSend: function(xhr) {
@@ -149,7 +149,7 @@ function showApiError(xhr, url) {
     // No response
     case 0:
         title = '{% trans "No Response" %}';
-        message = '{% trans "No response from the InvenTree server" %}';
+        message = '{% trans "No response from the LabsManager server" %}';
         break;
     // Bad request
     case 400:

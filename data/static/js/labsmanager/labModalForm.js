@@ -1,4 +1,5 @@
 $.fn.labModalForm = function(options) {
+    if(!$(this).length)return;
     var defaults = {
         modalID:"#create-modal",
         modalContent:".modal-body",
@@ -18,7 +19,7 @@ $.fn.labModalForm = function(options) {
     };
     settings = $.extend(defaults, options);
 
-    if(!settings.formURL)throw new Error('[labModalForm] No formURL parameter !');
+    if(!settings.formURL)console.error('[labModalForm] No formURL parameter !'+$(this));//throw new Error('[labModalForm] No formURL parameter !');
 
     $(this).modalForm({
         modalID: settings.modalID,

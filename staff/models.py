@@ -48,6 +48,8 @@ class Employee(models.Model):
     def get_status(self):
         return Employee_Status.objects.filter(employee=self.pk)
     
+    def get_current_status(self):
+        return Employee_Status.current.filter(employee=self.pk)
     # @property
     def contracts(self):
         from expense.models import Contract
@@ -56,7 +58,7 @@ class Employee(models.Model):
     #ItemPrice.objects.aggregate(Sum('price'))
     def contracts_quotity(self):
         from expense.models import Contract
-        return Contract.current.filter(employee=self).aggregate(Sum('quotity'))["quotity__sum"]
+        return Contract.effective.current().filter(employee=self).aggregate(Sum('quotity'))["quotity__sum"]
 
     # @property
     def projects(self):
@@ -65,7 +67,7 @@ class Employee(models.Model):
     
     def projects_quotity(self):
         from project.models import Participant
-        return Participant.objects.filter(Q(employee=self.pk) & Q(project__status=True) &  Q(start_date__lte=timezone.now())  & ( Q(end_date__gte=timezone.now()) | Q(end_date=None)) ).aggregate(Sum('quotity'))["quotity__sum"]
+        return Participant.current.filter(Q(employee=self.pk) & Q(project__status=True)  ).aggregate(Sum('quotity'))["quotity__sum"]
     
     
     def info(self):
@@ -75,6 +77,9 @@ class Employee(models.Model):
     def contribution_quotity(self):
         from fund.models import Contribution
         return Contribution.current.filter(employee=self.pk).aggregate(Sum('quotity'))["quotity__sum"]
+    
+    def has_superior(self):
+        return Employee_Superior.current.filter(employee=self.pk).exists()
     
     def get_current_superior(self):
         from staff.models import Employee_Superior
@@ -89,15 +94,11 @@ class Employee(models.Model):
     
     def get_current_subordinate(self):
         from staff.models import Employee_Superior
-        return Employee_Superior.current.filter(superior=self.pk)
+        return Employee_Superior.current.filter(superior=self.pk, employee__is_active=True)
     
     def get_subordinate(self):
         from staff.models import Employee_Superior
         return Employee_Superior.objects.filter(superior=self.pk)
-    
-    def get_current_subordinate(self):
-        from staff.models import Employee_Superior
-        return Employee_Superior.current.filter(superior=self.pk) #.values('employee')
     
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""

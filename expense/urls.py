@@ -16,9 +16,9 @@ urlpatterns = [
 urlpatterns += [
     path('ajax/contract/add/', views_modal.ContractCreateView.as_view(), name='add_contract'), 
     path('ajax/contract/add/employee/<employee>', views_modal.ContractCreateView.as_view(), name='add_contract_open'), 
-    path('ajax/contract/add/project/<project>', views_modal.ContractCreateView.as_view(), name='add_contract_open'),   
+    path('ajax/contract/add/project/<project>', views_modal.ContractCreateView.as_view(), name='add_contract_project'),   
     path('ajax/contract/<pk>/update', views_modal.ContractUpdateView.as_view(), name='update_contract_open'),  
-    path('ajax/contract/<pk>/delete', views_modal.ContractDeleteView.as_view(), name='add_contract_open'),
+    path('ajax/contract/<pk>/delete', views_modal.ContractDeleteView.as_view(), name='delete_contract_open'),
     
     
     path('ajax/contract_expense/add/<contract>', views_modal.ContractExpenseCreateView.as_view(), name='add_contract_expense'),

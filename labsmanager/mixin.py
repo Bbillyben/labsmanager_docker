@@ -10,7 +10,7 @@ import django.dispatch
 from dateutil.rrule import *
 
 
-from .manager import Current_date_Manager, outof_date_Manager, date_manager, focus_manager
+from .manager import Current_date_Manager, outof_date_Manager, date_manager, focus_manager,futur_date_Manager
 
 from datetime import date, datetime
 import copy
@@ -64,6 +64,9 @@ class TableViewMixin(SingleTableMixin):
 #    Cached Model Mixin and Signals
 cmm_postsave = django.dispatch.Signal()
 class CachedModelMixin(models.Model):
+    ''' Mixin to add a dedicated signal to process cached var 
+    eg : fund.signals.save_CachedModel_handler to historize vairable changes
+    '''
     cached_vars = []
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -80,6 +83,9 @@ class CachedModelMixin(models.Model):
                    
         
 class LabsManagerBudgetMixin(models.Model):
+    ''' add amount and expense variable 
+    add method for calculaton
+    '''
     class Meta:
         abstract = True
         
@@ -102,6 +108,9 @@ class LabsManagerBudgetMixin(models.Model):
         return self.cleaned_data['expense']
 
 class LabsManagerFocusBudgetMixin(LabsManagerBudgetMixin):
+    ''' add amount_f and expense_f variable reprensenting total amount in Focus
+    add method for calculaton
+    '''
     class Meta:
         abstract = True
     
@@ -133,6 +142,9 @@ class LabsManagerFocusTypeMixin(models.Model):
     in_focus = focus_manager()
     
 class DateMixin(models.Model):
+    ''' add start and end date + manager to select current or not current items 
+    
+    '''
     start_date=models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
     end_date=models.DateField(null=True, blank=True, verbose_name=_('End Date'))
     
@@ -140,6 +152,7 @@ class DateMixin(models.Model):
     objects = date_manager()
     current = Current_date_Manager()
     past = outof_date_Manager()
+    futur = futur_date_Manager()
     
     
     @property
@@ -155,7 +168,19 @@ class DateMixin(models.Model):
             se = self.end_date
             d1=sn-sd
             d2=se-sd
-            r = (d1.days)/(d2.days)
+            r = max(min((d1.days)/(d2.days), 1), 0)
+        except:
+            r="-"
+        return r
+    
+    def get_left_time_ratio(self):
+        try:
+            sn=date.today()
+            sd = self.start_date
+            se = self.end_date
+            d1=se-sn
+            d2=se-sd
+            r = max(min((d1.days)/(d2.days), 1), 0)
         except:
             r="-"
         return r
@@ -196,12 +221,16 @@ class ActiveDateMixin(DateMixin):
 
 
 class CrumbListMixin():
+    ''' add in context a list of links for the template to be display for fast switch between items
+    define permission to add this list to template
     
+    '''
     reverseURL=None
     crumbListQuerySet=None
     names_val=None
     id_name="id"
     crumbListPerm=() #persmission to check to send crumb list to template
+    default_kwargs={} #define to add kwargs to the reverse url method
     
     class Meta:
         abstract = True
@@ -210,6 +239,8 @@ class CrumbListMixin():
         if not self.request.user.is_authenticated:
             return False
         if self.request.user.is_staff:
+            return True
+        if len(self.crumbListPerm) == 0:
             return True
         for perm in self.crumbListPerm:
             if self.request.user.has_perm(perm):
@@ -228,8 +259,10 @@ class CrumbListMixin():
             n=""
             for i in self.names_val:
                 n+=str(e.get(i))+" "
+            kw = {'pk':e.get(self.id_name)}
+            kw.update(self.default_kwargs)
             li.append([
-                reverse(self.reverseURL, kwargs={'pk':e.get(self.id_name)} ),
+                reverse(self.reverseURL, kwargs=kw ),
                 n
                 ])
             
@@ -238,6 +271,9 @@ class CrumbListMixin():
     
 from bootstrap_modal_forms.generic import BSModalCreateView   
 class CreateModalNavigateMixin(BSModalCreateView):
+    '''add a url to navigate to to the response whenever the form is successfully submitted
+    to be handled in the ajax call to navigate
+    '''
     object_id="pk"
     success_single=""
     object=None
@@ -268,9 +304,18 @@ class CleanedDataFormMixin:
         cleaned_data = super().clean()
 
         for field_name, field in self.fields.items():
-            print(f'filed : {field_name}')
+            # print(f'filed : {field_name}')
             if isinstance(field, forms.CharField):
                 cleaned_data[field_name] = escape(strip_tags(cleaned_data[field_name]))
         return super().clean()
     
-    
+
+class IconFormMixin:
+    ''' Mixin class to load specific JS for modal with FAIcon fields'''
+    @property
+    def media(self):
+        response = super().media
+        response._js_lists.clear()
+        response._js_lists.append(['js/faicon_in/faicon.js'])
+        response._js_lists.append(['faicon/js/list.min.js'])
+        return response

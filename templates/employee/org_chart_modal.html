@@ -50,7 +50,7 @@ function update_emp_orga_chart(emp_pk){
             n_tree.text=employee.sup.user_name;
             n_tree.text=n_tree.text+"<sup class='employee_orga_chart'><i class='fa fa-user'></i></sup>"
         }else{
-            n_tree.text=employeeFormatter(employee.sup);
+            n_tree.text=organisationEmployeeFormatter(employee.sup, employee);
         }
         n_tree.expanded = true;
         if(employee.sub.length>0){

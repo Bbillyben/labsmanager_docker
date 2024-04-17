@@ -17,6 +17,7 @@ import sys
 from io import BytesIO
 from django.http import FileResponse, JsonResponse
 from docxtpl import DocxTemplate
+from django_weasyprint import WeasyTemplateResponseMixin
 import jinja2
 import json
 from django.core.serializers.json import DjangoJSONEncoder
@@ -34,7 +35,7 @@ from . import serializers
 from labsmanager.helpers import DownloadFile
 from labsmanager import settings
 from labsmanager.manager import FileModelManager
-
+from .signals import auto_delete_templatefile_on_delete
 logger = logging.getLogger("labsmanager")
 
 def rename_template(instance, filename):
@@ -138,6 +139,12 @@ class TemplateReport(BaseReport):
     
     class Meta:
         abstract = True
+        
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+
+        super().__init_subclass__(**kwargs)
+        models.signals.post_delete.connect(auto_delete_templatefile_on_delete, sender=cls)
     
     def get_context_data(self, request, options):
         """Supply context data to the template for rendering."""
@@ -216,8 +223,7 @@ class WordReport(TemplateReport):
                                 content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 )
         return response
-    
-    
+
 from django_weasyprint import WeasyTemplateResponseMixin
 class WeasyprintReportMixin(WeasyTemplateResponseMixin):
     """Class for rendering a HTML template to a PDF."""
@@ -275,13 +281,14 @@ class EmployeeReport(TemplateReport):
         status = Employee_Status.objects.filter(employee__pk=pk).order_by('start_date')
         context["status"]=status
         
-        contract = Contract.objects.filter(employee__pk=pk).order_by('start_date')
+        contract = Contract.effective.filter(employee__pk=pk).order_by('start_date')
         context["contract"]=contract
+        
+        contract_provisionnal = Contract.provisionnal.filter(employee__pk=pk).order_by('start_date')
+        context["contract_prov"]=contract_provisionnal
         
         partProj = Participant.objects.filter(employee=emp).order_by('start_date')
         context["project"]=partProj
-        
-        
         
         leave = Leave.objects.timeframe(slot).filter(employee=emp).order_by('-start_date')
         context["leave"]=leave
@@ -330,7 +337,7 @@ class ProjectReport(TemplateReport):
         
         context["participant"] = Participant.objects.filter(project=pk)
         
-        context["contract"] = Contract.objects.filter(fund__project=pk)
+        context["contract"] = Contract.effective.filter(fund__project=pk)
         
         context["budget"] = Budget.objects.filter(fund__project=pk)
         

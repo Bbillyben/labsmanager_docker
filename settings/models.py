@@ -25,6 +25,7 @@ import labsmanager.ready
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR
 
 from labsmanager.settings import LANGUAGES
+from labsmanager.themes import LabTheme
 
 from decimal import Decimal
 
@@ -382,7 +383,7 @@ class BaseLabsManagerSetting(models.Model):
             self.run_validator(validator)
 
         options = self.valid_options()
-        print("############# clean Setting : "+ str(self.key)+" - value : "+str(self.value))
+        # print("############# clean Setting : "+ str(self.key)+" - value : "+str(self.value))
         if options and self.value not in options:
             raise ValidationError(_("Chosen value is not a valid option"))
 
@@ -720,8 +721,6 @@ class LabsManagerSetting(BaseLabsManagerSetting):
     }       
         
     class Meta:
-        """Meta options for InvenTreeSetting."""
-
         verbose_name = "LabsManager Setting"
         verbose_name_plural = "LabsManager Settings"
         
@@ -871,6 +870,24 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': False,
             'validator': bool,
         },
+        'PRINT_FULL_BOXES': {
+            'name': _('Print Full Background colors'),
+            'description': _('When printing, use displayed backgrounds instead of bordered boxew'),
+            'default': True,
+            'validator': bool,
+        },
+        'SHOW_PAST_ORG': {
+            'name': _('Display Only Current Organisation'),
+            'description': _('show/hide past hierarchical links'),
+            'default': True,
+            'validator': bool,
+        },
+        'LAB_THEME': {
+            'name': _('Theme'),
+            'description': _('Color theme for LabsManager'),
+            'default': LabTheme.default_color_theme[0],
+            'choices':LabTheme.get_themes_choices(),
+        },
         
         
     }
@@ -911,3 +928,5 @@ class LMUserSetting(BaseLabsManagerSetting):
         return {
             'user': self.user,
         }
+    
+    

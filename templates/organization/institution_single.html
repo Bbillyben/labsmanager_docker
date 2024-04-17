@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+
+{% block page_title %}
+{% trans "LabManager Organisation" %} - {{ orga }}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+{% include 'organization/orga_single_sidebar.html' %}
+{% endblock %}
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='Organization' %}
+<div id='detail-panels'>
+    <!-- #########################  GENERAL PANEL ###########################" "-->
+    <div class="panel" id="panel-orga" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap" >
+                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#orga_description">{% trans 'Organization' %} : {{ orga.name }}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                
+                <div class="btn-group" role="group">
+
+                    
+                    {% if request.user.is_staff %}
+                    <a href='{{urls.admin}}'><button class='icon admin_employee btn btn-secondary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>
+                    {% endif %}
+                    {% if perms.common.change_favorite %}
+                    <div class="favorite" data-type="{{type.app}}.{{type.model}}" data-pk='{{orga.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
+                    {%endif%}
+                    {% if  urls.change %}
+                    <button id="project-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Project Actions" aria-expanded="false">
+                        <i class="fas fa-flask"></i>
+                    </button>
+                    <ul class="dropdown-menu" style="">
+                        {% if urls.change %}
+                        <li><a class="dropdown-item labModalLoad" id="edit-orga" title="Edit Orga" data-url='{{urls.change}}'>
+                            <i class='fa fa-edit'></i> {% trans 'Edit Orga' %}
+                        </a></li>
+                        {% endif %}
+                    </ul>
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="panel-content collapse show" id="orga_description" >
+            <!-- <div class="row"> -->
+                <!-- <div class="col col-md-6">
+                    <div class="card  mb-2"> -->
+                        <div class="loadingCard" data-url="{% url 'orga_resume' app=type.app model=type.model pk=orga.pk %}">
+                        </div>
+                    <!-- </div>
+                </div> -->
+            <!-- </div> -->
+        </div>
+    </div><!-- end panel general-->
+    <!-- #########################  INFO PANEL ###########################" "-->
+    <div class="panel panel-hidden panel-visible" id="panel-info" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap" >
+                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#project_description">{% trans 'Informations' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                
+                <div class="btn-group" role="group">
+                </div>
+                
+            </div>
+        </div>
+        <div class="panel-content" id="orga_infos" >
+            <div class="row">
+                <div class="col col-md-6">
+                    <div class="card  mb-2">
+                        <div class="card  mb-2 loadingCard" data-url="{% url 'orga_info' app=type.app model=type.model pk=orga.pk %}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>  
+    </div><!-- end panel general-->
+    <!-- #########################  CONTACT PANEL ###########################" "-->
+    <div class="panel panel-hidden panel-visible" id="panel-contact" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap" >
+                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#project_description">{% trans 'Contacts' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                
+                <div class="btn-group" role="group">
+                    {% if perms.infos.add_contact %}
+                    <button type="button" class="btn btn-success" id="contact_create" title="Create New Contact" data-url="{% url 'add_orgacontact'  app=type.app model=type.model obj_id=orga.pk %}">
+                        <span class='fa fa-address-book'></span>
+                        {% trans 'Add Contact' %}
+                    </button>
+                    {%endif%}
+                </div>
+                
+            </div>
+        </div>
+        <div class="panel-content" id="orga_contact" >
+                <div class="row">
+                    <div class="col col-md-6" id="contact_list">
+                        {% include 'organization/contact_table.html' with app=type.app model=type.model id=orga.pk %}
+                    </div>
+                    <div class="col col-md-6 card" id="contact_infos">
+                        
+                    </div>
+                </div>
+                
+            
+        </div>
+    </div><!-- end panel general-->
+    <!-- #########################  PROJECT PANEL ###########################" "-->
+    <div class="panel panel-hidden panel-visible" id="panel-project" style="display: block;">
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap" >
+                    <h4 role="button" data-bs-toggle="collapse" data-bs-target="#project_description">{% trans 'Projects' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>
+                    
+                    <div class="btn-group" role="group">
+                       
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="panel-content" id="orga_project" >
+                <div class="row">
+                    <div class="col">
+                        <div id='tracking-table-toolbar_project_orga'>
+                            <div class='btn-group'>
+                                {% include "filter_list.html" with id="project_orga" %}
+                            </div>
+                        </div>
+                        <table
+                        class='table table-striped table-condensed'
+                        id="project_orga_table"
+                        data-toolbar='#tracking-table-toolbar_project_orga'
+                        data-url="{% url 'api:organization-orga_project' app=type.app model=type.model id=orga.pk %}"
+                        >
+                        <thead class="">
+                            <tr>
+                                <th data-sortable="true"  class="th-inner sortable both" data-field="name" data-formatter="ProjectFormatterList">
+                                    {% trans 'Project' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
+                                    {% trans 'Start Date' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
+                                    {% trans 'End Date' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="institution" data-formatter="InstitutionParticipantFormatter">
+                                    {% trans 'Institution' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="participant" data-formatter="ParticipantFormatter">
+                                    {% trans 'Participant' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund" data-formatter="FundFormatter">
+                                    {% trans 'Fund' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_amount" data-formatter="moneyFormatter">
+                                    {% trans 'Total Fund' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_expense" data-formatter="moneyFormatter">
+                                    {% trans 'Total Expense' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_available" data-formatter="moneyFormatter_alert">
+                                    {% trans 'Total Available' %}
+                                </th>
+                                
+        
+                                <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_amount_f" data-formatter="moneyFormatter">
+                                    {% trans 'Total Fund Focus' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_expense_f" data-formatter="moneyFormatter">
+                                    {% trans 'Total Expense Focus' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_available_f" data-formatter="moneyFormatter_alert">
+                                    {% trans 'Total Available Focus' %}
+                                </th>
+        
+                                <th data-sortable="true" class="th-inner sortable both" data-field="status" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle" >
+                                    {% trans 'Status' %}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>  
+    </div><!-- end panel general-->
+
+    <!-- #########################  CONTRACT PANEL ###########################" "-->
+    <div class="panel panel-hidden panel-visible" id="panel-contract" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap" >
+                <h4 role="button" data-bs-toggle="collapse" data-bs-target="#project_description">{% trans 'Contract' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                
+                <div class="btn-group" role="group">
+                  
+                </div>
+                
+            </div>
+        </div>
+        <div class="panel-content" id="orga_contact" >
+                <div class="row">
+                    {% include 'expense/contract_table.html' with datatype="all" filterName="contract_orga"%}
+                </div>
+        </div>
+    </div><!-- end panel general-->
+
+</div>
+
+{{ request.user.id|json_script:"user_id" }}
+{{ orga.pk|json_script:"orga_id" }}
+
+{% endblock %}
+
+{% block js_load %}
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/orga_single.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/contract_tables.js' %}"></script>
+{% endblock %}
+
+{% block js %}
+<script>
+    $(document).ready(function () {
+        user_id = JSON.parse(document.getElementById('user_id').textContent);
+        orga_id = JSON.parse(document.getElementById('orga_id').textContent);
+        initOrgaSingleView(user_id, orga_id, '{{type.app}}.{{type.model}}'); 
+
+
+        loadCards('orga');
+        onPanelLoad("info", function(){loadInfosPanel(); })
+        onPanelLoad("project", function(){initProjectPanelOrga(); })
+        onPanelLoad("contact", function(){initContactPanel(); })
+        onPanelLoad("contract", function(){initContractPanelOrga(); })
+        
+        enableSidebar('orga_single');
+          
+    
+    })
+    
+    
+      
+</script>
+{% endblock %}

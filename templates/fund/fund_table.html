@@ -9,10 +9,10 @@ data-url={{ dataURL }}
 >
 <thead class="">
     <tr>
-        <th data-sortable="true" class="th-inner sortable both" data-field="funder.short_name" >
+        <th data-sortable="true" class="th-inner sortable both" data-field="funder.short_name" data-formatter="funder_formatter">
             {% trans 'Funder' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="institution.short_name">
+        <th data-sortable="true" class="th-inner sortable both" data-field="institution.short_name" data-formatter="institution_project_formatter">
             {% trans 'Institution' %}
         </th>
 
@@ -34,7 +34,7 @@ data-url={{ dataURL }}
         <th data-sortable="true" class="th-inner sortable both" data-field="available" data-formatter="moneyFormatter_alert">
             {% trans 'Available' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
+        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
             {% trans 'Active' %}
         </th>
         <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionFund"

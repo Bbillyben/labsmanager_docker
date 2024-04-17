@@ -14,6 +14,10 @@ from django.db.models import Sum, Count
 from datetime import timedelta, datetime
 
 
+
+
+
+
  # User and Group Serailizer ########### ------------------------------------ ###########
        
 class UserSerializer(serializers.ModelSerializer):
@@ -38,7 +42,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class InstitutionSerializer(serializers.ModelSerializer):
      class Meta:
         model = Institution
-        fields = ['pk', 'short_name', 'name', 'adress',]  
+        fields = ['pk', 'short_name', 'name',]  
         
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -201,7 +205,7 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ['id', 'title', ]  
-        
+
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Common
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
@@ -235,6 +239,18 @@ class FavoriteSerialize(serializers.ModelSerializer):
             return reverse('employee', args=[obj.object_id])
         if obj.content_type.model == 'team':
             return reverse('team_single', args=[obj.object_id])
+        if obj.content_type.model == 'institution':
+            return reverse('orga_single', kwargs={
+                'pk':obj.object_id,
+                'app':'project',
+                'model':'institution'
+                })
+        if obj.content_type.model == 'fund_institution':
+            return reverse('orga_single', kwargs={
+                'pk':obj.object_id,
+                'app':'fund',
+                'model':'fund_institution'
+                })
 
         return "-"
     
@@ -271,7 +287,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
         # fields = ['pk', 'project_pk', 'project_name', 'project_start_date', 'project_end_date', 'project_status', 'status', 'quotity' ]
-        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity' ]
+        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity', 'is_active', ]
     
     def get_status(self,obj):
         return obj.get_status_display()
@@ -369,7 +385,46 @@ class FundItemSerializePlus(serializers.ModelSerializer):
         from expense.models import Contract
         ct = Contract.objects.filter(fund = obj.fund, is_active = True)
         return ContractSerializerSimple(ct, many=True).data
+    
+    
+class FundItemSerializeContract(serializers.ModelSerializer):
+    fund=FundSerialize(many=False, read_only=True)
+    type=CostTypeSerialize(many=False, read_only=True)
+    contract_effective=serializers.SerializerMethodField()
+    amount_left_effective=serializers.SerializerMethodField()
+    contract_prov=serializers.SerializerMethodField()
+    amount_left_prov=serializers.SerializerMethodField()
 
+    class Meta:
+        model = Fund_Item
+        fields = ['pk', 'type', 'fund','amount',  'expense','available','value_date', 'entry_date',
+                  'contract_effective','amount_left_effective',
+                  'contract_prov','amount_left_prov',
+                  ] 
+            
+    def get_contract_effective(self,obj):
+        from expense.models import Contract
+        ct = Contract.objects.filter(fund = obj.fund, is_active = True, status="effe")
+        return ct.count()
+    def get_amount_left_effective(self,obj): 
+        ct = Contract.objects.filter(fund = obj.fund, is_active = True, status="effe")
+        amount = 0 
+        for c in ct :
+            amount += c.remain_amount
+        return amount
+    
+    def get_contract_prov(self,obj):
+        from expense.models import Contract
+        ct = Contract.futur.filter(fund = obj.fund, status="prov")
+        return ct.count()
+    
+    def get_amount_left_prov(self,obj): 
+        ct = Contract.objects.filter(fund = obj.fund, status="prov")
+        amount = 0 
+        for c in ct :
+            amount += c.remain_amount
+        return amount
+    
 class FundItemSerialize_min(serializers.ModelSerializer):
     type=CostTypeSerialize(many=False, read_only=True)
     class Meta:
@@ -434,7 +489,7 @@ class ContractSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     class Meta:
         model = Contract
-        fields = ['pk', 'employee', 'start_date', 'end_date', 'fund', 'contract_type','total_amount', 'quotity', 'is_active',]
+        fields = ['pk', 'employee', 'start_date', 'end_date', 'fund', 'contract_type','total_amount', 'quotity', 'is_active','status']
     
     def get_contract_type(self,obj):
         if obj.contract_type:
@@ -446,7 +501,7 @@ class ContractSerializerSimple(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     class Meta:
         model = Contract
-        fields = ['pk', 'employee', 'start_date', 'end_date','contract_type','total_amount', 'quotity', 'is_active',]
+        fields = ['pk', 'employee', 'start_date', 'end_date','contract_type','total_amount', 'quotity', 'is_active','status']
     
     def get_contract_type(self,obj):
         if obj.contract_type:
@@ -524,21 +579,51 @@ from django.http import JsonResponse
 class EmployeeOrganizationChartSerialize(serializers.ModelSerializer):
     status = EmployeeStatusSerialize(many=True, read_only=True, source='get_status')
     subordinate = serializers.SerializerMethodField()
-    subordinate_count = serializers.SerializerMethodField()
-
+    active = serializers.SerializerMethodField()
    
     class Meta:
         model = Employee
-        fields = ['pk', 'user_name','status','subordinate_count', 'subordinate', ]
+        fields = ['pk', 'user_name', 'status',
+                  'active', 
+                  'subordinate', ]
+    
+    def get_active(self,obj):
+        return True
+    def get_subordinate(self,obj):
+        show_pas = self.context.get("show_pas")
+        if show_pas:
+            sub = obj.get_current_subordinate()
+        else:
+            sub = obj.get_subordinate()
+        # emp=Employee.objects.filter(pk__in=sub.values('employee'))
+        return EmployeeOrganizationChartOrgSerialize(sub,many=True, context=self.context).data
+    
+class EmployeeOrganizationChartOrgSerialize(serializers.ModelSerializer):
+    status = EmployeeStatusSerialize(many=True, read_only=True, source='employee.get_status')
+    subordinate = serializers.SerializerMethodField()
+    active = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+    pk = serializers.SerializerMethodField()
+   
+    class Meta:
+        model = Employee
+        fields = ['pk', 'user_name', 'status',
+                  'active', 
+                  'subordinate', ]
+    def get_user_name(self,obj):
+        return obj.employee.user_name
+    def get_pk(self,obj):
+        return obj.employee.pk
+    def get_active(self,obj):
+        return obj.is_active and obj.employee.is_active
     
     def get_subordinate(self,obj):
-        sub = obj.get_current_subordinate()
-        emp=Employee.objects.filter(pk__in=sub.values('employee'))
-        return EmployeeOrganizationChartSerialize(emp,many=True).data
-        
-    def get_subordinate_count(self,obj):
-        sub = obj.get_current_subordinate()
-        return sub.count()
+        show_pas = self.context.get("show_pas")
+        if show_pas:
+            sub = obj.employee.get_current_subordinate()
+        else:
+            sub = obj.employee.get_subordinate()
+        return EmployeeOrganizationChartOrgSerialize(sub,many=True, context=self.context).data
      
 class EmployeeSerialize(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
@@ -576,17 +661,20 @@ class TeamSerializer_min(serializers.ModelSerializer):
     
     def get_url(self, obj):
         return reverse('team_single', kwargs={'pk':obj.pk})
-        
+from operator import attrgetter    
 class TeamSerializer(serializers.ModelSerializer):
     leader=EmployeeSerialize_Min(many=False, read_only=True)
-    team_mate=TeamMateSerializer_min(many=True, read_only=True)
+    team_mate=serializers.SerializerMethodField()
     has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model= Team
         fields=['pk','name', 'leader', 'team_mate', 'has_perm']
 
-
+    def get_team_mate(self, obj):
+        tm = TeamMate.objects.filter(team=obj)
+        sorted_team_mates = sorted(tm, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)
+        return TeamMateSerializer_min(sorted_team_mates, many=True, read_only=True).data
 
 class ParticipantProjectSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
@@ -686,8 +774,42 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     #     fund = Fund.objects.filter(project = obj.pk)
     #     return Fund_Item.objects.filter(fund__in=fund).aggregate(Sum('amount'))["amount__sum"]
     
-    
-    
+# ------------------------------------------------------------------------------------- #
+# ---------------------------    APP infos / SERIALISZER    --------------------------- #
+# ------------------------------------------------------------------------------------- #
+from infos.models import ContactType, OrganizationInfos, Contact, InfoTypeClass, OrganizationInfosType
+class OrgaInfoTypeSerializer(ProjectInfoTypeIconSerialize):
+    icon_val=serializers.SerializerMethodField()
+    class Meta:
+        fields = ['pk', 'name', 'icon_val', 'type']
+        model = OrganizationInfosType
+
+
+class ContactTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactType
+        fields = ['pk','name',]    
+ 
+class ContactSerializer(serializers.ModelSerializer):
+    type=ContactTypeSerializer(many=False, read_only=True)
+    class Meta:
+        model = Contact
+        fields = ['pk','first_name','last_name','type', 'comment',]
+        
+          
+class OrganizationInfoSerializer(serializers.ModelSerializer):
+     content_type=ContentTypeSerialize(many=False, read_only=True)
+     info=OrgaInfoTypeSerializer(many=False, read_only=True)
+     class Meta:
+        model = OrganizationInfos
+        fields = ['pk',
+                  'content_type',
+                  'object_id',
+                  'info', 
+                  'value', 'comment',]
+            
+
+  
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
 class BudgetSerializer(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)
@@ -711,3 +833,48 @@ class ContribSerializer(BudgetSerializer):
         model = Contribution
         fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type','desc',
                   'start_date', 'end_date', 'is_active'] 
+        
+        
+        
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> For COntract Prospective
+class EmployeeContractProsp(serializers.ModelSerializer):
+    id = serializers.CharField(source='pk')
+    status = EmployeeStatusSerialize(many=True, read_only=True, source='get_current_status')
+    class Meta:
+        model = Employee
+        fields = ['id', 'user_name', 'status',] 
+        
+class ContractSerializer1DCal(serializers.ModelSerializer):
+    resourceId= serializers.CharField(source='employee.pk')
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    fund = FundSerialize(many=False, read_only=True)
+    contract_type = serializers.SerializerMethodField()
+    employee_username = serializers.CharField(source='employee.user_name')
+    class Meta:
+        model = Contract
+        fields = ['pk', 'employee','employee_username',
+                    'contract_type',  
+                    'start',  'end',
+                    'resourceId',
+                    'fund', 
+                    'total_amount','remain_amount',
+                    'status',
+                  ]  
+    def get_start(self,obj):
+        if obj.start_date:
+            st= obj.start_date.isoformat()
+            return st
+        return None
+    
+    def get_end(self,obj):
+        if obj.end_date:
+            ed=datetime.combine(obj.end_date ,datetime.min.time())
+            ed = ed +timedelta(days=1)
+            return ed
+        return None
+    
+    def get_contract_type(self,obj):
+        if obj.contract_type:
+            return obj.contract_type.name
+        return None 

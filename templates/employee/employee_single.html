@@ -39,7 +39,7 @@
                     {% if perms.common.change_subscription %}
                     <div class="subscription" data-type="staff.employee" data-pk='{{employee.pk}}'><button class='icon subscription btn btn-secondary' ><i type = 'button' class='fas fa-bell'></i></button></div>
                     {%endif%}
-                    {% if perms.common.change_favorite %}
+                    {% if perms.common.change_favorite and user.employee != employee %}
                     <div class="favorite" data-type="staff.employee" data-pk='{{employee.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
                     {%endif%}
                     {% if perms.staff.change_employee or user.employee.pk == pk %}
@@ -111,7 +111,7 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="is_contractual">
                                                 {% trans 'Job type' %}
                                             </th>
-                                            <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
+                                            <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                                                 {% trans 'Active' %}
                                             </th>
                                             
@@ -137,7 +137,7 @@
                         <div class="row">
                             <div class="col">
                                 <div class="d-flex flex-wrap subheading">
-                                    <h4><i class="fa-solid fa-sitemap"></i>  {% trans 'Employee\'s Organization Chart' %}</h4> 
+                                    <h4><i class="fa-solid fa-sitemap"></i>  {% trans "Employee's Organization Chart" %}</h4> 
                                     <span class="flex" style="flex-grow: 1;"></span>
                                     <div class="btn-group" role="group">
                                         {% if perms.staff.add_employee_superior %}
@@ -167,7 +167,7 @@
                                         <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                                             {% trans 'End Date' %}
                                         </th>
-                                        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
+                                        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                                             {% trans 'Active' %}
                                         </th>
                                         
@@ -352,9 +352,6 @@
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="project.end_date" data-formatter="baseDateFormatter">
                                                     {% trans 'Project End Date' %}
                                                 </th>
-                                                <th data-sortable="true" class="th-inner sortable both" data-field="project.status" data-cell-style="styleAlignMiddle" data-formatter="basicBoolean">
-                                                    {% trans 'Project Status' %}
-                                                </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="status">
                                                     {% trans 'Participant Status' %}
                                                 </th>
@@ -363,6 +360,9 @@
                                                 </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
                                                     {% trans 'End Date' %}
+                                                </th>
+                                                <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-cell-style="styleAlignMiddle" data-formatter="ParticipantStatusFormatter">
+                                                    {% trans 'Status' %}
                                                 </th>
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="quotity" data-formatter="quotityFormatter">
                                                     {% trans 'Quotity' %}

@@ -193,9 +193,10 @@ def get_vacation_events(request):
     else:
         end = datetime.datetime(datetime.MAXYEAR, 12, 31)
         
-    bg_color_vac="lightblue"
-    bg_color_off="lightskyblue"
-    
+    # bg_color_vac="lightblue"
+    # bg_color_off="lightskyblue"
+    classname_color_vac="vacation"
+    classname_color_off="dayoff"
     
     start = start.replace(tzinfo=None)
     end = end.replace(tzinfo=None)
@@ -220,7 +221,8 @@ def get_vacation_events(request):
                 'zone': v['zones'],
                 'desc': v['description'],
                 'display': 'background',
-                'color': bg_color_vac,
+                # 'color': bg_color_vac,
+                'className': classname_color_vac,
             }
             data.append(tmp)
             
@@ -233,7 +235,8 @@ def get_vacation_events(request):
                 #'end': e.strftime('%Y-%m-%d'),
                 'desc': dayoff_json[item],
                 'display': 'background',
-                'color': bg_color_off,
+                # 'color': bg_color_off,
+                'className': classname_color_off,
             }
             data.append(tmp)
         

@@ -11,6 +11,16 @@ class date_manager(models.Manager):
         if 'to' in slots:
             query= query & Q(start_date__lte=slots["to"])
         return self.get_queryset().filter(query)
+    
+    def current(self):
+        cdate = date.today()
+        query = (Q(start_date__lte=cdate) | Q(start_date=None)) & (Q(end_date__gte=cdate) | Q(end_date=None))
+        return self.get_queryset().filter(query)
+    
+    def futur(self):
+        cdate = date.today()
+        query = Q(start_date__gte=cdate) | Q(end_date__gte=cdate)
+        return self.get_queryset().filter(query)
 
 class Current_date_Manager(date_manager):
     def get_queryset(self):
@@ -26,6 +36,14 @@ class outof_date_Manager(date_manager):
         
         return super().get_queryset().filter(query)
     
+class futur_date_Manager(date_manager):
+    def get_queryset(self):
+        cdate = date.today()
+        query = Q(start_date__gte=cdate) | Q(end_date__gte=cdate)
+        
+        return super().get_queryset().filter(query)
+
+  
     
 class LastInManager(models.Manager):
     

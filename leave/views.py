@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponse
+from settings.models import LMUserSetting
 
 from .models import Leave_Type
 from staff.models import Employee_Type, Team
@@ -33,6 +34,10 @@ def main_calendar_print(request):
     options["team"]=request.POST.get("team", '') #request.POST["team"]
     options["showResEventRadio"]=request.POST.get("showResEventRadio", '') #request.POST["showResEventRadio"]
     context["options"]=options
+    
+    # Printing settings
+    context["full_print"]=LMUserSetting.get_setting('PRINT_FULL_BOXES',backup_value="true", user=request.user)
+    
     return render(request, 'calendar/main_calendar_print.html', context)
 
 

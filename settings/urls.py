@@ -11,7 +11,9 @@ urlpatterns = [
     path('setting_employee_type', views.SettingList_Employee_Type.as_view(), name='setting_employee_type'),
     path('setting_genericinfo_type', views.SettingList_GenericInfo.as_view(), name='setting_genericinfo_type'),
     path('setting_genericinfoproject_type', views.SettingList_GenericInfoProject.as_view(), name='setting_genericinfoproject_type'),
-    
+    path('setting_organizationinfo_type', views.SettingList_OrganizationInfosType.as_view(), name='setting_organizationinfo_type'),
+    path('setting_contactinfo_type', views.SettingList_ContactInfosType.as_view(), name='setting_contactinfo_type'),
+    path('setting_contact_type', views.SettingList_ContactType.as_view(), name='setting_contact_type'),
     
     
     path('subscriptions_setting', views.Subscription_List.as_view(), name='subscriptions_setting'),

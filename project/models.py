@@ -26,7 +26,7 @@ class Institution(models.Model):
     """List of institution public"""
     short_name= models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=150, unique=True)
-    adress=models.CharField(max_length=150, null=True, blank=True)
+    # adress=models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""
@@ -95,7 +95,7 @@ class Project(ActiveDateMixin):
         from expense.models import Contract
         from fund.models import Fund, Fund_Item
         fundP=Fund.objects.filter(project=self.pk).only('pk').all()
-        cont=Contract.objects.filter(Q(fund__in = fundP) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
+        cont=Contract.effective.filter(Q(fund__in = fundP) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
         return cont.aggregate(Sum('quotity'))["quotity__sum"]   
     
     @property
@@ -217,17 +217,13 @@ class Participant(ActiveDateMixin):
             if self.end_date:
                 q= q | (Q(start_date__lte=self.end_date) & Q(end_date__gte=self.end_date))
         
-        inuser = Participant.objects.filter(Q(employee=self.employee), Q(project=project), ~Q(pk=self.pk),
-                                            
-                                           q
-                                            
-                                            )
+        inuser = Participant.objects.filter(Q(employee=self.employee), Q(project=project), ~Q(pk=self.pk),q)
         if inuser:
             raise ValidationError(_('Already in Team At That Date'))
 
 
     def __str__(self):
-        return self.employee.__str__()
+        return f'{self.employee.__str__()} - {self.project.name}'
 
     # def get_absolute_url(self):
     #     return reverse("_detail", kwargs={"pk": self.pk})

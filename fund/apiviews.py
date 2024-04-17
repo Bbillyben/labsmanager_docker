@@ -190,6 +190,14 @@ class FundItemViewSet(viewsets.ModelViewSet):
         return queryset
     
     
+    @action(methods=['get'], detail=False, url_path='contract_card', url_name='contract_card')
+    def contract_card(self, request, proj_pk=None):
+        self.request = request
+        qset=self.filter_queryset(self.queryset) 
+        return JsonResponse(serializers.FundItemSerializeContract(qset, many=True).data, safe=False)
+    
+    
+    
 class BudgetAbstractViewSet(viewsets.ModelViewSet):
     class Meta:
         model = Budget

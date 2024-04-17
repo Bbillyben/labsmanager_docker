@@ -2,13 +2,13 @@
 
 from django.db import migrations
 
-from django.core.management import call_command
+# from django.core.management import call_command
 
 
 
-def migrate_expenseTimepoint(apps, schema_editor):
-    call_command('etp_migrate', '--delete',)
-    
+# def migrate_expenseTimepoint(apps, schema_editor):
+#     call_command('etp_migrate', '--delete',)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(migrate_expenseTimepoint),
-        
+        # migrations.RunPython(migrate_expenseTimepoint),
+
         migrations.AlterUniqueTogether(
             name='expense_point',
             unique_together={('fund', 'type')},

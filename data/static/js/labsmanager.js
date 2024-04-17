@@ -55,12 +55,18 @@ $.fn.isEmpty = function() {
 $.urlParam = function(name) {
     // eslint-disable-next-line no-useless-escape
     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-
     if (results == null) {
         return null;
     }
-
     return decodeURI(results[1]) || 0;
+};
+$.urlHastag = function(name) {
+    // eslint-disable-next-line no-useless-escape
+    var results = new RegExp('[#]([^&?#]*)').exec(window.location.href);
+    if (results == null) {
+        return null;
+    }
+    return results[1] || 0;
 };
 
 // ---------------------- local data storage
@@ -97,8 +103,7 @@ function labLoad(name, defaultValue) {
 
 // -------------------- function to load a card with class loadingCard and data-url pointing to the card view url -----//
 
-function loadCards(panel_id=""){
-    // console.log("start loadCards / panel :"+panel_id);
+function loadCards(panel_id="", callback=null){
     var selector = '.loadingCard';
     if(panel_id){
         selector = '#panel-'+panel_id+' '+selector;
@@ -106,14 +111,13 @@ function loadCards(panel_id=""){
     $(selector).each(function(){
         url=$(this).data('url');
         if(url==undefined)return;
-        loadInTemplate(elt=$(this),url=url);
+        loadInTemplate(elt=$(this),url=url,{}, callback=callback);
     });
 }
 
   // ------------------  ajax load direct --------------  //
 
   function loadInTemplate(elt, url, data={}, callback=null,type="GET", replace=false){
-
     csrftoken = getCookie('csrftoken');
     defaults={
         csrfmiddlewaretoken: csrftoken
@@ -144,4 +148,18 @@ function loadCards(panel_id=""){
 
   
 
-  
+  // -------------------- function to initiate labModal from standard tag -----//
+  function loadLabModal(panel_id=""){
+    // console.log("start loadCards / panel :"+panel_id);
+    var selector = '.labModalLoad';
+    if(panel_id){
+        selector = '#panel-'+panel_id+' '+selector;
+    }
+    $(selector).each(function(){
+        url=$(this).data('url');
+        if(url==undefined)return;
+        $(this).labModalForm({
+            formURL:url,
+        })
+    });
+}

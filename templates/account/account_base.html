@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load customs_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -18,7 +19,8 @@
 <link rel="stylesheet" href="{% static 'fontawesome/css/brands.min.css' %}">
 <link rel="stylesheet" href="{% static 'fontawesome/css/solid.min.css' %}">
 
-<link rel="stylesheet" href="{% static 'css/color-themes/default.css' %}">
+
+<link rel="stylesheet" href="{% get_color_theme_browser request %}">
 
 <!-- exemple 
 <link rel="stylesheet" href="{% static 'subfolder/css/stylesheet.css' %}">
@@ -38,8 +40,7 @@
 </head>
 
 
-<body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.jpg" %}); background-size: cover;'></body>
-
+<body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.png" %}); background-size: cover;'></body>
     <div class='container-fluid'>
         <div class='notification-area' id='alerts'>
             <!-- Div for displayed alerts -->
@@ -84,6 +85,7 @@
 
 {% block js %}
 {% endblock %}
+
 
 </body>
 </html>

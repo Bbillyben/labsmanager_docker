@@ -67,6 +67,11 @@ def makeID(dynvarname):
     return re.sub("[^a-zA-Z0-9]", "", str(dynvarname), count=0, flags=0)
     #return strV.upper()
 
+@register.filter(name='nospace')
+def nospace(value):
+    """ Returns the value of dynvarname with wpace replaced by - """
+    return value.replace(' ', '-')
+    
 
 @register.simple_tag(name='unikId')
 def unikId():
@@ -144,3 +149,30 @@ def filter_name(type, sub_type=None):
     if sub_type is None:
         return type
     return f'{type}_{sub_type}'
+
+
+from labsmanager.themes import LabTheme
+from labsmanager import settings
+from settings.models import LMUserSetting, LabsManagerSetting
+import os
+
+@register.simple_tag()
+def get_color_theme(user):
+    ctName = LMUserSetting.get_setting("LAB_THEME", user=user)
+    ct = LabTheme.get_theme(ctName)
+    cssPath = os.path.join("/",settings.STATIC_URL,'css', 'color-themes', ct + '.css')
+    return cssPath
+
+@register.simple_tag()
+def get_color_theme_browser(request):
+    if request.user and not request.user.is_anonymous:
+        return get_color_theme(request.user)
+    
+    accept_header = request.META.get('HTTP_ACCEPT', '')
+    if 'dark' in accept_header:
+        ctName = "dark-reader"
+    else:
+        ctName = "default"
+    ct = LabTheme.get_theme(ctName)
+    cssPath = os.path.join("/",settings.STATIC_URL,'css', 'color-themes', ct + '.css')
+    return cssPath

@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from labsmanager.forms import DateInput
 from django.contrib.auth import get_user_model
 
-from labsmanager.mixin import CleanedDataFormMixin
+from labsmanager.mixin import CleanedDataFormMixin, IconFormMixin
 
 class TeamMateForm(forms.ModelForm):
     model = TeamMate
@@ -183,16 +183,7 @@ class EmployeeTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
         model = Employee_Type
         fields = ['name','shortname',]
         
-class GenericInfoTypeForm(CleanedDataFormMixin, BSModalModelForm):
+class GenericInfoTypeForm(CleanedDataFormMixin,IconFormMixin, BSModalModelForm):
     class Meta:
         model = GenericInfoType
         fields = ['name', 'icon',]
-
-    @property
-    def media(self):
-        response = super().media
-        response._js_lists.clear()
-        response._js_lists.append(['js/faicon_in/list.min.js'])
-        response._js_lists.append(['js/faicon_in/faicon.js'])
-        return response
-    

@@ -2,6 +2,20 @@
 /*
  * Activate (display) the selected panel
  */
+
+function updateURLHashTag(fragment) {
+    var currentURL = window.location.href;
+    var newURL = currentURL.split("#")[0] + "#" + fragment;
+    history.replaceState(null, null, newURL);
+}
+// function updateURL(fragment) {
+//     // update the url to set the parmaeter display to point the panel
+//     var currentURL = window.location.href;
+//     var newURL = new URL(currentURL);
+//     newURL.searchParams.set("display", fragment);
+//     history.replaceState(null, null, newURL);
+// }
+
 function activatePanel(label, panel_name, options={}) {
 
     // First, cause any other panels to "fade out"
@@ -56,6 +70,7 @@ function activatePanel(label, panel_name, options={}) {
     if(undefined != selparent.data("bs-parent")){
         selparent.collapse('show')
     }
+    updateURLHashTag(panel_name);
     
 }
 
@@ -94,7 +109,7 @@ function onPanelLoad(panel, callback) {
     });
 
     // Find the "first" available panel (according to the sidebar)
-    var selected_panel = $.urlParam('display') || localStorage.getItem(`labsmanager-selected-panel-${label}`) || options.default;
+    var selected_panel = $.urlHastag() || $.urlParam('display') || localStorage.getItem(`labsmanager-selected-panel-${label}`) || options.default;
 
     if (selected_panel) {
         activatePanel(label, selected_panel);

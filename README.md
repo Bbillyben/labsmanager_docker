@@ -8,80 +8,28 @@
 
 ________________________________________
 
+On progress documentation : https://labsmanager-doc.readthedocs.io/en/latest/
 
 ### features
 
-* employee
-* team
-* contract
-* projects
-* fund
+* employee : keep track of employees, status, contract, project involvement, dedicated budgets, leaves, ....
+* team: reference employee into teams
+* contract : keep track of employee's contract with dates, fund, ... 
+* projects : keep track of everything regarding projects
+* fund 
 * budget
 * expense
 * leave
+* insitution and funder : gather information and contact from tutellary institution and funding ones
 * dashboard
+* report : ability to use templates for editing report for employee and projects.
 
-
-
-## Reports
-
-Models to upload and store Word template. It uses (docxtpl)[https://docxtpl.readthedocs.io/en/latest/] to generate word documents.
-Each model is specific of it's reported models (aka employee, projects, ...)
-
-#### General tags
-
-* date : AAAA-MM-DD
-* datetime :
-* report_description : 
-* report_name
-* report_revision
-* request
-* user : username of the user that has requests the report
-
-
-#### Employee tags
-
-* employee : instance of Employee
-* info :  Generic Info if available - iterable / instances list
-* status :  Employee Status if available - iterable / instances list
-* contract : Contract linked to the user - iterable / instances list
-* project :  Projects linked to the user - iterable / instances list
-* leave : Leaves linked to the user - iterable / instances list 
-* teams :  Teams where the user is leader or participant - iterable / instances list
-
-#### Projects tags
-
-* project : instance of current project
-* institution : Institution involved in project if available - iterable / instances list
-* participant : Participant involved in project if available - iterable / instances list
-* contract : Contracts in project if available - iterable / instances list
-* budget : Budgets declared in project if available - iterable / instances list
-* milestones : Milestones of the project if available - iterable / instances list
-* Fund : Fund of the project if available - iterable / dictionnary (see reports.serializers)
-    * pk
-    * funder (pk, short_name, name)
-    * institution (pk, short_name, name)
-    * ref
-    * start_date
-    * end_date
-    * amount
-    * expense
-    * available
-    * list of fund items :
-        * pk
-        * type (pk, short_name, name)
-        * amount
-        * expense
-        * available
-        * value_date
-        * entry_date
 ________________________________
 #### credits
 
 inspired by [Inventree](https://github.com/inventree/InvenTree)
 (some code come directly from them)
 
-using [fullcalendar](https://fullcalendar.io/)
 
 ##### Menu images from 
 

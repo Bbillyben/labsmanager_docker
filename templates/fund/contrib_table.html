@@ -54,7 +54,7 @@ data-toolbar='#tracking-table-toolbar_{{filterName}}'
         <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
             {% trans 'Amount' %}
         </th>
-        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean">
+        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
             {% trans 'Is Active' %}
         </th>
         {% if datatype != "search" and datatype != "team" %}

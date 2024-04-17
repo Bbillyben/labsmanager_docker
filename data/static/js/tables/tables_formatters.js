@@ -162,7 +162,7 @@ function userFormatter(value, row, index, field){
     response+='<span type="button" class="icon-spaced show_teamlead" data-emp_pk="'+row.pk+'" ><i class="fas fa-user-friends" style="color: cadetblue" title="team mate"></i></span>';
   }
 
-    if(row.has_subordinate){
+    if(row.has_subordinate || row.superior.length>0){
         response+='<span type="button"  class="icon-spaced show_orgchart" data-emp_pk="'+row.pk+'" ><i  class="fas fa-sitemap" style="color: var(--primary-color)" title="subordinate"></i></span>';
     }
 
@@ -213,7 +213,21 @@ function teamMateFormatter(value, row, index, field){
       }
       return response;
 }
+function organisationEmployeeFormatter(value, row, index, field){
+    response = "";
+    can_see = USER_PERMS.includes('staff.view_employee')
+    active = !(!value.is_active || (row.is_active != undefined && !row.is_active));
+    response+='<span class="'+(active?"active":"inactive")+'">';
+    if(can_see){
+        response +="<a href='/staff/employee/"+value.pk+"'>"+value.user_name+"</a>";
+    }else{
+        response +=value.user_name;
+    }
+    response+='</span>';
+    
+    return response;
 
+}
 function ParticipantFormatter(value, row, index, field){
     // console.log('ParticipantFormatter'+JSON.stringify(value))
     // console.log('ParticipantFormatter'+JSON.stringify(row))
@@ -238,6 +252,13 @@ function ParticipantFormatter(value, row, index, field){
         }
       }
       return response;
+}
+// ------------------------------------------------------------ Generic  Formatter 
+function ParticipantStatusFormatter(value, row, index, field){
+    response = "<span>"
+    response+="<i class='icon-spaced  fa fa-flask "+(row.project.status? "icon-green":"icon-red")+"' title='Project active'></i>"
+    response+="<i class='icon-spaced fa fa-user "+(row.is_active? "icon-green":"icon-red")+"' title='participant active'></i>"
+    return response
 }
 
 function leaveEmployeeFormatter(value, row, index, field){
@@ -297,6 +318,16 @@ function infoFormatter(value, row, index, field){
   }
 
 // ------------------------------------------------------------ Institution  Formatter
+function institution_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']("project", "institution", row.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
 function InstitutionParticipantFormatter(value, row, index, field){
     if(!isIterable(value)){
         value=[{"institution":value}];
@@ -304,11 +335,9 @@ function InstitutionParticipantFormatter(value, row, index, field){
     response = "";
     value = value.sort(leaderSorter);
     for (const item of value) {
-        //console.log("item :"+JSON.stringify(item));
-
-            tm =""+item.institution.short_name;
+            tm = institution_formatter(item.institution.short_name, item.institution);
             if(item.status == "c"){
-                tm+= '<sup><i class="fas fa-star icon-spaced" style="color: coral" title="team leader"></i></sup>';
+                tm+= '<sup><i class="fas fa-star icon-spaced" style="color: coral" title="leader"></i></sup>';
             }
             //tm+="</a>";
             response+= (response.length > 1 ? ', ' : '') + tm;
@@ -335,7 +364,7 @@ function ProjectFormatter(value, row, index, field){
       return response;
 }
 function ProjectFormatterList(value, row, index, field){
-    response =  '<span class="icon-right-cell"><a href="'+row.pk+'" title="/'+row.ipkd+'/"> '+value+'</a>';
+    response =  '<span class="icon-right-cell"><a href="'+Urls['project_single'](row.pk)+'" title="/'+row.ipkd+'/"> '+value+'</a>';
     return response;
 }
 
@@ -411,13 +440,13 @@ function availableFundItem_alert(value, row, index, field){
     if(row.contract.length > 0){
         var cc = "";
         for (var i = 0; i < row.contract.length; i++) {
-            if(cc.length>1)cc+="\n";
+            if(cc.length>1)cc+="<br>";
             cc+=row.contract[i].employee.user_name+' - '
             if(row.contract[i].quotity)cc+=quotityFormatter(row.contract[i].quotity)
             if(row.contract[i].contract_type)cc+=" - "+row.contract[i].contract_type
             if(row.contract[i].end_date)cc+=" - "+row.contract[i].end_date;
           }
-        response+='<span class="availContract" tabindex="0" data-toggle="tooltip" data-placement="top" title="'+cc+'">'+row.contract.length+"</span>";
+        response+='<span class="availContract" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" title="'+cc+'"><span class="aicon fa fa-file-signature"> </span><span class="anum">'+row.contract.length+"</span></span>";
     }
     return response;
 }
@@ -434,7 +463,28 @@ function TeamFormatter(value, row, index, field){
 }
 
 // ------------------------------------------------------------ Contract  Formatter
+function ContractProjectFormatter(value, row, index, field){
+    // console.log("ContractProjectFormatter :"+JSON.stringify(row.status))
+    response = '<i class="fa-solid fa-circle-check contractlist ';
+    response+= row.status;
+    response+= '"';
+    response+='title="'+(row.status=="effe"?"effective":"provisionnal")+'"';
+    response+='></i>'+" ";
 
+    response += ProjectFormatter(value, row, index, field);
+    return response;
+}
+function ContractEmployeeFormatter(value, row, index, field){
+    // console.log("ContractProjectFormatter :"+JSON.stringify(row.status))
+    response = '<i class="fa-solid fa-circle-check contractlist ';
+    response+= row.status;
+    response+= '"';
+    response+='title="'+(row.status=="effe"?"effective":"provisionnal")+'"';
+    response+='></i>'+" ";
+
+    response += employeeFormatter(value, row, index, field);
+    return response;
+}
 function contractsFormatter(value, row, index, field){
     //console.log('contractsFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
     response = '<ul>';
@@ -461,6 +511,12 @@ function subsTypeIconFormatter(value, row, index, field){
         case 'team':
             response += '<i class="icon icon-badge icon-inline fas fa-people-group" title="team"></i>';
             break;
+        case 'institution':
+            response += '<i class="icon icon-badge icon-inline fas fa-landmark" title="Institution"></i>';
+            break;
+        case 'fund_institution':
+            response += '<i class="icon icon-badge icon-inline fas fa-piggy-bank" title="Institution"></i>';
+            break;
         
     }
     return response
@@ -470,6 +526,94 @@ function subObjectUrlFormatter(value, row, index, field){
     response = "";
     response += "<a href='"+row.object_url+"'>"+value+"</a>";
     return response
+}
+// ------------------------------------------------------------ Organization  Formatter
+
+function organization_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single'](this.app, this.model, row.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+function institution_project_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('project', 'institution', row.institution.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+function institution_fund_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('project', 'institution', row.fund.institution.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+
+function funder_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('fund', 'fund_institution', row.funder.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+function contract_funder_formatter(value, row, index, field){
+    responseI = "";
+    can_see = USER_PERMS.includes('common.display_infos');
+    if(can_see){
+        responseI ="<a href='"+Urls['orga_single']('fund', 'fund_institution', row.fund.funder.pk)+"'>"+value+"</a>";
+    }else{
+        responseI =value;
+    }
+    return responseI
+}
+
+function infoTypeFormatter(value, row, index, field){
+    responseI = "";
+    if(value.toUpperCase() !="NONE"){
+        responseI =value
+     }else{
+        responseI ="-";
+    }
+    return responseI
+}
+
+function typeContactFormatter(value, row, index, field){
+    response = value;
+    if (row.comment && row.comment != "None"){
+        response += '<span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="'+row.comment+'"><span class="aicon fa fa-comment"> </span></span>'
+    }
+    return response;
+}
+
+
+function contactInfoFormatter(value, row, index, field){
+    response = ""
+    if(validateEmail(value) || row.type == "mail"){
+        response+='<a href="mailto:'+value+'">'+value+'</a>';
+    }else if(row.type=="tel"){
+        response+='<a href="tel:'+value+'">'+value+'</a>';
+        
+    }else if(row.type=="link"){
+        response+='<a href="'+formatAsHTMLLink(value)+'">'+value+'</a>';
+    }else{
+        response += value
+    }
+    return response;
+
 }
 
 // ------------------------------------------------------------ Admin Actions  Formatter
@@ -483,6 +627,7 @@ function adminActionFormatter(value, row, index, field){
     return action;
   }
   
+
 
 
 
