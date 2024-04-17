@@ -30,7 +30,8 @@ class Contract_expenseInline(admin.TabularInline):
 
     
 class ContractAdmin(admin.ModelAdmin):
-    list_display = ('__str__','get_proj_name','get_fund_name', 'start_date', 'end_date', 'quotity')
+    list_display = ('__str__','get_proj_name','get_fund_name', 'start_date', 'end_date', 'quotity', 'status')
+    list_filter=('status',)
     inlines = [Contract_expenseInline,]
      
     def get_proj_name(self, obj):

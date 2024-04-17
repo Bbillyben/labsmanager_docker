@@ -25,7 +25,6 @@ function initialiseBaseEmployee(){
 }
 
 function update_base_emp_table(){
-    // console.log('update_base_emp_table called')
     $("#employee_main_table").find('.show_orgchart').each(function(){
         $(this).labModal({
             templateURL: Urls['employee_org_chart_modal']($(this).data("emp_pk")),

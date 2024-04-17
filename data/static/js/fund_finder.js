@@ -18,7 +18,8 @@ function initFundFinder(user_idA){
 
 }
 
-function updateFundFinderTagble(){
+function updateFundFinderTagble(user_idA){
+    user_id=user_idA;
     options={
         html:true,
         customClass:'availContTooltip',

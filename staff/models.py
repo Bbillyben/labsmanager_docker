@@ -48,6 +48,8 @@ class Employee(models.Model):
     def get_status(self):
         return Employee_Status.objects.filter(employee=self.pk)
     
+    def get_current_status(self):
+        return Employee_Status.current.filter(employee=self.pk)
     # @property
     def contracts(self):
         from expense.models import Contract
@@ -56,7 +58,7 @@ class Employee(models.Model):
     #ItemPrice.objects.aggregate(Sum('price'))
     def contracts_quotity(self):
         from expense.models import Contract
-        return Contract.current.filter(employee=self).aggregate(Sum('quotity'))["quotity__sum"]
+        return Contract.effective.current().filter(employee=self).aggregate(Sum('quotity'))["quotity__sum"]
 
     # @property
     def projects(self):

@@ -164,7 +164,13 @@ function reloadTableFilters(table, filters) {
     for (var k in filters) {
         params[k] = filters[k];
     }
-
+    console.log('reloadTableFilters')
+    console.log(options.extra_params)
+    if (options.extra_params){
+        for (var k in options.extra_params) {
+            params[k] = options.extra_params[k];
+        }
+    }
     // Original query params will override
     if (options.original != null) {
         for (var key in options.original) {
@@ -266,7 +272,8 @@ $.fn.labTable = function(options) {
 
     // Extract query params
     var filters = options.queryParams || options.filters || {};
-
+    if(options.extra_params)filters = $.extend(filters, options.extra_params);
+    
     options.escape = true;
 
     // Store the total set of query params

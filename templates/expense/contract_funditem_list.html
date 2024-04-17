@@ -1,0 +1,29 @@
+{% load i18n %}
+{% load customs_tags %}
+
+<div class='row' style=" padding-top: 5px;">
+    <div class='col'>
+        <div id='tracking-table-toolbar_contractfunditem'>
+            <div class='btn-group'>
+                {% include "filter_list.html" with id="contractfunditem" %}
+            </div>
+        </div>
+        <table
+            class='table table-striped table-condensed'
+            id="contract_funditem_table"
+            data-toolbar='#tracking-table-toolbar_contractfunditem'
+            data-url="/api/funditem/contract_card/"
+            >
+            <thead class="">
+                <tr>
+                    <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-sorter="projectNameSorter" data-formatter="funditem_DnD_formatter">
+                        {% trans 'Items' %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>                
+</div>

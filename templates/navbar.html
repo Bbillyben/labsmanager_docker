@@ -68,6 +68,9 @@
               {% if perms.fund.view_fund %}
               <li><a class='nav-link dropdown-item' href="{% url 'fund_finder' %}"><span class='fas fa-filter-circle-dollar icon-header'></span>{% trans "Funds Finder" %}</a></li>
               {% endif %}
+              {% if perms.common.import %}
+              <li><a class='nav-link dropdown-item' href="{% url 'import_index' %}"><span class='fas fa-file-import icon-header'></span>{% trans "Import" %}</a></li>
+              {% endif %}
               <!-- Organigramme -->
               <li><a class='nav-link dropdown-item' href="{% url 'organisation_chart_index' %}"><span class="fa-solid fa-sitemap"></span> {% trans "Organization Chart" %}</a></li>
               

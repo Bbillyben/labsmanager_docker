@@ -6,6 +6,7 @@
 
 function getAvailableTableFilters(tableKey) {
     tableKey = tableKey.toLowerCase();
+    // console.log("[getAvailableTableFilters] : "+tableKey)
     // Filters for Bill of Materials table
     if (tableKey == 'employee') {
         return {
@@ -52,6 +53,10 @@ function getAvailableTableFilters(tableKey) {
             type:{
                 title : 'Contract Type',
                 options: contract_type_codes,
+            },
+            cont_status:{
+                title : 'Contract Status',
+                options: contract_status_codes,
             },
             project_name: {
                 title: 'Project Name',
@@ -123,7 +128,7 @@ function getAvailableTableFilters(tableKey) {
 
         };
     }
-    if (tableKey == 'funditem') {
+    if (tableKey.substring(0,8) == 'funditem') {
         return {
             fund_type:{
                 title:'Type',

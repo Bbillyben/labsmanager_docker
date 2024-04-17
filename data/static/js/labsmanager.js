@@ -55,12 +55,18 @@ $.fn.isEmpty = function() {
 $.urlParam = function(name) {
     // eslint-disable-next-line no-useless-escape
     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-
     if (results == null) {
         return null;
     }
-
     return decodeURI(results[1]) || 0;
+};
+$.urlHastag = function(name) {
+    // eslint-disable-next-line no-useless-escape
+    var results = new RegExp('[#]([^&?#]*)').exec(window.location.href);
+    if (results == null) {
+        return null;
+    }
+    return results[1] || 0;
 };
 
 // ---------------------- local data storage

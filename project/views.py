@@ -179,8 +179,23 @@ def get_project_fund_overviewReport_bytType(pk):
         )
     return a
 
-
-
+def get_fund_overviewReport_bytType(pk):
+    
+    print("[get_fund_overviewReport_bytType]")
+    print(pk)
+    a=Fund_Item.objects.filter(fund=pk)
+    if not a:
+        return None
+    
+    a = a.values('type').annotate(
+        type_name=F('type__name'), 
+        type_focus=F('type__in_focus'), 
+        type_count=Count('type'), 
+        total_amount=Sum('amount'),
+        total_expense=Sum('expense'),
+        total_available = F("total_amount")+F("total_expense"),
+        )
+    return a
 
 ## Get the project info table
 def get_project_info_table(request, pk):

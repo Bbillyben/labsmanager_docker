@@ -20,6 +20,12 @@
                             <span class='fas fa-filter-circle-dollar icon-header'></span>{% trans "Fund Finder" %}
                         </a>
                     </div>{% endif %}
+                    {% if perms.common.import %}
+                    <div class="accordion-item">
+                        <a class='dropdown-item small'  href="{% url 'import_index' %}">
+                            <span class='fas fa-file-import icon-header'></span>{% trans "Import" %}
+                        </a>
+                    </div>{% endif %}
                     <div class="accordion-item">
                         <a class='dropdown-item small'  href="{% url 'organisation_chart_index' %}">
                             <span class="fa-solid fa-sitemap"></span>{% trans "Organization Chart" %}
