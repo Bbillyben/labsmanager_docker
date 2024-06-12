@@ -379,7 +379,44 @@ hr.light {
 <hr class="">
 {% endif %}
 
+{% if inc_emp %}
+<div class="main-container">
+    <div class="table_container">
+        <div class="table_title employee">
+            {% trans "Incomming Employee" %}
+        </div>
+        <table class="table inc_employee">
+            <thead>
+                
+                <tr class="column_title">
+                    <th>{% trans "Employee" %}</th>
+                    <th>{% trans "Start Date" %}</th>
+                    <th>{% trans "End Date" %}</th>
+                    <th>{% trans "Superior" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in inc_emp %}
+                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                    <td align="center" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=c.pk %}">{{c.user_name}}</a></td>
+                    <td align="center" valign="top">{{c.entry_date}}</td>
+                    <td align="center" valign="top">{{c.exit_date}}</td>
+                    <td align="center" valign="top">
+                        {% for su in c.superior%}
+                        <a href="{{scheme}}://{{base_url}}{% url 'employee' pk=su.employee_superior.pk %}">{{su.employee_superior.user_name}}</a>
+                        {% if forloop.last == False %} - {%endif%}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
+
+</div>
+<hr class="">
+{% endif %}
 {% if all_leaves %}
         {% if leave_format == "list" %}
         <div class="table_container">    

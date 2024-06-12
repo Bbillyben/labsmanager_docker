@@ -5,6 +5,9 @@ from project.models import Participant
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from django_filters import rest_framework as filters
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
+
 from labsmanager import serializers  # UserSerializer, GroupSerializer, EmployeeSerialize, EmployeeStatusSerialize, ContractEmployeeSerializer, TeamSerializer, ParticipantSerializer, ProjectSerializer
 from staff.models import Employee, Employee_Status, Team, TeamMate, Employee_Superior
 from expense.models import  Contract
@@ -186,6 +189,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         no_sup=Employee_Superior.objects.all().values("employee")
         emp = Employee.objects.filter(Q(is_active=True) & ~Q(pk__in=no_sup))
         return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True, context={'show_pas': show_pas}).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='incomming-employee', url_name='incomming-employee')
+    def incomming_employee(self, request):
+        emp = Employee.get_incomming(relativedelta(months=+2)) #.objects.filter(query).order_by('entry_date')
+        return JsonResponse(serializers.IncommingEmployeeSerialize(emp, many=True).data, safe=False)
     
     
     @action(methods=['get'], detail=True, url_path='emp_team_lead', url_name='emp_team_lead')
