@@ -124,6 +124,29 @@
         </div>
     </div>
 </div>
+<!-- ######################################   Employee  ############################################### -->
+<div class="panel-hidden panel-visible" id="panel-dash-employee" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-employee" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Employee' %}</h4>             
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="container" style="max-width: 100%; padding: 5px;">
+                    <div class="row">
+                        <div class="col" id="detail-panel-left">
+                            <div class="card loadingCard  mb-2" data-url="{% url 'employee_card' %}">
+                            </div>
+                        </div><!-- end card panel left -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block js_load %} 
@@ -135,6 +158,7 @@ $(document).ready(function () {
     onPanelLoad("dash-fund", function(){loadCards('dash-fund');});
     onPanelLoad("dash-contract", function(){loadCards('dash-contract');});
     onPanelLoad("dash-milestone", function(){loadCards('dash-milestone');});
+    onPanelLoad("dash-employee", function(){loadCards('dash-employee');});
 
     enableSidebar('dash')
 })

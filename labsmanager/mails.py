@@ -12,8 +12,9 @@ from django.utils import translation
 
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ObjectDoesNotExist
-
+from dateutil.relativedelta import relativedelta
 from labsmanager.utils import randomID
+from labsmanager import serializers
 import re
 import logging
 logger = logging.getLogger('labsmanager')
@@ -267,6 +268,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         choices=LMUserSetting.get_setting_choices("NOTIFCATION_FREQ")
         leaves_report=LMUserSetting.get_setting("NOTIFCATION_INC_LEAVE", user=user)
         leaves_timeframe=LMUserSetting.get_setting("NOTIFCATION_LEAVE_TIMEFRAME", user=user)
+        inc_emp=LMUserSetting.get_setting("NOTIFCATION_EMP_INCOMMING", user=user)
         freq_name=get_choiceitem(choices, freq)
         
         if sub_enab == True:
@@ -279,7 +281,8 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
             'user':user,
             'sub_status':sub_enab,
             'report_leave':leaves_report,
-            'sub_freq':freq_name, 
+            'report_inc_emp':inc_emp,
+            'sub_freq':freq_name,
             'next_date':next_date,    
         })
         # get subscription
@@ -366,3 +369,6 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
                         lv_list[e]=[]
                         
             self.context['emp_leaves']=lv_list
+        if inc_emp:
+            em_list = Employee.get_incomming(relativedelta(months=+2))
+            self.context['inc_emp']=serializers.IncommingEmployeeSerialize(em_list, many=True).data

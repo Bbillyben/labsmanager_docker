@@ -190,3 +190,23 @@ class MilestonesCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
         }
         
         return render(request, self.template_general, context)
+    
+class IncomminEmployeeCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):  
+    
+    template_general="dashboard/dashboard_table.html" 
+    
+    def get(self, request, *args, **kwargs):
+          
+        context={
+            'url':reverse_lazy("api:employee-incomming-employee"),
+            'title':_('Incomming Employee'),
+            'columns':[
+                {'name':_('Employee'),'item':'pk',  'formatter':'incommingEmployeeFormatter'},
+                {'name':_('start date'),'item':'entry_date'},
+                {'name':_('end date'),'item':'exit_date'},
+                {'name':_('superior'),'item':'superior',  'formatter':'employeeSuperiorsFormatter'},
+                
+            ]  
+        }
+        
+        return render(request, self.template_general, context)
