@@ -7,7 +7,7 @@ from django.db.models import Q, CheckConstraint, F
 from django.db.models import Sum
 
 from django.utils import timezone
-
+from datetime import datetime
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
@@ -35,6 +35,13 @@ class Employee(models.Model):
     is_active=models.BooleanField(default=True, null=False, verbose_name=_('Is Active'))
     history = AuditlogHistoryField()
     
+    @classmethod
+    def get_incomming(cls, timeAdd):
+        cdate =datetime.now()
+        edate=cdate+ timeAdd
+        query = (Q(entry_date__gte=cdate)) & (Q(entry_date__lte=edate))
+        return cls.objects.filter(query).order_by('entry_date')
+        
     @property
     def user_name(self):
         return self.first_name+" "+self.last_name

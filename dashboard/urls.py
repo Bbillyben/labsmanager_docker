@@ -15,4 +15,6 @@ urlpatterns = [
     
     path('milestones/card', views.MilestonesCardView.as_view(), name='milestones_card'),
     
+    path('employee/card', views.IncomminEmployeeCardView.as_view(), name='employee_card'),
+    
 ]

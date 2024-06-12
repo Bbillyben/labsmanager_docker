@@ -624,7 +624,14 @@ class EmployeeOrganizationChartOrgSerialize(serializers.ModelSerializer):
         else:
             sub = obj.employee.get_subordinate()
         return EmployeeOrganizationChartOrgSerialize(sub,many=True, context=self.context).data
-     
+
+class IncommingEmployeeSerialize(serializers.ModelSerializer):
+    superior=EmployeeSuperiorSerialize(many=True, read_only=True, source='get_superior')
+    class Meta:
+        model = Employee
+        fields = ['pk','user_name', 'entry_date', 'exit_date',
+                  'superior',
+                  ]
 class EmployeeSerialize(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
     get_status =EmployeeStatusSerialize(many=True, read_only=True)

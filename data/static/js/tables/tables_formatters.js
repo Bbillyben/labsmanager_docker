@@ -228,6 +228,20 @@ function organisationEmployeeFormatter(value, row, index, field){
     return response;
 
 }
+function incommingEmployeeFormatter(value, row, index, field){
+    response = "<span>";
+    can_see = USER_PERMS.includes('staff.view_employee')
+    // active = !(!value.is_active || (row.is_active != undefined && !row.is_active));
+    // response+='<span class="'+(active?"active":"inactive")+'">';
+    if(can_see){
+        response +="<a href='/staff/employee/"+row.pk+"'>"+row.user_name+"</a>";
+    }else{
+        response +=row.user_name;
+    }
+    response+='</span>';
+    
+    return response;
+}
 function ParticipantFormatter(value, row, index, field){
     // console.log('ParticipantFormatter'+JSON.stringify(value))
     // console.log('ParticipantFormatter'+JSON.stringify(row))

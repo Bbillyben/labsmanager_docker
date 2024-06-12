@@ -828,6 +828,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             ],
             'after_save': checkNotif,
         },
+        'NOTIFCATION_EMP_INCOMMING': {
+            'name': _('Notification Incomming Employee'),
+            'description': _('report all incomming employee'),
+            'default': False,
+            'validator': bool,
+        },
         'NOTIFCATION_INC_LEAVE': {
             'name': _('Notification Leaves'),
             'description': _('report all leaves of current month'),
