@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-17 14:39+0200\n"
+"POT-Creation-Date: 2024-06-12 14:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 #: data/media/report/report_template/employee/employee_pdf_leave_report.html:257
 #: data/media/report/report_template/employee/employee_pdf_report.html:492
 #: data/media/report/report_template/project/project_pdf_report.html:627
-#: settings/models.py:914 settings/models.py:915 settings/views.py:380
+#: settings/models.py:920 settings/models.py:921 settings/views.py:380
 #: staff/models.py:30 staff/ressources.py:231
 #: templates/staff/employee_desc_table.html:63
 msgid "User"
@@ -85,6 +85,7 @@ msgid "Institution"
 msgstr ""
 
 #: dashboard/views.py:94 dashboard/views.py:123 dashboard/views.py:157
+#: dashboard/views.py:206
 msgid "end date"
 msgstr ""
 
@@ -108,7 +109,7 @@ msgstr ""
 msgid "Time Ratio"
 msgstr ""
 
-#: dashboard/views.py:122
+#: dashboard/views.py:122 dashboard/views.py:205
 msgid "start date"
 msgstr ""
 
@@ -129,7 +130,7 @@ msgstr ""
 msgid "Stale Contract"
 msgstr ""
 
-#: dashboard/views.py:153
+#: dashboard/views.py:153 dashboard/views.py:204
 #: data/media/report/report_template/project/project_pdf_report.html:269
 #: data/media/report/report_template/project/project_pdf_report.html:358
 #: data/media/report/report_template/project/project_pdf_report.html:411
@@ -137,12 +138,15 @@ msgstr ""
 #: expense/models.py:124 expense/resources.py:17 fund/resources.py:271
 #: leave/models.py:48 leave/resources.py:85 project/models.py:185
 #: settings/views.py:381 staff/models.py:23 staff/models.py:24
-#: staff/models.py:118 staff/models.py:150 staff/models.py:200
-#: staff/models.py:239 staff/views.py:30 staff/views.py:67 staff/views.py:70
+#: staff/models.py:125 staff/models.py:157 staff/models.py:207
+#: staff/models.py:246 staff/views.py:30 staff/views.py:67 staff/views.py:70
+#: templates/dashboard/dashboard_sidebar.html:13
+#: templates/dashboard/global_dashboard.html:134
 #: templates/email/notification_email copy.html:353 copy.html:393 copy.html:424
 #: templates/email/notification_email.html:352
-#: templates/email/notification_email.html:393
-#: templates/email/notification_email.html:424
+#: templates/email/notification_email.html:392
+#: templates/email/notification_email.html:430
+#: templates/email/notification_email.html:461
 #: templates/employee/employee_single.html:30
 #: templates/expense/contract_fund_modal.html:74
 #: templates/expense/contract_table.html:34
@@ -201,7 +205,7 @@ msgstr ""
 #: data/media/report/report_template/project/project_pdf_report.html:159
 #: data/media/report/report_template/project/project_pdf_report.html:309
 #: infos/models.py:21 infos/models.py:79 project/models.py:236
-#: reports/models.py:113 staff/models.py:162 staff/models.py:227
+#: reports/models.py:113 staff/models.py:169 staff/models.py:234
 #: templates/endpoints/milestones_table.html:30
 #: templates/organization/orga_base.html:51
 #: templates/organization/orga_base.html:98
@@ -231,9 +235,9 @@ msgstr ""
 #: endpoints/models.py:19 fund/admin.py:248 fund/models.py:201
 #: infos/models.py:29 labsmanager/mixin.py:139 leave/models.py:47
 #: settings/views.py:252 settings/views.py:279 settings/views.py:329
-#: settings/views.py:353 staff/models.py:117 templates/email/notification_email
+#: settings/views.py:353 staff/models.py:124 templates/email/notification_email
 #: copy.html:270 copy.html:396 templates/email/notification_email.html:268
-#: templates/email/notification_email.html:396
+#: templates/email/notification_email.html:433
 #: templates/employee/employee_single.html:487
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
@@ -261,6 +265,14 @@ msgstr ""
 #: dashboard/views.py:187
 #: data/media/report/report_template/project/project_pdf_report.html:310
 msgid "Deadline"
+msgstr ""
+
+#: dashboard/views.py:202 templates/email/notification_email.html:386
+msgid "Incomming Employee"
+msgstr ""
+
+#: dashboard/views.py:207
+msgid "superior"
 msgstr ""
 
 #: data/media/report/report_template/employee/employee_pdf_leave_report.html:164
@@ -316,7 +328,8 @@ msgstr ""
 #: templates/email/notification_email.html:205
 #: templates/email/notification_email.html:266
 #: templates/email/notification_email.html:356
-#: templates/email/notification_email.html:394
+#: templates/email/notification_email.html:393
+#: templates/email/notification_email.html:431
 #: templates/employee/employee_single.html:106
 #: templates/employee/employee_single.html:165
 #: templates/employee/employee_single.html:359
@@ -347,7 +360,8 @@ msgstr ""
 #: templates/email/notification_email.html:206
 #: templates/email/notification_email.html:267
 #: templates/email/notification_email.html:357
-#: templates/email/notification_email.html:395
+#: templates/email/notification_email.html:394
+#: templates/email/notification_email.html:432
 #: templates/employee/employee_single.html:109
 #: templates/employee/employee_single.html:168
 #: templates/employee/employee_single.html:362
@@ -424,7 +438,7 @@ msgstr ""
 #: data/media/report/report_template/project/project_pdf_report.html:270
 #: data/media/report/report_template/project/project_pdf_report.html:314
 #: expense/models.py:35 expense/models.py:136 project/models.py:178
-#: project/models.py:192 staff/models.py:113 staff/models.py:114
+#: project/models.py:192 staff/models.py:120 staff/models.py:121
 #: staff/ressources.py:119 templates/employee/employee_base.html:74
 #: templates/employee/employee_single.html:100
 #: templates/employee/employee_single.html:365
@@ -503,7 +517,7 @@ msgid "Teams"
 msgstr ""
 
 #: data/media/report/report_template/employee/employee_pdf_report.html:369
-#: staff/models.py:171 staff/models.py:199 staff/views.py:271
+#: staff/models.py:178 staff/models.py:206 staff/views.py:271
 #: templates/employee/employee_sidebar.html:16
 #: templates/labmanager/index.html:67 templates/team/team_single.html:25
 msgid "Team"
@@ -549,7 +563,7 @@ msgstr ""
 #: data/media/report/report_template/employee/employee_pdf_report.html:403
 #: data/media/report/report_template/project/project_pdf_report.html:356
 #: data/media/report/report_template/project/project_pdf_report.html:409
-#: fund/resources.py:266 settings/views.py:168 staff/models.py:158
+#: fund/resources.py:266 settings/views.py:168 staff/models.py:165
 msgid "Employee Type"
 msgstr ""
 
@@ -816,7 +830,7 @@ msgstr ""
 msgid "If A Contract is turn inactive, it should have a end Dat "
 msgstr ""
 
-#: fund/models.py:36 leave/models.py:26 staff/models.py:161
+#: fund/models.py:36 leave/models.py:26 staff/models.py:168
 #: templates/organization/orga_base.html:48
 #: templates/organization/orga_base.html:95
 msgid "Abbreviation"
@@ -1030,12 +1044,12 @@ msgstr ""
 msgid "Organization Info"
 msgstr ""
 
-#: infos/models.py:55 project/models.py:249 staff/models.py:240
+#: infos/models.py:55 project/models.py:249 staff/models.py:247
 msgid "Info Type"
 msgstr ""
 
 #: infos/models.py:56 infos/models.py:117 project/models.py:250
-#: staff/models.py:241
+#: staff/models.py:248
 msgid "Info Value"
 msgstr ""
 
@@ -1170,7 +1184,7 @@ msgstr ""
 msgid "Co Leader"
 msgstr ""
 
-#: project/models.py:212 staff/models.py:216
+#: project/models.py:212 staff/models.py:223
 msgid "Already in Team"
 msgstr ""
 
@@ -1178,11 +1192,11 @@ msgstr ""
 msgid "Already in Team At That Date"
 msgstr ""
 
-#: project/models.py:234 staff/models.py:225
+#: project/models.py:234 staff/models.py:232
 msgid "Type of Generic Info"
 msgstr ""
 
-#: project/models.py:246 staff/models.py:237
+#: project/models.py:246 staff/models.py:244
 msgid "Generic Info"
 msgstr ""
 
@@ -1255,7 +1269,7 @@ msgstr ""
 msgid "Report template is enabled"
 msgstr ""
 
-#: settings/models.py:345 settings/models.py:907
+#: settings/models.py:345 settings/models.py:913
 msgid "Settings key (must be unique - case insensitive)"
 msgstr ""
 
@@ -1414,90 +1428,98 @@ msgid "monthly"
 msgstr ""
 
 #: settings/models.py:832
-msgid "Notification Leaves"
+msgid "Notification Incomming Employee"
 msgstr ""
 
 #: settings/models.py:833
-msgid "report all leaves of current month"
+msgid "report all incomming employee"
 msgstr ""
 
 #: settings/models.py:838
-msgid "Notification Leaves Format"
+msgid "Notification Leaves"
 msgstr ""
 
 #: settings/models.py:839
+msgid "report all leaves of current month"
+msgstr ""
+
+#: settings/models.py:844
+msgid "Notification Leaves Format"
+msgstr ""
+
+#: settings/models.py:845
 msgid "choose to report by calendar or list view for leaves"
 msgstr ""
 
-#: settings/models.py:842
+#: settings/models.py:848
 msgid "calendar"
 msgstr ""
 
-#: settings/models.py:843
+#: settings/models.py:849
 msgid "list"
 msgstr ""
 
-#: settings/models.py:847
+#: settings/models.py:853
 msgid "Notification Report Employee without leaves in calendar"
 msgstr ""
 
-#: settings/models.py:848
+#: settings/models.py:854
 msgid "report all employee even without leaves in calendar views"
 msgstr ""
 
-#: settings/models.py:853
+#: settings/models.py:859
 msgid "Notification Leaves Timeframe"
 msgstr ""
 
-#: settings/models.py:854
+#: settings/models.py:860
 msgid "choose which timeframe to report (current month or 31 days timeframe)"
 msgstr ""
 
-#: settings/models.py:857
+#: settings/models.py:863
 msgid "current month"
 msgstr ""
 
-#: settings/models.py:858
+#: settings/models.py:864
 msgid "31 days Timeframe"
 msgstr ""
 
-#: settings/models.py:862
+#: settings/models.py:868
 msgid "Notification Report language"
 msgstr ""
 
-#: settings/models.py:863
+#: settings/models.py:869
 msgid "choose the language for reports"
 msgstr ""
 
-#: settings/models.py:868
+#: settings/models.py:874
 msgid "Fixed Navbar"
 msgstr ""
 
-#: settings/models.py:869
+#: settings/models.py:875
 msgid "navbar position fixed to the top of the screen"
 msgstr ""
 
-#: settings/models.py:874
+#: settings/models.py:880
 msgid "Print Full Background colors"
 msgstr ""
 
-#: settings/models.py:875
+#: settings/models.py:881
 msgid "When printing, use displayed backgrounds instead of bordered boxew"
 msgstr ""
 
-#: settings/models.py:880
+#: settings/models.py:886
 msgid "Display Only Current Organisation"
 msgstr ""
 
-#: settings/models.py:881
+#: settings/models.py:887
 msgid "show/hide past hierarchical links"
 msgstr ""
 
-#: settings/models.py:886
+#: settings/models.py:892
 msgid "Theme"
 msgstr ""
 
-#: settings/models.py:887
+#: settings/models.py:893
 msgid "Color theme for LabsManager"
 msgstr ""
 
@@ -1585,47 +1607,48 @@ msgstr ""
 msgid "Is Active"
 msgstr ""
 
-#: staff/models.py:119
+#: staff/models.py:126
 msgid "Contractual"
 msgstr ""
 
-#: staff/models.py:120
+#: staff/models.py:127
 msgid "Statutory"
 msgstr ""
 
-#: staff/models.py:126
+#: staff/models.py:133
 msgid "Is Contractual"
 msgstr ""
 
-#: staff/models.py:137 staff/models.py:151 staff/ressources.py:179
+#: staff/models.py:144 staff/models.py:158 staff/ressources.py:179
+#: templates/email/notification_email.html:395
 #: templates/employee/employee_base.html:94
 #: templates/employee/employee_single.html:162
 msgid "Superior"
 msgstr ""
 
-#: staff/models.py:138
+#: staff/models.py:145
 msgid "Superiors"
 msgstr ""
 
-#: staff/models.py:143
+#: staff/models.py:150
 msgid "Employee and Superior can not be the same person"
 msgstr ""
 
-#: staff/models.py:173 staff/ressources.py:283
+#: staff/models.py:180 staff/ressources.py:283
 #: templates/employee/employee_single.html:420 templates/team/team_base.html:61
 #: templates/team/team_desc_table.html:11
 msgid "Team Name"
 msgstr ""
 
-#: staff/models.py:174 templates/team/team_desc_table.html:16
+#: staff/models.py:181 templates/team/team_desc_table.html:16
 msgid "Team Leader"
 msgstr ""
 
-#: staff/models.py:197
+#: staff/models.py:204
 msgid "TeamMate"
 msgstr ""
 
-#: staff/models.py:219
+#: staff/models.py:226
 msgid "Is Team leader"
 msgstr ""
 
@@ -1960,55 +1983,55 @@ msgid "Employee overview"
 msgstr ""
 
 #: templates/email/notification_email copy.html:390 copy.html:421
-#: templates/email/notification_email.html:387
-#: templates/email/notification_email.html:419
+#: templates/email/notification_email.html:424
+#: templates/email/notification_email.html:456
 msgid "Current Leaves"
 msgstr ""
 
 #: templates/email/notification_email copy.html:450
-#: templates/email/notification_email.html:450
+#: templates/email/notification_email.html:487
 msgid " Your subscription parameters :"
 msgstr ""
 
 #: templates/email/notification_email copy.html:452
-#: templates/email/notification_email.html:452
+#: templates/email/notification_email.html:489
 msgid "User Name"
 msgstr ""
 
 #: templates/email/notification_email copy.html:453
-#: templates/email/notification_email.html:453
+#: templates/email/notification_email.html:490
 msgid "Notification activated"
 msgstr ""
 
 #: templates/email/notification_email copy.html:453 copy.html:454
-#: templates/email/notification_email.html:453
-#: templates/email/notification_email.html:454
+#: templates/email/notification_email.html:490
+#: templates/email/notification_email.html:491
 msgid "Yes"
 msgstr ""
 
 #: templates/email/notification_email copy.html:453 copy.html:454
-#: templates/email/notification_email.html:453
-#: templates/email/notification_email.html:454
+#: templates/email/notification_email.html:490
+#: templates/email/notification_email.html:491
 msgid "No"
 msgstr ""
 
 #: templates/email/notification_email copy.html:454
-#: templates/email/notification_email.html:454
+#: templates/email/notification_email.html:491
 msgid "Report Leaves"
 msgstr ""
 
 #: templates/email/notification_email copy.html:455
-#: templates/email/notification_email.html:455
+#: templates/email/notification_email.html:492
 msgid "frequency"
 msgstr ""
 
 #: templates/email/notification_email copy.html:456
-#: templates/email/notification_email.html:456
+#: templates/email/notification_email.html:493
 msgid "Next report"
 msgstr ""
 
 #: templates/email/notification_email copy.html:457
-#: templates/email/notification_email.html:457
+#: templates/email/notification_email.html:494
 msgid "Current Date"
 msgstr ""
 
@@ -2551,11 +2574,11 @@ msgstr ""
 msgid " Notification Settings"
 msgstr ""
 
-#: templates/settings/common_settings.html:33
+#: templates/settings/common_settings.html:34
 msgid "Send Test Mail"
 msgstr ""
 
-#: templates/settings/common_settings.html:35
+#: templates/settings/common_settings.html:36
 msgid "Sending"
 msgstr ""
 
