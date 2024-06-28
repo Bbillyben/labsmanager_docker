@@ -88,11 +88,13 @@ class EmployeeStatusForm(BSModalModelForm):
     
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
-            raise ValidationError(_('End Date (%s) should be later than start date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
+            raise ValidationError(_('End Date (%(end)s) should be later than start date (%(start)s) '),
+                                  params={"end" : self.cleaned_data['end_date'], "start":self.cleaned_data['start_date']})
         return self.cleaned_data['end_date']
 
-class EmployeeSuperiorForm(BSModalModelForm):
+class EmployeeSuperiorSubordinateFOrm(BSModalModelForm):
     class Meta:
+        abstract = True
         model = Employee_Superior
         fields = ['employee','superior', 'start_date', 'end_date',]
         widgets = {
@@ -100,11 +102,34 @@ class EmployeeSuperiorForm(BSModalModelForm):
             'end_date': DateInput(),
         }
         
+    def clean_end_date(self):
+       
+        if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
+            raise ValidationError(_('End Date (%(end)s) should be later than start date (%(start)s) '),
+                                  params = {"end":self.cleaned_data['end_date'], "start": self.cleaned_data['start_date']})
+        return self.cleaned_data['end_date']
+    def clean(self):
+        super().clean()
+        sub =  self.cleaned_data.get("employee")
+        sup =  self.cleaned_data.get("superior")
+        if Employee_Superior.is_in_superior_hierarchy(sub,sup):
+            raise ValidationError(_('"%(sub)s" can not be a subordinate as "%(sup)s" is in superior hierarchy line'), 
+                                   params={"sub": sub,"sup":sup}
+                                    )
+        return self.cleaned_data
+    
+class EmployeeSuperiorForm(EmployeeSuperiorSubordinateFOrm):
+        
     def __init__(self, *args, **kwargs): 
         
         query = Q(is_active=True)
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             query =query & ~Q(pk=kwargs['initial']['employee'])
+            query =query & ~Q(pk=kwargs['initial']['employee'])  
+            sub = Employee_Superior.objects.filter(superior=kwargs['initial']['employee']).values("employee__pk")
+            query =query & ~Q(pk__in=sub)
+            sup = Employee_Superior.objects.filter(employee=kwargs['initial']['employee']).values("superior__pk")
+            query =query & ~Q(pk__in=sup)
         
         self.base_fields['superior'] = forms.ModelChoiceField(
             queryset=Employee.objects.filter( query ),
@@ -117,14 +142,31 @@ class EmployeeSuperiorForm(BSModalModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             self.fields['superior'].disabled = True
-        
-        
-    def clean_end_date(self):
-        if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
-            raise ValidationError(_('End Date (%s) should be later than start date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
-        return self.cleaned_data['end_date']
     
-    
+class EmployeeSubordinateForm(EmployeeSuperiorSubordinateFOrm):
+
+    def __init__(self, *args, **kwargs): 
+        
+        query = Q(is_active=True)
+        if ('initial' in kwargs and 'superior' in kwargs['initial']):
+            query =query & ~Q(pk=kwargs['initial']['superior'])  
+            sub = Employee_Superior.objects.filter(superior=kwargs['initial']['superior']).values("employee__pk")
+            query =query & ~Q(pk__in=sub)
+            sup = Employee_Superior.objects.filter(employee=kwargs['initial']['superior']).values("superior__pk")
+            query =query & ~Q(pk__in=sup)
+        
+        self.base_fields['superior'] = forms.ModelChoiceField(
+            queryset=Employee.objects.all(),
+            widget=forms.HiddenInput
+            
+        )
+        self.base_fields['employee'] = forms.ModelChoiceField(
+            queryset=Employee.objects.filter( query ),
+        )
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['superior'].disabled = True    
     
 class TeamModelForm(CleanedDataFormMixin, BSModalModelForm):
     class Meta:

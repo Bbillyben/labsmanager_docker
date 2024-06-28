@@ -17,7 +17,7 @@ from auditlog.registry import auditlog
 class InfoTypeClass(models.Model):
     class Meta:
         abstract = True
-        
+        ordering = ['name']
     name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
     icon = FAIconField(null=True,)
     type_choices=[("none",_("None")), ("tel",_("Phone Number")), ("mail", _("EMail")), ("link", _("Link")), ]
@@ -37,6 +37,7 @@ class OrganizationInfosType(InfoTypeClass):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Type of Organization Info")
+        ordering = ['name']
     
 
     
@@ -75,6 +76,7 @@ class ContactType(models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Type of Contact")
+        ordering = ['name']
     
     name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
     
@@ -85,6 +87,7 @@ class ContactInfoType(InfoTypeClass):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Type of Contact Info")
+        ordering = ['name']
 
 
 

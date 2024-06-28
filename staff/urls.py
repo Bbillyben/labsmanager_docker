@@ -34,6 +34,7 @@ urlpatterns += [
     path('status/<pk>/delete/', views.StatusDeleteView.as_view(), name='delete_status_employee'),  # specific for status view
     # for Superior
     path('employee/<employee>/superior/add/', views_modal.EmployeeSuperiorCreateView.as_view(), name='create_superior'),  # modal creation Team
+    path('employee/<employee>/subordinate/add/', views_modal.EmployeeSubordinateCreateView.as_view(), name='create_subordinate'),
     path('superior/<pk>/udpate', views_modal.EmployeeSuperiorUpdateView.as_view(), name='update_superior'),  # modal update Team
     path('superior/<pk>/delete', views_modal.EmployeeSuperiorDeleteView.as_view(), name='delete_superior'),  # modal delete Team
     
