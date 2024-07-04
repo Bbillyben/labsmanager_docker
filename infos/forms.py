@@ -1,28 +1,29 @@
 from .models import OrganizationInfosType,ContactInfoType, ContactType, OrganizationInfos, Contact, ContactInfo
 from django import forms
-from labsmanager.mixin import CleanedDataFormMixin, IconFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 from bootstrap_modal_forms.forms import BSModalModelForm, BSModalForm
 from django.contrib.contenttypes.models import ContentType
 
-class OrganizationInfosTypeForm(CleanedDataFormMixin, IconFormMixin, BSModalModelForm):
-
+class OrganizationInfosTypeForm(SanitizeDataFormMixin, IconFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = OrganizationInfosType
         fields = ['name', 'icon', 'type',]
 
-class ContactInfoTypeForm(CleanedDataFormMixin, IconFormMixin,  BSModalModelForm):
-
+class ContactInfoTypeForm(SanitizeDataFormMixin, IconFormMixin,  BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = ContactInfoType
         fields = ['name', 'icon','type',]
 
-class ContactTypeForm(CleanedDataFormMixin, BSModalModelForm):
-
+class ContactTypeForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = ContactType
         fields = ['name',]
     
-class OrganizationInfosForm(CleanedDataFormMixin, BSModalModelForm):
+class OrganizationInfosForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = OrganizationInfos
         fields = ['content_type', 'object_id', 'info', 'value','comment']
@@ -36,7 +37,8 @@ class OrganizationInfosForm(CleanedDataFormMixin, BSModalModelForm):
         self.fields['object_id'].widget = forms.HiddenInput()
         self.fields['content_type'].widget = forms.HiddenInput()
 
-class ContactForm(CleanedDataFormMixin, BSModalModelForm):
+class ContactForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = Contact
         fields = ['content_type', 'object_id', 'first_name', 'last_name','type','comment']
@@ -50,7 +52,8 @@ class ContactForm(CleanedDataFormMixin, BSModalModelForm):
         self.fields['object_id'].widget = forms.HiddenInput()
         self.fields['content_type'].widget = forms.HiddenInput()
 
-class ContactInfoForm(CleanedDataFormMixin, BSModalModelForm):
+class ContactInfoForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = ContactInfo
         fields = ['contact', 'info', 'value', 'comment',]

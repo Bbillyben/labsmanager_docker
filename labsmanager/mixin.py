@@ -291,22 +291,24 @@ class CreateModalNavigateMixin(BSModalCreateView):
         else:
             return self.form_invalid(form)
         
-        
 
-from django.utils.html import strip_tags
-from django.utils.html import escape
 from django import forms
-
-class CleanedDataFormMixin:
-    ''' Mixin class for Form to strip tags and escape textField before saviong
-    to prevent xss attack'''
+import nh3
+class SanitizeDataFormMixin:
+    ''' Mixin class for Form to strip tags and escape textField before saving
+    to prevent xss attack
+    https://nh3.readthedocs.io/en/latest/
+    '''
+    
+    allowed_tags=None
+    
     def clean(self):
         cleaned_data = super().clean()
 
         for field_name, field in self.fields.items():
             # print(f'filed : {field_name}')
-            if isinstance(field, forms.CharField):
-                cleaned_data[field_name] = escape(strip_tags(cleaned_data[field_name]))
+            if (isinstance(field, forms.CharField) or isinstance(field, forms.Textarea)) and not(cleaned_data[field_name] is None):
+                cleaned_data[field_name] = nh3.clean(cleaned_data[field_name], self.allowed_tags) #escape(strip_tags(cleaned_data[field_name]))
         return super().clean()
     
 
@@ -319,3 +321,12 @@ class IconFormMixin:
         response._js_lists.append(['js/faicon_in/faicon.js'])
         response._js_lists.append(['faicon/js/list.min.js'])
         return response
+
+
+class TimeStampMixin(models.Model):
+    ''' Mixin class to create date field for cretaion and update '''
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True

@@ -122,6 +122,29 @@ class ContactInfo(models.Model):
     
     def __str__(self):
        return f'{self.contact.first_name} {self.contact.last_name} - {self.info.name}'
+   
+   
+   
+# =================   Generic Note  on everything   ================= #
+# =================================================================== #
+# add information to an object (project, employee, institution, .. can be extended)
+# pip install django-markdownfield for markdown field ?
+
+from labsmanager.mixin import TimeStampMixin
+from common.nh3_fields import Nh3Field_CharField, Nh3Field_TextField
+class GenericNote(TimeStampMixin):
+    class Meta:
+        """Metaclass defines extra model properties"""
+        verbose_name = _("Generic Information")
+        
+    content_type = models.ForeignKey(ContentType, related_name="content_type_note", on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    name = models.CharField(max_length=50, verbose_name=_('Name'), default=_('General'))
+    note = models.TextField(blank=True, null=True, verbose_name=_('note'))
+    
     
 auditlog.register(OrganizationInfos)
 auditlog.register(Contact)
+auditlog.register(GenericNote)

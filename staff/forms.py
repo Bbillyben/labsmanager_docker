@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from labsmanager.forms import DateInput
 from django.contrib.auth import get_user_model
 
-from labsmanager.mixin import CleanedDataFormMixin, IconFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 
 class TeamMateForm(forms.ModelForm):
     model = TeamMate
@@ -28,7 +28,9 @@ class TeamMateForm(forms.ModelForm):
             self.fields['employee'].queryset = usersU
 
 
-class EmployeeModelForm(CleanedDataFormMixin, BSModalModelForm):
+class EmployeeModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
+    
     class Meta:
         model = Employee
         fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', 'email','is_active',]
@@ -168,7 +170,8 @@ class EmployeeSubordinateForm(EmployeeSuperiorSubordinateFOrm):
         if instance and instance.pk:
             self.fields['superior'].disabled = True    
     
-class TeamModelForm(CleanedDataFormMixin, BSModalModelForm):
+class TeamModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = Team
         fields = ['name', 'leader',]
@@ -204,7 +207,8 @@ class TeamMateModelForm(BSModalModelForm):
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             self.fields['team'].widget.attrs['disabled'] = True
             
-class GenericInfoForm(CleanedDataFormMixin, BSModalModelForm):
+class GenericInfoForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = GenericInfo
         fields = ['info', 'employee', 'value',]
@@ -220,12 +224,14 @@ class GenericInfoForm(CleanedDataFormMixin, BSModalModelForm):
         if instance and instance.pk:
             self.fields['info'].disabled = True
             
-class EmployeeTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
+class EmployeeTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = Employee_Type
         fields = ['name','shortname',]
         
-class GenericInfoTypeForm(CleanedDataFormMixin,IconFormMixin, BSModalModelForm):
+class GenericInfoTypeForm(SanitizeDataFormMixin,IconFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = GenericInfoType
         fields = ['name', 'icon',]
