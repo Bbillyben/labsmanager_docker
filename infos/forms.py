@@ -1,4 +1,4 @@
-from .models import OrganizationInfosType,ContactInfoType, ContactType, OrganizationInfos, Contact, ContactInfo
+from .models import OrganizationInfosType,ContactInfoType, ContactType, OrganizationInfos, Contact, ContactInfo, GenericNote
 from django import forms
 from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 from bootstrap_modal_forms.forms import BSModalModelForm, BSModalForm
@@ -64,3 +64,21 @@ class ContactInfoForm(SanitizeDataFormMixin, BSModalModelForm):
         super().__init__(*args, **kwargs)
         self.fields['contact'].widget = forms.HiddenInput()
         # self.fields['content_type'].widget = forms.HiddenInput()
+         
+from django_prose_editor.widgets import ProseEditorWidget 
+class GenericNoteForm(BSModalModelForm):
+    class Meta:
+        model = GenericNote
+        fields = ['content_type', 'object_id', 'name', 'note',]
+        widgets = {
+            'note': ProseEditorWidget(),
+        }
+    def __init__(self, *args, **kwargs):
+        if ('initial' in kwargs and 'obj_id' in kwargs['initial'] ):
+            ct = ContentType.objects.get(app_label=kwargs['initial']['app'], model=kwargs['initial']['model'])
+            self.base_fields['object_id'].initial=kwargs['initial']['obj_id']
+            self.base_fields['content_type'].initial = ct.pk
+        super().__init__(*args, **kwargs)
+        self.fields['object_id'].widget = forms.HiddenInput()
+        self.fields['content_type'].widget = forms.HiddenInput()
+    

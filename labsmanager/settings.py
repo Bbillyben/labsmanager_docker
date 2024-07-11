@@ -52,7 +52,7 @@ if log_level not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
 logger.debug("-------------------------- Start debug session  --------------------------")
 
 ALLOWED_HOSTS =  get_setting('DJANGO_ALLOWED_HOSTS', 'django_allowed_hosts', '*').split(" ") # ['*']  os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
-
+logger.debug('ALLOWED_HOSTS :'+str(ALLOWED_HOSTS))   
 
 # Application definition
 
@@ -72,6 +72,7 @@ INSTALLED_APPS = [
 
     # Installed Package
     'crispy_forms',                 # https://django-crispy-forms.readthedocs.io/en/latest/install.html
+    'crispy_bootstrap4',            # https://pypi.org/project/crispy-bootstrap4/
     'view_breadcrumbs',             # https://pypi.org/project/django-view-breadcrumbs/#add-view_breadcrumbs-to-your-installed_apps
     'django_tables2',               # https://django-tables2.readthedocs.io/en/latest/
     'rest_framework',               # https://www.django-rest-framework.org/
@@ -90,6 +91,7 @@ INSTALLED_APPS = [
     'faicon',                        #https://pypi.org/project/django-faicon/
     'allauth',
     'allauth.account',              # https://django-allauth.readthedocs.io/en/latest/installation.html
+    'django_prose_editor',          # https://github.com/matthiask/django-prose-editor   rich text editor
     
     # App
     'staff.apps.StaffConfig',
@@ -111,6 +113,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 MIDDLEWARE_CLASSES = (
     'labsmanager.UserEmployeeMiddleware',

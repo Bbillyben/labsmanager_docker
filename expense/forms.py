@@ -1,5 +1,5 @@
 from bootstrap_modal_forms.forms import BSModalModelForm
-from bootstrap_modal_forms.utils import is_ajax
+from bootstrap_modal_forms.mixins import is_ajax
 from django.core.exceptions import ValidationError
 
 from project.models import Project

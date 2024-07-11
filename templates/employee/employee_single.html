@@ -557,6 +557,11 @@
                     </div>
                 </div>
             </div>  <!-- END OF PANEL-->
+            <!-- ######################################    Notes PANEL ############################################### -->
+
+            <div class="panel-hidden panel-visible" id="panel-employee-notes" style="display: block;">
+                
+            </div><!-- end panel -->
         </div>
     </div>    
 </div>
@@ -595,6 +600,9 @@ $(document).ready(function () {
     onPanelLoad("employee-team", function(){$('#employee_team_table').bootstrapTable();}) 
     onPanelLoad("employee-project", function(){initEmployeeProjectTable();}) 
     onPanelLoad("employee-leave", function(){initEmployeeLeaveTable();}) 
+    onPanelLoad("employee-notes", function(){
+        loadInTemplate(elt=$("#panel-employee-notes"),Urls['generic_info_template']('staff', 'employee', employee_id) )
+        })
 
 
 

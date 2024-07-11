@@ -1,0 +1,43 @@
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+<link rel="stylesheet" href="{% static 'css/notes.css' %}">
+<div id='note_panel_{{app}}_{{model}}_{{object_id}}'> 
+        <div class="panel" id="panel-employee-note" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Notes' %}</h4>
+                    <span class="flex" style="flex-grow: 1;"></span>
+                    <div class="btn-group" role="group">
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content note-cont collapse show" id="Contribution-details">
+                <!-- For nav tab -->
+                <ul class="nav nav-pills nav-notes">
+            
+                    <li class="nav-item nav-btn">
+                        <button class="nav-link add"  data-app="{{app}}" data-model="{{model}}" data-pk='{{object_id}}'><i class="fa-solid fa-plus"></i></button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                
+                </div>
+            </div>
+        </div>
+    </div>
+x
+<script type='text/javascript' src="{% static 'js/notes/note.js' %}"></script>
+<script>
+    $(document).ready(function () {
+        var options={
+            app:"{{app}}",
+            model:"{{model}}",
+            pk:"{{object_id}}"
+        }
+        var panelName = '#note_panel_'+options.app+"_"+options.model+"_"+options.pk;
+        $(panelName).lab_note(options);
+    });
+</script>

@@ -38,4 +38,10 @@ urlpatterns = [
     path('contact/<id>/infos/add/', views_modal.ContactInfoCreateView.as_view(), name='add_contact_info'), 
     path('contact/infos/<pk>/update/', views_modal.ContactInfoUpdateView.as_view(), name='update_contact_info'), 
     path('contact/infos/<pk>/delete/', views_modal.ContactInfoRemoveView.as_view(), name='delete_contact_info'), 
-]
+    
+    path('notes/<app>/<model>/<pk>/template', views.get_generic_infos_template, name='generic_info_template'),
+    path('notes/<app>/<model>/<pk>/', views.get_generic_infos, name='generic_info'),
+    path('notes/add/<app>/<model>/<obj_id>/', views_modal.GenericNoteCreateView.as_view(), name='add_genericnote'),
+    path('notes/<pk>/update/', views_modal.GenericNoteUpdateView.as_view(), name='GenericNoteUpdateView'),
+    path('notes/<pk>/delete/', views_modal.GenericNoteRemoveView.as_view(), name='GenericNoteDeleteView'),
+]   

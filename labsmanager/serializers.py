@@ -791,7 +791,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
 # ------------------------------------------------------------------------------------- #
 # ---------------------------    APP infos / SERIALISZER    --------------------------- #
 # ------------------------------------------------------------------------------------- #
-from infos.models import ContactType, OrganizationInfos, Contact, InfoTypeClass, OrganizationInfosType
+from infos.models import ContactType, OrganizationInfos, Contact, InfoTypeClass, OrganizationInfosType, GenericNote
 class OrgaInfoTypeSerializer(ProjectInfoTypeIconSerialize):
     icon_val=serializers.SerializerMethodField()
     class Meta:
@@ -823,7 +823,18 @@ class OrganizationInfoSerializer(serializers.ModelSerializer):
                   'value', 'comment',]
             
 
-  
+class GenericInfoSerialiszer(serializers.ModelSerializer):
+    content_type=ContentTypeSerialize(many=False, read_only=True)
+    
+    class Meta:
+        model = GenericNote
+        fields = ['pk',
+                  'content_type',
+                  'object_id',
+                  'name', 
+                  'note',
+                  'created_at', 'updated_at', 
+                  ]
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
 class BudgetSerializer(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)

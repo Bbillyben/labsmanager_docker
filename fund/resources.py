@@ -95,6 +95,8 @@ import datetime
 class FundDateField(FundField):
     def clean(self, data, **kwargs):   
         fu = super().clean(data, **kwargs)
+        if fu is None:
+            return fu
         field = self.widget.field
         attr =getattr(fu, field, None)
         nAttr=data.get(self.column_name)
@@ -104,6 +106,8 @@ class FundDateField(FundField):
         return fu
     def get_value(self, obj):
         val=super().get_value(obj)
+        if val is None:
+            return val
         value = getattr(val, self.widget.field)
         if isinstance(value, datetime.datetime):
             return value.date()
