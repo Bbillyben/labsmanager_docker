@@ -85,6 +85,9 @@ class Project(ActiveDateMixin):
             
         return sumA
     
+    def get_participant(self):
+        return Participant.objects.select_related('employee').filter(project = self.pk, employee__is_active= True)
+    
     @property
     def get_total_participant_quotity(self):
         parti=Participant.objects.filter(Q(project=self.pk) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
@@ -97,6 +100,14 @@ class Project(ActiveDateMixin):
         fundP=Fund.objects.filter(project=self.pk).only('pk').all()
         cont=Contract.effective.filter(Q(fund__in = fundP) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
         return cont.aggregate(Sum('quotity'))["quotity__sum"]   
+    
+    def get_institutions(self):
+        return Institution_Participant.objects.filter(project = self.pk)
+    
+    
+    def get_funds(self):
+        from fund.models import Fund
+        return Fund.objects.select_related('funder', 'institution').filter(project = self.pk)
     
     @property
     def info(self):

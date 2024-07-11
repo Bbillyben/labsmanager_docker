@@ -106,6 +106,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         superior = Employee_Superior.objects.filter(employee=pk).order_by('end_date')
         return JsonResponse(serializers.EmployeeSuperiorSerialize(superior,many=True).data, safe=False)
     
+    @action(methods=['get'], detail=True,url_path='subordinate', url_name='subordinate')
+    def subordinate(self, request, pk=None):
+        subordinate = Employee_Superior.objects.filter(superior=pk).order_by('end_date')
+        return JsonResponse(serializers.EmployeeSubordinateSerialize(subordinate,many=True).data, safe=False)
+    
     
     @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
     def contracts(self,request, pk=None):

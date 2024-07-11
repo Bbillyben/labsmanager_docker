@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from labsmanager.forms import DateInput
 from django.contrib.auth import get_user_model
 
-from labsmanager.mixin import CleanedDataFormMixin, IconFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 
 class TeamMateForm(forms.ModelForm):
     model = TeamMate
@@ -28,7 +28,9 @@ class TeamMateForm(forms.ModelForm):
             self.fields['employee'].queryset = usersU
 
 
-class EmployeeModelForm(CleanedDataFormMixin, BSModalModelForm):
+class EmployeeModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
+    
     class Meta:
         model = Employee
         fields = ['first_name', 'last_name', 'birth_date', 'entry_date', 'exit_date', 'email','is_active',]
@@ -88,11 +90,13 @@ class EmployeeStatusForm(BSModalModelForm):
     
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
-            raise ValidationError(_('End Date (%s) should be later than start date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
+            raise ValidationError(_('End Date (%(end)s) should be later than start date (%(start)s) '),
+                                  params={"end" : self.cleaned_data['end_date'], "start":self.cleaned_data['start_date']})
         return self.cleaned_data['end_date']
 
-class EmployeeSuperiorForm(BSModalModelForm):
+class EmployeeSuperiorSubordinateFOrm(BSModalModelForm):
     class Meta:
+        abstract = True
         model = Employee_Superior
         fields = ['employee','superior', 'start_date', 'end_date',]
         widgets = {
@@ -100,11 +104,34 @@ class EmployeeSuperiorForm(BSModalModelForm):
             'end_date': DateInput(),
         }
         
+    def clean_end_date(self):
+       
+        if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
+            raise ValidationError(_('End Date (%(end)s) should be later than start date (%(start)s) '),
+                                  params = {"end":self.cleaned_data['end_date'], "start": self.cleaned_data['start_date']})
+        return self.cleaned_data['end_date']
+    def clean(self):
+        super().clean()
+        sub =  self.cleaned_data.get("employee")
+        sup =  self.cleaned_data.get("superior")
+        if Employee_Superior.is_in_superior_hierarchy(sub,sup):
+            raise ValidationError(_('"%(sub)s" can not be a subordinate as "%(sup)s" is in superior hierarchy line'), 
+                                   params={"sub": sub,"sup":sup}
+                                    )
+        return self.cleaned_data
+    
+class EmployeeSuperiorForm(EmployeeSuperiorSubordinateFOrm):
+        
     def __init__(self, *args, **kwargs): 
         
         query = Q(is_active=True)
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             query =query & ~Q(pk=kwargs['initial']['employee'])
+            query =query & ~Q(pk=kwargs['initial']['employee'])  
+            sub = Employee_Superior.objects.filter(superior=kwargs['initial']['employee']).values("employee__pk")
+            query =query & ~Q(pk__in=sub)
+            sup = Employee_Superior.objects.filter(employee=kwargs['initial']['employee']).values("superior__pk")
+            query =query & ~Q(pk__in=sup)
         
         self.base_fields['superior'] = forms.ModelChoiceField(
             queryset=Employee.objects.filter( query ),
@@ -117,16 +144,34 @@ class EmployeeSuperiorForm(BSModalModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             self.fields['superior'].disabled = True
+    
+class EmployeeSubordinateForm(EmployeeSuperiorSubordinateFOrm):
+
+    def __init__(self, *args, **kwargs): 
         
+        query = Q(is_active=True)
+        if ('initial' in kwargs and 'superior' in kwargs['initial']):
+            query =query & ~Q(pk=kwargs['initial']['superior'])  
+            sub = Employee_Superior.objects.filter(superior=kwargs['initial']['superior']).values("employee__pk")
+            query =query & ~Q(pk__in=sub)
+            sup = Employee_Superior.objects.filter(employee=kwargs['initial']['superior']).values("superior__pk")
+            query =query & ~Q(pk__in=sup)
         
-    def clean_end_date(self):
-        if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
-            raise ValidationError(_('End Date (%s) should be later than start date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
-        return self.cleaned_data['end_date']
+        self.base_fields['superior'] = forms.ModelChoiceField(
+            queryset=Employee.objects.all(),
+            widget=forms.HiddenInput
+            
+        )
+        self.base_fields['employee'] = forms.ModelChoiceField(
+            queryset=Employee.objects.filter( query ),
+        )
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['superior'].disabled = True    
     
-    
-    
-class TeamModelForm(CleanedDataFormMixin, BSModalModelForm):
+class TeamModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = Team
         fields = ['name', 'leader',]
@@ -162,7 +207,8 @@ class TeamMateModelForm(BSModalModelForm):
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             self.fields['team'].widget.attrs['disabled'] = True
             
-class GenericInfoForm(CleanedDataFormMixin, BSModalModelForm):
+class GenericInfoForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = GenericInfo
         fields = ['info', 'employee', 'value',]
@@ -178,12 +224,14 @@ class GenericInfoForm(CleanedDataFormMixin, BSModalModelForm):
         if instance and instance.pk:
             self.fields['info'].disabled = True
             
-class EmployeeTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
+class EmployeeTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = Employee_Type
         fields = ['name','shortname',]
         
-class GenericInfoTypeForm(CleanedDataFormMixin,IconFormMixin, BSModalModelForm):
+class GenericInfoTypeForm(SanitizeDataFormMixin,IconFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = GenericInfoType
         fields = ['name', 'icon',]

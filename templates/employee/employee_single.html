@@ -142,7 +142,10 @@
                                     <div class="btn-group" role="group">
                                         {% if perms.staff.add_employee_superior %}
                                         <button type="button" class="btn btn-secondary" id="add-superior" title="Add Superior" >
-                                            <span class='fa fas fa-plus'></span>
+                                            <span class='fa fas fa-user-tie'></span>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" id="add-subordinate" title="Add Subordinate" >
+                                            <span class='fa fas fa-child'></span>
                                         </button>
                                         {% endif %}
                                         <button type="button" class="btn btn-success" id="show_emp_chart" title="Show Chart" data-employeepk="{{ pk }}" >
@@ -186,6 +189,43 @@
 
                                 </tbody>
                             </table>
+
+                            <table
+                            class='table table-striped table-condensed'
+                            id="employee_subordinate_table"
+                            data-id-table="subordinateTable"
+                            data-url="/api/employee/{{ employee.pk }}/subordinate/"
+                            >
+                            <thead class="">
+                                <tr>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="subordinate" data-formatter="employeeFormatter">
+                                        {% trans 'Subordinate' %}
+                                    </th>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
+                                        {% trans 'Start Date' %}
+                                    </th>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
+                                        {% trans 'End Date' %}
+                                    </th>
+                                    <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
+                                        {% trans 'Active' %}
+                                    </th>
+                                    
+                                    {% if perms.staff.change_employee_status or perms.staff.delete_employee_status %}
+                                    <th data-sortable="false" class="th-inner" data-field="admin_action" 
+                                    data-can-change="{{ perms.staff.change_employee_superior }}"
+                                    data-can-delete="{{ perms.staff.delete_employee_superior }}"
+                                    data-formatter="empActionSsuperiorFormatter"
+                                    >
+                                        {% trans 'Action' %}
+                                    </th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
                             </div>
                         </div>
                     </div>
@@ -517,6 +557,11 @@
                     </div>
                 </div>
             </div>  <!-- END OF PANEL-->
+            <!-- ######################################    Notes PANEL ############################################### -->
+
+            <div class="panel-hidden panel-visible" id="panel-employee-notes" style="display: block;">
+                
+            </div><!-- end panel -->
         </div>
     </div>    
 </div>
@@ -555,6 +600,9 @@ $(document).ready(function () {
     onPanelLoad("employee-team", function(){$('#employee_team_table').bootstrapTable();}) 
     onPanelLoad("employee-project", function(){initEmployeeProjectTable();}) 
     onPanelLoad("employee-leave", function(){initEmployeeLeaveTable();}) 
+    onPanelLoad("employee-notes", function(){
+        loadInTemplate(elt=$("#panel-employee-notes"),Urls['generic_info_template']('staff', 'employee', employee_id) )
+        })
 
 
 

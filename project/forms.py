@@ -7,9 +7,10 @@ from django import forms
 from staff.models import Employee
 
 from labsmanager.forms import DateInput
-from labsmanager.mixin import CleanedDataFormMixin, IconFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 
-class ProjectModelForm(CleanedDataFormMixin, BSModalModelForm):
+class ProjectModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = models.Project
         fields = ['name', 'start_date', 'end_date','status',]
@@ -118,12 +119,13 @@ class InstitutionModelForm(BSModalModelForm):
         # if instance and instance.pk:
         #     self.fields['employee'].widget = forms.HiddenInput()
         #     self.fields['project'].widget = forms.HiddenInput()
-class InstitutionModelFormDirect(CleanedDataFormMixin, BSModalModelForm):
+class InstitutionModelFormDirect(SanitizeDataFormMixin, BSModalModelForm):
     class Meta:
         model = models.Institution
         fields = ['name','short_name',]
         
-class GenericInfoProjectForm(CleanedDataFormMixin, BSModalModelForm):
+class GenericInfoProjectForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = models.GenericInfoProject
         fields = ['info', 'project', 'value',]
@@ -139,7 +141,8 @@ class GenericInfoProjectForm(CleanedDataFormMixin, BSModalModelForm):
         if instance and instance.pk:
             self.fields['info'].disabled = True
             
-class GenericInfoTypeProjectForm(CleanedDataFormMixin,IconFormMixin,  BSModalModelForm):
+class GenericInfoTypeProjectForm(SanitizeDataFormMixin,IconFormMixin,  BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = models.GenericInfoTypeProject
         fields = ['name', 'icon',]

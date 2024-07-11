@@ -1,5 +1,5 @@
 from bootstrap_modal_forms.forms import BSModalModelForm
-from bootstrap_modal_forms.utils import is_ajax
+from bootstrap_modal_forms.mixins import is_ajax
 from django.core.exceptions import ValidationError
 
 from project.models import Project
@@ -12,7 +12,7 @@ from fund.models import Cost_Type, Fund
 from datetime import date
 
 from labsmanager.forms import DateInput
-from labsmanager.mixin import CleanedDataFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin
 
 class ContractModelForm(BSModalModelForm):
     class Meta:
@@ -134,7 +134,8 @@ class ExpenseTimepointModelForm(BSModalModelForm):
     def clean_amount(self):
         return -abs(self.cleaned_data['amount'])
 
-class ContractTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
+class ContractTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = models.Contract_type
         fields = ['name',]

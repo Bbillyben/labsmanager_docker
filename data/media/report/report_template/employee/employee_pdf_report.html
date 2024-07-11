@@ -263,6 +263,69 @@
 </div>
 <div class="spacer"></div>
 {% endif %}
+<!-- ##################################    Superior and subordinates    ################################## -->
+{% if superior  %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Superior" %}</span>
+        
+    </div>
+    <table class="table">
+        <thead>
+            <th class="cell_title">{% trans 'Name' %}</th>
+            <th class="cell_title">{% trans 'Start Date' %}</th>
+            <th class="cell_title">{% trans 'End Date' %}</th>
+        </thead>
+        <tbody>
+            {% for item in superior   %}
+            <tr>
+                <td >
+                    {{item.superior.user_name }}
+                </td>
+                <td>
+                    {% firstof item.start_date "-"  %}
+                </td>
+                <td>
+                    {% firstof item.end_date "-"  %}
+                </td>
+            </tr>    
+            {%endfor %}        
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>
+{% endif %}
+{% if subordinate  %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Subordinate" %}</span>
+        
+    </div>
+    <table class="table">
+        <thead>
+            <th class="cell_title">{% trans 'Name' %}</th>
+            <th class="cell_title">{% trans 'Start Date' %}</th>
+            <th class="cell_title">{% trans 'End Date' %}</th>
+        </thead>
+        <tbody>
+            {% for item in subordinate   %}
+            <tr>
+                <td >
+                    {{item.employee.user_name }}
+                </td>
+                <td>
+                    {% firstof item.start_date "-"  %}
+                </td>
+                <td>
+                    {% firstof item.end_date "-"  %}
+                </td>
+            </tr>    
+            {%endfor %}        
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>
+{% endif %}
 <!-- ##################################    Contracts    ################################## -->
 {% if contract   %}
 <div class="table_container">
@@ -292,10 +355,10 @@
                 </td>
                 
                 <td>
-                    {{ item.start_date }}
+                    {% firstof item.start_date "-"  %}
                 </td>
                 <td>
-                    {{item.end_date }}
+                    {% firstof item.end_date "-"  %}
                 </td>
                 <td>
                     {{  item.fund.institution.short_name  }}  
@@ -339,10 +402,10 @@
                 </td>
                 
                 <td>
-                    {{ item.start_date }}
+                    {% firstof item.start_date "-"  %}
                 </td>
                 <td>
-                    {{ item.end_date  }}
+                    {% firstof item.end_date "-"  %}
                 </td>
                 <td>
                     {{ item.get_status_display }}
@@ -414,10 +477,10 @@
                     {{ item.cost_type.short_name }}
                 </td>
                 <td>
-                    {{ item.start_date }}
+                    {% firstof item.start_date "-"  %}
                 </td>
                 <td>
-                    {{item.end_date }}
+                    {% firstof item.end_date "-"  %}
                 </td>
                 <td>
                     {{  item.fund.funder.short_name}} - {{  item.fund.institution.short_name}} ({{  item.fund.ref}}  )    

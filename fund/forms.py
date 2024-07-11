@@ -9,7 +9,7 @@ from project.models import Project
 
 from labsmanager.forms import DateInput
 from datetime import date
-from labsmanager.mixin import CleanedDataFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin
 
 class FundItemModelForm(BSModalModelForm):
     class Meta:
@@ -120,7 +120,8 @@ class BudgetModelForm(BSModalModelForm):
                 self.fields['employee'].disabled = False
         #     self.fields['institution'].widget = forms.HiddenInput()
 
-class ContributionModelForm(CleanedDataFormMixin, BudgetModelForm):     
+class ContributionModelForm(SanitizeDataFormMixin, BudgetModelForm):
+    allowed_tags= {""}     
     class Meta(BudgetModelForm.Meta):
         model = models.Contribution
         fields = ['fund', 'start_date', 'end_date', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity','desc']
@@ -140,7 +141,8 @@ class ContributionModelForm(CleanedDataFormMixin, BudgetModelForm):
                 
         super().__init__(*args, **kwargs)
         
-class CostTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
+class CostTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = models.Cost_Type
         fields = ['parent', 'short_name','name','in_focus',]
@@ -157,7 +159,8 @@ class CostTypeModelForm(CleanedDataFormMixin, BSModalModelForm):
             self.fields['short_name'].disabled = False
             self.fields['name'].disabled = False
             
-class FundInstitutionModelForm(CleanedDataFormMixin, BSModalModelForm):
+class FundInstitutionModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    allowed_tags= {""}
     class Meta:
         model = models.Fund_Institution
         fields = ['short_name','name',]

@@ -51,6 +51,15 @@ function initEmployeeSingleView(user_idA, employee_idA){
         showColumns:false,
     }
     $('#employee_superior_table').labTable(options_superior);
+    // for subodrinate table
+    var options_subordinate={
+        url:$('#employee_subordinate_table').data("url"),
+        name:'subordinate',
+        disablePagination:true,
+        search:false,
+        showColumns:false,
+    }
+    $('#employee_subordinate_table').labTable(options_subordinate);
     // MOdal for employee edition
     $('#edit-employee').labModalForm({
         formURL: '/staff/employee/'+employee_id+'/udpate',
@@ -72,6 +81,11 @@ function initEmployeeSingleView(user_idA, employee_idA){
         formURL:  Urls['create_superior'](employee_id),
         addModalFormFunction: function(){$('#employee_superior_table').bootstrapTable('refresh');},
         modal_title:"Add Superior",
+    })
+    $('#add-subordinate').labModalForm({
+        formURL:  Urls['create_subordinate'](employee_id),
+        addModalFormFunction: function(){$('#employee_subordinate_table').bootstrapTable('refresh');},
+        modal_title:"Add Subordinate",
     })
 
     $('#add_project').labModalForm({

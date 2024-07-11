@@ -2,12 +2,13 @@
 
 :root {
     --primary-color: #335d88;
-    --primary-color-dark: #264666;
     --primary-color-alpha: #335d8862;
     --primary-color-alpha-dark: #2646669d;
+    
     --secondary-color: #eef3f7;
+    --third-color-dark:#1e867c;
     --highlight-color: #ffffff;
-
+    --tertiary-color:#798da1;
     --border-color: #ccc;
 
     --label-red: #e35a57;
@@ -20,10 +21,13 @@
 
     --headings-color: #c9e0cf;
     --subheading-color: #d1dbd3;
+    --subheading-color-light: #d1dbd344;
 
     --icon-index-color:rgb(25, 150, 119);
 
     --icon-info-color:#197db9;
+
+    --icon-deactivate: #dedddd;
 
 }
 
@@ -66,7 +70,6 @@
     background-color: lightgray  !important;
     color: grey !important;
 }
-
 
 .card .lab-card-link{
     background-color:var(--headings-color);

@@ -1,3 +1,19 @@
+
+/**
+ * Mimicking the Jquery Extends .
+ *
+ * @returns 
+ */
+
+function extend(){
+  for(var i=1; i<arguments.length; i++)
+      for(var key in arguments[i])
+          if(arguments[i].hasOwnProperty(key))
+              arguments[0][key] = arguments[i][key];
+  return arguments[0];
+}
+
+
 /*
  * Sanitize a string provided by the user from an input field,
  * e.g. data form or search box
@@ -160,4 +176,29 @@ function validatePhone(phone){
 function formatAsHTMLLink(inputURL, defaultProtocol="https"){
   url = inputURL.startsWith("http://") || inputURL.startsWith("https://") ? inputURL : defaultProtocol+'://'+ inputURL;
   return url
+}
+/**
+ * Format date string to Iso Format with hour if in 
+ * @returns string
+ */
+function format_date_iso(dateStr, option={}){
+  var d = new Date(dateStr);
+  const defaults = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  };
+  var options = extend(defaults, option);
+  var timeString = new Intl.DateTimeFormat('default', options).format(d);
+
+  return timeString
+}
+/**
+ * Create an id from a string, stripping accent and replacing space
+ * @returns string
+ */
+function createIdFrom(name) {
+  let normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  let id = normalized.replace(/\s+/g, "_");
+  return id;
 }

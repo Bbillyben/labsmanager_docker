@@ -3,6 +3,8 @@ from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, 
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 
+from labsmanager.views_modal import BSmodalDeleteViwGenericForeingKeyMixin
+
 from . import forms, models
 
 class OrganizationInfosTypeFormCreateView(LoginRequiredMixin, BSModalCreateView):
@@ -87,12 +89,15 @@ class ContactUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_message = 'Success: Leave was updated.'
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
-    
-class ContactRemoveView(LoginRequiredMixin, BSModalDeleteView):
+
+
+
+class ContactRemoveView(LoginRequiredMixin, BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = models.Contact
     template_name = 'form_delete_base.html'
-    # form_class = EmployeeModelForm
     success_url = reverse_lazy('project_index')  
+    
+    
 
 
 class ContactInfoCreateView(LoginRequiredMixin, BSModalCreateView):
@@ -124,7 +129,6 @@ class ContactInfoUpdateView(LoginRequiredMixin, BSModalUpdateView):
 class ContactInfoRemoveView(LoginRequiredMixin, BSModalDeleteView):
     model = models.ContactInfo
     template_name = 'form_delete_base.html'
-    # form_class = EmployeeModelForm
     success_url = reverse_lazy('project_index')     
 
          
@@ -160,5 +164,39 @@ class OrganizationInfosUpdateView(LoginRequiredMixin, BSModalUpdateView):
 class OrganizationInfosRemoveView(LoginRequiredMixin, BSModalDeleteView):
     model = models.OrganizationInfos
     template_name = 'form_delete_base.html'
-    # form_class = EmployeeModelForm
     success_url = reverse_lazy('project_index')
+    
+    
+class GenericNoteCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = forms.GenericNoteForm
+    success_message = 'Success: Note was created.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    model = models.GenericNote
+    
+    def get(self, request, *args, **kwargs):
+        initial={}
+        if 'obj_id' in kwargs and 'app' in kwargs and 'model' in kwargs:
+            initial={
+                'app':kwargs['app'],
+                'model':kwargs['model'],
+                'obj_id':kwargs['obj_id'],
+            }
+            
+        form = self.form_class(initial=initial)
+        return super().get(request)
+
+class GenericNoteUpdateView(LoginRequiredMixin, BSModalUpdateView):
+    model = models.GenericNote    
+    template_name = 'form_validate_base.html'
+    form_class = forms.GenericNoteForm
+    success_message = 'Success: Leave was updated.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    
+class GenericNoteRemoveView(LoginRequiredMixin, BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
+    model = models.GenericNote
+    template_name = 'form_delete_base.html'
+    success_url = reverse_lazy('employee_index')
+    success_message = "deleted"

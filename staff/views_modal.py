@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from . import models
-from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm, EmployeeUserModelForm, UserEmployeeModelForm, EmployeeSuperiorForm
+from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm, EmployeeUserModelForm, UserEmployeeModelForm, EmployeeSuperiorForm,EmployeeSubordinateForm
 
 from labsmanager.mixin import CreateModalNavigateMixin
 
@@ -169,6 +169,22 @@ class EmployeeSuperiorCreateView(LoginRequiredMixin, BSModalCreateView):
     def get(self, request, *args, **kwargs):
         if 'employee' in kwargs:
             form = self.form_class(initial={'employee': kwargs['employee']})
+        else:
+            form = self.form_class()
+        
+        context = {'form': form}
+        return render(request, self.template_name , context)
+class EmployeeSubordinateCreateView(LoginRequiredMixin, BSModalCreateView):
+    template_name = 'form_base.html'
+    form_class = EmployeeSubordinateForm
+    success_message = 'Success: Employee  was updated.'
+    success_url = reverse_lazy('employee_index')
+    label_confirm = "Confirm"
+    model = models.Employee_Superior
+    
+    def get(self, request, *args, **kwargs):
+        if 'employee' in kwargs:
+            form = self.form_class(initial={'superior': kwargs['employee']})
         else:
             form = self.form_class()
         

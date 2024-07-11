@@ -6,9 +6,9 @@ from bootstrap_modal_forms.forms import BSModalModelForm
 from project.models import Project
 from labsmanager.forms import DateInput
 
-from labsmanager.mixin import CleanedDataFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin
 
-class MilestonesModelForm(CleanedDataFormMixin, BSModalModelForm):
+class MilestonesModelForm(SanitizeDataFormMixin, BSModalModelForm):
     class Meta:
         model = Milestones
         fields = ['project', 'name','desc','deadline_date', 'type', 'quotity', 'status',]

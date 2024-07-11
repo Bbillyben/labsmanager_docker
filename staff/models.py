@@ -15,6 +15,8 @@ from faicon.fields import FAIconField
 
 from labsmanager.mixin import ActiveDateMixin
 
+from collections.abc import Iterable
+
 ### Models 
 class Employee(models.Model):
     
@@ -152,7 +154,26 @@ class Employee_Superior(ActiveDateMixin):
            
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""
-        return f"{self.superior})"
+        return f"Hierarchy relation superior {self.superior} to subordinate {self.employee}"
+    
+    @classmethod
+    def is_in_superior_hierarchy(cls, employee, superior):
+        """Check if 'employee' is in the hierarchy of 'superior'"""
+        if not isinstance(superior, Iterable):
+            superior = [superior]
+            
+        try:
+            relation = Employee_Superior.objects.filter(employee__in=superior)
+            if  relation.filter(superior=employee):
+                return True
+            elif len(relation)==0:
+                return False 
+            else:
+                return Employee_Superior.is_in_superior_hierarchy(employee, relation.values("superior"))
+        except Employee_Superior.DoesNotExist:
+            return False
+        
+        
     
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'), related_name="employee")
     superior = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Superior'), related_name="superior_employee")
