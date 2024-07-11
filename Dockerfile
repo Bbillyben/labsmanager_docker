@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.9-slim as base
+FROM python:3.11.9-slim as base
 
 # set variable 
 ENV LAB_HOME="/home/labsmanager"
@@ -50,10 +50,6 @@ COPY requirements.txt ${LAB_HOME}/requirements.txt
 COPY gunicorn.conf.py ${LAB_HOME}/gunicorn.conf.py
 COPY init.sh ${LAB_MNG_DIR}/init.sh
 COPY tasks.py ${LAB_HOME}/tasks.py
-
-# copy initial reports file
-# RUN mkdir -p {LAB_MEDIA_ROOT}/report/report_template/
-# COPY ./labsmanager/templates/reports/* ${LAB_MEDIA_ROOT}/report/report_template/
 
 # Server init entrypoint
 ENTRYPOINT ["/bin/bash", "init.sh"]
