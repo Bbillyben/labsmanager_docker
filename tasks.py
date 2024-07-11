@@ -188,6 +188,7 @@ def contentorder():
         "infos.OrganizationInfosType",
         "infos.ContactType",
         "infos.ContactInfoType",
+        "infos.GenericNote", # generic foreing key
          
         "staff.Employee_Status",# require Employee_type, Employee
         "staff.Employee_Superior",# require Employee
@@ -352,13 +353,17 @@ def delete_data(c, force=False):
 
     Warning: This will REALLY delete all records in the database!!
     """
-    print('Deleting all data from InvenTree database...')
+    print('Deleting all data from LabsManager database...')
 
     if force:
         manage(c, 'flush --noinput')
     else:
         manage(c, 'flush')
-        
+
+@task
+def reset_db(c):
+    print('RESETING THE ENTIRE DB ...')
+    manage(c, 'reset_db') 
 
 @task()
 def worker(c):

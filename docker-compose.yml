@@ -4,7 +4,7 @@ services:
         container_name: lab-db
         image: postgres:13
         ports:
-            - ${LAB_DB_PORT:-5435}:5432/tcp
+            - ${LAB_DB_PORT:-5432}:5432/tcp
         environment:
             - PGDATA=/var/lib/postgresql/data/pgdb
             - POSTGRES_USER=${LAB_DB_USER:?You must provide the 'LAB_DB_USER' variable in the .env file}
@@ -21,7 +21,7 @@ services:
         build: .
         container_name: lab-server
         # If you wish to specify a particular lab version, do so here
-        image: labsmanager/labsmanager:${LAB_TAG:-stable}
+        image: labsmanager/labsmanager:${LAB_TAG:-latest}
         ports :
             - 8000:8000
         depends_on:
@@ -37,7 +37,7 @@ services:
         build: .
         container_name: lab-worker
         # If you wish to specify a particular lab version, do so here
-        image: labsmanager/labsmanager:${LAB_TAG:-stable}
+        image: labsmanager/labsmanager:${LAB_TAG:-latest}
         command: invoke worker
         depends_on:
             - lab-server
