@@ -216,6 +216,11 @@
                 </div>
         </div>
     </div><!-- end panel general-->
+    <!-- ######################################    Notes PANEL ############################################### -->
+
+            <div class="panel-hidden panel-visible" id="panel-orga-notes" style="display: block;">
+                
+            </div><!-- end panel-->
 
 </div>
 
@@ -235,6 +240,8 @@
     $(document).ready(function () {
         user_id = JSON.parse(document.getElementById('user_id').textContent);
         orga_id = JSON.parse(document.getElementById('orga_id').textContent);
+        var app = "{{type.app}}";
+        var model = "{{type.model}}";
         initOrgaSingleView(user_id, orga_id, '{{type.app}}.{{type.model}}'); 
 
 
@@ -243,6 +250,10 @@
         onPanelLoad("project", function(){initProjectPanelOrga(); })
         onPanelLoad("contact", function(){initContactPanel(); })
         onPanelLoad("contract", function(){initContractPanelOrga(); })
+    // fund.Fund_Institution  & project.Institution
+        onPanelLoad("orga-notes", function(){
+            loadInTemplate(elt=$("#panel-orga-notes"),Urls['generic_info_template'](app,model, orga_id) )
+        })
         
         enableSidebar('orga_single');
           

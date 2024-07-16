@@ -473,6 +473,11 @@
         </div>
     </div>
 </div>
+<!-- ######################################    Notes PANEL ############################################### -->
+
+            <div class="panel-hidden panel-visible" id="panel-project-notes" style="display: block;">
+                
+            </div>
     <!-- ######################################    Contract ############################################### -->
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-project-contract" style="display: block;">
@@ -565,6 +570,9 @@ $(document).ready(function () {
     onPanelLoad("contribution", function(){initializeContribTable(update_project);}) 
     onPanelLoad("leave", function(){initProjectCalendar(); }) 
     onPanelLoad("project-dashboard", function(){loadProjectGraph(); })
+    onPanelLoad("project-notes", function(){
+        loadInTemplate(elt=$("#panel-project-notes"),Urls['generic_info_template']('project', 'project', project_id) )
+        })
     enableSidebar('project')
 
 })

@@ -519,13 +519,13 @@
                     dateIncrement: { months: 1 },
                     slotDuration: { days: 1 },
                     slotLabelInterval: {
-                        "weeks": 1
+                        "days": 1
                     },
                     slotLabelFormat: [{
                         month: 'long',
                     }, // top level of text
                     {
-                        week: 'numeric',
+                        day:'numeric',
                 
                     }, // lower level of text
                     ],

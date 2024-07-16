@@ -46,6 +46,34 @@ class LabsUserAdmin(UserAdmin):
     )
 
 User = get_user_model()
+
+
+# generic content type filter
+from django.db.models import Count
+from django.contrib.contenttypes.models import ContentType
+from django.apps import apps
+
+class UsedContenTypeFilter(admin.SimpleListFilter):
+    title = _("Current Content Type ")
+    parameter_name = "used_cr"
+    
+    def lookups(self, request, model_admin):
+        
+        print(f"==============> [UsedContenTypeFilter] :{model_admin}")
+        
+        content_types = model_admin.model.objects.values('content_type').annotate(count=Count('content_type')).order_by('content_type')
+
+        CT_LIST = [(ct['content_type'], str(ContentType.objects.get(id=ct['content_type']))) for ct in content_types]
+
+        return CT_LIST
+        
+    def queryset(self, request, queryset):
+        
+        if self.value() is None:
+            return queryset
+        
+        qs = queryset.filter(content_type=self.value())
+        return qs
    
 admin.site.unregister(User)
 admin.site.register(User, LabsUserAdmin)

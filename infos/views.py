@@ -8,6 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseNotFound
 from django.db.models import F, Sum, ExpressionWrapper, IntegerField
+from django.http import JsonResponse
 
 from view_breadcrumbs import BaseBreadcrumbMixin
 from labsmanager.mixin import CrumbListMixin
@@ -181,4 +182,28 @@ def get_orga_contact_info(request, id):
     data={'infos_contact':ci}
     data['object_id']=id
     return render(request, 'organization/contact_info_table.html', data)
-    
+
+
+
+# ------------------------- FOR GenericInfor -------------------------- 
+# --------------------------------------------------------------- 
+from .models import GenericNote
+from labsmanager.serializers import GenericInfoSerialiszer
+def get_generic_infos_template(request, app, model, pk):
+    # ct = ContentType.objects.get(app_label=app, model=model)
+    # infos = GenericNote.objects.filter(content_type = ct, object_id=pk)
+    # data={"infos":infos}
+    data={}
+    data['app']=app
+    data['model']=model
+    data['object_id']=pk
+    return render(request, 'notes/note_panel.html', data)
+
+def get_generic_infos(request, app, model, pk):
+    ct = ContentType.objects.get(app_label=app, model=model)
+    infos = GenericNote.objects.filter(content_type = ct, object_id=pk)
+    data={"infos":GenericInfoSerialiszer(infos, many=True).data}
+    data['app']=app
+    data['model']=model
+    data['object_id']=pk
+    return JsonResponse(data, safe=False)

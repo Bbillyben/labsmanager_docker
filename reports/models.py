@@ -22,7 +22,7 @@ import jinja2
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 
-from staff.models import Employee,Employee_Status, GenericInfo, Team, TeamMate
+from staff.models import Employee,Employee_Status, GenericInfo, Team, TeamMate, Employee_Superior
 from expense.models import Contract
 from project.models import Project, Participant, Institution_Participant
 from project.views import get_project_fund_overview
@@ -298,6 +298,12 @@ class EmployeeReport(TemplateReport):
         tm = TeamMate.objects.filter(employee=emp).values("team")
         teams = Team.objects.filter(models.Q(leader=emp) | models.Q(pk__in=tm))
         context["teams"]=teams
+        
+        superior = Employee_Superior.objects.filter(employee = emp)
+        context["superior"]=superior
+        
+        subordinate = Employee_Superior.objects.filter(superior = emp)
+        context["subordinate"]=subordinate
         
         return context
     

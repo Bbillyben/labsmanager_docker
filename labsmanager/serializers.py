@@ -573,7 +573,12 @@ class EmployeeSuperiorSerialize(serializers.ModelSerializer):
         model = Employee_Superior
         fields = ['pk', 'employee','employee_superior', 'start_date', 'end_date', 
                   'is_active',]
-        
+class EmployeeSubordinateSerialize(serializers.ModelSerializer):
+    subordinate=EmployeeSerialize_Min(many=False, read_only=True, source='employee')
+    class Meta:
+        model = Employee_Superior
+        fields = ['pk', 'subordinate','employee', 'start_date', 'end_date', 
+                  'is_active',]       
         
 from django.http import JsonResponse       
 class EmployeeOrganizationChartSerialize(serializers.ModelSerializer):
@@ -744,10 +749,10 @@ class ProjectInfoSerialize(serializers.ModelSerializer):
         fields = ['pk', 'info', 'value', ]
 
 class ProjectFullSerializer(serializers.ModelSerializer):
-    participant = serializers.SerializerMethodField() 
-    participant_count=serializers.SerializerMethodField()
-    fund=serializers.SerializerMethodField() 
-    institution=serializers.SerializerMethodField()
+    participant = ParticipantProjectSerializer(many=True, read_only=True, source="get_participant")# serializers.SerializerMethodField() 
+    # participant_count=serializers.SerializerMethodField()
+    fund=FundProjectSerialize(many=True, read_only=True, source="get_funds") # serializers.SerializerMethodField() 
+    institution=Institution_ProjectParticipantSerializer(many=True, read_only=True, source="get_institutions") # serializers.SerializerMethodField()
     # total_amount= serializers.SerializerMethodField()
     info=ProjectInfoSerialize(many=True, read_only=True)
     
@@ -755,27 +760,29 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['pk', 'name', 'start_date', 'end_date', 'status', 
-                  'participant', 'participant_count',
+                  'participant', 
+                #   'participant_count',
                   'institution', 
-                  'fund','get_funds_amount', 'get_funds_expense','get_funds_available',
-                  'get_funds_amount_f', 'get_funds_expense_f','get_funds_available_f',
+                  'fund',
+                #   'get_funds_amount', 'get_funds_expense','get_funds_available',
+                #   'get_funds_amount_f', 'get_funds_expense_f','get_funds_available_f',
                   'info',
                   ]
-    def get_participant(self,obj):
-        part = Participant.objects.select_related('employee').filter(project = obj.pk, employee__is_active= True)
-        return ParticipantProjectSerializer(part , many=True).data
+    # def get_participant(self,obj):
+    #     part = Participant.objects.select_related('employee').filter(project = obj.pk, employee__is_active= True)
+    #     return ParticipantProjectSerializer(part , many=True).data
     
-    def get_participant_count(self,obj):
-        part = Participant.objects.filter(project = obj.pk, employee__is_active= True).count()
-        return part
+    # def get_participant_count(self,obj):
+    #     part = Participant.objects.filter(project = obj.pk, employee__is_active= True).count()
+    #     return part
     
-    def get_fund(self,obj):
-        fund = Fund.objects.select_related('funder', 'institution').filter(project = obj.pk)
-        return FundProjectSerialize(fund , many=True).data
+    # def get_fund(self,obj):
+    #     fund = Fund.objects.select_related('funder', 'institution').filter(project = obj.pk)
+    #     return FundProjectSerialize(fund , many=True).data
     
-    def get_institution(self,obj):
-        ip = Institution_Participant.objects.filter(project = obj.pk)
-        return Institution_ProjectParticipantSerializer(ip , many=True).data
+    # def get_institution(self,obj):
+    #     ip = Institution_Participant.objects.filter(project = obj.pk)
+    #     return Institution_ProjectParticipantSerializer(ip , many=True).data
     
     # def get_total_amount(self,obj):
     #     fund = Fund.objects.filter(project = obj.pk)
@@ -784,7 +791,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
 # ------------------------------------------------------------------------------------- #
 # ---------------------------    APP infos / SERIALISZER    --------------------------- #
 # ------------------------------------------------------------------------------------- #
-from infos.models import ContactType, OrganizationInfos, Contact, InfoTypeClass, OrganizationInfosType
+from infos.models import ContactType, OrganizationInfos, Contact, InfoTypeClass, OrganizationInfosType, GenericNote
 class OrgaInfoTypeSerializer(ProjectInfoTypeIconSerialize):
     icon_val=serializers.SerializerMethodField()
     class Meta:
@@ -816,7 +823,18 @@ class OrganizationInfoSerializer(serializers.ModelSerializer):
                   'value', 'comment',]
             
 
-  
+class GenericInfoSerialiszer(serializers.ModelSerializer):
+    content_type=ContentTypeSerialize(many=False, read_only=True)
+    
+    class Meta:
+        model = GenericNote
+        fields = ['pk',
+                  'content_type',
+                  'object_id',
+                  'name', 
+                  'note',
+                  'created_at', 'updated_at', 
+                  ]
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
 class BudgetSerializer(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)

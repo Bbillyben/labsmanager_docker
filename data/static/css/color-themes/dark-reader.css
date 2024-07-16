@@ -21,6 +21,36 @@ _______|_______/__/ ____ \__\__|___\__\__|___\__\____
 
 /*! Dark reader generated CSS | Licensed under MIT https://github.com/darkreader/darkreader/blob/master/LICENSE */
 
+/* labsmanager variant */
+:root {
+    --primary-color: #335d88;
+    --primary-color-alpha: #335d8862;
+    --primary-color-alpha-dark: #2646669d;
+    
+    --secondary-color: #eef3f7;
+    --third-color-dark:#1e867c;
+    --highlight-color: #ffffff;
+    --tertiary-color:#798da1;
+    --border-color: #ccc;
+
+    --label-red: #e35a57;
+    --label-blue: #4194bd;
+    --label-green: #50aa51;
+    --label-grey: #aaa;
+    --label-yellow: #fdc82a;
+
+    --bs-body-color: #68686a;
+
+    --headings-color: #c9e0cf;
+    --subheading-color: #d1dbd3;
+    --subheading-color-light: #d1dbd344;
+
+    --icon-index-color:rgb(25, 150, 119);
+
+    --icon-info-color:#197db9;
+
+    --icon-deactivate: #dedddd;
+}
 /* User-Agent Style */
 html {
     background-color: #181a1b !important;
