@@ -1,5 +1,9 @@
 ## Changelog LabsManager
 
+### XX
+
+* [Fix] Double password reset link on login page
+
 ### 2024/07/11
 * [Fix] remove favorite button for user's employee
 * [enhanced] switch to nh3 sanitization of user input field
