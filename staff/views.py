@@ -20,17 +20,19 @@ from django.urls import reverse_lazy
 from .forms import EmployeeModelForm, EmployeeStatusForm,GenericInfoForm
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
 
-
+from django.http import HttpResponseRedirect 
+from django.urls import reverse
 from labsmanager.mixin import CreateModalNavigateMixin
 from operator import attrgetter
+
+
 class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'employee/employee_base.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = Employee
     crumbs = [(_("Employee"),_("employee"))]
 
-from django.http import HttpResponseRedirect 
-from django.urls import reverse
+
 class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcrumbMixin ,  TemplateView):
     template_name = 'employee/employee_single.html'
     home_label = '<i class="fas fa-bars"></i>'
@@ -53,8 +55,8 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
         if request.user.is_staff or request.user.has_perm('staff.view_employee'):
             return super().dispatch(request, *args, **kwargs)
         
-        userEmp = Employee.objects.get(pk=kwargs['pk']).user
-        if request.user == userEmp:
+        emp = Employee.objects.get(pk=kwargs['pk'])
+        if request.user == emp.user or request.user.has_perm("staff.change_employee", emp):
             return super().dispatch(request, *args, **kwargs)
         else:
             return HttpResponseRedirect(reverse('employee_index'))
@@ -236,7 +238,8 @@ def get_employee_valid(request, pk):
 ## Get the employee info table
 def get_employee_info_table(request, pk):
     info=GenericInfo.objects.filter(employee__pk=pk)
-    return render(request, 'employee/employee_info_table.html', {'infoEmployee': info})
+    emp = Employee.objects.filter(pk=pk).first() # required for template tag right management
+    return render(request, 'employee/employee_info_table.html', {'employee':emp, 'infoEmployee': info})
 
 ## Get the employee info table
 def get_employee_organisation_chart_modal(request, pk):
@@ -301,9 +304,11 @@ def get_team_resume(request, pk):
 
 def get_team_mate(request, pk):
     teamMate = TeamMate.objects.filter(team=pk)
+    team = Team.objects.get(pk=pk)
     # sorted_team_mates = sorted(teamMate, key=lambda x: x.is_active, reverse=True)
     sorted_team_mates = sorted(teamMate, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)
     data = {'mates': sorted_team_mates}
+    data['team']=team # required for template tag rules
     
     return render(request, 'team/team_mate_table.html', data)
 

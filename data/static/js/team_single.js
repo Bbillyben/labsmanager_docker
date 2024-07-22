@@ -1,6 +1,5 @@
 var user_id = 0;
 var team_id = 0;
-var userperms;
 var calapiURL;
 
 // initi function called on panel loading
@@ -47,10 +46,9 @@ function print_team_calendar(printUrl, teamPk){
     openWindowWithPost(printUrl, options, csrftoken)
 }
 
-function initTeamSingleView(user_idA, team_idA, permsA, calapiURLA){
+function initTeamSingleView(user_idA, team_idA, calapiURLA){
     user_id = user_idA;
     team_id = team_idA;
-    userperms=permsA;
     calapiURL=calapiURLA;
 
     updateTeamMateBtnHandler()

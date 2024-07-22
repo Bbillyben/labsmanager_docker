@@ -43,7 +43,7 @@
           {% endif %}
 
           <!-- For Project-->
-          {% if perms.project.view_project %}
+          {% if perms.project.view_project or perms.common.project_list %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'project_index' %}">
               <span class='fas fa-flask icon-header'></span>{% trans "Projects" %}

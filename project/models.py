@@ -158,6 +158,21 @@ class Project(ActiveDateMixin):
         else:
             self.amount = 0
             self.expense = 0
+            
+    @classmethod
+    def get_instances_for_user(cls, user, queryset=None):
+        queryset = queryset | cls.objects.all() 
+        if user.has_perm('project.change_project'):
+            return queryset
+        try:
+            from settings.models import LabsManagerSetting
+            setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
+            emp_stat = {"l", "cl"} if setting else {"l"}
+            proj=Participant.objects.filter(employee__user = user, status__in = emp_stat).values('project')
+            queryset = queryset.filter(pk__in=proj)
+        except:
+            queryset = cls.objects.none()
+        return queryset
         
 def calculate_project(*arg):
         logger.debug('[calculate_project] :'+str(arg))

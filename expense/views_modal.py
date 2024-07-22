@@ -19,13 +19,13 @@ class ContractCreateView(LoginRequiredMixin, BSModalCreateView):
     def get(self, request, *args, **kwargs):
         # print("[ ContractCreateView ] "+str(kwargs))
         if 'pk' in kwargs:
-            form = self.form_class(initial={'contract': kwargs['pk']})
+            form = self.form_class(initial={'contract': kwargs['pk'], 'user':request.user})
         elif 'employee' in kwargs:
-            form = self.form_class(initial={'employee': kwargs['employee']})
+            form = self.form_class(initial={'employee': kwargs['employee'], 'user':request.user})
         elif 'project' in kwargs:
-            form = self.form_class(initial={'project': kwargs['project']})
+            form = self.form_class(initial={'project': kwargs['project'], 'user':request.user})
         else:
-            form = self.form_class()        
+            form = self.form_class(initial={'user':request.user})        
         
         context = {'form': form}
         return render(request, self.template_name , context)

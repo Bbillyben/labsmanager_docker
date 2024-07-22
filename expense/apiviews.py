@@ -1,10 +1,11 @@
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Q, Value, Count, F, CharField, Max, Sum
+from django.db.models import Q, Value, Count, F, CharField, Max, Sum, Case, When, BooleanField
 from django.db.models.functions import Concat
 from django.shortcuts import render
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from django_filters import rest_framework as filters
 from labsmanager import serializers  # UserSerializer, GroupSerializer, EmployeeSerialize, EmployeeStatusSerialize, ContractEmployeeSerializer, TeamSerializer, ParticipantSerializer, ProjectSerializer
 from expense.models import Expense_point, Contract, Contract_expense
@@ -25,6 +26,9 @@ from datetime import datetime
 
 from project.views import get_fund_overviewReport_bytType
 
+import logging
+logger = logging.getLogger('labsmanager')
+
 class ExpensePOintViewSet(viewsets.ModelViewSet):
     queryset = Expense_point.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -44,7 +48,10 @@ class ExpensePOintViewSet(viewsets.ModelViewSet):
       
       queryset=Expense_point.objects.filter(query)
       return JsonResponse(self.serializer_class(queryset, many=True).data, safe=False)
-      
+ 
+from project.models import Participant 
+from staff.models import Employee_Superior  
+from settings.models import LabsManagerSetting
 class ContractViewSet(viewsets.ModelViewSet):
     queryset = Contract.objects.select_related('employee', 'fund', 'contract_type').all()
     serializer_class = serializers.ContractSerializer
@@ -58,9 +65,31 @@ class ContractViewSet(viewsets.ModelViewSet):
         ongoing = self.request.query_params.get('ongoing', None)
         if ongoing is not None:
           if ongoing == '1':
-            return Contract.current.select_related('employee', 'fund', 'contract_type').all()
+            qset = Contract.current.select_related('employee', 'fund', 'contract_type').all()
           else:
-            return Contract.past.select_related('employee', 'fund', 'contract_type').all()
+            qset = Contract.past.select_related('employee', 'fund', 'contract_type').all()
+        else:
+          qset = Contract.objects.select_related('employee', 'fund', 'contract_type').all() 
+        # ====== Right Management
+        if self.request.user.has_perm("expense.change_contract") or self.request.user.has_perm("common.contract_list"):
+          return qset
+        else:
+          try:
+            user_emp = Employee.objects.get(user=self.request.user)            
+          except:
+            logger.debug('[ContractViewSet - get_queryset] Error on viewer contract list')
+            return Contract.objects.none()
+        
+          
+          setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
+          emp_stat = {"l", "cl"} if setting else {"l"}
+          proj_part = Participant.objects.filter(employee = user_emp, status__in=emp_stat).values_list("project", flat=True)          
+          
+          subordinate = Employee_Superior.objects.filter(superior = user_emp).values_list("employee", flat=True)
+          user_team = list(subordinate)
+          user_team.append(user_emp.pk)
+          return qset.filter(Q(employee__in=user_team)|Q(fund__project__in=proj_part))
+        # =========================
       return super().get_queryset()    
       
     
@@ -148,6 +177,8 @@ class ContractViewSet(viewsets.ModelViewSet):
             qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
         return super().list( request, *args, **kwargs)
+      
+    
     
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""

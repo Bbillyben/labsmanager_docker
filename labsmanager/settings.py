@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',              # https://django-allauth.readthedocs.io/en/latest/installation.html
     'django_prose_editor',          # https://github.com/matthiask/django-prose-editor   rich text editor
+    'rules.apps.AutodiscoverRulesConfig',       # https://pypi.org/project/rules/ For per object permission
     
     # App
     'staff.apps.StaffConfig',
@@ -245,6 +246,7 @@ DATABASES = {
 
 
 AUTHENTICATION_BACKENDS = [
+    'rules.permissions.ObjectPermissionBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
     ]

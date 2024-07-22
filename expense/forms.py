@@ -8,12 +8,14 @@ from staff.models import Employee
 from django.utils.translation import gettext_lazy as _
 from django import forms
 from fund.models import Cost_Type, Fund
-
+from project.models import Participant
 from datetime import date
 
 from labsmanager.forms import DateInput
 from labsmanager.mixin import SanitizeDataFormMixin
-
+from settings.models import LabsManagerSetting
+import logging
+logger = logging.getLogger("labsmanager")
 class ContractModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract
@@ -24,6 +26,11 @@ class ContractModelForm(BSModalModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        print(f'[ContractModelForm - Init] ----------------------------------------------------------')
+        for a in args:
+            print(f'  - args : {a} ')
+        for k, v in kwargs.items():
+            print(f'  - {k} : {v}')
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.all().order_by('first_name'),
@@ -42,7 +49,13 @@ class ContractModelForm(BSModalModelForm):
             self.base_fields['fund'] = forms.ModelChoiceField(
                 queryset=Fund.objects.all(),
             )
-        
+            
+        # ===== Right Management
+        if ('initial' in kwargs and 'user' in kwargs['initial']):
+            user = kwargs['initial']['user']
+            self.base_fields['fund'].queryset=Fund.get_instances_for_user(user, self.base_fields['fund'].queryset)
+        # =====================
+
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:

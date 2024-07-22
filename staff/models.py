@@ -16,15 +16,21 @@ from faicon.fields import FAIconField
 from labsmanager.mixin import ActiveDateMixin
 
 from collections.abc import Iterable
+import rules
+from rules.contrib.models import RulesModel
 
 ### Models 
-class Employee(models.Model):
+class Employee(RulesModel):
     
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Employee")
         verbose_name_plural = _("Employee")
         ordering = ['first_name']
+        rules_permissions = {
+            "add": rules.is_staff,
+            "read": rules.is_authenticated,
+        }
 
     """Model for employee"""
     first_name=models.CharField(max_length=40, blank=False, null=False, verbose_name=_('First Name'))
@@ -112,6 +118,18 @@ class Employee(models.Model):
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""
         return  f"{self.first_name} {self.last_name}"
+    
+    @classmethod
+    def get_instances_for_user(cls, user, queryset=None):
+        queryset = queryset | cls.objects.all() 
+        if user.has_perm('staff.change_employee'):
+            return queryset
+        try:
+            relation = Employee_Superior.objects.filter(superior__user=user).values_list("employee", flat=True)
+            queryset = queryset.filter(Q(pk__in=relation)|Q(user=user))
+        except:
+            queryset = cls.objects.none()
+        return queryset
 
 
 
@@ -163,8 +181,8 @@ class Employee_Superior(ActiveDateMixin):
             superior = [superior]
             
         try:
-            relation = Employee_Superior.objects.filter(employee__in=superior)
-            if  relation.filter(superior=employee):
+            relation = Employee_Superior.current.filter(employee__in=superior)
+            if  relation.filter(superior=employee).exists():
                 return True
             elif len(relation)==0:
                 return False 

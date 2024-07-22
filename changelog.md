@@ -3,6 +3,13 @@
 ### XX
 
 * [Fix] Double password reset link on login page
+* [Fix] CSS issue on provisionnal contract tab
+* [ADD] permission system at object level (django-rules), lots of modification and additions
+    * in employee, project and team view, user can change item only if user'emlployee is himself or superior, project leader or team leader
+* [ADD] Parameters to let user :
+    * modify his/her subordinates info
+    * modify project where they are co leader
+* [ADD] In finder, fund and budget are restricted for user that don't have right on items to only project where user's employee is leader or co leader 
 
 ### 2024/07/11
 * [Fix] remove favorite button for user's employee

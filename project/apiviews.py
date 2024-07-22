@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Value
 
 from project.models import Participant, Project, Institution_Participant
 from rest_framework import viewsets, permissions
@@ -22,6 +22,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProjectFilter
     
+    def get_queryset(self, *arg, **kwargs):
+
+        qset = super().get_queryset( *arg, **kwargs)
+        qset = Project.get_instances_for_user(self.request.user, qset)
+        qset = qset.annotate(has_perm=Value(True))
+        
+        return qset
     
     def filter_queryset(self, queryset):
         params = self.request.query_params
@@ -100,6 +107,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def funds(self, request, pk=None):
         proj = self.get_object()
         t1=Fund.objects.filter(project=proj.pk)
+        
+        if request.user.has_perm("project.change_project", proj):
+                t1 = t1.annotate(has_perm=Value(True))
+                
         return JsonResponse(serializers.FundProjectSerialize(t1, many=True).data, safe=False)   
     
     @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
@@ -115,8 +126,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return cv.list(request)
         
         
+        
         fund=Fund.objects.filter(project=pk).values('pk')  
         contractQS = cv.get_queryset()  
         contract=cv.filter_queryset(contractQS).filter(fund__in=fund).order_by('end_date')
+        
+        proj = self.get_object()
+        if request.user.has_perm("project.change_project", proj):
+                contract = contract.annotate(has_perm=Value(True))
+                
+                
         # contract=Contract.objects.filter(fund__in=fund).order_by('end_date')
         return JsonResponse(serializers.ContractSerializer(contract, many=True).data, safe=False)

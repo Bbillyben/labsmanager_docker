@@ -16,12 +16,14 @@ import json
 
 def get_fundItem_table(request, pk):
     fundP=Fund.objects.filter(pk=pk).first()
-    data = {'fund': fundP} 
+    data = {'fund': fundP}
+    data['has_perm']=request.user.has_perm('fund.change_fund', fundP)
     return render(request, 'fund/fund_item_table.html', data)
 
 def get_fundExpenseTimepoint_table(request, pk):
     fundP=Fund.objects.filter(pk=pk).first()
     data = {'fund': fundP} 
+    data['has_perm']=request.user.has_perm('fund.change_fund', fundP)
     return render(request, 'expense/expense_timepoint.html', data)
 
 def get_fund_global_overview(request, pk):

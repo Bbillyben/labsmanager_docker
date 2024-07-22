@@ -10,6 +10,7 @@ from django.views.generic.base import TemplateView
 from django.utils.translation import gettext_lazy as _
 from django.utils.functional import cached_property
 from django.urls import reverse
+from django.http import HttpResponseRedirect 
 from view_breadcrumbs import BaseBreadcrumbMixin
 from fund.models import Fund, Fund_Item, Cost_Type
 from expense.models import Expense_point
@@ -20,16 +21,23 @@ import json
 from labsmanager.pandas_utils import PDUtils
 from labsmanager.mixin import CrumbListMixin
 
-class ProjectIndexView(LoginRequiredMixin, PermissionRequiredMixin, BaseBreadcrumbMixin, TemplateView):
-    permission_required='project.view_project'
+class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_base.html'
     model = Project
     crumbs = [(_("Project"),"project")]
     
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        
+        if request.user.is_staff or request.user.has_perm('project.view_project') or request.user.has_perm('common.project_list') :
+            return super().dispatch(request, *args, **kwargs)
+        
+        return HttpResponseRedirect(reverse('index'))
     
     
-class ProjectView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, TemplateView):
-    permission_required='project.view_project'
+    
+class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_single.html'
     model = Project
     
@@ -39,6 +47,18 @@ class ProjectView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixin, B
     names_val=['name']
     crumbListPerm=['project.view_project']
     
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        
+        if request.user.is_staff or request.user.has_perm('project.view_project'):
+            return super().dispatch(request, *args, **kwargs)
+        
+        proj = Project.objects.get(pk=kwargs['pk'])
+        if request.user.has_perm("project.change_project", proj):
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse('employee_index'))
     @cached_property
     def crumbs(self):
         return [(_("Project"),"./",) ,
@@ -200,4 +220,5 @@ def get_fund_overviewReport_bytType(pk):
 ## Get the project info table
 def get_project_info_table(request, pk):
     info=GenericInfoProject.objects.filter(project__pk=pk)
-    return render(request, 'project/project_info_table.html', {'infoProject': info})
+    project = Project.objects.filter(pk = pk).first() # required for perm rules
+    return render(request, 'project/project_info_table.html', {'infoProject': info, 'project':project})

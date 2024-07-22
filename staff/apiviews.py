@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Case, When, BooleanField, Value
 
 from project.models import Participant
 from rest_framework import viewsets, permissions
@@ -68,16 +68,9 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     def get_queryset(self, *arg, **kwargs):
 
         qset = super().get_queryset( *arg, **kwargs)
-        if self.request.user.has_perm('staff.view_employee'):
-            qset = qset.annotate(has_perm=Value(True))
-        else:    
-            qset = qset.annotate(
-                has_perm=Case(
-                    When(Q(user=self.request.user), then=Value(True)),
-                    default=Value(False),
-                    output_field=BooleanField()
-                )
-            )
+        qset = Employee.get_instances_for_user(self.request.user, qset)
+        qset = qset.annotate(has_perm=Value(True))
+        
         return qset
     
     def list(self, request, *args, **kwargs):
@@ -104,11 +97,33 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=True,url_path='superior', url_name='superior')
     def superior(self, request, pk=None):
         superior = Employee_Superior.objects.filter(employee=pk).order_by('end_date')
+        # ======= Right Management
+        user=request.user
+        cont_right=[item.pk for item in superior if user.has_perm("staff.change_employee", item.superior)]
+        superior = superior.annotate(
+                        has_perm=Case(
+                            When(pk__in=cont_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        # ========================
         return JsonResponse(serializers.EmployeeSuperiorSerialize(superior,many=True).data, safe=False)
     
     @action(methods=['get'], detail=True,url_path='subordinate', url_name='subordinate')
     def subordinate(self, request, pk=None):
         subordinate = Employee_Superior.objects.filter(superior=pk).order_by('end_date')
+        # ======= Right Management
+        user=request.user
+        cont_right=[item.pk for item in subordinate if user.has_perm("staff.change_employee", item.employee)]
+        subordinate = subordinate.annotate(
+                        has_perm=Case(
+                            When(pk__in=cont_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        # ========================
         return JsonResponse(serializers.EmployeeSubordinateSerialize(subordinate,many=True).data, safe=False)
     
     
@@ -120,6 +135,17 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         cvs.request = request
         contract=cvs.filter_queryset(cvs.get_queryset())
         contract= contract.filter(employee=emp.pk).order_by('end_date')
+        # ===== Management Right 
+        user=request.user
+        cont_right=[item.pk for item in contract if user.has_perm("expense.change_contract", item)]
+        contract = contract.annotate(
+                        has_perm=Case(
+                            When(pk__in=cont_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        #================
         # Contract.objects.filter(employee=emp.pk).order_by('end_date')
         return JsonResponse(serializers.ContractSerializer(contract, many=True).data, safe=False)
     
@@ -146,6 +172,19 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     def projects(self, request, pk=None):
         emp = self.get_object()
         t1=Participant.objects.filter(employee=emp.pk)
+        # ========= Right Management
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  HAYAYAYAY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        user=request.user
+        qset_right=[item.pk for item in t1 if user.has_perm("staff.change_participant", item)]
+        t1 = t1.annotate(
+                        has_perm=Case(
+                            When(pk__in=qset_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        
+        # =========================
         
         return JsonResponse(serializers.ParticipantSerializer(t1, many=True).data, safe=False)
     

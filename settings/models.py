@@ -700,6 +700,18 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'description': _('String added as prefix to mail object'),
             #'after_save': ,
         },
+        'EMPLOYEE_CAN_EDIT_SUBORDINATE': {
+            'name': _('Employee can edit subordinate'),
+            'description': _('define wether an employee can edit their subordinate employees'),
+            'default': True,
+            'validator': bool,
+        },
+        'CO_LEADER_CAN_EDIT_PROJECT': {
+            'name': _('Co Leader can edit project'),
+            'description': _('define wether a co-leader can edit project'),
+            'default': True,
+            'validator': bool,
+        },
         'AUDIT_LOG_RETENTION': {
             'name': _('Audit Log Retention'),
             'description': _('Number of to retain AudiLog history'),
