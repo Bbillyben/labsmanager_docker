@@ -137,7 +137,7 @@ class FundItemViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset( *arg, **kwargs)
         # Right Management #########  test if user as right over all fund_items
         if not self.request.user.has_perm('fund.change_funditem'):
-            queryset = Fund_Item.get_instances_for_user(self.request.user, queryset)
+            queryset = Fund_Item.get_instances_for_user('change', self.request.user, queryset)
         ########################################
         
         return queryset
@@ -361,10 +361,10 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
         export = request.GET.get('export', None)
         if export is not None:
             return self.download_queryset(qset, export)
-        # Right Management #########  test if user as right over all fund_items
+        # ==========  Right Management
         if not request.user.has_perm('fund.change_budget'):
-            qset= self.__class__.Meta.model.get_instances_for_user(self.request.user, qset)
-        ########################################
+            qset= self.__class__.Meta.model.get_instances_for_user('change', self.request.user, qset)
+        #=============================
         return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
 
 class BudgetViewSet(BudgetAbstractViewSet):

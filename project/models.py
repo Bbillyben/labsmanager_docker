@@ -10,7 +10,7 @@ from auditlog.registry import auditlog
 from settings.models import LMUserSetting
 from dashboard import utils
 
-from labsmanager.mixin import ActiveDateMixin
+from labsmanager.mixin import ActiveDateMixin, RightsCheckerMixin
 from faicon.fields import FAIconField
 import datetime
 import decimal
@@ -32,7 +32,7 @@ class Institution(models.Model):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.short_name}"
     
-class Project(ActiveDateMixin):
+class Project(ActiveDateMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("project")
@@ -160,18 +160,17 @@ class Project(ActiveDateMixin):
             self.expense = 0
             
     @classmethod
-    def get_instances_for_user(cls, user, queryset=None):
-        queryset = queryset | cls.objects.all() 
-        if user.has_perm('project.change_project'):
-            return queryset
-        try:
-            from settings.models import LabsManagerSetting
-            setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
-            emp_stat = {"l", "cl"} if setting else {"l"}
-            proj=Participant.objects.filter(employee__user = user, status__in = emp_stat).values('project')
-            queryset = queryset.filter(pk__in=proj)
-        except:
-            queryset = cls.objects.none()
+    def get_instances_for_user(cls, perm, user, queryset=None):
+        
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        
+        if not queryset:
+            queryset = cls.objects.all()
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values('project')
+        queryset = queryset.filter(pk__in=proj)
         return queryset
         
 def calculate_project(*arg):

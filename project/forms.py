@@ -5,7 +5,7 @@ from . import models
 from django.utils.translation import gettext_lazy as _
 from django import forms
 from staff.models import Employee
-
+from project.models import Project
 from labsmanager.forms import DateInput
 from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 
@@ -53,22 +53,17 @@ class ParticipantModelForm(BSModalModelForm):
             self.base_fields['project'] = forms.ModelChoiceField(
                 queryset=models.Project.objects.all(),
             )
-            
-        # if ('initial' in kwargs and 'employee' in kwargs['initial']):
-        #     self.base_fields['employee'] = forms.ModelChoiceField(
-        #         queryset=Employee.objects.all(),
-        #         # widget=forms.HiddenInput
-        #     )
-        # else:
-        #     self.base_fields['employee'] = forms.ModelChoiceField(
-        #         queryset=Employee.objects.filter(is_active=True),
-        #     )
-        print(f" kwargs : {kwargs['initial']}")
+        
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'].disabled = True
         else:
             self.base_fields['employee'].disabled = False
-            
+        
+        # ===== Right Management
+        if ('initial' in kwargs and 'user' in kwargs['initial']):
+            user = kwargs['initial']['user']
+            self.base_fields['project'].queryset=Project.get_instances_for_user('change', user, self.base_fields['project'].queryset)
+        # =====================   
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
 

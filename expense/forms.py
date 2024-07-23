@@ -53,7 +53,7 @@ class ContractModelForm(BSModalModelForm):
         # ===== Right Management
         if ('initial' in kwargs and 'user' in kwargs['initial']):
             user = kwargs['initial']['user']
-            self.base_fields['fund'].queryset=Fund.get_instances_for_user(user, self.base_fields['fund'].queryset)
+            self.base_fields['fund'].queryset=Fund.get_instances_for_user('change', user, self.base_fields['fund'].queryset)
         # =====================
 
         super().__init__(*args, **kwargs)

@@ -25,7 +25,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def get_queryset(self, *arg, **kwargs):
 
         qset = super().get_queryset( *arg, **kwargs)
-        qset = Project.get_instances_for_user(self.request.user, qset)
+        qset = Project.get_instances_for_user('view', self.request.user, qset)
         qset = qset.annotate(has_perm=Value(True))
         
         return qset

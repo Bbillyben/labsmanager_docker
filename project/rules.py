@@ -31,7 +31,14 @@ def is_project_coleader(user, project = None):
         return False
     return part.status=="cl"
 
+@rules.predicate
+def is_project_participant(user, project = None):
+    if not project:
+        return False
+    part = Participant.objects.filter(project= project, employee__user = user)
+    return part.exists()
 
 #    Rules ======================
 
 rules.add_perm('project.change_project', is_project_leader |  is_project_coleader)
+rules.add_perm('project.view_project', is_project_participant)

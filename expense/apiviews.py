@@ -71,24 +71,26 @@ class ContractViewSet(viewsets.ModelViewSet):
         else:
           qset = Contract.objects.select_related('employee', 'fund', 'contract_type').all() 
         # ====== Right Management
-        if self.request.user.has_perm("expense.change_contract") or self.request.user.has_perm("common.contract_list"):
-          return qset
-        else:
-          try:
-            user_emp = Employee.objects.get(user=self.request.user)            
-          except:
-            logger.debug('[ContractViewSet - get_queryset] Error on viewer contract list')
-            return Contract.objects.none()
+        qset = Contract.get_instances_for_user('view',self.request.user, qset )
+        return qset
+        # if self.request.user.has_perm("expense.view_contract"):
+        #   return qset
+        # else:
+        #   try:
+        #     user_emp = Employee.objects.get(user=self.request.user)            
+        #   except:
+        #     logger.debug('[ContractViewSet - get_queryset] Error on viewer contract list')
+        #     return Contract.objects.none()
         
           
-          setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
-          emp_stat = {"l", "cl"} if setting else {"l"}
-          proj_part = Participant.objects.filter(employee = user_emp, status__in=emp_stat).values_list("project", flat=True)          
+        #   setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
+        #   emp_stat = {"l", "cl"} if setting else {"l"}
+        #   proj_part = Participant.objects.filter(employee = user_emp, status__in=emp_stat).values_list("project", flat=True)          
           
-          subordinate = Employee_Superior.objects.filter(superior = user_emp).values_list("employee", flat=True)
-          user_team = list(subordinate)
-          user_team.append(user_emp.pk)
-          return qset.filter(Q(employee__in=user_team)|Q(fund__project__in=proj_part))
+        #   subordinate = Employee_Superior.objects.filter(superior = user_emp).values_list("employee", flat=True)
+        #   user_team = list(subordinate)
+        #   user_team.append(user_emp.pk)
+        #   return qset.filter(Q(employee__in=user_team)|Q(fund__project__in=proj_part))
         # =========================
       return super().get_queryset()    
       

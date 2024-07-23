@@ -2,6 +2,7 @@
 
 ### XX
 
+* [Fix] Contract's Icon in Organisation info panel 
 * [Fix] Double password reset link on login page
 * [Fix] CSS issue on provisionnal contract tab
 * [ADD] permission system at object level (django-rules), lots of modification and additions

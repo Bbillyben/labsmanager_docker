@@ -83,12 +83,12 @@ class ParticipantCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Participant
 
     def get(self, request, *args, **kwargs):
+        initial={'user':request.user}
         if 'pk' in kwargs:
-            form = self.form_class(initial={'project': kwargs['pk']})
+            initial['project']= kwargs['pk']
         elif 'employee' in kwargs:
-            form = self.form_class(initial={'employee': kwargs['employee']})
-        else:
-            form = self.form_class()
+            initial['employee']= kwargs['employee']
+        form = self.form_class(initial=initial)        
         
         context = {'form': form}
         return render(request, self.template_name , context)

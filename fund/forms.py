@@ -80,7 +80,7 @@ class FundModelForm(BSModalModelForm):
              raise ValidationError(_('If A Contract is turn inactive, it should have a end Dat '))
         return self.cleaned_data['is_active']
     
-
+from fund.models import Fund
 class BudgetModelForm(BSModalModelForm):
     class Meta:
         model = models.Budget
@@ -106,7 +106,12 @@ class BudgetModelForm(BSModalModelForm):
             self.base_fields['employee'].disabled = False
             self.base_fields['cost_type'].queryset= models.Cost_Type.objects.all()
             
-            
+        # ===== Right Management
+        if ('initial' in kwargs and 'user' in kwargs['initial']):
+            user = kwargs['initial']['user']
+            self.base_fields['fund'].queryset=Fund.get_instances_for_user('change', user, self.base_fields['fund'].queryset)
+        # =====================
+           
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:

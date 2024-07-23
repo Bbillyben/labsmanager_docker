@@ -14,6 +14,8 @@ from .manager import Current_date_Manager, outof_date_Manager, date_manager, foc
 
 from datetime import date, datetime
 import copy
+import logging
+logger=logging.getLogger("labsmanager")
 
 from django_tables2 import Column, SingleTableMixin, Table
 
@@ -330,3 +332,46 @@ class TimeStampMixin(models.Model):
 
     class Meta:
         abstract = True
+
+
+
+# ==========================  Right Management Mixin for models 
+# to provide list of instance for models
+from settings.models import LabsManagerSetting
+class RightsCheckerMixin():
+    class Meta:
+        abstract=True
+        
+    perms_auth=('view', 'change', 'add', 'delete')
+    
+    @classmethod
+    def get_project_modder(cls, perm=None):
+        if perm.lower() not in cls.perms_auth:
+            logger.error(f"'{perm}' permission is not valid")
+            return None
+        if perm == 'view':
+            return None
+        setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
+        emp_stat = {"l", "cl"} if setting else {"l"}
+        return emp_stat
+    
+    @classmethod
+    def get_perm_string(cls, perm):
+        if perm.lower() not in cls.perms_auth:
+            logger.error(f"'{perm}' permission is not valid")
+            return None
+        perm_str = cls._meta.app_label + '.'+perm+"_"+cls._meta.model_name
+        return perm_str
+    
+    @classmethod
+    def get_instances_for_user(cls, perm, user, queryset=None):
+        if perm.lower() not in cls.perms_auth:
+            logger.error(f"{perm} permission is not valid")
+            return cls.objects.none()
+        if not queryset:
+            queryset = cls.objects.all() 
+        perm_str = cls._meta.app_label + '.'+perm+"_"+cls._meta.model_name
+        if user.has_perm(perm_str):
+            return queryset
+        return cls.objects.none()
+        

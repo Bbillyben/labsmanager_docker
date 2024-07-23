@@ -291,7 +291,7 @@
                     <div class="d-flex flex-wrap">
                         <h4>{% trans 'Budgets' %}</h4>
                         <span class="flex" style="flex-grow: 1;"></span>
-                        {% if perms.fund.add_budget %}
+                        {% if perms.fund.add_budget or can_edit_employee%}
                         <div class="btn-group" role="group">
                             <button type="button" class="btn btn-secondary" id="add_budget" title="Add Item" data-employee="{{ employee.pk }}" >
                                 <span class='fas fa-plus'></span>
@@ -331,7 +331,7 @@
                     <span class="flex" style="flex-grow: 1;"></span>
                     <div class="btn-group" role="group">
     
-                        {% if perms.fund.add_contribution %}
+                        {% if perms.fund.add_contribution or can_edit_employee%}
                         <button type="button" class="btn btn-secondary" id="add_contrib" title="Add Item" data-pk="{{ project.pk }}" data-form-url="" >
                             <span class='fa fas fa-plus'></span>
                         </button>
@@ -362,7 +362,7 @@
                 <div class="d-flex flex-wrap">
                     <h4>{% trans 'Projects Participation' %}</h4>
                     <span class="flex" style="flex-grow: 1;"></span>
-                    {% if perms.project.add_project %}
+                    {% if perms.project.add_project or can_edit_employee%}
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-secondary" id="add_project" title="Create New Project">
                             <span class='fa fa-plus'></span>

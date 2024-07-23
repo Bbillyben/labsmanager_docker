@@ -32,8 +32,7 @@ class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
         
         if request.user.is_staff or request.user.has_perm('project.view_project') or request.user.has_perm('common.project_list') :
             return super().dispatch(request, *args, **kwargs)
-        
-        return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('project_index'))
     
     
     
@@ -55,10 +54,11 @@ class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, Templ
             return super().dispatch(request, *args, **kwargs)
         
         proj = Project.objects.get(pk=kwargs['pk'])
-        if request.user.has_perm("project.change_project", proj):
+        if request.user.has_perm("project.view_project", proj):
             return super().dispatch(request, *args, **kwargs)
         else:
-            return HttpResponseRedirect(reverse('employee_index'))
+            return HttpResponseRedirect(reverse('project_index'))
+        
     @cached_property
     def crumbs(self):
         return [(_("Project"),"./",) ,
