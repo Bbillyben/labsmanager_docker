@@ -16,8 +16,9 @@ class LeaveItemModelForm(SanitizeDataFormMixin, BSModalModelForm):
             'end_date': DateInput(),
         }
     def __init__(self, *args, **kwargs):
-        
-        
+
+        if('request' in kwargs and kwargs['request'].method =='POST'):
+            return super().__init__(*args, **kwargs)
         
         if ('initial' in kwargs and 'team' in kwargs['initial']):
             team_id=kwargs['initial']['team']
@@ -25,6 +26,14 @@ class LeaveItemModelForm(SanitizeDataFormMixin, BSModalModelForm):
             mateInTeam=TeamMate.objects.filter(team=team_id).values('employee')
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.filter((Q(pk__in=lead) | Q(pk__in=mateInTeam)) & Q(is_active=True)  ),
+            )
+        elif('initial' in kwargs and 'employee' in kwargs['initial']):
+            self.base_fields['employee'] = forms.ModelChoiceField(
+                queryset=Employee.objects.filter(pk=kwargs['initial']['employee']),
+            )
+        elif('instance' in kwargs):
+            self.base_fields['employee'] = forms.ModelChoiceField(
+                queryset=Employee.objects.filter(pk=kwargs['instance'].employee.pk),
             )
         else:
             self.base_fields['employee'] = forms.ModelChoiceField(

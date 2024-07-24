@@ -13,24 +13,20 @@ from auditlog.registry import auditlog
 
 from faicon.fields import FAIconField
 
-from labsmanager.mixin import ActiveDateMixin
+from labsmanager.mixin import ActiveDateMixin, RightsCheckerMixin
 
 from collections.abc import Iterable
 import rules
 from rules.contrib.models import RulesModel
 
 ### Models 
-class Employee(RulesModel):
+class Employee(models.Model, RightsCheckerMixin):
     
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Employee")
         verbose_name_plural = _("Employee")
         ordering = ['first_name']
-        rules_permissions = {
-            "add": rules.is_staff,
-            "read": rules.is_authenticated,
-        }
 
     """Model for employee"""
     first_name=models.CharField(max_length=40, blank=False, null=False, verbose_name=_('First Name'))
@@ -120,10 +116,13 @@ class Employee(RulesModel):
         return  f"{self.first_name} {self.last_name}"
     
     @classmethod
-    def get_instances_for_user(cls, user, queryset=None):
-        queryset = queryset | cls.objects.all() 
-        if user.has_perm('staff.change_employee'):
-            return queryset
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+
         try:
             relation = Employee_Superior.objects.filter(superior__user=user).values_list("employee", flat=True)
             queryset = queryset.filter(Q(pk__in=relation)|Q(user=user))
@@ -211,7 +210,7 @@ class Employee_Type(models.Model):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.name} ({self.shortname})"
 
-class Team(models.Model):
+class Team(models.Model, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Team")
@@ -237,7 +236,7 @@ class Team(models.Model):
 
 
 
-class TeamMate(ActiveDateMixin):
+class TeamMate(ActiveDateMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("TeamMate")    

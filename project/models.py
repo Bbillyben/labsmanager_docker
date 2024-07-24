@@ -204,7 +204,7 @@ class Institution_Participant(models.Model):
     )
     history = AuditlogHistoryField()
 
-class Participant(ActiveDateMixin):
+class Participant(ActiveDateMixin, RightsCheckerMixin):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'), related_name='participant_project')
     employee =  models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))

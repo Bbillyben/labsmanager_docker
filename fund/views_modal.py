@@ -20,13 +20,15 @@ class FundItemCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Fund_Item
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}        
         if 'pk' in kwargs:
-            form = self.form_class(initial={'fund_item': kwargs['pk']})
+            initial['fund_item']= kwargs['pk']
         elif 'fund' in kwargs:
-            form = self.form_class(initial={'fund': kwargs['fund']})
-        else:
+            initial['fund']= kwargs['fund']
             form = self.form_class()        
-        
+        kw['initial'] = initial
+        form = self.form_class(**kw)        
         context = {'form': form}
         return render(request, self.template_name , context)
 
@@ -60,12 +62,14 @@ class ExpenseTimepointCreateView(LoginRequiredMixin, BSModalCreateView):
     model = Expense_point
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}  
         if 'pk' in kwargs:
-            form = self.form_class(initial={'expense_timepoint': kwargs['pk']})
+            initial['expense_timepoint']= kwargs['pk']
         elif 'fund' in kwargs:
-            form = self.form_class(initial={'fund': kwargs['fund']})
-        else:
-            form = self.form_class()        
+            initial['fund']= kwargs['fund']        
+        kw['initial'] = initial
+        form = self.form_class(**kw)        
         
         context = {'form': form}
         return render(request, self.template_name , context)  
@@ -99,13 +103,16 @@ class FundCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Fund
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}   
         initial={'user':request.user}
         if 'pk' in kwargs:
             initial['fund']= kwargs['pk']
         elif 'project' in kwargs:
             initial['project']= kwargs['project']
       
-        form = self.form_class(initial=initial)        
+        kw['initial'] = initial
+        form = self.form_class(**kw) 
         
         context = {'form': form}
         return render(request, self.template_name , context)
@@ -140,16 +147,15 @@ class BudgetCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Budget
 
     def get(self, request, *args, **kwargs):
-        # print("BudgetCreateView :"+str(kwargs))
-        initial={'user':request.user}
-        
+        kw = self.get_form_kwargs()
+        initial={}        
         if 'project' in kwargs:
             initial['project']= kwargs['project']
         if 'employee' in kwargs:
             initial['employee']= kwargs['employee']
 
-        form = self.form_class(initial=initial)        
-        
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         context = {'form': form}
         return render(request, self.template_name , context)
     

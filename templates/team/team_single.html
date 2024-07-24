@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
-{% load rules %}
+{% load lab_rules %}
 
 {% block page_title %}
 {% trans "LabManager Team" %} - {{ team }}
@@ -18,7 +18,7 @@
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Team' %}
 
-{% has_perm 'staff.change_team' user team as can_edit_team %}
+{% has_lab_perm 'staff.change_team' user team as can_edit_team %}
 
 <div id='detail-panels'>
     <div class="panel" id="panel-project" style="display: block;">
@@ -216,7 +216,7 @@
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script>
-{% has_perm 'leave.change_leave' user team as can_edit_leave %}
+{% has_lab_perm 'leave.change_leave' user team as can_edit_leave %}
 $(document).ready(function () {
     // specific perms per object //
     {% if can_edit_leave %}

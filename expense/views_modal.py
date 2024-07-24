@@ -17,15 +17,18 @@ class ContractCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Contract
 
     def get(self, request, *args, **kwargs):
-        # print("[ ContractCreateView ] "+str(kwargs))
+        kw = self.get_form_kwargs()
+        initial={} 
+        
         if 'pk' in kwargs:
-            form = self.form_class(initial={'contract': kwargs['pk'], 'user':request.user})
+            initial['contract']= kwargs['pk']
         elif 'employee' in kwargs:
-            form = self.form_class(initial={'employee': kwargs['employee'], 'user':request.user})
+            initial['employee']= kwargs['employee']
         elif 'project' in kwargs:
-            form = self.form_class(initial={'project': kwargs['project'], 'user':request.user})
-        else:
-            form = self.form_class(initial={'user':request.user})        
+            initial['project']= kwargs['project']
+        
+        kw['initial'] = initial
+        form = self.form_class(**kw)      
         
         context = {'form': form}
         return render(request, self.template_name , context)
@@ -62,13 +65,15 @@ class ContractExpenseCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Contract_expense
 
     def get(self, request, *args, **kwargs):
-        # print("[ ContractCreateView ] "+str(kwargs))
+        kw = self.get_form_kwargs()
+        initial={} 
+        
         if 'pk' in kwargs:
-            form = self.form_class(initial={'contract': kwargs['pk']})
+            initial['contract']= kwargs['pk']
         elif 'contract' in kwargs:
-            form = self.form_class(initial={'contract': kwargs['contract']})
-        else:
-            form = self.form_class()        
+            initial['contract']= kwargs['contract']
+        kw['initial'] = initial
+        form = self.form_class(**kw)       
         
         context = {'form': form}
         return render(request, self.template_name , context)

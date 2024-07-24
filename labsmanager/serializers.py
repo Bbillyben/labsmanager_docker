@@ -707,9 +707,12 @@ class TeamSerializer(serializers.ModelSerializer):
 class ParticipantProjectSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     status_name=serializers.SerializerMethodField()
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Participant
-        fields = ['pk', 'employee', 'start_date', 'end_date', 'status', 'status_name', 'quotity' ]
+        fields = ['pk', 'employee', 'start_date', 'end_date', 'status', 'status_name', 'quotity', 
+                  'has_perm',
+                  ]
     
     def get_status_name(self,obj):
         return obj.get_status_display()

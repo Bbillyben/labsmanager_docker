@@ -68,7 +68,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     def get_queryset(self, *arg, **kwargs):
 
         qset = super().get_queryset( *arg, **kwargs)
-        qset = Employee.get_instances_for_user(self.request.user, qset)
+        qset = Employee.get_instances_for_user("view", self.request.user, qset)
         qset = qset.annotate(has_perm=Value(True))
         
         return qset
@@ -319,17 +319,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     def get_queryset(self, *arg, **kwargs):
 
         qset = super().get_queryset( *arg, **kwargs)
-       
-        if self.request.user.has_perm('staff.view_team'):
-            qset = qset.annotate(has_perm=Value(True))
-        elif self.request.user.employee is not None:    
-            qset = qset.annotate(
-                has_perm=Case(
-                    When(Q(leader=self.request.user.employee), then=Value(True)),
-                    default=Value(False),
-                    output_field=BooleanField()
-                )
-            )
+        qset = Team.annotate_queryset(qset, self.request.user, "view")
         return qset
     
     def filter_queryset(self, queryset):

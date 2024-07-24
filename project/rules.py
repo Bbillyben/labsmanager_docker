@@ -1,6 +1,6 @@
 import rules
 from .models import Project, Participant
-from staff.models import Employee
+from staff.models import Employee, Employee_Superior
 from settings.models import LabsManagerSetting
 
 #    Predicates ======================
@@ -38,7 +38,20 @@ def is_project_participant(user, project = None):
     part = Participant.objects.filter(project= project, employee__user = user)
     return part.exists()
 
+@rules.predicate
+def is_participant_superior(user, participant = None):
+    if not participant:
+        return False
+    try:
+        user_emp = Employee.objects.get(user=user)
+        return Employee_Superior.is_in_superior_hierarchy(user_emp, participant.employee)
+    except:
+        return False
+
 #    Rules ======================
 
 rules.add_perm('project.change_project', is_project_leader |  is_project_coleader)
 rules.add_perm('project.view_project', is_project_participant)
+
+
+rules.add_perm('project.view_participant', is_participant_superior)

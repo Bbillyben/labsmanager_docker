@@ -24,7 +24,9 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from labsmanager.mixin import CreateModalNavigateMixin
 from operator import attrgetter
-
+from labsmanager.views_modal import BSmodalDeleteViwGenericForeingKeyMixin
+import logging
+logger= logging.getLogger("labsmanager")
 
 class EmployeeIndexView(LoginRequiredMixin, BaseBreadcrumbMixin,TemplateView):
     template_name = 'employee/employee_base.html'
@@ -49,16 +51,20 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
     
     
     def dispatch(self, request, *args, **kwargs):
+        print(f'[EmployeeView - dispatch]')
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         
         if request.user.is_staff or request.user.has_perm('staff.view_employee'):
+            print(f'-> staff or perm OK')
             return super().dispatch(request, *args, **kwargs)
         
         emp = Employee.objects.get(pk=kwargs['pk'])
         if request.user == emp.user or request.user.has_perm("staff.change_employee", emp):
+            print(f'-> perm on object OK')
             return super().dispatch(request, *args, **kwargs)
         else:
+            print(f'-> Back to redirect')
             return HttpResponseRedirect(reverse('employee_index'))
     
         
@@ -128,6 +134,20 @@ class EmployeeCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     success_url = reverse_lazy('employee_index')
     
     success_single = 'employee'
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if not request.user.has_perm("staff.change_employee", self.object):
+            try:
+                emp = Employee.objects.get(user= request.user)
+                sup = Employee_Superior.objects.create(
+                    employee = self.object, 
+                    superior = emp, 
+                )
+            except Exception as e:
+                logger.debug(f"Unable to create Employee superior from user {request.user} for employee : {self.object}")
+                logger.debug(f" ERROR : {e}")
+        return response
 
 # Update
 class EmployeeUpdateView(LoginRequiredMixin, BSModalUpdateView):
@@ -139,7 +159,7 @@ class EmployeeUpdateView(LoginRequiredMixin, BSModalUpdateView):
     label_confirm = "Confirm"
 
 # remove
-class EmployeeRemoveView(LoginRequiredMixin, BSModalDeleteView):
+class EmployeeRemoveView(LoginRequiredMixin, BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = Employee
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm
@@ -304,6 +324,7 @@ def get_team_resume(request, pk):
 
 def get_team_mate(request, pk):
     teamMate = TeamMate.objects.filter(team=pk)
+    teamMate = TeamMate.annotate_queryset(teamMate, request.user, "view")
     team = Team.objects.get(pk=pk)
     # sorted_team_mates = sorted(teamMate, key=lambda x: x.is_active, reverse=True)
     sorted_team_mates = sorted(teamMate, key=lambda x: (not x.is_active, attrgetter('employee.first_name')(x)), reverse=False)

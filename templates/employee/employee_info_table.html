@@ -1,8 +1,8 @@
 {% load customs_tags %}
 {% load i18n %}
-{% load rules %}
+{% load lab_rules %}
 
-{% has_perm 'staff.change_genericinfo' user employee as can_change_genericinfo %}
+{% has_lab_perm 'staff.change_genericinfo' user employee as can_change_genericinfo %}
 
 {% if infoEmployee %}
 <div class="card mb-2">

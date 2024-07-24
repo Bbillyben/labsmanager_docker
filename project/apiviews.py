@@ -95,6 +95,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def participant(self, request, pk=None):
         proj = self.get_object()
         t1=Participant.objects.filter(project=proj.pk)
+        t1 = Participant.annotate_queryset(t1, request.user, "view")
         return JsonResponse(serializers.ParticipantProjectSerializer(t1, many=True).data, safe=False)
 
     @action(methods=['get'], detail=True, url_path='institution', url_name='institution')

@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load lab_rules %}
 
 {% block page_title %}
 {% trans "LabManager Project" %}
@@ -18,7 +19,7 @@
 
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
-
+{% has_project_add_perm user as can_add_project %}
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
         <div class="panel-heading">
@@ -26,7 +27,7 @@
                 <h4>{% trans 'Project List' %}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
                 <div class="btn-group" role="group">
-                    {% if perms.project.add_project %}
+                    {% if can_add_project %}
                     <button type="button" class="btn btn-success" id="project_create" title="Create New Project">
                         <span class='fa fa-briefcase-medical'></span>
                         {% trans 'Add Project' %}

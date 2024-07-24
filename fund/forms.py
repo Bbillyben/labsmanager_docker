@@ -107,9 +107,10 @@ class BudgetModelForm(BSModalModelForm):
             self.base_fields['cost_type'].queryset= models.Cost_Type.objects.all()
             
         # ===== Right Management
-        if ('initial' in kwargs and 'user' in kwargs['initial']):
-            user = kwargs['initial']['user']
+        if ('request' in kwargs):
+            user = kwargs['request'].user
             self.base_fields['fund'].queryset=Fund.get_instances_for_user('change', user, self.base_fields['fund'].queryset)
+            self.base_fields['employee'].queryset=Employee.get_instances_for_user('change', user, self.base_fields['employee'].queryset)
         # =====================
            
         super().__init__(*args, **kwargs)

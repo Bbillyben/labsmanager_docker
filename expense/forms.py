@@ -38,7 +38,7 @@ class ContractModelForm(BSModalModelForm):
             )
         else:
             self.base_fields['employee'] = forms.ModelChoiceField(
-                queryset=Employee.objects.all().order_by('first_name'),
+                queryset=Employee.objects.filter(is_active=True).order_by('first_name'),
             )
         if ('initial' in kwargs and 'project' in kwargs['initial']):
             self.base_fields['fund'] = forms.ModelChoiceField(
@@ -51,9 +51,10 @@ class ContractModelForm(BSModalModelForm):
             )
             
         # ===== Right Management
-        if ('initial' in kwargs and 'user' in kwargs['initial']):
-            user = kwargs['initial']['user']
+        if ('request' in kwargs):
+            user = kwargs['request'].user
             self.base_fields['fund'].queryset=Fund.get_instances_for_user('change', user, self.base_fields['fund'].queryset)
+            self.base_fields['employee'].queryset=Employee.get_instances_for_user('change', user, self.base_fields['employee'].queryset)
         # =====================
 
         super().__init__(*args, **kwargs)

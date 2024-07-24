@@ -201,7 +201,7 @@ function teamMateFormatter(value, row, index, field){
         value=[{"employee":value, "is_active":value.is_active}];
     }
     response = "";
-    can_see = USER_PERMS.includes('staff.view_employee')
+    can_see = USER_PERMS.includes('staff.view_employee') ;
     for (const item of value) {
         if(can_see){
             tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
-{% load rules %}
+{% load lab_rules %}
 
 
 
@@ -25,8 +25,8 @@
 {% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
 {% include 'modals.html' with modal_id='single-modal' modal_title='Single' %}
 
-{% has_perm 'staff.change_employee' user employee as can_edit_employee %}
-{% has_perm 'staff.add_genericinfo' user employee as can_add_genericinfo %}
+{% has_lab_perm 'staff.change_employee' user employee as can_edit_employee %}
+{% has_lab_perm 'staff.add_genericinfo' user employee as can_add_genericinfo %}
 
 
 <div id='detail-panels'> 
@@ -213,7 +213,7 @@
                                     <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                                         {% trans 'Active' %}
                                     </th>
-                                    {% if perms.staff.change_employee_superior or perms.staff.delete_employee_superior or can_edit_employee%}
+                                    
                                     <th data-sortable="false" class="th-inner" data-field="admin_action" 
                                     data-can-change="{% if perms.staff.change_employee_superior or can_edit_employee %}True{%endif%}"
                                     data-can-delete="{{ perms.staff.delete_employee_superior }}"
@@ -221,7 +221,6 @@
                                     >
                                         {% trans 'Action' %}
                                     </th>
-                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -438,7 +437,7 @@
                         <div class="d-flex flex-wrap">
                             <h4>{% trans 'Teams' %}</h4>
                             <span class="flex" style="flex-grow: 1;"></span>
-                            {% if perms.project.add_team %}
+                            {% if perms.staff.add_team %}
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-secondary" id="add_team" title="Create New team">
                                     <span class='fa fa-plus'></span>
@@ -587,7 +586,6 @@
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     employee_id = JSON.parse(document.getElementById('employee_id').textContent);
-
     if('{{user.employee.pk}}'=='{{pk}}')USER_PERMS+=", is_owner";
 
 

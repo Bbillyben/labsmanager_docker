@@ -131,6 +131,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
 
 // for calendar
 function initEmployeeCalendar(){
+    console.log("Employee id : "+employee_id)
     var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff") || USER_PERMS.includes("is_owner");
     var option={
         selectable:canMod,

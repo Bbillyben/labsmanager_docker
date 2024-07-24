@@ -60,9 +60,10 @@ class ParticipantModelForm(BSModalModelForm):
             self.base_fields['employee'].disabled = False
         
         # ===== Right Management
-        if ('initial' in kwargs and 'user' in kwargs['initial']):
-            user = kwargs['initial']['user']
-            self.base_fields['project'].queryset=Project.get_instances_for_user('change', user, self.base_fields['project'].queryset)
+        # if ('request' in kwargs):
+        #     user = kwargs['request'].user
+        #     self.base_fields['project'].queryset=Project.get_instances_for_user('change', user, self.base_fields['project'].queryset)
+        #     self.base_fields['employee'].queryset=Employee.get_instances_for_user('change', user, self.base_fields['employee'].queryset)
         # =====================   
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
@@ -79,7 +80,12 @@ class ParticipantModelForm(BSModalModelForm):
             self.fields['employee'].disabled = True
             self.fields['project'].disabled = True
         
-        
+        # ===== Right Management
+        if ('request' in kwargs):
+            user = kwargs['request'].user
+            self.fields['project'].queryset=Project.get_instances_for_user('change', user, self.fields['project'].queryset)
+            self.fields['employee'].queryset=Employee.get_instances_for_user('change', user, self.fields['employee'].queryset)
+        # =====================   
             
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):

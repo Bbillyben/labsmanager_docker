@@ -137,7 +137,7 @@ from django_prose_editor.sanitized import SanitizedProseEditorField
 class GenericNote(TimeStampMixin):
     class Meta:
         """Metaclass defines extra model properties"""
-        verbose_name = _("Generic Information")
+        verbose_name = _("Generic Notes")
         unique_together = ('content_type', 'object_id', 'name')
         ordering = ["created_at"]
         
