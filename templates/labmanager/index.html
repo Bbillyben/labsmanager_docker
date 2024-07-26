@@ -68,7 +68,7 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
-                {% if perms.expense.view_contract %}
+                {% if perms.expense.view_contract or perms.common.contract_list %}
                 {% url 'contract_index' as urlCard %}
                 {% trans 'Contract' as txtCard %}
                 {% static 'img/icons/contract.png' as imgURL%}
@@ -76,7 +76,7 @@
                 {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
                 {% endif %}
 
-                {% if perms.project.view_project %}
+                {% if perms.project.view_project or perms.common.project_list%}
                 {% url 'project_index' as urlCard %}
                 {% trans 'Project' as txtCard %}
                 {% static 'img/icons/project.png' as imgURL%}

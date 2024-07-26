@@ -5,9 +5,9 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum, Q, F
 
 
-from project.models import Project, Institution
+from project.models import Project, Institution, Participant
 
-from labsmanager.mixin import LabsManagerBudgetMixin, LabsManagerFocusBudgetMixin, LabsManagerFocusTypeMixin,  ActiveDateMixin, CachedModelMixin
+from labsmanager.mixin import LabsManagerBudgetMixin, LabsManagerFocusBudgetMixin, LabsManagerFocusTypeMixin,  ActiveDateMixin, CachedModelMixin, RightsCheckerMixin
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -52,7 +52,7 @@ class Fund_Institution(models.Model):
     def __str__(self):
         return f'{self.short_name}'
     
-class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMixin):
+class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund Line")
@@ -65,13 +65,26 @@ class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMi
     history = AuditlogHistoryField()
     
     cached_vars=["amount"]
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values('project')
+        queryset = queryset.filter(fund__project__in=proj)  
+        return queryset
+
 
     def __str__(self):
         return f'{self.type.short_name} - {self.fund}'
     
     
     
-class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
+class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund")
@@ -174,6 +187,19 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
         u = fi.union(expI)
         cpd=pd.DataFrame.from_records(u, columns=['project', 'funder','institution', 'type','end_date', 'amount',])
         return [cpd,]
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values('project')
+        queryset = queryset.filter(project__in=proj)
+        return queryset
+        
         
     def __str__(self):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
@@ -192,7 +218,7 @@ def calculate_fund(*arg):
         pj.calculate()
         
 
-class BudgetAbstract(models.Model):
+class BudgetAbstract(models.Model, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("BudgetAbstract")
@@ -219,6 +245,35 @@ class BudgetAbstract(models.Model):
             
     def __str__(self):
         return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values('project')
+        queryset = queryset.filter(fund__project__in=proj)
+        return queryset
+    
+        # queryset = queryset | cls.objects.all() 
+        # perm_name = cls._meta.app_label + '.change_'+cls._meta.model_name
+        # print("[BudgetAbstract - get_instances_for_user]")
+        # print(f'   - perm name : {perm_name}')
+        # if user.has_perm(perm_name):
+        #     return queryset
+        # from settings.models import LabsManagerSetting
+        # from project.models import Participant
+        # setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
+        # emp_stat = {"l", "cl"} if setting else {"l"}
+        # try:
+        #     proj=Participant.objects.filter(employee__user = user, status__in = emp_stat).values('project')
+        #     queryset = queryset.filter(fund__project__in=proj)
+        # except:
+        #     queryset = cls.objects.none()
+        # return queryset
 
 class Budget(BudgetAbstract):
     class Meta:

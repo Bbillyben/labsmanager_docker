@@ -181,7 +181,7 @@ function employeeFormatter(value, row, index, field){
     for (const item of value) {
         // console.log("item :"+JSON.stringify(item));
             if("employee" in item && item.employee!=null){
-                if(can_see || item.employee.pk == USER_EMPLOYEE){
+                if(can_see || item.employee.pk == USER_EMPLOYEE || (row && row.has_perm == true)){
                     tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
                 }else{
                     tm =item.employee.user_name;
@@ -201,7 +201,7 @@ function teamMateFormatter(value, row, index, field){
         value=[{"employee":value, "is_active":value.is_active}];
     }
     response = "";
-    can_see = USER_PERMS.includes('staff.view_employee')
+    can_see = USER_PERMS.includes('staff.view_employee') ;
     for (const item of value) {
         if(can_see){
             tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
@@ -243,8 +243,6 @@ function incommingEmployeeFormatter(value, row, index, field){
     return response;
 }
 function ParticipantFormatter(value, row, index, field){
-    // console.log('ParticipantFormatter'+JSON.stringify(value))
-    // console.log('ParticipantFormatter'+JSON.stringify(row))
 
     if(!isIterable(value)){
         value=[{"employee":value}];
@@ -284,11 +282,16 @@ function employeeSuperiorsFormatter(value, row, index, field){
     if(!isIterable(value)){
         value=[{"employee":value}];
     }
+    can_see = USER_PERMS.includes('staff.view_employee')
     response = "";
     for (const item of value) {
-        // console.log("item :"+JSON.stringify(item));
+        // console.log("item :"+JSON.stringify(item));ponse +=row.user_name;
             if("employee" in item && item.employee!=null){
-                tm ="<a href='/staff/employee/"+item.employee_superior.pk+"'>"+item.employee_superior.user_name+"</a>";
+                if(can_see) {
+                    tm ="<a href='/staff/employee/"+item.employee_superior.pk+"'>"+item.employee_superior.user_name+"</a>";
+                } else{
+                    tm =item.employee_superior.user_name;
+                }
                 response+= (response.length > 1 ? ', ' : '') + tm;
             }else{
                 response +="-"

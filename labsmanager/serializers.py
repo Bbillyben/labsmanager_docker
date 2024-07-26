@@ -111,9 +111,11 @@ class ContractTypeSerializer(serializers.ModelSerializer):
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Endpoint
 class MilestonesSerializer(serializers.ModelSerializer):
     project=ProjectSerializer(many=False, read_only=True)
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Milestones
-        fields = ['pk', 'name', 'deadline_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project']  
+        fields = ['pk', 'name', 'deadline_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project', 
+                  'has_perm']  
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Leave
@@ -263,31 +265,34 @@ class FavoriteSerialize(serializers.ModelSerializer):
 class Institution_ProjectParticipantSerializer(serializers.ModelSerializer):
     institution=InstitutionSerializer(many=False, read_only=True)
     status_name=serializers.CharField(source='get_status_display')
+    has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model = Institution_Participant
-        fields = ['pk', 'institution','status', 'status_name'] 
+        fields = ['pk', 'institution','status', 'status_name', 
+                  'has_perm',
+                  ] 
                
 class Institution_ParticipantSerializer(serializers.ModelSerializer):
     project=ProjectSerializer(many=False, read_only=True)
     institution=InstitutionSerializer(many=False, read_only=True)
-    
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Institution_Participant
-        fields = ['pk', 'project', 'institution', 'status']  
+        fields = ['pk', 'project', 'institution', 'status', 
+                  'has_perm',
+                  ]  
 
 class ParticipantSerializer(serializers.ModelSerializer):
     status=serializers.SerializerMethodField()
     project=ProjectSerializer(many=False, read_only=True)
-    # project_name=serializers.SerializerMethodField()
-    # project_status=serializers.SerializerMethodField()
-    # project_start_date=serializers.SerializerMethodField()
-    # project_end_date=serializers.SerializerMethodField()
-    # project_pk=serializers.SerializerMethodField()
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Participant
         # fields = ['pk', 'project_pk', 'project_name', 'project_start_date', 'project_end_date', 'project_status', 'status', 'quotity' ]
-        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity', 'is_active', ]
+        fields = ['pk', 'project', 'start_date', 'end_date', 'status', 'quotity', 'is_active',
+                  'has_perm',
+                  ]
     
     def get_status(self,obj):
         return obj.get_status_display()
@@ -460,12 +465,14 @@ class FundProjectSerialize(serializers.ModelSerializer):
     funder=Fund_InstitutionSerializer(many=False, read_only=True)
     institution=InstitutionSerializer(many=False, read_only=True)
     #amount =serializers.SerializerMethodField()
+    has_perm = serializers.BooleanField(read_only=True)
     
     class Meta:
         model = Fund
         fields = ['pk', 'funder', 'institution', 'start_date', 'end_date', 'ref', 
                   'amount', 'is_active', 'expense', 'available',
                    'amount_f', 'expense_f', 'available_f',
+                   'has_perm',
                    ] 
         
     # def get_amount(self,obj):
@@ -487,9 +494,12 @@ class ContractSerializer(serializers.ModelSerializer):
     fund = FundSerialize(many=False, read_only=True)
     contract_type = serializers.SerializerMethodField()
     employee=EmployeeSerialize_Min(many = False, read_only = True)
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Contract
-        fields = ['pk', 'employee', 'start_date', 'end_date', 'fund', 'contract_type','total_amount', 'quotity', 'is_active','status']
+        fields = ['pk', 'employee', 'start_date', 'end_date', 'fund', 'contract_type','total_amount', 'quotity', 'is_active','status',
+                  'has_perm',
+                  ]
     
     def get_contract_type(self,obj):
         if obj.contract_type:
@@ -569,16 +579,22 @@ class EmployeeStatusSerialize(serializers.ModelSerializer):
 
 class EmployeeSuperiorSerialize(serializers.ModelSerializer):
     employee_superior=EmployeeSerialize_Min(many=False, read_only=True, source='superior')
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Employee_Superior
         fields = ['pk', 'employee','employee_superior', 'start_date', 'end_date', 
-                  'is_active',]
+                  'is_active',
+                  'has_perm',
+                  ]
 class EmployeeSubordinateSerialize(serializers.ModelSerializer):
     subordinate=EmployeeSerialize_Min(many=False, read_only=True, source='employee')
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Employee_Superior
         fields = ['pk', 'subordinate','employee', 'start_date', 'end_date', 
-                  'is_active',]       
+                  'is_active',
+                  'has_perm',
+                  ]       
         
 from django.http import JsonResponse       
 class EmployeeOrganizationChartSerialize(serializers.ModelSerializer):
@@ -691,9 +707,12 @@ class TeamSerializer(serializers.ModelSerializer):
 class ParticipantProjectSerializer(serializers.ModelSerializer):
     employee=EmployeeSerialize_Min(many = False, read_only = True)
     status_name=serializers.SerializerMethodField()
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Participant
-        fields = ['pk', 'employee', 'start_date', 'end_date', 'status', 'status_name', 'quotity' ]
+        fields = ['pk', 'employee', 'start_date', 'end_date', 'status', 'status_name', 'quotity', 
+                  'has_perm',
+                  ]
     
     def get_status_name(self,obj):
         return obj.get_status_display()
@@ -843,9 +862,12 @@ class BudgetSerializer(serializers.ModelSerializer):
     emp_type=EmployeeTypeSerialize(many=False, read_only=False)
     employee=EmployeeSerialize_Min(many=False, read_only=False)
     contract_type=ContractTypeSerializer(many=True, read_only=True)
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Budget
-        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type', 'desc',]  
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type', 'desc',
+                  'has_perm',
+                  ]  
     
 class ContribSerializer(BudgetSerializer):
     # user = UserSerializer(many=False, read_only=True)
@@ -854,10 +876,12 @@ class ContribSerializer(BudgetSerializer):
     emp_type=EmployeeTypeSerialize(many=False, read_only=False)
     employee=EmployeeSerialize_Min(many=False, read_only=False)
     contract_type=ContractTypeSerializer(many=True, read_only=True)
+    has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Contribution
         fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type','desc',
-                  'start_date', 'end_date', 'is_active'] 
+                  'start_date', 'end_date', 'is_active',
+                  'has_perm'] 
         
         
         

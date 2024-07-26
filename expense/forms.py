@@ -8,12 +8,14 @@ from staff.models import Employee
 from django.utils.translation import gettext_lazy as _
 from django import forms
 from fund.models import Cost_Type, Fund
-
+from project.models import Participant
 from datetime import date
 
 from labsmanager.forms import DateInput
 from labsmanager.mixin import SanitizeDataFormMixin
-
+from settings.models import LabsManagerSetting
+import logging
+logger = logging.getLogger("labsmanager")
 class ContractModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract
@@ -24,6 +26,11 @@ class ContractModelForm(BSModalModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        print(f'[ContractModelForm - Init] ----------------------------------------------------------')
+        for a in args:
+            print(f'  - args : {a} ')
+        for k, v in kwargs.items():
+            print(f'  - {k} : {v}')
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.all().order_by('first_name'),
@@ -31,7 +38,7 @@ class ContractModelForm(BSModalModelForm):
             )
         else:
             self.base_fields['employee'] = forms.ModelChoiceField(
-                queryset=Employee.objects.all().order_by('first_name'),
+                queryset=Employee.objects.filter(is_active=True).order_by('first_name'),
             )
         if ('initial' in kwargs and 'project' in kwargs['initial']):
             self.base_fields['fund'] = forms.ModelChoiceField(
@@ -42,7 +49,14 @@ class ContractModelForm(BSModalModelForm):
             self.base_fields['fund'] = forms.ModelChoiceField(
                 queryset=Fund.objects.all(),
             )
-        
+            
+        # ===== Right Management
+        if ('request' in kwargs):
+            user = kwargs['request'].user
+            self.base_fields['fund'].queryset=Fund.get_instances_for_user('change', user, self.base_fields['fund'].queryset)
+            self.base_fields['employee'].queryset=Employee.get_instances_for_user('change', user, self.base_fields['employee'].queryset)
+        # =====================
+
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:

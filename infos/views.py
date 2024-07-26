@@ -189,14 +189,25 @@ def get_orga_contact_info(request, id):
 # --------------------------------------------------------------- 
 from .models import GenericNote
 from labsmanager.serializers import GenericInfoSerialiszer
+import rules
 def get_generic_infos_template(request, app, model, pk):
-    # ct = ContentType.objects.get(app_label=app, model=model)
-    # infos = GenericNote.objects.filter(content_type = ct, object_id=pk)
-    # data={"infos":infos}
+
     data={}
     data['app']=app
     data['model']=model
     data['object_id']=pk
+    #custom permission rules
+    rulesname = f'{app}.change_{model}'
+    if not rules.perm_exists(rulesname):
+        data['custom_rule']=False
+    else:
+        model_class = apps.get_model(app_label=app, model_name=model)
+        obj = get_object_or_404(model_class, pk=pk)
+        if not obj:
+            data['custom_rule']=False
+        else:
+             data['custom_rule']=request.user.has_perm(rulesname, obj)
+
     return render(request, 'notes/note_panel.html', data)
 
 def get_generic_infos(request, app, model, pk):
@@ -206,4 +217,5 @@ def get_generic_infos(request, app, model, pk):
     data['app']=app
     data['model']=model
     data['object_id']=pk
+    
     return JsonResponse(data, safe=False)

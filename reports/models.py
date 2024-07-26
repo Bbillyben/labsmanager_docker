@@ -3,8 +3,8 @@ from django.core.cache import cache
 from django.core.validators import FileExtensionValidator
 from django.template import Context, Template
 from django.http import HttpResponse, JsonResponse
-
-
+from django.contrib.contenttypes.models import ContentType  
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.translation import gettext_lazy as _
 
 
@@ -20,7 +20,8 @@ from docxtpl import DocxTemplate
 from django_weasyprint import WeasyTemplateResponseMixin
 import jinja2
 import json
-from django.core.serializers.json import DjangoJSONEncoder
+
+
 
 from staff.models import Employee,Employee_Status, GenericInfo, Team, TeamMate, Employee_Superior
 from expense.models import Contract
@@ -30,6 +31,7 @@ from leave.models import Leave
 from fund.models import Budget, Fund, Fund_Item, Contribution
 from endpoints.models import Milestones
 from project.views import get_project_fund_overviewReport
+from infos.models import GenericNote  
 
 from . import serializers
 from labsmanager.helpers import DownloadFile
@@ -37,6 +39,9 @@ from labsmanager import settings
 from labsmanager.manager import FileModelManager
 from .signals import auto_delete_templatefile_on_delete
 logger = logging.getLogger("labsmanager")
+
+
+
 
 def rename_template(instance, filename):
     """Helper function for 'renaming' uploaded report files.
@@ -209,9 +214,10 @@ class WordReport(TemplateReport):
     
     
     def render(self, request, options):
+        options["rendering"]="word"
         # rendering    
         doc = DocxTemplate(self.template_name)
-        jinja_env = jinja2.Environment(autoescape=True)
+        jinja_env = jinja2.Environment(autoescape=False)
         doc.render( self.get_context(request, options), autoescape=True)
         doc_io = BytesIO()
         doc.save(doc_io)
@@ -241,7 +247,8 @@ class PdfReport(TemplateReport):
     class Meta:
         abstract = True
         
-    def render(self, request, options, **kwargs):      
+    def render(self, request, options, **kwargs):  
+        options["rendering"]="pdf"    
         wp = WeasyprintReportMixin(
             request,
             self.template_name,
@@ -251,7 +258,7 @@ class PdfReport(TemplateReport):
         )
         context = self.get_context(request, options)
         return wp.render_to_response(context, **kwargs)
-        
+    
 class EmployeeReport(TemplateReport):   
     class Meta:
         abstract = True
@@ -304,6 +311,11 @@ class EmployeeReport(TemplateReport):
         
         subordinate = Employee_Superior.objects.filter(superior = emp)
         context["subordinate"]=subordinate
+        
+        employee_content_type = ContentType.objects.get_for_model(Employee)
+        notes = GenericNote.objects.filter(content_type=employee_content_type,object_id=emp.id)
+ 
+        context["notes"]=notes
         
         return context
     
@@ -364,6 +376,12 @@ class ProjectReport(TemplateReport):
         # fund overvieww by type
         fuT = get_project_fund_overviewReport_bytType(pk)
         context["fund_overview"]=fuT
+        
+        # fore Generic Notes
+        ct = ContentType.objects.get_for_model(Project)
+        notes = GenericNote.objects.filter(content_type=ct,object_id=proj.id)
+ 
+        context["notes"]=notes
         
         return context 
 

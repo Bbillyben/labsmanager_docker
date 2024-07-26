@@ -8,6 +8,11 @@ from . import models
 from .forms import ProjectModelForm, ParticipantModelForm, InstitutionModelForm, InstitutionModelFormDirect, GenericInfoProjectForm, GenericInfoTypeProjectForm
 
 from labsmanager.mixin import CreateModalNavigateMixin
+
+from project.models import Participant
+from staff.models import Employee
+import logging
+logger = logging.getLogger("labsmanager")
 # Update
 class ProjectUpdateView(LoginRequiredMixin, BSModalUpdateView):
     model = models.Project
@@ -25,6 +30,22 @@ class ProjectCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     
     success_single = 'project_single'
     
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if not request.user.has_perm("project.change_project", self.object):
+            try:
+                emp = Employee.objects.get(user= request.user)
+                part = Participant.objects.create(
+                    project = self.object, 
+                    employee = emp, 
+                    status = "l"
+                )
+            except Exception as e:
+                logger.debug(f"Unable to create Project Leader from user {request.user} for project : {self.object}")
+                logger.debug(f" ERROR : {e}")
+        return response
+    
     # def get_success_url(self, *args, **kwargs):
     #     if self.object is not None:
     #         if self.object.id:
@@ -41,7 +62,8 @@ class ProjectCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     #         return self.form_invalid(form)
     
 # remove
-class ProjectRemoveView(LoginRequiredMixin, BSModalDeleteView):
+from labsmanager.views_modal import BSmodalDeleteViwGenericForeingKeyMixin
+class ProjectRemoveView(LoginRequiredMixin, BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = models.Project
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm
@@ -60,17 +82,12 @@ class ParticipantUpdateView(LoginRequiredMixin, BSModalUpdateView):
     label_confirm = "Confirm"
 
 # remove
-class ParticipantDeleteView(LoginRequiredMixin, BSModalDeleteView):
+class ParticipantDeleteView(LoginRequiredMixin, BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = models.Participant
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm
     success_url = reverse_lazy('employee')
         
-    def post(self, *args, **kwargs):
-        
-        self.object = self.get_object()
-        self.object.delete()
-        return HttpResponse("okok", status=200)
     
     
 from pprint import pprint
@@ -83,12 +100,14 @@ class ParticipantCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Participant
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}
         if 'pk' in kwargs:
-            form = self.form_class(initial={'project': kwargs['pk']})
+            initial['project']= kwargs['pk']
         elif 'employee' in kwargs:
-            form = self.form_class(initial={'employee': kwargs['employee']})
-        else:
-            form = self.form_class()
+            initial['employee']= kwargs['employee']
+        kw['initial'] = initial
+        form = self.form_class(**kw)        
         
         context = {'form': form}
         return render(request, self.template_name , context)
@@ -102,12 +121,17 @@ class InstitutionCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Institution_Participant
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={} 
         if 'pk' in kwargs:
-            form = self.form_class(initial={'project': kwargs['pk']})
+            initial['project']= kwargs['pk']
         elif 'institution' in kwargs:
-            form = self.form_class(initial={'institution': kwargs['institution']})
+            initial['institution']= kwargs['institution']
         else:
-            form = self.form_class(initial={'only_active': True})
+            initial['only_active']= True
+        
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         
         context = {'form': form}
         return render(request, self.template_name , context)
@@ -138,11 +162,12 @@ class ProjectInfoCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.GenericInfoProject
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={} 
         if 'project' in kwargs:
-            form = self.form_class(initial={'project': kwargs['project']})
-        else:
-            form = self.form_class()
-        
+            initial['project']= kwargs['project']        
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         context = {'form': form}
         return render(request, self.template_name , context)
 

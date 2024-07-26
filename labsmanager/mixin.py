@@ -1,12 +1,14 @@
 from collections import OrderedDict
 from typing import List
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.db import models
 from django.db.models import Q, F
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
+from django.db.models import Q, F, Value, Case, When, BooleanField
 import django.dispatch
+from django.contrib import messages
 from dateutil.rrule import *
 
 
@@ -14,6 +16,8 @@ from .manager import Current_date_Manager, outof_date_Manager, date_manager, foc
 
 from datetime import date, datetime
 import copy
+import logging
+logger=logging.getLogger("labsmanager")
 
 from django_tables2 import Column, SingleTableMixin, Table
 
@@ -270,6 +274,9 @@ class CrumbListMixin():
         return context
     
 from bootstrap_modal_forms.generic import BSModalCreateView   
+from bootstrap_modal_forms.mixins import is_ajax   
+
+
 class CreateModalNavigateMixin(BSModalCreateView):
     '''add a url to navigate to to the response whenever the form is successfully submitted
     to be handled in the ajax call to navigate
@@ -291,6 +298,18 @@ class CreateModalNavigateMixin(BSModalCreateView):
         else:
             return self.form_invalid(form)
         
+    def form_valid(self, form):
+        isAjaxRequest = is_ajax(self.request.META)
+        asyncUpdate = self.request.POST.get('asyncUpdate') == 'True'
+
+        if isAjaxRequest:
+            if asyncUpdate:
+                self.object = form.save()
+            return HttpResponse(status=204)
+
+        self.object = form.save()
+        messages.success(self.request, self.get_success_message())
+        return HttpResponseRedirect(self.get_success_url())  
 
 from django import forms
 import nh3
@@ -330,3 +349,64 @@ class TimeStampMixin(models.Model):
 
     class Meta:
         abstract = True
+
+
+
+# ==========================  Right Management Mixin for models 
+# to provide list of instance for models
+from settings.models import LabsManagerSetting
+class RightsCheckerMixin():
+    class Meta:
+        abstract=True
+        
+    perms_auth=('view', 'change', 'add', 'delete')
+    
+    @classmethod
+    def get_project_modder(cls, perm=None):
+        if perm.lower() not in cls.perms_auth:
+            logger.error(f"'{perm}' permission is not valid")
+            return None
+        if perm == 'view':
+            return None 
+        setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
+        emp_stat = {"l", "cl"} if setting else {"l"}
+        return emp_stat
+    
+    @classmethod
+    def get_perm_string(cls, perm):
+        if perm.lower() not in cls.perms_auth:
+            logger.error(f"'{perm}' permission is not valid")
+            return None
+        perm_str = cls._meta.app_label + '.'+perm+"_"+cls._meta.model_name
+        return perm_str
+    
+    @classmethod
+    def get_instances_for_user(cls, perm, user, queryset=None):
+        if perm.lower() not in cls.perms_auth:
+            logger.error(f"{perm} permission is not valid")
+            return cls.objects.none()
+        if not queryset:
+            queryset = cls.objects.all() 
+        perm_str = cls._meta.app_label + '.'+perm+"_"+cls._meta.model_name
+        if user.has_perm(perm_str):
+            return queryset
+        return cls.objects.none()
+    
+    @classmethod
+    def annotate_queryset(cls, queryset, user, perm):
+        perm_str = cls.get_perm_string(perm)
+        if not perm_str:
+            return queryset.annotate(has_perm=Value(False))
+        if user.has_perm(perm_str):
+            return queryset.annotate(has_perm=Value(True))
+        
+        qset_right=[item.pk for item in queryset if user.has_perm(perm_str, item)]
+        queryset = queryset.annotate(
+                        has_perm=Case(
+                            When(pk__in=qset_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        return queryset
+        # =======================

@@ -1,8 +1,20 @@
 ## Changelog LabsManager
 
-### XX
+### 2024-07-26
+note : this version need an update with static. 
+You can also 'manage.py loaddata group-fixture' to load gourp definition 
 
+* [enhance] Change password form to hide hints 
+* [Fix] Contract's Icon in Organisation info panel 
 * [Fix] Double password reset link on login page
+* [Fix] CSS issue on provisionnal contract tab
+* [ADD] permission system at object level (django-rules), lots of modification and additions
+    * in employee, project and team view, user can change item only if user'emlployee is himself or superior, project leader or team leader
+* [ADD] Parameters to let user :
+    * modify his/her subordinates info
+    * modify project where they are co leader
+* [ADD] In finder, fund and budget are restricted for user that don't have right on items to only project where user's employee is leader or co leader 
+* [ADD] Group permission Fixture, installed at "install" task
 
 ### 2024/07/11
 * [Fix] remove favorite button for user's employee

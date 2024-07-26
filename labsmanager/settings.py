@@ -69,6 +69,9 @@ INSTALLED_APPS = [
     
     
     'django_extensions',
+    
+    'django_password_validators',   # https://pypi.org/project/django-password-validators/
+    'django_password_validators.password_history',
 
     # Installed Package
     'crispy_forms',                 # https://django-crispy-forms.readthedocs.io/en/latest/install.html
@@ -92,6 +95,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',              # https://django-allauth.readthedocs.io/en/latest/installation.html
     'django_prose_editor',          # https://github.com/matthiask/django-prose-editor   rich text editor
+    'rules.apps.AutodiscoverRulesConfig',       # https://pypi.org/project/rules/ For per object permission
     
     # App
     'staff.apps.StaffConfig',
@@ -213,11 +217,18 @@ TEMPLATES = [
             ],
             'libraries':{
                 'customs_tags': 'labsmanager.templatetags.customs_tags',
+                'lab_rules': 'labsmanager.templatetags.lab_rules',
             
             }
         },
     },
 ]
+
+FIXTURE_DIRS =[
+    os.path.join(BASE_DIR, 'labsmanager', 'fixtures'), 
+    # BASE_DIR / "labsmanager" / "fixture",
+]
+
 
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
@@ -229,10 +240,6 @@ WSGI_APPLICATION = 'labsmanager.wsgi.application'
 
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'data' / 'dbs' / 'db.sqlite3',
-    # },
     'default': {
         'ENGINE': get_setting('SQL_ENGINE', 'sql_engine', 'django.db.backends.postgresql'),
         'NAME': get_setting('LAB_DB_NAME', 'lab_db_name', 'labsmanager'),
@@ -245,6 +252,7 @@ DATABASES = {
 
 
 AUTHENTICATION_BACKENDS = [
+    'rules.permissions.ObjectPermissionBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
     ]
@@ -267,12 +275,32 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 9,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        'NAME': 'django_password_validators.password_history.password_validation.UniquePasswordsValidator',
+        'OPTIONS': {
+            'last_passwords': 5 # Only the last 5 passwords entered by the user
+        }
+    },
+    {
+        'NAME': 'django_password_validators.password_character_requirements.password_validation.PasswordCharacterValidator',
+        'OPTIONS': {
+             'min_length_digit': 1,
+             'min_length_alpha': 1,
+             'min_length_special': 1,
+             'min_length_lower': 1,
+             'min_length_upper': 1,
+             'special_characters': "~!@#$%^&*()_+{}\":;'[]"
+         }
     },
 ]
 
@@ -357,7 +385,8 @@ Q_CLUSTER = {
     'label': 'Scheduled Tasks',
 }
 
-
+ACCOUNT_FORMS = {'reset_password_from_key': 'common.forms.ResetLabPasswordKeyForm', 
+                 }
 # Session 
 SESSION_COOKIE_AGE = 6400
 # SESSION_COOKIE_NAME = '__Secure-sessionid'
@@ -451,4 +480,5 @@ logger.debug(f'  - STATIC_ROOT: {STATIC_ROOT}')
 logger.debug(f'  - MEDIA_ROOT: {MEDIA_ROOT}')
 logger.debug(f'  - STATICFILES_DIRS: {STATICFILES_DIRS}')
 logger.debug(f'  - STATIC_COLOR_THEMES_DIR: {STATIC_COLOR_THEMES_DIR}')
+logger.debug(f'  - FIXTURE_DIRS: {FIXTURE_DIRS}')
 logger.debug('=========  =========  =========')

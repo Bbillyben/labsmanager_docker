@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load lab_rules %}
 
 {% block page_title %}
 {% trans "LabManager Team" %} - {{ team }}
@@ -16,6 +17,8 @@
 
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Team' %}
+
+{% has_lab_perm 'staff.change_team' user team as can_edit_team %}
 
 <div id='detail-panels'>
     <div class="panel" id="panel-project" style="display: block;">
@@ -213,19 +216,18 @@
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script>
+{% has_lab_perm 'leave.change_leave' user team as can_edit_leave %}
 $(document).ready(function () {
-    perms="{{ perms }}";
-    perms=perms.replaceAll("&#x27;","'");
-    is_staff="{{ request.user.is_staff }}";
-    if(is_staff=="True")perms+=", is_staff";
+    // specific perms per object //
+    {% if can_edit_leave %}
+        USER_PERMS+=", leave.change_leave"; 
+    {% endif %}   
 
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     team_id = JSON.parse(document.getElementById('team_id').textContent);
 
 
-
-
-    initTeamSingleView(user_id, team_id, perms, "{% url 'api:leave-search-calendar' %}");
+    initTeamSingleView(user_id, team_id, "{% url 'api:leave-search-calendar' %}");
 
     onPanelLoad("team-leave", function(){initTeamCalendar("{% url 'calendar_print' %}", '{{ team.pk }}');});
     onPanelLoad("team-budget", function(){initializeBudgetTable();}) 

@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load lab_rules %}
 
 {% block page_title %}
 {% trans "LabManager Project" %} - {{ project }}
@@ -17,7 +18,7 @@
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Project' %}
 
-
+{% has_lab_perm 'project.change_project' user project as can_edit_project %}
 <div id='detail-panels'>
     <div class="panel" id="panel-project" style="display: block;">
 
@@ -38,27 +39,27 @@
                     {% if perms.common.change_favorite %}
                     <div class="favorite" data-type="project.project" data-pk='{{project.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
                     {%endif%}
-                    {% if perms.project.change_project or perms.project.add_participant or perms.project.add_institution_participant%}
+                    {% if can_edit_project or perms.project.change_project or perms.project.add_participant or perms.project.add_institution_participant%}
                     <button id="project-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Project Actions" aria-expanded="false">
                         <i class="fas fa-flask"></i>
                     </button>
                     <ul class="dropdown-menu" style="">
-                        {% if perms.project.change_project %}
+                        {% if perms.project.change_project or can_edit_project %}
                         <li><a class="dropdown-item" href="#" id="edit-project" title="Edit Project">
                             <i class='fa fa-edit'></i> {% trans 'Edit Project' %}
                         </a></li>
                         {% endif %}
-                        {% if perms.project.add_participant %}
+                        {% if perms.project.add_participant or can_edit_project %}
                         <li><a class="dropdown-item" href="#" id="add_participant" title="Add Participant">
                             <i class='fa fa-user-plus'></i> {% trans 'Add Participant' %}
                         </a></li>
                         {% endif %}
-                        {% if perms.project.add_institution_participant %}
+                        {% if perms.project.add_institution_participant or can_edit_project %}
                         <li><a class="dropdown-item" href="#" id="add_institution_participant" title="Add Institution">
                             <i class='fa fa-building-columns'></i> {% trans 'Add Institution' %}
                         </a></li>
                         {% endif %}
-                        {% if perms.project.add_genericinfoproject %}
+                        {% if perms.project.add_genericinfoproject or can_edit_project %}
                         <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
                             <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
                         </a></li>
@@ -158,9 +159,9 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="employee.is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle" >
                                                 {% trans 'Employee Active' %}
                                             </th>
-                                            {% if perms.project.change_participant or perms.project.delete_participant %}
+                                            {% if perms.project.change_participant or perms.project.delete_participant or can_edit_project %}
                                             <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionParticipant"
-                                            data-can-change="{{ perms.project.change_participant }}"
+                                            data-can-change="{% if can_edit_project or perms.project.change_participant %}True{%endif%}"
                                             data-can-delete="{{ perms.project.delete_participant }}"
                                             >
                                                 {% trans 'Action' %}
@@ -198,7 +199,7 @@
                 
                     <div class="btn-group" role="group">
     
-                        {% if perms.endpoints.add_milestones %}
+                        {% if perms.endpoints.add_milestones or can_edit_project %}
                         <button type="button" class="btn btn-secondary" id="add_milestones" title="Add Item" data-pjPk="{{ project.pk }}" data-form-url="{% url 'create_project_milestones' project=project.pk %}" >
                             <span class='fa fas fa-plus'></span>
                         </button>
@@ -258,7 +259,7 @@
                                 <div class="d-flex flex-wrap subheading">
                                     <h4><i class="fas fa-money-bills"></i>  {% trans 'Fund' %} : <i class="super-small">{{ project }}</i></h4> 
                                     <span class="flex" style="flex-grow: 1;"></span>
-                                    {% if perms.fund.add_fund %}
+                                    {% if perms.fund.add_fund or can_edit_project%}
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-secondary" id="add_fund_temp" title="Add Item" data-projectpk="{{ project.pk }}" >
                                             <span class='fas fa-plus'></span>
@@ -310,7 +311,7 @@
                     <span class="flex" style="flex-grow: 1;"></span>
                     <div class="btn-group" role="group">
     
-                        {% if perms.fund.add_budget %}
+                        {% if perms.fund.add_budget or can_edit_project %}
                         <button type="button" class="btn btn-secondary" id="add_budget" title="Add Item" data-pk="{{ project.pk }}" data-form-url="" >
                             <span class='fa fas fa-plus'></span>
                         </button>
@@ -345,7 +346,7 @@
                     <span class="flex" style="flex-grow: 1;"></span>
                     <div class="btn-group" role="group">
     
-                        {% if perms.fund.add_contribution %}
+                        {% if perms.fund.add_contribution or can_edit_project %}
                         <button type="button" class="btn btn-secondary" id="add_contrib" title="Add Item" data-pk="{{ project.pk }}" data-form-url="" >
                             <span class='fa fas fa-plus'></span>
                         </button>
@@ -497,7 +498,7 @@
                             <div class="d-flex flex-wrap subheading">
                                 <h4><i class="fas fa-file-signature"></i>  {% trans 'Contract' %}</h4> 
                                 <span class="flex" style="flex-grow: 1;"></span>
-                                {% if perms.expense.add_contract %}
+                                {% if perms.expense.add_contract or can_edit_project%}
                                 <div class="btn-group" role="group">
                                     <button type="button" class="btn btn-secondary" id="add_contract" title="Add Item" data-project="{{ project.pk }}" >
                                         <span class='fas fa-plus'></span>
@@ -553,12 +554,18 @@
 <script type='text/javascript' src="{% static 'js/project_graph.js' %}"></script>
 
 
-
+{% has_lab_perm 'project.change_project' user project as can_edit_project %}
 
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     project_id = JSON.parse(document.getElementById('project_id').textContent);
+
+    {% if can_edit_project %}
+        USER_PERMS+=", leave.change_leave"; 
+    {% endif %}  
+
+
     initProjectSingleView(user_id, project_id);
 
     

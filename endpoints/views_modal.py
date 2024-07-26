@@ -41,12 +41,14 @@ class MilestonesCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Milestones
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}
         if 'pk' in kwargs:
-            form = self.form_class(initial={'milestones': kwargs['pk']})
+            initial['milestones']= kwargs['pk']
         elif 'project' in kwargs:
-            form = self.form_class(initial={'project': kwargs['project']})
-        else:
-            form = self.form_class()
+            initial['project']= kwargs['project']
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         
         context = {'form': form}
         return render(request, self.template_name , context)

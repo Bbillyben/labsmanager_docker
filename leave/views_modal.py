@@ -16,7 +16,7 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Leave
 
     def get(self, request, *args, **kwargs):
-        
+        kw = self.get_form_kwargs()
         initial={}
         
         data=request.GET # or request.data or request.query_params
@@ -49,7 +49,8 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
                 initial['end_period']="MI"
 
         
-        form = self.form_class(initial=initial)
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         context = {'form': form}
         return render(request, self.template_name , context)
     

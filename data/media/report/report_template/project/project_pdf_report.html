@@ -620,7 +620,21 @@
 <div class="spacer"></div>
 {% endif %}
 
-
+<!-- ##################################    Notes    ################################## -->
+{% if notes   %}
+    <div class="table_title general highlight">
+        <span>{% trans "Notes" %}</span>
+    </div>
+    {% for note in notes  %}
+    <div class="table_subtitle">
+        <span>{{note.name|safe}}</span>
+    </div>
+    <div class="spacer">
+        {{note.note|safe}}
+    </div>
+    
+    {%endfor %}
+{% endif %}
 <!-- ##################################    Footer    ################################## -->
 <footer>
     <div id="footer_bar">         
