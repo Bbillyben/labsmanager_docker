@@ -97,6 +97,10 @@ def install(c, super_user = False):
     can launch the superuser creation dialog
     """
     update(c)
+    print(" load initial Permission Groups...")
+    print("-------------------------------------")
+    manage(c, "loaddata group-fixture")
+    print("-------------------------------------")
     print(" load initial report datas...")
     print("-------------------------------------")
     manage(c, "loaddata initial-report-data")
@@ -107,8 +111,18 @@ def install(c, super_user = False):
     else:
         print("> run invoke superuser to create admin user for your Labsmanager Instance")
     print(">----------- Install Process Complete -----------<")
+
+
+@task(help={
+    'fixture': "select a fixture to install from available ones",
+    })    
+def loadfixture(c, fixture=None):
     
-   
+    if fixture:
+        print(f" Loading fixture: {fixture}")
+        manage(c, "loaddata {fixture}")
+    else:
+         print(f" please provide a --fixture to load")
 @task
 def etpmigrate(c):
     """Migrate older Expense Point ."""
