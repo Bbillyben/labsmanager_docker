@@ -2,7 +2,7 @@
 
 ### 2024-07-26
 note : this version need an update with static. 
-You can also 'manage.py loaddata group-fixture' to load gourp definition 
+
 
 * [enhance] Change password form to hide hints 
 * [Fix] Contract's Icon in Organisation info panel 
@@ -15,6 +15,8 @@ You can also 'manage.py loaddata group-fixture' to load gourp definition
     * modify project where they are co leader
 * [ADD] In finder, fund and budget are restricted for user that don't have right on items to only project where user's employee is leader or co leader 
 * [ADD] Group permission Fixture, installed at "install" task
+    * can be loaded by : python manage.py loaddata group-fixture
+    * or docker compose run lab-server invoke loadfixture group-fixture
 
 ### 2024/07/11
 * [Fix] remove favorite button for user's employee
