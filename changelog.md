@@ -1,6 +1,9 @@
 ## Changelog LabsManager
 
 ### 2024-07-26
+note : this version need an update with static. 
+You can also 'manage.py loaddata group-fixture' to load gourp definition 
+
 * [enhance] Change password form to hide hints 
 * [Fix] Contract's Icon in Organisation info panel 
 * [Fix] Double password reset link on login page
