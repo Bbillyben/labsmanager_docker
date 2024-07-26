@@ -181,7 +181,7 @@ function employeeFormatter(value, row, index, field){
     for (const item of value) {
         // console.log("item :"+JSON.stringify(item));
             if("employee" in item && item.employee!=null){
-                if(can_see || item.employee.pk == USER_EMPLOYEE || row.has_perm==true){
+                if(can_see || item.employee.pk == USER_EMPLOYEE || (row && row.has_perm == true)){
                     tm ="<a href='/staff/employee/"+item.employee.pk+"'>"+item.employee.user_name+"</a>";
                 }else{
                     tm =item.employee.user_name;

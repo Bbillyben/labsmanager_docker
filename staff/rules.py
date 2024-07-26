@@ -64,6 +64,7 @@ def is_teammate_superior(user, teammate= None):
         return Employee_Superior.is_in_superior_hierarchy(user_emp, teammate.employee)
     except:
         return False
+    
 
 #    Rules ======================
 rules.add_perm('staff.change_employee', is_user_employee |  is_user_subordinate)
@@ -76,5 +77,8 @@ rules.add_perm('staff.view_team', is_teammate)
 rules.add_perm('staff.view_teammate', is_teammate_superior)
 
 rules.add_perm('staff.change_participant', is_participant_manager)
+
+
+
 
 

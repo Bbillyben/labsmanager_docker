@@ -28,6 +28,7 @@
 {% has_lab_perm 'staff.change_employee' user employee as can_edit_employee %}
 {% has_lab_perm 'staff.add_genericinfo' user employee as can_add_genericinfo %}
 
+{% has_lab_perm 'reports.view_employeewordreport' user employee as can_print_report %}
 
 <div id='detail-panels'> 
     <div class="panel " id="panel-employee" style="display: block;">
@@ -47,29 +48,31 @@
                     {% if perms.common.change_favorite and user.employee != employee %}
                     <div class="favorite" data-type="staff.employee" data-pk='{{employee.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
                     {%endif%}
-                    {% if can_edit_employee %}
+                    {% if can_edit_employee or can_add_genericinfo or can_print_report%}
                     <button id="employee-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Employee Actions" aria-expanded="false">
                         <i class="fas fa-flask"></i>
                     </button>
                     <ul class="dropdown-menu" style="">
+                        {% if can_edit_employee %}
                         <li><a class="dropdown-item" href="#" id="edit-employee" title="Edit Employee">
                             <i class='fa fa-edit'></i> {% trans 'Edit Employee' %}
                         </a></li>
                         <li><a class="dropdown-item" href="#" id="add-status" title="Add Status">
                             <i class='fa fa-user-plus'></i> {% trans 'Add Status' %}
                         </a></li>
+                        {% endif %}
                         {% if can_add_genericinfo %}
                         <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
                             <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
                         </a></li>
                         {% endif %}
-                        {% if perms.reports.view_employeewordreport or user.employee.pk == pk %}
+                        {% if can_print_report %}
                         <div class="dropdown-divider"></div>
                         <li><a class="dropdown-item" href="#" id="export_word" title="Export Word">
                             <i class='fa fa-file-word'></i> {% trans 'Export Word' %}
                         </a></li>
                         {% endif %}
-                        {% if perms.reports.view_employeepdfreport or user.employee.pk == pk    %}
+                        {% if can_print_report %}
                         <li><a class="dropdown-item" href="#" id="export_pdf" title="Export PDF">
                             <i class='fa fa-file-pdf'></i> {% trans 'Export PDF' %}
                         </a></li>
@@ -583,10 +586,11 @@
 <script type='text/javascript' src="{% static 'bstreeview/bstreeview.js' %}"></script>
 
 <script>
+{% has_lab_perm 'staff.change_employee' user employee as can_edit_employee %}
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     employee_id = JSON.parse(document.getElementById('employee_id').textContent);
-    if('{{user.employee.pk}}'=='{{pk}}')USER_PERMS+=", is_owner";
+    if('{{can_edit_employee}}'=="True")USER_PERMS+=", can_edit";
 
 
     initEmployeeSingleView(user_id, employee_id);

@@ -1,7 +1,7 @@
 ## Changelog LabsManager
 
 ### XX
-
+* [enhance] Change password form to hide hints 
 * [Fix] Contract's Icon in Organisation info panel 
 * [Fix] Double password reset link on login page
 * [Fix] CSS issue on provisionnal contract tab
@@ -11,6 +11,7 @@
     * modify his/her subordinates info
     * modify project where they are co leader
 * [ADD] In finder, fund and budget are restricted for user that don't have right on items to only project where user's employee is leader or co leader 
+* [ADD] Group permission Fixture, installed at "install" task
 
 ### 2024/07/11
 * [Fix] remove favorite button for user's employee
