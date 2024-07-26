@@ -120,7 +120,7 @@ def loadfixture(c, fixture=None):
     
     if fixture:
         print(f" Loading fixture: {fixture}")
-        manage(c, "loaddata {fixture}")
+        manage(c, f"loaddata {fixture}")
     else:
          print(f" please provide a --fixture to load")
 @task
