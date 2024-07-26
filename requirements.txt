@@ -116,6 +116,8 @@ django-js-reverse @ git+https://github.com/ierror/django-js-reverse
     # via -r requirements.in
 django-mptt==0.16.0
     # via -r requirements.in
+django-password-validators==1.7.3
+
 django-picklefield==3.2
     # via
     #   -r requirements.in
@@ -308,6 +310,7 @@ rpds-py==0.18.1
     # via
     #   jsonschema
     #   referencing
+rules==3.4
 six==1.16.0
     # via
     #   -r requirements.in
