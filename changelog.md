@@ -1,5 +1,12 @@
 ## Changelog LabsManager
 
+
+### 2024-07-27
+
+* [FIX] import issue with expense on error no fund id
+* [enhance] import form layout 
+
+
 ### 2024-07-26
 note : this version need an update with static. 
 

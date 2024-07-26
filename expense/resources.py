@@ -74,13 +74,13 @@ class ExpensePointResource(labResource, SkipErrorRessource):
         column_name='Ref',
         attribute='fund',
         widget=widgets.ForeignKeyWidget(Fund, 'ref'),
-        readonly=True
+        readonly=False
         )
     type=Field(
         column_name='type',
         attribute='type',
         widget=widgets.ForeignKeyWidget(Cost_Type, 'short_name'),
-        readonly=True
+        readonly=False
         )
     project=FundField(
         column_name='project',
@@ -114,7 +114,6 @@ class ExpensePointResource(labResource, SkipErrorRessource):
     )        
         
     def before_import_row(self, row, row_number=None, **kwargs):
-        
         query = Q()
         project_name = row.get('project', None)
         if project_name is not None:

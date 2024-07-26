@@ -88,6 +88,8 @@ class FundField(Field):
         if refI is not None:
             query = query & Q(ref=refI)
         
+        print(f"[FundField - clean ] {self.column_name}__________________")
+        print(f" query : {query}")
         fu = Fund.objects.filter(query).first()
         return fu
    

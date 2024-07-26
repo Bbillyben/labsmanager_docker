@@ -5,9 +5,13 @@
 
 
 
-
 {% block page_title %}
 {% trans "LabManager Import" %}
+{% endblock %}
+
+
+{% block style %}
+
 {% endblock %}
 
 {% block breadcrumb_list %}
@@ -16,6 +20,7 @@
 {% block sidebar %}
 
 {% endblock %}
+
 
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Import' %}
