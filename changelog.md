@@ -1,6 +1,6 @@
 ## Changelog LabsManager
 
-### XX
+### 2024-07-26
 * [enhance] Change password form to hide hints 
 * [Fix] Contract's Icon in Organisation info panel 
 * [Fix] Double password reset link on login page
