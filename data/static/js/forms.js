@@ -137,7 +137,6 @@ function constructCreateForm(fields, options) {
  * -
  */
 function constructChangeForm(fields, options) {
-
     // Request existing data from the API endpoint
     $.ajax({
         url: options.url,
@@ -379,7 +378,6 @@ function constructForm(url, options) {
  * - options: form options object provided by the client.
  */
 function constructFormBody(fields, options) {
-
     var html = '';
 
     // Client must provide set of fields to be displayed,
@@ -688,6 +686,10 @@ function submitFormData(fields, options) {
 
     // We can (optionally) provide a "starting point" for the submitted data
     var data = options.form_data || {};
+
+    if(options.data){
+        Object.assign(data, options.data);
+    }
 
     var has_files = false;
 
@@ -1848,7 +1850,6 @@ function setRelatedFieldData(name, data, options={}) {
 
 
 function initializeChoiceField(field, fields, options) {
-    console.log("initializeChoiceField")
     var select = getFormFieldElement(field.name, options);
 
     select.select2({

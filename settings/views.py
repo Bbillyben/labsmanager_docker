@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from view_breadcrumbs import BaseBreadcrumbMixin
 from django.urls import reverse, reverse_lazy
 
-from .models import LMUserSetting
+from .models import LMUserSetting, LMProjectSetting
 
 from fund.models import Cost_Type, Fund_Institution
 from staff.models import Employee_Type, GenericInfoType
@@ -391,4 +391,12 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
             context["action"]["admin"] = 'admin:auth_user_change'
         
         return render(request=request,template_name=self.template_name,context=context)
+    
+def get_project_setting_modal(request, proj):
+        
+    context={
+        "project":proj,
+        }
+    
+    return render(request=request,template_name="settings/modal_project_settings.html",context=context)
     

@@ -14,7 +14,6 @@
 
 
 function labsmanagerGet(url, filters={}, options={}) {
-
     // Middleware token required for data update
     var token = getCookie('csrftoken');
 

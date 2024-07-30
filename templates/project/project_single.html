@@ -64,6 +64,11 @@
                             <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
                         </a></li>
                         {% endif %}
+                        
+                        <li><a class="dropdown-item" href="#" id="project-setting" title="Project Settings">
+                            <i class='fa fa-sliders'></i> {% trans 'Project Settings' %}
+                        </a></li>
+                        
                         {% if perms.reports.view_projectwordreport %}
                         <div class="dropdown-divider"></div>
                         <li><a class="dropdown-item" href="#" id="export_word" title="Export Word">

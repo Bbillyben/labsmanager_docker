@@ -9,10 +9,16 @@
           <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='{% trans "Close" %}'></button>
       </div>
       <div class="modal-body">
+      {% block modal_content %}
+      {% endblock %}
       </div>
     </div>
   </div>
   
 </div>
+
+
+{% block modal_js %}
+{% endblock %}
 
 

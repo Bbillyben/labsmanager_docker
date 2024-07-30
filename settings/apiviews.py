@@ -20,12 +20,11 @@ class UserSettingsDetail(generics.RetrieveUpdateAPIView):
         """Attempt to find a user setting object with the provided key."""
         key = self.kwargs['key']
         if key not in models.LMUserSetting.SETTINGS.keys():
-            raise NotFound()
+            raise Exception('Not found') 
 
         return models.LMUserSetting.get_setting_object(key, user=self.request.user)
     
     permission_classes = (IsAuthenticated,)
-    
     
 class UserSettingsList(generics.ListAPIView):
     """API endpoint for accessing a list of user settings objects."""
@@ -47,8 +46,56 @@ class UserSettingsList(generics.ListAPIView):
         return queryset
     
     permission_classes = (IsAuthenticated,)
+import json
+class ProjectSettingsDetail(generics.RetrieveUpdateAPIView):
+    """Detail view for an individual "user setting" object.
+    - User can only view / edit settings their own settings objects
+    """
+    lookup_field = 'key'
+    queryset = models.LMProjectSetting.objects.all()
+    serializer_class = serializers.UserSettingsSerializer
+
+    def get_object(self):
+        """Attempt to find a user setting object with the provided key."""
+        key = self.kwargs['key']          
+             
+        project = self.request.data.get("project", None)
+        if not project:
+            try:
+                # project = json.loads(list(self.request.GET.keys())[0]).get("project", None) #
+                project =self.request.GET.get("project", None)
+            except:
+                print(f"Unable to find project setting {key}")
+        
+        if key not in models.LMProjectSetting.SETTINGS.keys() or not project :
+            raise Exception('Not found') 
+
+        return models.LMProjectSetting.get_setting_object(key, project=project)
+   
     
+    permission_classes = (IsAuthenticated,)   
+from project.models import Project
+class ProjectSettingsList(generics.ListAPIView):
+    """API endpoint for accessing a list of user settings objects."""
+
+    queryset = models.LMProjectSetting.objects.all()
+    serializer_class = serializers.UserSettingsSerializer
+
+    def filter_queryset(self, queryset):
+        """Only list settings which apply to the current user."""
+        project_id = self.request.data.get("project", None)
+        try:
+            project=Project.object.get(pk = project_id)
+        except AttributeError:  # pragma: no cover
+            return models.LMProjectSetting.objects.none()
+
+        queryset = super().filter_queryset(queryset)
+
+        queryset = queryset.filter(project=project)
+
+        return queryset
     
+    permission_classes = (IsAuthenticated,)    
 
 
 class GlobalSettingsList(generics.ListAPIView):
@@ -72,7 +119,7 @@ class GlobalSettingsDetail(generics.RetrieveUpdateAPIView):
         key = self.kwargs['key']
 
         if key not in models.LabsManagerSetting.SETTINGS.keys():
-            raise NotFound()
+            raise Exception('Not found') 
 
         return models.LabsManagerSetting.get_setting_object(key)
 

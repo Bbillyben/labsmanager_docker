@@ -21,5 +21,8 @@ urlpatterns = [
     
     path('employee_user_setting', views.EmployeeUser_list.as_view(), name='employee_user_setting'),
     
+    
+    path('project_settings/<proj>/', views.get_project_setting_modal, name='project_setting'),
+    
 ]
 

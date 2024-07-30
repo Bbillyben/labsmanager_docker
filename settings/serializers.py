@@ -47,7 +47,8 @@ class UserSettingsSerializer(SettingsSerializer):
     """Serializer for the labsmanagerUserSetting model."""
 
     user = serializers.PrimaryKeyRelatedField(read_only=True)
-
+    type = serializers.CharField(source='setting_type', read_only=True)
+    
     class Meta:
         """Meta options for UserSettingsSerializer."""
 
@@ -63,13 +64,34 @@ class UserSettingsSerializer(SettingsSerializer):
             'choices',
             'model_name',
             'api_url',
-            #'typ',
         ]
 
+class ProjectSettingsSerializer(SettingsSerializer):
+    """Serializer for the labsmanagerUserSetting model."""
+
+    project = serializers.PrimaryKeyRelatedField(read_only=True)
+    type = serializers.CharField(source='setting_type', read_only=True)
+    
+    class Meta:
+        """Meta options for UserSettingsSerializer."""
+
+        model = LMUserSetting
+        fields = [
+            'pk',
+            'key',
+            'value',
+            'name',
+            'description',
+            'project',
+            'type',
+            'choices',
+            'model_name',
+            'api_url',
+        ]
 
 class GlobalSettingsSerializer(SettingsSerializer):
     """Serializer for the LabsManagerSetting model."""
-
+    
     class Meta:
         """Meta options for GlobalSettingsSerializer."""
 
@@ -84,5 +106,4 @@ class GlobalSettingsSerializer(SettingsSerializer):
             'choices',
             'model_name',
             'api_url',
-            #'typ',
         ]
