@@ -14,9 +14,13 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from labsmanager.mixin import DateMixin, CachedModelMixin, LabsManagerFocusTypeMixin, RightsCheckerMixin
+from model_utils.managers import InheritanceManager
 
 # Create your models here.
 class Expense(LabsManagerFocusTypeMixin):
+    
+    object_inherit = InheritanceManager()
+    
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Expense")

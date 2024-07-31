@@ -26,6 +26,12 @@ def get_fundExpenseTimepoint_table(request, pk):
     data['has_perm']=request.user.has_perm('fund.change_fund', fundP)
     return render(request, 'expense/expense_timepoint.html', data)
 
+def get_fundExpense_table(request, pk):
+    fundP=Fund.objects.filter(pk=pk).first()
+    data = {'fund': fundP} 
+    data['has_perm']=request.user.has_perm('fund.change_fund', fundP)
+    return render(request, 'expense/expense_list.html', data)
+
 def get_fund_global_overview(request, pk):
     a=Fund_Item.objects.values_list('type__name', 'amount', named=False).filter(fund=pk)
     if a:

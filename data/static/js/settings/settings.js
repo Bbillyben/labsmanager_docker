@@ -76,7 +76,6 @@ function initSettingsPage(){
         if(project){
             data.project = project;
             options.project = project;
-            options.reload_required = false
         }
         editSetting(setting,options, data);
     });

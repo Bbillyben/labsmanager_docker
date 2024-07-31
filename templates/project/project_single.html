@@ -277,6 +277,9 @@
                                 {% url 'api:project-funds' pk=project.pk as FundDataURL %}
                                 {% include 'fund/fund_table.html' with datatype="project" dataURL=FundDataURL %}
                             </div>
+                            <div class="row">
+                               
+                            </div>
                         </div>
                     </div>
                     <div class="col">
@@ -299,6 +302,17 @@
                         </div>
                     </div>
                 </div> 
+                {% if settings.EXPENSE_CALCULATION == "e" or settings.EXPENSE_CALCULATION == "h"%}
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card" id="fund_item_expense">
+                            this is where expense should go
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                {%endif%}
             </div>
         </div>
     </div>

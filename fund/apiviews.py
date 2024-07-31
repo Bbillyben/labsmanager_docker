@@ -14,6 +14,7 @@ from expense.models import Expense_point, Contract_type
 from staff.models import Team, TeamMate, Employee
 from project.filters import ProjectFilter
 from project.models import Participant
+from expense.models import Expense, Contract_expense
 
 from .resources import FundItemResource, BudgetResource, FundConsumptionResource, ContributionResource
 
@@ -103,7 +104,14 @@ class FundViewSet(viewsets.ModelViewSet):
         
         return JsonResponse(serializers.FundConsumptionSerialize(fund, many=True).data, safe=False) 
     
-    
+    @action(methods=['get'], detail=True, url_path='expense', url_name='fund_expense_list')
+    def expense_list(self, request, pk=None):
+        if pk==None:
+             exp = Expense.objects.none()
+        else:
+            exp = Expense.object_inherit.filter(fund_item=pk).select_subclasses()
+        return JsonResponse(serializers.ExpenseSerializer(exp, many=True).data, safe=False) 
+        
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
         dataset = FundConsumptionResource().export(queryset=queryset)

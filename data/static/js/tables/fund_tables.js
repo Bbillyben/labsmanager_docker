@@ -31,6 +31,7 @@ function fundRowclick( row, element, field){
     // Fund item
     if($('#fund_item_detail').exists())updateFundItemTableAjax(fundPk, csrftoken);
     if($('#fund_expense_timepoint_detail').exists())updateFundExpenseTimepointTableAjax(fundPk, csrftoken);
+    if($('#fund_item_expense').exists())updateExpenseTableAjax(fundPk, csrftoken);
     makeTableRowSelect(element);
 }
 function updateFundSelection(){
@@ -81,6 +82,15 @@ function adminActionExpensePointdItem(value, row, index, field){
     action += "</span>"
     return action;
 }
+function expense_list_contractItem(value, row, index, field){
+    if ( value == null){
+        return "-"
+    }
+    response = ""
+    response += "<strong>"+value.employee.user_name+'</strong>';
+    response += '<small><i>  '+value.contract_type+' - '+value.start_date+" # "+value.end_date+"</i></small>"
+    return response;
+}
 
 
 function updateFundItem(){
@@ -123,16 +133,34 @@ function updateExpenseTimepoint(){
     })
 }
 
-
+function updateExpenseList(){
+    var options={
+        url:$('#project_expense_table').data("url"),
+        name:'expense_list',
+        disablePagination:true,
+        search:false,
+        showColumns:false,
+        callback:updateFund,
+        playCallbackOnLoad:false,
+        
+    }
+    $('#project_expense_table').labTable(options)
+    
+    // $('#add_expense').labModalForm({
+    //         formURL: '/fund/ajax/funditem/add/' + $("#add_fund_item_temp").attr("data-fundPk"),
+    //         addModalFormFunction: updateFullFund,
+    //         modal_title:"Add",
+    //     })
+}
 // AJAX Function to update related tables
 function updateFundItemTableAjax(fundPk, csrftoken){
     $.ajax({
-        type:"POST",
+        type:"GET",
         url: "/fund/ajax/"+fundPk+"/items/", 
-        data:{
-                pk:fundPk,
-                csrfmiddlewaretoken: csrftoken,
-        },
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
         success: function( data )
         {
             $('#fund_item_detail').html(data);
@@ -147,12 +175,12 @@ function updateFundItemTableAjax(fundPk, csrftoken){
 }
 function updateFundOverviewTableAjax(fundPk, csrftoken){
     $.ajax({
-        type:"POST",
+        type:"GET",
         url: "/fund/"+fundPk+"/fundoverview/", 
-        data:{
-                pk:fundPk,
-                csrfmiddlewaretoken: csrftoken,
-        },
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
         success: function( data )
         {
             $('#fund_overview').html(data);
@@ -167,12 +195,12 @@ function updateFundOverviewTableAjax(fundPk, csrftoken){
 }
 function updateFundExpenseTimepointTableAjax(fundPk, csrftoken){
     $.ajax({
-        type:"POST",
+        type:"GET",
         url: "/fund/"+fundPk+"/expense_timepoint/", 
-        data:{
-                pk:fundPk,
-                csrfmiddlewaretoken: csrftoken,
-        },
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
         success: function( data )
         {
             $('#fund_expense_timepoint_detail').html(data);
@@ -185,3 +213,25 @@ function updateFundExpenseTimepointTableAjax(fundPk, csrftoken){
         }
     }) 
 }
+
+function updateExpenseTableAjax(fundPk, csrftoken){
+    $.ajax({
+        type:"GET",
+        url: "/fund/"+fundPk+"/expense/", 
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
+        success: function( data )
+        {
+            $('#fund_item_expense').html(data);
+            updateExpenseList();                    
+        },
+        error:function( err )
+        {
+            $("body").html(err.responseText)
+            //console.log(JSON.stringify(err));
+        }
+    }) 
+}
+

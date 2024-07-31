@@ -21,6 +21,8 @@ import json
 from labsmanager.pandas_utils import PDUtils
 from labsmanager.mixin import CrumbListMixin
 
+from settings.models import LMProjectSetting
+
 class ProjectIndexView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'project/project_base.html'
     model = Project
@@ -70,8 +72,9 @@ class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, Templ
         return proj
     
     def get_context_data(self, **kwargs):
-        """Returns custom context data for the Employee view:
-            - employee : the employee corresponding
+        """Returns custom context data for the Project view:
+            - project : the project corresponding
+            -settings
         """
         context = super().get_context_data(**kwargs).copy()
 
@@ -79,10 +82,14 @@ class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, Templ
             return context
 
         id=kwargs.get("pk", None)
-        proj = Project.objects.filter(pk=id)
-        context['project'] = proj.first()
-
-        # View top-level categories
+        proj = Project.objects.filter(pk=id).first()
+        context['project'] = proj
+        
+        # for settings
+        settings = LMProjectSetting.objects.filter(project=proj).values('key', 'value')
+        context['settings'] =  {item['key']: item['value'] for item in settings}
+       
+        
         return context
     
 

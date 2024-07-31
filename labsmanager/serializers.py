@@ -2,7 +2,7 @@ from multiprocessing import context
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from staff.models import Employee, Employee_Status, Employee_Superior, Employee_Type, Team, TeamMate, GenericInfo, GenericInfoType
-from expense.models import Expense_point, Contract, Contract_expense, Contract_type
+from expense.models import Expense_point, Contract, Contract_expense, Contract_type, Expense
 from fund.models import Fund, Cost_Type, Fund_Item, Fund_Institution, Budget, Contribution
 from project.models import Project, Institution, Participant,Institution_Participant, GenericInfoProject, GenericInfoTypeProject
 from endpoints.models import Milestones
@@ -485,11 +485,39 @@ class ExpensePOintSerializer(serializers.ModelSerializer):
         model = Expense_point
         fields = ['pk', 'entry_date', 'value_date', 'fund', 'type', 'amount']
         
-        
+class ExpenseSerializer(serializers.ModelSerializer):
+    fund_item=FundSerialize(many=False, read_only=True)
+    type=CostTypeSerialize(many=False, read_only=True)
+    status = serializers.SerializerMethodField()
+    contract = serializers.SerializerMethodField()  
+    class Meta:
+        model = Expense
+        fields = ['pk', 'date', 'fund_item', 'type', 'status',  'amount',
+                  'contract',
+                  ]   
+    
+    def get_status(self,obj):
+        return obj.get_status_display() 
+    
+    def get_contract(self, obj):
+        # Vérifie si l'objet est une instance de Contract_expense
+        if isinstance(obj, Contract_expense):
+            return ContractSerializerSimple(obj.contract, many=False).data  # ou retourner plus de détails si nécessaire
+        return None    
 # ---------------------------------------------------------------------------------------- #
 # ---------------------------    APP Expense / SERIALISZER    --------------------------- #
 # ---------------------------------------------------------------------------------------- #
- 
+class ContractSerializerSimple(serializers.ModelSerializer):
+    contract_type = serializers.SerializerMethodField()
+    class Meta:
+        model = Contract
+        fields = ['pk', 'employee', 'start_date', 'end_date', 'fund', 'contract_type', 'quotity', 'is_active','status',
+                  ]
+    def get_contract_type(self,obj):
+        if obj.contract_type:
+            return obj.contract_type.name
+        return None 
+    
 class ContractSerializer(serializers.ModelSerializer):
     fund = FundSerialize(many=False, read_only=True)
     contract_type = serializers.SerializerMethodField()
