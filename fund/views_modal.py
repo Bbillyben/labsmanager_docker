@@ -80,8 +80,9 @@ class ExpenseTimepointUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_message = 'Success: Employee was updated.'
     success_url = reverse_lazy('employee_index')
     label_confirm = "Confirm"   
-    
-class ExpenseTimepointDeleteView(LoginRequiredMixin, BSModalDeleteView):
+
+from labsmanager.views_modal import BSmodalDeleteViwGenericForeingKeyMixin 
+class ExpenseTimepointDeleteView(LoginRequiredMixin,BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = Expense_point
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm

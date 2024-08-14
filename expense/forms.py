@@ -26,11 +26,11 @@ class ContractModelForm(BSModalModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        print(f'[ContractModelForm - Init] ----------------------------------------------------------')
-        for a in args:
-            print(f'  - args : {a} ')
-        for k, v in kwargs.items():
-            print(f'  - {k} : {v}')
+        # print(f'[ContractModelForm - Init] ----------------------------------------------------------')
+        # for a in args:
+        #     print(f'  - args : {a} ')
+        # for k, v in kwargs.items():
+        #     print(f'  - {k} : {v}')
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.all().order_by('first_name'),
@@ -79,17 +79,41 @@ class ContractModelForm(BSModalModelForm):
         if self.cleaned_data['is_active']==False and (self.cleaned_data['end_date']==None):
              raise ValidationError(_('If A Contract is turn inactive, it should have a end Date'))
         return self.cleaned_data['is_active']
+
+class ExpenseModelForm(BSModalModelForm):
+    class Meta:
+        model = models.Contract_expense
+        fields = ['date', 'desc', 'type','status','amount',]
+        widgets = {
+            'date': DateInput(),
+        }
+        
+    def __init__(self, *args, **kwargs):        
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        
     
+    def save(self, commit=True):
+        if not is_ajax(self.request.META) or self.request.POST.get('asyncUpdate') == 'True':
+            instance = super(ExpenseModelForm, self).save(commit=False)
+            if commit:
+                instance.save()
+        else:
+            instance = super(ExpenseModelForm, self).save(commit=False)
+        return instance 
+    
+    
+     
 class ContractExpenseModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract_expense
-        fields = ['contract', 'date', 'type','status','amount',]
+        fields = ['contract', 'desc', 'date', 'type','status','amount',]
         widgets = {
             'date': DateInput(),
         }
 
     def __init__(self, *args, **kwargs):
-        self.base_fields['type'].queryset = Cost_Type.objects.filter(short_name__startswith='RH')
+        self.base_fields['type'].queryset = Cost_Type.objects.filter(is_hr=True).get_descendants(include_self=True)
         if ('initial' in kwargs and 'contract' in kwargs['initial']):
             self.base_fields['contract'] = forms.ModelChoiceField(
                 queryset=models.Contract.objects.all(),
@@ -103,7 +127,7 @@ class ContractExpenseModelForm(BSModalModelForm):
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
-            self.fields['contract'].widget = forms.HiddenInput()
+            self.fields['contract'].disabled = True #widget = forms.HiddenInput()
     
     def save(self, commit=True):
         if not is_ajax(self.request.META) or self.request.POST.get('asyncUpdate') == 'True':
@@ -147,7 +171,72 @@ class ExpenseTimepointModelForm(BSModalModelForm):
             
     def clean_amount(self):
         return -abs(self.cleaned_data['amount'])
+from fund.models import Fund
+from django.forms.models import construct_instance
+from datetime import date
+class GenericExpenseModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    contract = forms.ModelChoiceField(
+                queryset=models.Contract.objects.all(),
+                blank=True,
+                required=False
+            )
+    class Meta:
+        model = models.Expense
+        fields = ['fund_item', 'desc', 'contract', 'date', 'type','status','amount',]
+        widgets = {
+            'date': DateInput(),
+        }
 
+    def __init__(self, *args, **kwargs):
+        
+        if ('initial' in kwargs and 'fund' in kwargs['initial']):
+            self.base_fields['fund_item'] = forms.ModelChoiceField(
+                queryset=Fund.objects.filter(pk=kwargs['initial']['fund']),
+                initial = kwargs['initial']['fund']
+                # widget=forms.HiddenInput
+            )
+            self.base_fields['contract'].queryset=models.Contract.objects.filter(fund=kwargs['initial']['fund'])
+        else:
+            self.base_fields['fund_item'] = forms.ModelChoiceField(
+                queryset=Fund.objects.all(),
+            )
+            self.base_fields['contract'].queryset=models.Contract.objects.all()
+        self.base_fields['date'].initial = date.today() 
+        
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+    
+    def clean(self, *arg, **kwargs):
+        cleaned_data = super().clean()
+        contract = cleaned_data['contract']
+        exp_type = cleaned_data['type']
+        is_hr = exp_type.is_hr
+        if contract and not is_hr:
+            raise ValidationError(_('Expense linked to a contract should be of type in human resources type'))
+        return cleaned_data
+
+    def save(self, commit=True):
+        if self.cleaned_data['contract'] is None:
+            self.instance = models.Expense()
+        else:
+            self.instance = models.Contract_expense()
+        opts = self._meta
+        try:
+            self.instance = construct_instance(
+                self, self.instance, opts.fields, opts.exclude
+            )
+        except ValidationError as e:
+            self._update_errors(e)
+            
+        if not is_ajax(self.request.META) or self.request.POST.get('asyncUpdate') == 'True':
+            instance = super(GenericExpenseModelForm, self).save(commit=False)
+            if commit:
+                instance.save()
+        else:
+            instance = super(GenericExpenseModelForm, self).save(commit=False)
+        return instance
+    
+    
 class ContractTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
     allowed_tags= {""}
     class Meta:
@@ -161,3 +250,4 @@ class ContractTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
             self.fields['name'].disabled = True
         else:
             self.fields['name'].disabled = False
+            

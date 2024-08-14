@@ -4,6 +4,7 @@
 <div class="row-header">
     <div class="d-flex flex-wrap subheading">
         <h4><i class="fas fa-file-signature"></i>  {% trans 'Expense Timepoint' %} : <i class="super-small">{{ fund }}</i></h4> 
+       
         <span class="flex" style="flex-grow: 1;"></span>
         {% if perms.expense.add_expense_point %}
         <div class="btn-group" role="group">
@@ -34,6 +35,7 @@
                 <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
                     {% trans 'Amount' %}
                 </th>
+                {% if project_calc == 's' or  project_calc == 'h' %}
                 {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense or has_perm  %}
                 <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpensePointdItem"
                 data-can-change="{% if perms.expense.change_expense_point or has_perm %}True{%endif%}"
@@ -42,6 +44,7 @@
                     {% trans 'Action' %}
                 </th>
                 {% endif %}
+                {%endif%}
             </tr>
         </thead>
         <tbody>

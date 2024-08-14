@@ -15,8 +15,10 @@ from auditlog.registry import auditlog
 
 from labsmanager.mixin import DateMixin, CachedModelMixin, LabsManagerFocusTypeMixin, RightsCheckerMixin
 from model_utils.managers import InheritanceManager
+import django.dispatch
 
-# Create your models here.
+## signal to dispatch save
+exp_postsave = django.dispatch.Signal()
 class Expense(LabsManagerFocusTypeMixin):
     
     object_inherit = InheritanceManager()
@@ -24,7 +26,8 @@ class Expense(LabsManagerFocusTypeMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Expense")
-        
+    
+    desc = models.CharField(blank=True, null=True, verbose_name=_('Description'))   
     date = models.DateField(null=False, blank=False, verbose_name=_('Expense Date'))
     # type = models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
     amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
@@ -41,9 +44,12 @@ class Expense(LabsManagerFocusTypeMixin):
     fund_item = models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'), related_name='tot_expense')
     history = AuditlogHistoryField()
     
+    def save(self, *args, **kwargs):
+        result = super().save(*args, **kwargs)
+        exp_postsave.send(sender=self.__class__, instance=self)
+        
     def __str__(self):
         return f'{self.fund_item.__str__()}/{self.type}'
-
 
 class Contract_expense(Expense):
     class Meta:

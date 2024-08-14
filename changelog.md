@@ -1,5 +1,8 @@
 ## Changelog LabsManager
 
+### XXX
+* [ADD] for Cost TYpe model, add is_hr paramter to specify wether a cost type is related to human resource, to switch on that to constrain Budget Form.
+
 
 ### 2024-07-27
 

@@ -489,11 +489,14 @@ class ExpenseSerializer(serializers.ModelSerializer):
     fund_item=FundSerialize(many=False, read_only=True)
     type=CostTypeSerialize(many=False, read_only=True)
     status = serializers.SerializerMethodField()
-    contract = serializers.SerializerMethodField()  
+    contract = serializers.SerializerMethodField() 
+    class_type = serializers.SerializerMethodField() 
     class Meta:
         model = Expense
         fields = ['pk', 'date', 'fund_item', 'type', 'status',  'amount',
+                  'desc',
                   'contract',
+                  'class_type',
                   ]   
     
     def get_status(self,obj):
@@ -504,6 +507,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
         if isinstance(obj, Contract_expense):
             return ContractSerializerSimple(obj.contract, many=False).data  # ou retourner plus de détails si nécessaire
         return None    
+    def get_class_type(self,obj):
+        return type(obj).__name__
 # ---------------------------------------------------------------------------------------- #
 # ---------------------------    APP Expense / SERIALISZER    --------------------------- #
 # ---------------------------------------------------------------------------------------- #

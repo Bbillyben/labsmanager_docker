@@ -14,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from fund.models import AmountHistory
 import json
 
+from settings.models import LMProjectSetting
 def get_fundItem_table(request, pk):
     fundP=Fund.objects.filter(pk=pk).first()
     data = {'fund': fundP}
@@ -24,6 +25,9 @@ def get_fundExpenseTimepoint_table(request, pk):
     fundP=Fund.objects.filter(pk=pk).first()
     data = {'fund': fundP} 
     data['has_perm']=request.user.has_perm('fund.change_fund', fundP)
+    # related project type:
+    proj_set = LMProjectSetting.get_setting("EXPENSE_CALCULATION", project=fundP.project)
+    data['project_calc']=proj_set
     return render(request, 'expense/expense_timepoint.html', data)
 
 def get_fundExpense_table(request, pk):

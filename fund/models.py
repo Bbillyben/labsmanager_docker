@@ -36,6 +36,7 @@ class Cost_Type(MPTTModel):
     short_name= models.CharField(max_length=10, verbose_name=_('Abbreviation'))
     name = models.CharField(max_length=60, verbose_name=_('Type name'))
     in_focus = models.BooleanField(null=False, blank=False, default=True, verbose_name=_('In Focus'))
+    is_hr = models.BooleanField(null=False, blank=False, default=False, verbose_name=_('Is Human Resources'))
     
     def __str__(self):
         return f'{self.name}'
@@ -155,7 +156,44 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
                 )
                 fiS.save()
         
-    
+    def calculate_expense(self, force=False, exp_type=None):
+        from expense.models import Expense, Expense_point
+        logger.debug(f'[Fund]-calculate_expense :{str(self)} / (force: {force}) / Expense Type :{exp_type}')
+        
+        if exp_type is None:
+            qset = Expense.objects.filter(fund_item = self.pk)
+        else:
+            qset = Expense.objects.filter(fund_item = self.pk, type=exp_type)
+            
+        
+        sum_type =  qset.values('type').annotate(total_amount=Sum('amount')).order_by('type')
+        
+        if force:
+            # force the update to 0 all amount
+            if exp_type is None:
+                expTP = Expense_point.objects.filter(fund = self.pk)
+            else:
+                expTP = Expense_point.objects.filter(fund = self.pk, type=exp_type)
+            expTP.update(amount=0) 
+        
+        for st in sum_type:
+            logger.debug(f'sum type : {st["type"]}, of anmout :{st["total_amount"]}')
+            ct = Cost_Type.objects.get(pk=st["type"])
+            try:
+                exp=Expense_point.objects.get(fund=self.pk, type=ct)
+                exp.amount = -st["total_amount"]
+                exp.save()
+            except:
+                exp=Expense_point.objects.create(
+                    entry_date = datetime.date.today(),
+                    value_date = datetime.date.today(),
+                    fund = self, 
+                    type=ct, 
+                    amount = -st["total_amount"]     
+                )
+                
+                         
+        
     def clean_end_date(self):
         ## print("EXIT DATE CLEAN Fund Model :"+str(self.cleaned_data))
         if( self.end_date != None and (self.start_date == None or self.start_date > self.end_date)):
@@ -207,12 +245,9 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
 def calculate_fund(*arg):
         logger.debug('[calculate_fund] :'+str(arg))
         fuPk=arg[0]
-        print(fuPk)
         if not fuPk or not isinstance(fuPk, int) or fuPk<=0:
             raise KeyError(f'No Fund id submitted for calculate_project')
-        print("2")
         pj=Fund.objects.get(pk=fuPk)
-        print(pj)
         if not pj:
             raise ValueError("No Project Found")
         pj.calculate()
@@ -236,7 +271,7 @@ class BudgetAbstract(models.Model, RightsCheckerMixin):
     
     
     def clean(self, *args, **kwargs):
-        ctRH =Cost_Type.objects.get(short_name="RH").get_descendants(include_self=True)
+        ctRH =Cost_Type.objects.filter(is_hr=True).get_descendants(include_self=True)
         isIn=ctRH.filter(pk=self.cost_type.pk)
         
         # str =  ",  ".join([p.name for p in self.contract_type.all()])
@@ -258,22 +293,6 @@ class BudgetAbstract(models.Model, RightsCheckerMixin):
         queryset = queryset.filter(fund__project__in=proj)
         return queryset
     
-        # queryset = queryset | cls.objects.all() 
-        # perm_name = cls._meta.app_label + '.change_'+cls._meta.model_name
-        # print("[BudgetAbstract - get_instances_for_user]")
-        # print(f'   - perm name : {perm_name}')
-        # if user.has_perm(perm_name):
-        #     return queryset
-        # from settings.models import LabsManagerSetting
-        # from project.models import Participant
-        # setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
-        # emp_stat = {"l", "cl"} if setting else {"l"}
-        # try:
-        #     proj=Participant.objects.filter(employee__user = user, status__in = emp_stat).values('project')
-        #     queryset = queryset.filter(fund__project__in=proj)
-        # except:
-        #     queryset = cls.objects.none()
-        # return queryset
 
 class Budget(BudgetAbstract):
     class Meta:

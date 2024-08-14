@@ -50,6 +50,7 @@ function updateFullFund(){
     $('#project_fund_table').bootstrapTable('refresh');
     $('#project_fund_item_table').bootstrapTable('refresh');
     //$('#project_expense_timepoint_table').bootstrapTable('refresh');
+    //$('#project_expense_table').bootstrapTable('refresh');
     updateFundOverviewTableAjax(fundPk, csrftoken);
     if(callbackFundItem!=null)callbackFundItem();
 }
@@ -57,7 +58,11 @@ function updageGlobalFund(){
     updateFullFund();
     $('#project_expense_timepoint_table').bootstrapTable('refresh');
 }
-
+function updateAllSubTables(){
+    $('#project_fund_table').bootstrapTable('refresh');
+    $('#project_fund_item_table').bootstrapTable('refresh');
+    $('#project_expense_timepoint_table').bootstrapTable('refresh');
+}
 
 function adminActionFund(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
@@ -82,7 +87,18 @@ function adminActionExpensePointdItem(value, row, index, field){
     action += "</span>"
     return action;
 }
+
+function adminActionExpenseItem(value, row, index, field){
+    action = "<span class='icon-left-cell btn-group'>";
+    if(this.canChange=='True' || row.has_perm==true)action += "<button class='icon edit btn btn-success' data-form-url='"+Urls['update_expense'](row.pk)+"' data-model='"+row.class_type+"'><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='"+Urls['delete_expense'](row.pk)+"'><i type = 'button' class='fas fa-trash'></i></button>";
+    action += "</span>"
+    return action;
+}
 function expense_list_contractItem(value, row, index, field){
+    // console.log('expense_list_contractItem *************************')
+    // console.log(' - value : '+JSON.stringify(value))
+    // console.log(' - row : '+JSON.stringify(row))
     if ( value == null){
         return "-"
     }
@@ -140,17 +156,22 @@ function updateExpenseList(){
         disablePagination:true,
         search:false,
         showColumns:false,
-        callback:updateFund,
+        callback:updateAllSubTables,
         playCallbackOnLoad:false,
         
     }
     $('#project_expense_table').labTable(options)
     
-    // $('#add_expense').labModalForm({
-    //         formURL: '/fund/ajax/funditem/add/' + $("#add_fund_item_temp").attr("data-fundPk"),
-    //         addModalFormFunction: updateFullFund,
-    //         modal_title:"Add",
-    //     })
+    $('#add_expense').labModalForm({
+            formURL: Urls["add_expense"]( $("#add_expense").attr("data-fundPk")),
+            addModalFormFunction: updateAllSubTables,
+            modal_title:"Add",
+        })
+    $('#sync_expense').labModalForm({
+        formURL: Urls["fund_expense_sync"]( $("#add_expense").attr("data-fundPk")),
+        addModalFormFunction: updateAllSubTables,
+        modal_title:"Sync",
+    })
 }
 // AJAX Function to update related tables
 function updateFundItemTableAjax(fundPk, csrftoken){

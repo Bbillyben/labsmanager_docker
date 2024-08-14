@@ -101,7 +101,7 @@ class BudgetModelForm(BSModalModelForm):
         
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'].disabled = True
-            self.base_fields['cost_type'].queryset= models.Cost_Type.objects.get(short_name="RH").get_descendants(include_self=True)
+            self.base_fields['cost_type'].queryset= models.Cost_Type.objects.filter(is_hr=True).get_descendants(include_self=True)
         else:
             self.base_fields['employee'].disabled = False
             self.base_fields['cost_type'].queryset= models.Cost_Type.objects.all()
@@ -151,7 +151,7 @@ class CostTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
     allowed_tags= {""}
     class Meta:
         model = models.Cost_Type
-        fields = ['parent', 'short_name','name','in_focus',]
+        fields = ['parent', 'short_name','name','in_focus', 'is_hr']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
