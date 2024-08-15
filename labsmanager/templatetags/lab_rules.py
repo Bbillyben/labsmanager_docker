@@ -2,7 +2,7 @@ from django import template
 from staff.models import Employee
 
 register = template.Library()
-
+    
 @register.simple_tag
 def has_lab_perm(perm, user, obj=None):
     if not hasattr(user, "has_perm"):

@@ -332,6 +332,7 @@ class EmployeePDFReport(EmployeeReport, PdfReport):
     
 from project.views import get_project_fund_overviewReport_bytType
 from project.models import GenericInfoProject
+from expense.models import Expense
 class ProjectReport(TemplateReport):
     class Meta:
         abstract = True
@@ -377,6 +378,16 @@ class ProjectReport(TemplateReport):
         fuT = get_project_fund_overviewReport_bytType(pk)
         context["fund_overview"]=fuT
         
+        
+        # expense :
+        exp = Expense.object_inherit.filter(fund_item__in=fi).select_subclasses().order_by('-date')
+        expS = {}
+        for e in exp:
+            idF=e.fund_item.pk
+            if not idF in expS:
+                expS[idF]= []
+            expS[idF].append(e)
+        context["expense"] = expS
         # fore Generic Notes
         ct = ContentType.objects.get_for_model(Project)
         notes = GenericNote.objects.filter(content_type=ct,object_id=proj.id)

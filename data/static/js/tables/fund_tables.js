@@ -58,10 +58,14 @@ function updageGlobalFund(){
     updateFullFund();
     $('#project_expense_timepoint_table').bootstrapTable('refresh');
 }
-function updateAllSubTables(){
+function updateSubTables(){
     $('#project_fund_table').bootstrapTable('refresh');
     $('#project_fund_item_table').bootstrapTable('refresh');
     $('#project_expense_timepoint_table').bootstrapTable('refresh');
+}
+function updateAllSubTables(){
+    updateSubTables();
+    $('#project_expense_table').bootstrapTable('refresh');
 }
 
 function adminActionFund(value, row, index, field){
@@ -156,7 +160,7 @@ function updateExpenseList(){
         disablePagination:true,
         search:false,
         showColumns:false,
-        callback:updateAllSubTables,
+        callback:updateSubTables,
         playCallbackOnLoad:false,
         
     }
@@ -169,7 +173,7 @@ function updateExpenseList(){
         })
     $('#sync_expense').labModalForm({
         formURL: Urls["fund_expense_sync"]( $("#add_expense").attr("data-fundPk")),
-        addModalFormFunction: updateAllSubTables,
+        addModalFormFunction: updateSubTables,
         modal_title:"Sync",
     })
 }

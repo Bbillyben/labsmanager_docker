@@ -1,17 +1,20 @@
 {% load i18n %}
 {% load customs_tags %}
-
+{% load lab_rules %}
+{% has_lab_perm 'expense.add_expense_point' user fund as can_add_expense_point %}
+{% has_lab_perm 'expense.change_expense_point' user fund as can_change_expense_point %}
 <div class="row-header">
     <div class="d-flex flex-wrap subheading">
         <h4><i class="fas fa-file-signature"></i>  {% trans 'Expense Timepoint' %} : <i class="super-small">{{ fund }}</i></h4> 
-       
         <span class="flex" style="flex-grow: 1;"></span>
-        {% if perms.expense.add_expense_point %}
+        {% if project_calc == 's' or  project_calc == 'h' %}
+        {% if can_add_expense_point %}
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-secondary" id="add_expense_timepoint" title="Add Item" data-fundPk="{{ fund.pk }}" >
                 <span class='fas fa-plus'></span>
             </button>
         </div>
+        {% endif %}
         {% endif %}
     </div>
 </div>
@@ -36,9 +39,9 @@
                     {% trans 'Amount' %}
                 </th>
                 {% if project_calc == 's' or  project_calc == 'h' %}
-                {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense or has_perm  %}
+                {% if perms.expense.delete_expense_point or can_change_expense_point  %}
                 <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpensePointdItem"
-                data-can-change="{% if perms.expense.change_expense_point or has_perm %}True{%endif%}"
+                data-can-change="{% if can_change_expense_point %}True{%endif%}"
                 data-can-delete="{{ perms.expense.delete_expense_point }}"
                 >
                     {% trans 'Action' %}

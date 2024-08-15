@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load reports %}
 <!-- { html_message true } -->
 <style>
     
@@ -612,6 +613,39 @@
         </tbody>
     </table>
     {%endif%}
+
+    {% with xps=expense|dict_key:f.pk %}
+    {% if xps %}
+    <div class="table_subtitle general highlight">
+        <span>{% trans "Expenses" %}</span>
+    </div>
+    <table class="table">
+        <thead>
+            <th class="cell_title">{% trans 'Date' %}</th>
+            <th class="cell_title">{% trans 'Description ' %}</th>
+            <th class="cell_title">{% trans 'Type' %}</th>
+            <th class="cell_title">{% trans 'Statut' %}</th>
+            <th class="cell_title">{% trans 'Amout' %}</th>
+            <th class="cell_title">{% trans 'Contract' %}</th>
+        </thead>
+        <tbody>
+            {% for item in xps  %}
+            <tr>
+                <td>{{item.date}}</td>
+                <td>{{ item.desc|default_if_none:"-" }}</td>
+                <td>{{ item.type.name }}</td>
+                <td>{{ item.get_status_display }}</td>
+                <td>{% moneyFormat item.amount %} </td>
+                <td>{{item.contract|default_if_none:"-" }}</td>
+            </tr>   
+            {%endfor %}     
+        </tbody>
+    </table>
+
+    {%endif%}
+    {% endwith %}
+
+
     <div class="spacer"></div>
     {%endfor %}
 
