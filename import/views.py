@@ -15,16 +15,16 @@ class ImportViewBase(LoginRequiredMixin, PermissionRequiredMixin, BaseBreadcrumb
 
 from fund.resources import FundItemAdminResource
 from fund.models import Fund_Item
-from expense.resources import ExpensePointResource
+from expense.resources import ExpensePointResource, ExpenseResource
 from staff.ressources import EmployeeAdminResource
 class FundItemImportView(LoginRequiredMixin, PermissionRequiredMixin, mixin.ImportViewMixin):
     permission_required='common.import'
     # resource_class = FundItemAdminResource
-    resource_classes =[FundItemAdminResource, ExpensePointResource, EmployeeAdminResource]
+    resource_classes =[FundItemAdminResource, ExpensePointResource,ExpenseResource,  EmployeeAdminResource]
     model = Fund_Item
     
 class FundItemImportViewConfirmImportView(LoginRequiredMixin, PermissionRequiredMixin, mixin.ConfirmImportViewMixin):
         permission_required='common.import'
         # resource_class = FundItemAdminResource
-        resource_classes =[FundItemAdminResource, ExpensePointResource, EmployeeAdminResource]
+        resource_classes =[FundItemAdminResource, ExpensePointResource,ExpenseResource,  EmployeeAdminResource]
         model = Fund_Item

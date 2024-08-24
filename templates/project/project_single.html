@@ -63,12 +63,12 @@
                         <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
                             <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
                         </a></li>
-                        {% endif %}
-                        
+                        {% endif %} 
+                        {% if perms.settings.change_lmprojectsetting or can_edit_project %}
                         <li><a class="dropdown-item" href="#" id="project-setting" title="Project Settings">
                             <i class='fa fa-sliders'></i> {% trans 'Project Settings' %}
                         </a></li>
-                        
+                        {% endif %}
                         {% if perms.reports.view_projectwordreport %}
                         <div class="dropdown-divider"></div>
                         <li><a class="dropdown-item" href="#" id="export_word" title="Export Word">

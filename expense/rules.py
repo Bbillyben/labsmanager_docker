@@ -1,5 +1,6 @@
 import rules    
 from settings.models import LMProjectSetting
+from fund.rules import is_user_fund_project_leader
 #    Predicates ======================
 @rules.predicate
 def is_user_contract_project_leader(user, cont = None):
@@ -25,11 +26,9 @@ def is_user_contract_manager(user, contract=None):
     
 @rules.predicate
 def can_user_add_expense_timepoint(user, fund=None):
-    print(f"*******************************  [can_user_add_expense_timepoint] ")
     if not fund:
         return False
     setPj = LMProjectSetting.get_setting("EXPENSE_CALCULATION", project=fund.project)
-    print(f"    - setting : {setPj}")
     if setPj == "e":
         return False
     
@@ -39,6 +38,7 @@ def can_user_add_expense_timepoint(user, fund=None):
 
 rules.add_perm('expense.change_contract_expense', is_user_contract_project_leader)
 rules.add_perm('expense.change_expense', is_user_contract_project_leader)
+rules.add_perm('expense.add_expense', is_user_fund_project_leader)
 # rules.add_perm('expense.change_contract', is_user_contract_project_leader)
 
 rules.add_perm('expense.change_contract', is_user_contract_manager)

@@ -7,7 +7,7 @@ from django import forms
 
 from import_export.admin import ImportExportModelAdmin
 
-from .resources import ExpensePointResource  
+from .resources import ExpensePointResource, ExpenseResource
     
 class ContractExpenseInlineFormSet(BaseInlineFormSet):
     
@@ -49,9 +49,14 @@ class ExpenseTimePointAdmin(ImportExportModelAdmin):
     list_display = ('fund','type','value_date', 'amount', 'entry_date')
     list_filter=('fund' ,'value_date', 'type')
     resource_classes = [ExpensePointResource]  
+
+class ExpenseAdmin(ImportExportModelAdmin):
+    # list_display = ('fund','type','value_date', 'amount', 'entry_date')
+    list_filter=('fund_item' ,'date', 'type')
+    resource_classes = [ExpenseResource]  
     
 # Register your models here.
-admin.site.register(Expense)
+admin.site.register(Expense, ExpenseAdmin)
 admin.site.register(Contract_expense)
 admin.site.register(Contract, ContractAdmin)
 admin.site.register(Contract_type)

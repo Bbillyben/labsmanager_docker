@@ -1,6 +1,8 @@
 {% load i18n %}
 {% load customs_tags %}
-
+{% load lab_rules %}
+{% has_lab_perm 'fund.change_fund' user fund as can_change_fund %}
+{% has_lab_perm 'expense.add_expense' user fund as can_add_expense %}
 <div class="row-header">
     <div class="d-flex flex-wrap subheading">
         <h4><i class="fas fa-file-signature"></i>  {% trans 'Expenses List' %} : <i class="super-small">{{ fund }}</i></h4> 
@@ -8,12 +10,12 @@
         
        
         <div class="btn-group" role="group">
-        {%if perms.fund.change_fund %}
+        {%if can_change_fund %}
         <button type="button" class="btn btn-primary" id="sync_expense" title="Sync" data-fundPk="{{ fund.pk }}" >
                 <span class='fas fa-arrows-rotate'></span>
             </button>
         {%endif%}
-        {% if perms.expense.add_expense %}
+        {% if can_add_expense %}
             <button type="button" class="btn btn-secondary" id="add_expense" title="Add Item" data-fundPk="{{ fund.pk }}" >
                 <span class='fas fa-plus'></span>
             </button>
