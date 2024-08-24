@@ -547,8 +547,6 @@
             eltCal=document.getElementById(this.attr('id'))
             calendar = new FullCalendar.Calendar(eltCal, globals)
             calendar.render();
-
-            console.log(calendar.adaptive)
             return calendar;
         };
 

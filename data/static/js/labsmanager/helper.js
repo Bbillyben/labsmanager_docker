@@ -194,11 +194,18 @@ function format_date_iso(dateStr, option={}){
   return timeString
 }
 /**
- * Create an id from a string, stripping accent and replacing space
+ * Create an id from a string, stripping accent and replacing all caracter except letter and number
+ * extra_suffix : add an extra chain to be added at the end of the string
+ * add_uuid : to add a sort of 36 car UUID at the end of the string
  * @returns string
  */
-function createIdFrom(name) {
+function createIdFrom(name, extra_suffix = "", add_uuid=false ) {
   let normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  let id = normalized.replace(/\s+/g, "_");
+  let id = normalized.replace(/[^a-zA-Z0-9]+/g, "_");
+  id+="_"+extra_suffix;
+  if (add_uuid){
+    id +=URL.createObjectURL(new Blob()).substr(-36);
+  }
+    
   return id;
 }

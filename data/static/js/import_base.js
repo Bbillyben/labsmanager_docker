@@ -114,8 +114,10 @@ function initFileSelectForm(){
 
 }
 function ini_confirm(){
-    $("#back_to_select").click(function(){
+    $("#back_to_select").click(function(e){
+        e.preventDefault()
         init_import();
+
     });
 
     $("#file_confirm").submit(function (event) {

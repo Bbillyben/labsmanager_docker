@@ -26,7 +26,7 @@
           </li>
           {% endif %}
           <!-- For Teams-->
-          {% if perms.staff.view_team %}
+          {% if perms.staff.view_team or perms.common.team_list%}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'team_index' %}">
               <span class='fas fa-people-group icon-header'></span>{% trans "Teams" %}
@@ -34,7 +34,7 @@
           </li>
           {% endif %}
           <!-- For Contract-->
-          {% if perms.expense.view_contract %}
+          {% if perms.expense.view_contract or perms.common.contract_list %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'contract_index' %}">
               <span class='fas fa-file-signature icon-header'></span>{% trans "Contracts" %}
@@ -43,7 +43,7 @@
           {% endif %}
 
           <!-- For Project-->
-          {% if perms.project.view_project %}
+          {% if perms.project.view_project or perms.common.project_list %}
           <li class='nav-item'>
             <a class='nav-link' href="{% url 'project_index' %}">
               <span class='fas fa-flask icon-header'></span>{% trans "Projects" %}

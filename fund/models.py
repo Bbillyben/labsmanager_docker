@@ -5,9 +5,9 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum, Q, F
 
 
-from project.models import Project, Institution
+from project.models import Project, Institution, Participant
 
-from labsmanager.mixin import LabsManagerBudgetMixin, LabsManagerFocusBudgetMixin, LabsManagerFocusTypeMixin,  ActiveDateMixin, CachedModelMixin
+from labsmanager.mixin import LabsManagerBudgetMixin, LabsManagerFocusBudgetMixin, LabsManagerFocusTypeMixin,  ActiveDateMixin, CachedModelMixin, RightsCheckerMixin
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -36,6 +36,7 @@ class Cost_Type(MPTTModel):
     short_name= models.CharField(max_length=10, verbose_name=_('Abbreviation'))
     name = models.CharField(max_length=60, verbose_name=_('Type name'))
     in_focus = models.BooleanField(null=False, blank=False, default=True, verbose_name=_('In Focus'))
+    is_hr = models.BooleanField(null=False, blank=False, default=False, verbose_name=_('Is Human Resources'))
     
     def __str__(self):
         return f'{self.name}'
@@ -52,7 +53,7 @@ class Fund_Institution(models.Model):
     def __str__(self):
         return f'{self.short_name}'
     
-class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMixin):
+class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund Line")
@@ -65,13 +66,26 @@ class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMi
     history = AuditlogHistoryField()
     
     cached_vars=["amount"]
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values('project')
+        queryset = queryset.filter(fund__project__in=proj)  
+        return queryset
+
 
     def __str__(self):
         return f'{self.type.short_name} - {self.fund}'
     
     
     
-class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
+class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund")
@@ -142,7 +156,44 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
                 )
                 fiS.save()
         
-    
+    def calculate_expense(self, force=False, exp_type=None):
+        from expense.models import Expense, Expense_point
+        logger.debug(f'[Fund]-calculate_expense :{str(self)} / (force: {force}) / Expense Type :{exp_type}')
+        
+        if exp_type is None:
+            qset = Expense.objects.filter(fund_item = self.pk)
+        else:
+            qset = Expense.objects.filter(fund_item = self.pk, type=exp_type)
+            
+        
+        sum_type =  qset.values('type').annotate(total_amount=Sum('amount')).order_by('type')
+        
+        if force:
+            # force the update to 0 all amount
+            if exp_type is None:
+                expTP = Expense_point.objects.filter(fund = self.pk)
+            else:
+                expTP = Expense_point.objects.filter(fund = self.pk, type=exp_type)
+            expTP.update(amount=0) 
+        
+        for st in sum_type:
+            logger.debug(f'sum type : {st["type"]}, of anmout :{st["total_amount"]}')
+            ct = Cost_Type.objects.get(pk=st["type"])
+            try:
+                exp=Expense_point.objects.get(fund=self.pk, type=ct)
+                exp.amount = -st["total_amount"]
+                exp.save()
+            except:
+                exp=Expense_point.objects.create(
+                    entry_date = datetime.date.today(),
+                    value_date = datetime.date.today(),
+                    fund = self, 
+                    type=ct, 
+                    amount = -st["total_amount"]     
+                )
+                
+                         
+        
     def clean_end_date(self):
         ## print("EXIT DATE CLEAN Fund Model :"+str(self.cleaned_data))
         if( self.end_date != None and (self.start_date == None or self.start_date > self.end_date)):
@@ -174,6 +225,19 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
         u = fi.union(expI)
         cpd=pd.DataFrame.from_records(u, columns=['project', 'funder','institution', 'type','end_date', 'amount',])
         return [cpd,]
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values('project')
+        queryset = queryset.filter(project__in=proj)
+        return queryset
+        
         
     def __str__(self):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
@@ -181,18 +245,15 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin):
 def calculate_fund(*arg):
         logger.debug('[calculate_fund] :'+str(arg))
         fuPk=arg[0]
-        print(fuPk)
         if not fuPk or not isinstance(fuPk, int) or fuPk<=0:
             raise KeyError(f'No Fund id submitted for calculate_project')
-        print("2")
         pj=Fund.objects.get(pk=fuPk)
-        print(pj)
         if not pj:
             raise ValueError("No Project Found")
         pj.calculate()
         
 
-class BudgetAbstract(models.Model):
+class BudgetAbstract(models.Model, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("BudgetAbstract")
@@ -210,7 +271,7 @@ class BudgetAbstract(models.Model):
     
     
     def clean(self, *args, **kwargs):
-        ctRH =Cost_Type.objects.get(short_name="RH").get_descendants(include_self=True)
+        ctRH =Cost_Type.objects.filter(is_hr=True).get_descendants(include_self=True)
         isIn=ctRH.filter(pk=self.cost_type.pk)
         
         # str =  ",  ".join([p.name for p in self.contract_type.all()])
@@ -219,6 +280,19 @@ class BudgetAbstract(models.Model):
             
     def __str__(self):
         return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values('project')
+        queryset = queryset.filter(fund__project__in=proj)
+        return queryset
+    
 
 class Budget(BudgetAbstract):
     class Meta:

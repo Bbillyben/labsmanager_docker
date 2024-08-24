@@ -209,18 +209,10 @@ class BaseLabsManagerSetting(models.Model):
 
         if user is not None:
             filters['user'] = user
-
-        # # Filter by plugin
-        # plugin = kwargs.get('plugin', None)
-
-        # if plugin is not None:
-        #     from plugin import LabsManagerPlugin
-
-        #     if issubclass(plugin.__class__, LabsManagerPlugin):
-        #         plugin = plugin.plugin_config()
-
-        #     filters['plugin'] = plugin
-        #     kwargs['plugin'] = plugin
+        
+        project = kwargs.get('project', None)
+        if project is not None:
+            filters['project'] = project
 
         # Filter by method
         method = kwargs.get('method', None)
@@ -263,7 +255,6 @@ class BaseLabsManagerSetting(models.Model):
                     # It might be the case that the database isn't created yet
                     pass
 
-
         return setting
 
     @classmethod
@@ -293,7 +284,6 @@ class BaseLabsManagerSetting(models.Model):
 
         else:
             value = backup_value
-
         return value
 
     @classmethod
@@ -452,10 +442,13 @@ class BaseLabsManagerSetting(models.Model):
         }
 
         user = getattr(self, 'user', None)
+        project = getattr(self, 'project', None)
         plugin = getattr(self, 'plugin', None)
 
         if user is not None:
             filters['user'] = user
+        if project is not None:
+            filters['project'] = project
 
         if plugin is not None:
             filters['plugin'] = plugin
@@ -700,6 +693,18 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'description': _('String added as prefix to mail object'),
             #'after_save': ,
         },
+        'EMPLOYEE_CAN_EDIT_SUBORDINATE': {
+            'name': _('Employee can edit subordinate'),
+            'description': _('define wether an employee can edit their subordinate employees'),
+            'default': True,
+            'validator': bool,
+        },
+        'CO_LEADER_CAN_EDIT_PROJECT': {
+            'name': _('Co Leader can edit project'),
+            'description': _('define wether a co-leader can edit project'),
+            'default': True,
+            'validator': bool,
+        },
         'AUDIT_LOG_RETENTION': {
             'name': _('Audit Log Retention'),
             'description': _('Number of to retain AudiLog history'),
@@ -935,4 +940,60 @@ class LMUserSetting(BaseLabsManagerSetting):
             'user': self.user,
         }
     
+class LMProjectSetting(BaseLabsManagerSetting):
+    SETTINGS = {
+        'EXPENSE_CALCULATION': {
+            'name': _('Expense base calculation'),
+            'description': _('Simple : Timepoint only, Expense : sum of expense, hybrid'),
+            'default': 's',
+            'choices': [
+                ('s', 'Simple'),
+                ('e', 'Expense'),
+                ('h', 'Hybrid')
+            ],
+        },
+        'LEADER_EDIT_FUND': {
+            'name': _('Leader can edit fund'),
+            'description': _('wether the leader can edit fund of project'),
+            'default': True,
+            'validator': bool,
+        },
+    }
     
+    class Meta:
+        """Meta options for LabsManagerUserSetting."""
+
+        verbose_name = "LabsManager Project Setting"
+        verbose_name_plural = "LabsManager Project Settings"
+        constraints = [
+            models.UniqueConstraint(fields=['key', 'project'], name='unique key and fund')
+        ]
+    
+    key = models.CharField(
+        max_length=50,
+        blank=False,
+        unique=False,
+        help_text=_('Settings key (must be unique - case insensitive)'),
+    )
+
+    project = models.ForeignKey(
+        'project.Project' ,
+        on_delete=models.CASCADE,
+        blank=True, null=True,
+        verbose_name=_('Fund'),
+        help_text=_('Fund'),
+    )
+    
+    def validate_unique(self, exclude=None, **kwargs):
+        """Return if the setting (including key) is unique."""
+        return super().validate_unique(exclude=exclude, project=self.project)
+
+    def to_native_value(self):
+        """Return the "pythonic" value, e.g. convert "True" to True, and "1" to 1."""
+        return self.__class__.get_setting(self.key, project=self.project)
+
+    def get_kwargs(self):
+        """Explicit kwargs required to uniquely identify a particular setting object, in addition to the 'key' parameter."""
+        return {
+            'project': self.project,
+        }

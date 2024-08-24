@@ -25,6 +25,7 @@ from labsmanager import settings
 import os
 
 
+from . import lab_version
 
 class redirectIndexView(LoginRequiredMixin, TemplateView):
     template_name = 'labmanager/index.html' #'labmanager/index.html'
@@ -34,7 +35,11 @@ class redirectIndexView(LoginRequiredMixin, TemplateView):
 class IndexView(LoginRequiredMixin, TemplateView):
     """View for index page."""
     template_name = 'labmanager/index.html' #'labmanager/index.html'
-    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        variables = {name: getattr(lab_version, name) for name in dir(lab_version) if not name.startswith("__") and not callable(getattr(lab_version, name))}
+        context.update(variables)
+        return context
     # def get(self, request, *args, **kwargs): ## Redirect to dash board for the moment
     #     return redirect('dashboard')
     

@@ -71,6 +71,7 @@ class ContactCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Contact
     
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
         initial={}
         if 'obj_id' in kwargs and 'app' in kwargs and 'model' in kwargs:
             initial={
@@ -79,7 +80,8 @@ class ContactCreateView(LoginRequiredMixin, BSModalCreateView):
                 'obj_id':kwargs['obj_id'],
             }
             
-        form = self.form_class(initial=initial)
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         return super().get(request)
     
 class ContactUpdateView(LoginRequiredMixin, BSModalUpdateView):
@@ -109,13 +111,15 @@ class ContactInfoCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.ContactInfo
     
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
         initial={}
         if 'id' in kwargs:
             initial={
                 'contact':kwargs['id'],
             }
             
-        form = self.form_class(initial=initial)
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         return super().get(request)
     
 class ContactInfoUpdateView(LoginRequiredMixin, BSModalUpdateView):
@@ -141,6 +145,7 @@ class OrganizationInfosCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.ContactInfoType
     
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
         initial={}
         if 'obj_id' in kwargs and 'app' in kwargs and 'model' in kwargs:
             initial={
@@ -149,7 +154,8 @@ class OrganizationInfosCreateView(LoginRequiredMixin, BSModalCreateView):
                 'obj_id':kwargs['obj_id'],
             }
             
-        form = self.form_class(initial=initial)
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         return super().get(request)
     
     
@@ -176,6 +182,7 @@ class GenericNoteCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.GenericNote
     
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
         initial={}
         if 'obj_id' in kwargs and 'app' in kwargs and 'model' in kwargs:
             initial={
@@ -184,7 +191,8 @@ class GenericNoteCreateView(LoginRequiredMixin, BSModalCreateView):
                 'obj_id':kwargs['obj_id'],
             }
             
-        form = self.form_class(initial=initial)
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         return super().get(request)
 
 class GenericNoteUpdateView(LoginRequiredMixin, BSModalUpdateView):

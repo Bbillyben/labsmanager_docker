@@ -2,6 +2,9 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load lab_rules %}
+
+
 
 {% block page_title %}
 {% trans "LabManager Employee" %} - {{ employee }}
@@ -22,15 +25,18 @@
 {% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
 {% include 'modals.html' with modal_id='single-modal' modal_title='Single' %}
 
-<div id='detail-panels'>
+{% has_lab_perm 'staff.change_employee' user employee as can_edit_employee %}
+{% has_lab_perm 'staff.add_genericinfo' user employee as can_add_genericinfo %}
+
+{% has_lab_perm 'reports.view_employeewordreport' user employee as can_print_report %}
+
+<div id='detail-panels'> 
     <div class="panel " id="panel-employee" style="display: block;">
 
         <div class="panel-heading">
             <div class="d-flex flex-wrap">
                 <h4  role="button" data-bs-toggle="collapse" data-bs-target="#employee_details">{% trans 'Employee' %} : {{ employee }}</h4>
-                <span class="flex" style="flex-grow: 1;"></span>
-                
-                
+                <span class="flex" style="flex-grow: 1;"></span>                
                 <div class="btn-group" role="group">
                     
                     {% if request.user.is_staff %}
@@ -42,29 +48,31 @@
                     {% if perms.common.change_favorite and user.employee != employee %}
                     <div class="favorite" data-type="staff.employee" data-pk='{{employee.pk}}'><button class='icon favorite btn btn-secondary' ><i type = 'button' class='fas fa-star'></i></button></div>
                     {%endif%}
-                    {% if perms.staff.change_employee or user.employee.pk == pk %}
+                    {% if can_edit_employee or can_add_genericinfo or can_print_report%}
                     <button id="employee-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Employee Actions" aria-expanded="false">
                         <i class="fas fa-flask"></i>
                     </button>
                     <ul class="dropdown-menu" style="">
+                        {% if can_edit_employee %}
                         <li><a class="dropdown-item" href="#" id="edit-employee" title="Edit Employee">
                             <i class='fa fa-edit'></i> {% trans 'Edit Employee' %}
                         </a></li>
                         <li><a class="dropdown-item" href="#" id="add-status" title="Add Status">
                             <i class='fa fa-user-plus'></i> {% trans 'Add Status' %}
                         </a></li>
-                        {% if perms.staff.add_genericinfo %}
+                        {% endif %}
+                        {% if can_add_genericinfo %}
                         <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
                             <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
                         </a></li>
                         {% endif %}
-                        {% if perms.reports.view_employeewordreport or user.employee.pk == pk %}
+                        {% if can_print_report %}
                         <div class="dropdown-divider"></div>
                         <li><a class="dropdown-item" href="#" id="export_word" title="Export Word">
                             <i class='fa fa-file-word'></i> {% trans 'Export Word' %}
                         </a></li>
                         {% endif %}
-                        {% if perms.reports.view_employeepdfreport or user.employee.pk == pk    %}
+                        {% if can_print_report %}
                         <li><a class="dropdown-item" href="#" id="export_pdf" title="Export PDF">
                             <i class='fa fa-file-pdf'></i> {% trans 'Export PDF' %}
                         </a></li>
@@ -114,10 +122,9 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                                                 {% trans 'Active' %}
                                             </th>
-                                            
-                                            {% if perms.staff.change_employee_status or perms.staff.delete_employee_status %}
+                                            {% if perms.staff.change_employee_status or perms.staff.delete_employee_status or can_edit_employee %}
                                             <th data-sortable="false" class="th-inner" data-field="admin_action" 
-                                            data-can-change="{{ perms.staff.change_employee_status }}"
+                                            data-can-change="{% if perms.staff.change_employee_status or can_edit_employee %}True{%endif%}"
                                             data-can-delete="{{ perms.staff.delete_employee_status }}"
                                             data-formatter="empStatusFormatter"
                                             >
@@ -140,7 +147,7 @@
                                     <h4><i class="fa-solid fa-sitemap"></i>  {% trans "Employee's Organization Chart" %}</h4> 
                                     <span class="flex" style="flex-grow: 1;"></span>
                                     <div class="btn-group" role="group">
-                                        {% if perms.staff.add_employee_superior %}
+                                        {% if can_edit_employee or perms.staff.add_employee_superior %}
                                         <button type="button" class="btn btn-secondary" id="add-superior" title="Add Superior" >
                                             <span class='fa fas fa-user-tie'></span>
                                         </button>
@@ -173,10 +180,9 @@
                                         <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                                             {% trans 'Active' %}
                                         </th>
-                                        
-                                        {% if perms.staff.change_employee_status or perms.staff.delete_employee_status %}
+                                        {% if perms.staff.change_employee_superior or perms.staff.delete_employee_superior or can_edit_employee%}
                                         <th data-sortable="false" class="th-inner" data-field="admin_action" 
-                                        data-can-change="{{ perms.staff.change_employee_superior }}"
+                                        data-can-change="{% if perms.staff.change_employee_superior or can_edit_employee %}True{%endif%}"
                                         data-can-delete="{{ perms.staff.delete_employee_superior }}"
                                         data-formatter="empActionSsuperiorFormatter"
                                         >
@@ -211,15 +217,13 @@
                                         {% trans 'Active' %}
                                     </th>
                                     
-                                    {% if perms.staff.change_employee_status or perms.staff.delete_employee_status %}
                                     <th data-sortable="false" class="th-inner" data-field="admin_action" 
-                                    data-can-change="{{ perms.staff.change_employee_superior }}"
+                                    data-can-change="{% if perms.staff.change_employee_superior or can_edit_employee %}True{%endif%}"
                                     data-can-delete="{{ perms.staff.delete_employee_superior }}"
                                     data-formatter="empActionSsuperiorFormatter"
                                     >
                                         {% trans 'Action' %}
                                     </th>
-                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -247,7 +251,7 @@
                 <div class="d-flex flex-wrap">
                     <h4>{% trans 'Contracts' %}</h4>
                     <span class="flex" style="flex-grow: 1;"></span>
-                    {% if perms.expense.add_contract_expense %}
+                    {% if perms.expense.add_contract_expense or can_edit_employee %}
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-secondary" id="add_contract" title="Add Item" data-employee="{{ employee.pk }}" >
                             <span class='fas fa-plus'></span>
@@ -289,7 +293,7 @@
                     <div class="d-flex flex-wrap">
                         <h4>{% trans 'Budgets' %}</h4>
                         <span class="flex" style="flex-grow: 1;"></span>
-                        {% if perms.fund.add_budget %}
+                        {% if perms.fund.add_budget or can_edit_employee%}
                         <div class="btn-group" role="group">
                             <button type="button" class="btn btn-secondary" id="add_budget" title="Add Item" data-employee="{{ employee.pk }}" >
                                 <span class='fas fa-plus'></span>
@@ -329,7 +333,7 @@
                     <span class="flex" style="flex-grow: 1;"></span>
                     <div class="btn-group" role="group">
     
-                        {% if perms.fund.add_contribution %}
+                        {% if perms.fund.add_contribution or can_edit_employee%}
                         <button type="button" class="btn btn-secondary" id="add_contrib" title="Add Item" data-pk="{{ project.pk }}" data-form-url="" >
                             <span class='fa fas fa-plus'></span>
                         </button>
@@ -360,7 +364,7 @@
                 <div class="d-flex flex-wrap">
                     <h4>{% trans 'Projects Participation' %}</h4>
                     <span class="flex" style="flex-grow: 1;"></span>
-                    {% if perms.project.add_project %}
+                    {% if perms.project.add_project or can_edit_employee%}
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-secondary" id="add_project" title="Create New Project">
                             <span class='fa fa-plus'></span>
@@ -407,14 +411,14 @@
                                                 <th data-sortable="true" class="th-inner sortable both" data-field="quotity" data-formatter="quotityFormatter">
                                                     {% trans 'Quotity' %}
                                                 </th>
-                                                {% if perms.project.change_participant or project.delete_participant %}
+                                                
                                                 <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionParticipant" 
                                                 data-can-change="{{ perms.project.change_participant }}"
                                                 data-can-delete="{{ perms.project.delete_participant }}"
                                                 >
                                                     {% trans 'Action' %}
                                                 </th>
-                                                {% endif %}
+                                                
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -436,7 +440,7 @@
                         <div class="d-flex flex-wrap">
                             <h4>{% trans 'Teams' %}</h4>
                             <span class="flex" style="flex-grow: 1;"></span>
-                            {% if perms.project.add_team %}
+                            {% if perms.staff.add_team %}
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-secondary" id="add_team" title="Create New team">
                                     <span class='fa fa-plus'></span>
@@ -465,11 +469,11 @@
                                             <th data-sortable="true" class="th-inner sortable both" data-field="team_mate" data-formatter="teamMateFormatter">
                                                 {% trans 'Team Mate' %}
                                             </th>
-                                            {% if perms.staff.can_change %}
+                                            {% comment %} {% if perms.staff.can_change %}
                                             <th data-sortable="false" class="th-inner" data-field="admin_action" >
                                                 {% trans 'Action' %}
                                             </th>
-                                            {% endif %}
+                                            {% endif %} {% endcomment %}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -582,11 +586,11 @@
 <script type='text/javascript' src="{% static 'bstreeview/bstreeview.js' %}"></script>
 
 <script>
+{% has_lab_perm 'staff.change_employee' user employee as can_edit_employee %}
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     employee_id = JSON.parse(document.getElementById('employee_id').textContent);
-
-    if('{{user.employee.pk}}'=='{{pk}}')USER_PERMS+=", is_owner";
+    if('{{can_edit_employee}}'=="True")USER_PERMS+=", can_edit";
 
 
     initEmployeeSingleView(user_id, employee_id);

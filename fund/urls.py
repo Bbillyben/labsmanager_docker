@@ -5,7 +5,8 @@ urlpatterns = [
     # path('', views.ProjectIndexView.as_view(), name='project_index'),
     # path('<pk>', views.ProjectView.as_view(), name='project_single'),
     path('<pk>/fundoverview/', views.get_fund_global_overview, name='fund_overview_single'),
-    path('<pk>/expense_timepoint/', views.get_fundExpenseTimepoint_table, name='fund_overview_single'),
+    path('<pk>/expense_timepoint/', views.get_fundExpenseTimepoint_table, name='fund_expense_timepoint'),
+    path('<pk>/expense/', views.get_fundExpense_table, name='fund_expense'),
     path('project_recette_graph/<pk>/', views.RecetteGraphView.as_view(), name='graph_recette_project'),
     
     # for sub template 

@@ -2,6 +2,7 @@ from django.contrib import admin
 from labsmanager.admin import GenericInfoTypeAdmin
 from project.models import Project, Institution, Institution_Participant, Participant, GenericInfoTypeProject, GenericInfoProject
 from django.contrib.sessions.models import Session
+from settings.models import LMProjectSetting
 import pprint
 
 class InstitutionParticipantInLine(admin.TabularInline):
@@ -11,13 +12,17 @@ class InstitutionParticipantInLine(admin.TabularInline):
 class ParticipantInLine(admin.TabularInline):
     model=Participant
     extra=0
+
+class ProjectSettingInLine(admin.TabularInline):
+    model=LMProjectSetting
+    extra=0
     
 class GenericInfoInline(admin.TabularInline):
     model = GenericInfoProject
     extra = 0 
     
 class ProjectAdmin(admin.ModelAdmin):
-    inlines = [GenericInfoInline, InstitutionParticipantInLine, ParticipantInLine]
+    inlines = [ProjectSettingInLine, GenericInfoInline, InstitutionParticipantInLine, ParticipantInLine]
     list_display = ('name', 'start_date', 'end_date', 'status')
     list_filter=('status' ,'start_date', 'end_date')
     

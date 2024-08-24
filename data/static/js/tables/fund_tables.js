@@ -31,6 +31,7 @@ function fundRowclick( row, element, field){
     // Fund item
     if($('#fund_item_detail').exists())updateFundItemTableAjax(fundPk, csrftoken);
     if($('#fund_expense_timepoint_detail').exists())updateFundExpenseTimepointTableAjax(fundPk, csrftoken);
+    if($('#fund_item_expense').exists())updateExpenseTableAjax(fundPk, csrftoken);
     makeTableRowSelect(element);
 }
 function updateFundSelection(){
@@ -49,6 +50,7 @@ function updateFullFund(){
     $('#project_fund_table').bootstrapTable('refresh');
     $('#project_fund_item_table').bootstrapTable('refresh');
     //$('#project_expense_timepoint_table').bootstrapTable('refresh');
+    //$('#project_expense_table').bootstrapTable('refresh');
     updateFundOverviewTableAjax(fundPk, csrftoken);
     if(callbackFundItem!=null)callbackFundItem();
 }
@@ -56,12 +58,20 @@ function updageGlobalFund(){
     updateFullFund();
     $('#project_expense_timepoint_table').bootstrapTable('refresh');
 }
-
+function updateSubTables(){
+    $('#project_fund_table').bootstrapTable('refresh');
+    $('#project_fund_item_table').bootstrapTable('refresh');
+    $('#project_expense_timepoint_table').bootstrapTable('refresh');
+}
+function updateAllSubTables(){
+    updateSubTables();
+    $('#project_expense_table').bootstrapTable('refresh');
+}
 
 function adminActionFund(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
     if(this.isStaff=='True')action += "<a href='/admin/fund/fund/"+row.pk+"/change/'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
-    if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='/fund/ajax/"+row.pk+"/update' ><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canChange=='True' || row.has_perm==true)action += "<button class='icon edit btn btn-success' data-form-url='/fund/ajax/"+row.pk+"/update' ><i type = 'button' class='fas fa-edit'></i></button>";
     //action += "<button class='icon show_fund btn btn-secondary' data-fund='"+row.pk+"' ><i type = 'button' class='fas fa-toolbox'></i></button>";
     if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='/fund/ajax/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
@@ -70,16 +80,36 @@ function adminActionFund(value, row, index, field){
 function adminActionFundItem(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
     if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='/fund/ajax/funditem/"+row.pk+"/update' ><i type = 'button' class='fas fa-edit'></i></button>";
-    if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='/fund/ajax/funditem/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
+    if(this.canDelete=='True' || row.has_perm==true )action += "<button class='icon delete btn btn-danger ' data-form-url='/fund/ajax/funditem/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;
 }
 function adminActionExpensePointdItem(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
     if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='/fund/ajax/expense_timepoint/"+row.pk+"/update' ><i type = 'button' class='fas fa-edit'></i></button>";
-    if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='/fund/ajax/expense_timepoint/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
+    if(this.canDelete=='True' || row.has_perm==true)action += "<button class='icon delete btn btn-danger ' data-form-url='/fund/ajax/expense_timepoint/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;
+}
+
+function adminActionExpenseItem(value, row, index, field){
+    action = "<span class='icon-left-cell btn-group'>";
+    if(this.canChange=='True' || row.has_perm==true)action += "<button class='icon edit btn btn-success' data-form-url='"+Urls['update_expense'](row.pk)+"' data-model='"+row.class_type+"'><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='"+Urls['delete_expense'](row.pk)+"'><i type = 'button' class='fas fa-trash'></i></button>";
+    action += "</span>"
+    return action;
+}
+function expense_list_contractItem(value, row, index, field){
+    // console.log('expense_list_contractItem *************************')
+    // console.log(' - value : '+JSON.stringify(value))
+    // console.log(' - row : '+JSON.stringify(row))
+    if ( value == null){
+        return "-"
+    }
+    response = ""
+    response += "<strong>"+value.employee.user_name+'</strong>';
+    response += '<small><i>  '+value.contract_type+' - '+value.start_date+" # "+value.end_date+"</i></small>"
+    return response;
 }
 
 
@@ -123,16 +153,39 @@ function updateExpenseTimepoint(){
     })
 }
 
-
+function updateExpenseList(){
+    var options={
+        url:$('#project_expense_table').data("url"),
+        name:'expense_list',
+        disablePagination:true,
+        search:false,
+        showColumns:false,
+        callback:updateSubTables,
+        playCallbackOnLoad:false,
+        
+    }
+    $('#project_expense_table').labTable(options)
+    
+    $('#add_expense').labModalForm({
+            formURL: Urls["add_expense"]( $("#add_expense").attr("data-fundPk")),
+            addModalFormFunction: updateAllSubTables,
+            modal_title:"Add",
+        })
+    $('#sync_expense').labModalForm({
+        formURL: Urls["fund_expense_sync"]( $("#add_expense").attr("data-fundPk")),
+        addModalFormFunction: updateSubTables,
+        modal_title:"Sync",
+    })
+}
 // AJAX Function to update related tables
 function updateFundItemTableAjax(fundPk, csrftoken){
     $.ajax({
-        type:"POST",
+        type:"GET",
         url: "/fund/ajax/"+fundPk+"/items/", 
-        data:{
-                pk:fundPk,
-                csrfmiddlewaretoken: csrftoken,
-        },
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
         success: function( data )
         {
             $('#fund_item_detail').html(data);
@@ -147,12 +200,12 @@ function updateFundItemTableAjax(fundPk, csrftoken){
 }
 function updateFundOverviewTableAjax(fundPk, csrftoken){
     $.ajax({
-        type:"POST",
+        type:"GET",
         url: "/fund/"+fundPk+"/fundoverview/", 
-        data:{
-                pk:fundPk,
-                csrfmiddlewaretoken: csrftoken,
-        },
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
         success: function( data )
         {
             $('#fund_overview').html(data);
@@ -167,12 +220,12 @@ function updateFundOverviewTableAjax(fundPk, csrftoken){
 }
 function updateFundExpenseTimepointTableAjax(fundPk, csrftoken){
     $.ajax({
-        type:"POST",
+        type:"GET",
         url: "/fund/"+fundPk+"/expense_timepoint/", 
-        data:{
-                pk:fundPk,
-                csrfmiddlewaretoken: csrftoken,
-        },
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
         success: function( data )
         {
             $('#fund_expense_timepoint_detail').html(data);
@@ -185,3 +238,25 @@ function updateFundExpenseTimepointTableAjax(fundPk, csrftoken){
         }
     }) 
 }
+
+function updateExpenseTableAjax(fundPk, csrftoken){
+    $.ajax({
+        type:"GET",
+        url: "/fund/"+fundPk+"/expense/", 
+        // data:{
+        //         pk:fundPk,
+        //         csrfmiddlewaretoken: csrftoken,
+        // },
+        success: function( data )
+        {
+            $('#fund_item_expense').html(data);
+            updateExpenseList();                    
+        },
+        error:function( err )
+        {
+            $("body").html(err.responseText)
+            //console.log(JSON.stringify(err));
+        }
+    }) 
+}
+

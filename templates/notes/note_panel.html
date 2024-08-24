@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+
 <link rel="stylesheet" href="{% static 'css/notes.css' %}">
 <div id='note_panel_{{app}}_{{model}}_{{object_id}}'> 
         <div class="panel" id="panel-employee-note" style="display: block;">
@@ -10,8 +11,7 @@
                     <h4>{% trans 'Notes' %}</h4>
                     <span class="flex" style="flex-grow: 1;"></span>
                     <div class="btn-group" role="group">
-                    </div> 
-                              
+                    </div>                               
                 </div>
             </div>
             <div class="panel-content note-cont collapse show" id="Contribution-details">
@@ -19,7 +19,9 @@
                 <ul class="nav nav-pills nav-notes">
             
                     <li class="nav-item nav-btn">
+                        {% if perms.infos.change_genericnote or custom_rule %} 
                         <button class="nav-link add"  data-app="{{app}}" data-model="{{model}}" data-pk='{{object_id}}'><i class="fa-solid fa-plus"></i></button>
+                        {%endif%}
                     </li>
                 </ul>
                 <div class="tab-content">
@@ -34,7 +36,8 @@
         var options={
             app:"{{app}}",
             model:"{{model}}",
-            pk:"{{object_id}}"
+            pk:"{{object_id}}", 
+            custom_rule:"{{custom_rule}}"=="True",
         }
         var panelName = '#note_panel_'+options.app+"_"+options.model+"_"+options.pk;
         $(panelName).lab_note(options);

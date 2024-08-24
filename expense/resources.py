@@ -1,16 +1,113 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from labsmanager.ressources import labResource
-from .models import Contract
-from expense.models import Expense_point
-from fund.models import Fund, Cost_Type
+from django.core.exceptions import  ImproperlyConfigured
+from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, DateField, DecimalField
+
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
 import import_export.widgets as widgets
 from import_export import resources, results
 
-from labsmanager.ressources import SimpleError, SkipErrorRessource, DateField
 from fund.resources import FundField
+
+from .models import Contract, Expense
+from expense.models import Expense_point
+from fund.models import Fund, Cost_Type
+from project.models import Project
+from settings.models import LMProjectSetting
+class CheckProjectTypeResourceMixin():
+    class Meta:
+        abstract=True
+        valid_import=['s', 'e', 'h']
+        
+    def before_import_row(self, row, row_number=None, **kwargs):
+        result = super().before_import_row(row, row_number, **kwargs)
+        refI = row.get('Ref', None)
+        if refI is not None:
+            fu = Fund.objects.filter(ref=refI)
+            if fu:
+                project=fu.first().project
+                
+        if not project:
+            project_name = row.get('project', None)
+            if project_name is not None:
+                projects = Project.objects.filter(name=project_name)
+                if projects:
+                    projects.first()
+        if project:
+            proj_set = LMProjectSetting.get_setting_object("EXPENSE_CALCULATION", project=project)
+            if not proj_set.value in self._meta.valid_import:
+                raise ImproperlyConfigured(_("The project %(proj)s is not configured to accept '%(imp_class)s' import (setting value : '%(set_val)s')")%({'proj':project.name, 'imp_class':self._meta.model.__name__, 'set_val':proj_set.as_choice()}))
+        return result
+    
+class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorRessource):
+    type=Field(
+        column_name=_('type'),
+        attribute='type', 
+        widget=widgets.ForeignKeyWidget(Cost_Type, 'name'), readonly=False
+    )
+    amount=DecimalField(
+        column_name=_('Amount'),
+        attribute='amount', 
+        widget=widgets.DecimalWidget(),
+        readonly=False
+    )
+    status = Field(
+        column_name=_('Status'),
+        attribute='get_status_display',
+    )
+    fund=FundField(
+        column_name=_('Ref'),
+        attribute='fund_item', 
+        widget=widgets.ForeignKeyWidget(Fund, 'ref'), readonly=False
+    )
+    project=FundField(
+        column_name=_('Project'),
+        attribute='fund_item', 
+        widget=widgets.ForeignKeyWidget(Fund, 'project__name'), readonly=False
+    )
+    funder=FundField(
+        column_name=_('Funder'),
+        attribute='fund_item', 
+        widget=widgets.ForeignKeyWidget(Fund, 'funder__short_name'), readonly=False
+    )
+    institution=FundField(
+        column_name=_('Institution'),
+        attribute='fund_item', 
+        widget=widgets.ForeignKeyWidget(Fund, 'institution__short_name'), readonly=False
+    )
+    desc=Field(
+        column_name=_('Description'),
+        attribute='desc', 
+    )
+    
+    class Meta:
+        """Metaclass"""
+        model = Expense
+        skip_unchanged = False
+        clean_model_instances = False
+        exclude = [
+                #    'id',
+                   'fund_item',
+         ]
+        export_order  = ['desc', 'type', 'amount', 'status', 
+                         'project', 'fund', 'funder', 'institution',
+            
+        ]
+        valid_import=['e', 'h']
+        
+    def before_import_row(self, row, row_number=None, **kwargs):
+        super().before_import_row(row, row_number, **kwargs)
+        row["id"] = None
+        return Expense.objects.none()
+        
+    
+    @classmethod
+    def get_error_result_class(self):
+        """
+        Returns a class which has custom formatting of the error.
+        """
+        return SimpleError
 
 class ContractResource(labResource):
     employee = Field(
@@ -61,7 +158,7 @@ class ContractResource(labResource):
          ]
 
     
-class ExpensePointResource(labResource, SkipErrorRessource):
+class ExpensePointResource(CheckProjectTypeResourceMixin, labResource, SkipErrorRessource):
     
     @classmethod
     def get_error_result_class(self):
@@ -74,13 +171,13 @@ class ExpensePointResource(labResource, SkipErrorRessource):
         column_name='Ref',
         attribute='fund',
         widget=widgets.ForeignKeyWidget(Fund, 'ref'),
-        readonly=True
+        readonly=False
         )
     type=Field(
         column_name='type',
         attribute='type',
         widget=widgets.ForeignKeyWidget(Cost_Type, 'short_name'),
-        readonly=True
+        readonly=False
         )
     project=FundField(
         column_name='project',
@@ -114,7 +211,7 @@ class ExpensePointResource(labResource, SkipErrorRessource):
     )        
         
     def before_import_row(self, row, row_number=None, **kwargs):
-        
+        super().before_import_row(row, row_number, **kwargs)
         query = Q()
         project_name = row.get('project', None)
         if project_name is not None:
@@ -146,3 +243,4 @@ class ExpensePointResource(labResource, SkipErrorRessource):
         skip_unchanged = True
         clean_model_instances = False
         export_order  = ['project','institiution', 'fund','type', 'entry_date', 'value_date',  'amount', ]
+        valid_import=['s', 'h']

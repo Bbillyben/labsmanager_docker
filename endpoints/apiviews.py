@@ -1,10 +1,11 @@
 
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q,Value, BooleanField
 
 from .models import Milestones
 from labsmanager import serializers 
 
+from project.models import Project
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 
@@ -20,6 +21,12 @@ class MilestonesViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='project/(?P<pj_pk>[^/.]+)', url_name='project')
     def project(self, request, pj_pk=None, pk=None):
         t1=self.queryset.filter(project=pj_pk)
+        try:
+            proj = Project.objects.get(pk=pj_pk)
+            if request.user.has_perm("project.change_project", proj):
+                t1 = t1.annotate(has_perm=Value(True))
+        except:
+            pass
         return JsonResponse(serializers.MilestonesSerializer(t1, many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='milestones_stale', url_name='milestones_stale')

@@ -13,14 +13,21 @@ from dashboard import utils
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
-from labsmanager.mixin import DateMixin, CachedModelMixin, LabsManagerFocusTypeMixin
+from labsmanager.mixin import DateMixin, CachedModelMixin, LabsManagerFocusTypeMixin, RightsCheckerMixin
+from model_utils.managers import InheritanceManager
+import django.dispatch
 
-# Create your models here.
+## signal to dispatch save
+exp_postsave = django.dispatch.Signal()
 class Expense(LabsManagerFocusTypeMixin):
+    
+    object_inherit = InheritanceManager()
+    
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Expense")
-        
+    
+    desc = models.CharField(blank=True, null=True, verbose_name=_('Description'))   
     date = models.DateField(null=False, blank=False, verbose_name=_('Expense Date'))
     # type = models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))
     amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'))
@@ -37,9 +44,12 @@ class Expense(LabsManagerFocusTypeMixin):
     fund_item = models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'), related_name='tot_expense')
     history = AuditlogHistoryField()
     
+    def save(self, *args, **kwargs):
+        result = super().save(*args, **kwargs)
+        exp_postsave.send(sender=self.__class__, instance=self)
+        
     def __str__(self):
         return f'{self.fund_item.__str__()}/{self.type}'
-
 
 class Contract_expense(Expense):
     class Meta:
@@ -111,7 +121,7 @@ class Contract_type(models.Model):
 
 from .manager import effective_Manager, provisionnal_Manager
 import decimal
-class Contract(DateMixin):
+class Contract(DateMixin, RightsCheckerMixin):
     
     provisionnal = provisionnal_Manager()
     effective = effective_Manager()
@@ -168,6 +178,30 @@ class Contract(DateMixin):
         monthToGo=LMUserSetting.get_setting('DASHBOARD_CONTRACT_STALE_TO_MONTH')
         maxDate=utils.getDateToStale(monthToGo)
         return (Q(is_active=True) & Q(end_date__lte=maxDate))
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        from project.models import Participant
+        from staff.models import Employee_Superior
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+        
+        subordinate = Employee_Superior.objects.filter(superior__user = user).values_list("employee", flat=True)
+        user_team = list(subordinate)
+        try:
+            user_emp = Employee.objects.get(user=user) 
+            user_team.append(user_emp.pk)           
+        except:
+            pass
+        
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        proj=Participant.objects.filter(query).values_list("project", flat=True)  
+        
+        queryset = queryset.filter(Q(employee__in=user_team)|Q(fund__project__in=proj))
+        return queryset
     
     
 auditlog.register(Expense)

@@ -4,28 +4,42 @@
 {% load import_export_tags %}
 
 
+<style>
+#file_confirm .submit-row{
+  width:100%;
+
+}
+#file_confirm .submit-row button{
+  margin-left:1em;
+}
+</style>
 
 
 {% if confirm_form %}
   {% csrf_token %}
-  {{ confirm_form | crispy}}
-  <div class="row">
-    <div><button class="btn btn-primary" id="back_to_select"> <i class="fa-solid fa-rotate-left"></i>{% trans 'Back To File Selection' %}</button></div>
-  </div>
+    
+  <div class="d-flex flex-row justify-content-between">
+  
     {% block confirm_import_form %}
+    <div class="p-2">
       <form id="file_confirm" action="" method="POST">
         {{ confirm_form.as_p }}
         <p>
           {% trans "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'" %}
         </p>
         <div class="submit-row">
-          <input type="submit" class="default" name="confirm" value="{% trans "Confirm import" %}">
+          <button type="submit" class="btn btn-primary" > {% trans 'Confirm import' %}</button>
+          <button class="btn btn-secondary" id="back_to_select" type="text" style="margin-top:auto; float: right;"> <i class="fa-solid fa-rotate-left"></i>{% trans 'Back To File Selection' %}</button>
         </div>
       </form>
+    </div>
+  </div>
+
+      {{ confirm_form | crispy}}
     {% endblock %}
 {% else %}
-<div class="col col-sm-3">
-    <form id="file_select" action="" method="post" enctype="multipart/form-data">
+<div class="col">
+    <form id="file_select" action="" method="post" enctype="multipart/form-data" style="max-width: 50em;">
 
 
       {{ form | crispy }} 

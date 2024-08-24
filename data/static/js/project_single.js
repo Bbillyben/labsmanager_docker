@@ -81,6 +81,11 @@ function initProjectSingleView(user_idA, project_idA){
         modal_title:"Add Info",
     })
 
+    $('#project-setting').labModalForm({
+        formURL:  Urls['project_setting'](project_id),
+        modal_title:"Project Settings",
+    })
+
 
     update_project();
     update_project_info();

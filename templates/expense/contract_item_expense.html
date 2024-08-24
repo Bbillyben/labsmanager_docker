@@ -5,7 +5,7 @@
     <div class="d-flex flex-wrap subheading">
         <h4><i class="fas fa-file-signature"></i>  {% trans 'Contract Expenses' %} : <i class="super-small">{{ contract }}</i></h4> 
         <span class="flex" style="flex-grow: 1;"></span>
-        {% if perms.expense.add_contract_expense %}
+        {% if perms.expense.add_contract_expense or has_perm %}
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-secondary" id="add_contract_expense" title="Add Item" data-contractPk="{{ contract.pk }}" >
                 <span class='fas fa-plus'></span>
@@ -36,9 +36,9 @@
                 <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
                     {% trans 'Amount' %}
                 </th>
-                {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense %}
+                {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense or has_perm %}
                 <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminContractExpenseFormatter"
-                data-can-change="{{ perms.expense.change_contract_expense }}"
+                data-can-change="{% if perms.expense.change_contract_expense or has_perm%}True{%endif%}"
                 data-can-delete="{{ perms.expense.delete_contract_expense }}"
                 >
                     {% trans 'Action' %}

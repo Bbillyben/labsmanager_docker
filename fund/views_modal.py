@@ -20,13 +20,15 @@ class FundItemCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Fund_Item
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}        
         if 'pk' in kwargs:
-            form = self.form_class(initial={'fund_item': kwargs['pk']})
+            initial['fund_item']= kwargs['pk']
         elif 'fund' in kwargs:
-            form = self.form_class(initial={'fund': kwargs['fund']})
-        else:
+            initial['fund']= kwargs['fund']
             form = self.form_class()        
-        
+        kw['initial'] = initial
+        form = self.form_class(**kw)        
         context = {'form': form}
         return render(request, self.template_name , context)
 
@@ -60,12 +62,14 @@ class ExpenseTimepointCreateView(LoginRequiredMixin, BSModalCreateView):
     model = Expense_point
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}  
         if 'pk' in kwargs:
-            form = self.form_class(initial={'expense_timepoint': kwargs['pk']})
+            initial['expense_timepoint']= kwargs['pk']
         elif 'fund' in kwargs:
-            form = self.form_class(initial={'fund': kwargs['fund']})
-        else:
-            form = self.form_class()        
+            initial['fund']= kwargs['fund']        
+        kw['initial'] = initial
+        form = self.form_class(**kw)        
         
         context = {'form': form}
         return render(request, self.template_name , context)  
@@ -76,8 +80,9 @@ class ExpenseTimepointUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_message = 'Success: Employee was updated.'
     success_url = reverse_lazy('employee_index')
     label_confirm = "Confirm"   
-    
-class ExpenseTimepointDeleteView(LoginRequiredMixin, BSModalDeleteView):
+
+from labsmanager.views_modal import BSmodalDeleteViwGenericForeingKeyMixin 
+class ExpenseTimepointDeleteView(LoginRequiredMixin,BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = Expense_point
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm
@@ -99,12 +104,16 @@ class FundCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Fund
 
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}   
+        initial={'user':request.user}
         if 'pk' in kwargs:
-            form = self.form_class(initial={'fund': kwargs['pk']})
+            initial['fund']= kwargs['pk']
         elif 'project' in kwargs:
-            form = self.form_class(initial={'project': kwargs['project']})
-        else:
-            form = self.form_class()        
+            initial['project']= kwargs['project']
+      
+        kw['initial'] = initial
+        form = self.form_class(**kw) 
         
         context = {'form': form}
         return render(request, self.template_name , context)
@@ -139,16 +148,15 @@ class BudgetCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Budget
 
     def get(self, request, *args, **kwargs):
-        print("BudgetCreateView :"+str(kwargs))
-        initial={}
-        
+        kw = self.get_form_kwargs()
+        initial={}        
         if 'project' in kwargs:
-            initial={'project': kwargs['project']}
+            initial['project']= kwargs['project']
         if 'employee' in kwargs:
-            initial={'employee': kwargs['employee']}
+            initial['employee']= kwargs['employee']
 
-        form = self.form_class(initial=initial)        
-        
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         context = {'form': form}
         return render(request, self.template_name , context)
     

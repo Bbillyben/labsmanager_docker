@@ -62,7 +62,7 @@ function updateFullContrib(){
 function adminActioncontrib(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
     if(this.isStaff=='True')action += "<a href='"+Urls["admin:fund_contribution_change"](row.pk)+"'><button class='icon admin_btn btn btn-primary'><i type = 'button' class='fas fa-shield-halved'></i></button></a>"
-    if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='"+Urls['update_contribution'](row.pk)+"' ><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canChange=='True' || row.has_perm==true)action += "<button class='icon edit btn btn-success' data-form-url='"+Urls['update_contribution'](row.pk)+"' ><i type = 'button' class='fas fa-edit'></i></button>";
     if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='"+Urls['delete_contribution'](row.pk)+"' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;

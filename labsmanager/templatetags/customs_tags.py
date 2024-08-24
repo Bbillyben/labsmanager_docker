@@ -80,17 +80,24 @@ def unikId():
 
 
 
-
+from project.models import Project
 @register.simple_tag()
 def setting_object(key, *args, **kwargs):
     """Return a setting object speciifed by the given key.
     (Or return None if the setting does not exist)
     if a user-setting was requested return that
     """
-    from settings.models import LMUserSetting, LabsManagerSetting
+    from settings.models import LMUserSetting, LabsManagerSetting, LMProjectSetting
 
     if 'user' in kwargs:
         return LMUserSetting.get_setting_object(key, user=kwargs['user'])
+    
+    if 'project' in kwargs:
+        # try:
+        proj = Project.objects.get(pk=kwargs['project'])
+        return LMProjectSetting.get_setting_object(key, project=proj)
+        # except:
+        #     return None
     
     return LabsManagerSetting.get_setting_object(key)
     # else:
@@ -98,12 +105,16 @@ def setting_object(key, *args, **kwargs):
 
 @register.simple_tag()
 def settings_value(key, *args, **kwargs):
-    from settings.models import LMUserSetting, LabsManagerSetting
+    from settings.models import LMUserSetting, LabsManagerSetting, LMProjectSetting
     """Return a settings value specified by the given key."""
     if 'user' in kwargs:
         if not kwargs['user'] or (kwargs['user'] and kwargs['user'].is_authenticated is False):
             return LMUserSetting.get_setting(key)
         return LMUserSetting.get_setting(key, user=kwargs['user'])
+    if 'project' in kwargs:
+        if not kwargs['project'] :
+            return LMUserSetting.get_setting(key)
+        return LMProjectSetting.get_setting(key, project=kwargs['project'])
 
     return LabsManagerSetting.get_setting(key)
 

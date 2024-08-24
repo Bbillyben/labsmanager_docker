@@ -92,4 +92,5 @@ class ExpenseGraphView(LoginRequiredMixin, View):
 def get_contractExpense_table(request, pk):
     cont=Contract.objects.filter(pk=pk).first()
     data = {'contract': cont}   
+    data['has_perm']=request.user.has_perm('expense.change_contract_expense', cont)
     return render(request, 'expense/contract_item_expense.html', data)

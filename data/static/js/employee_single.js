@@ -131,7 +131,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
 
 // for calendar
 function initEmployeeCalendar(){
-    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff") || USER_PERMS.includes("is_owner");
+    var canMod=USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("is_staff") || USER_PERMS.includes("can_edit");
     var option={
         selectable:canMod,
         editable:canMod,
@@ -271,7 +271,7 @@ function empStatusFormatter(value, row, index, field){
 function empActionSsuperiorFormatter(value, row, index, field){
     //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
     action = "<span class='icon-left-cell btn-group'>";
-    if(this.canChange=='True')action += "<button class='icon edit btn btn-success' data-form-url='"+Urls['update_superior'](row.pk)+"'' ><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canChange=='True' || row.has_perm == true)action += "<button class='icon edit btn btn-success' data-form-url='"+Urls['update_superior'](row.pk)+"'' ><i type = 'button' class='fas fa-edit'></i></button>";
     if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='"+Urls['delete_superior'](row.pk)+"' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;
@@ -285,7 +285,7 @@ function updateParticipant(){
 function adminActionParticipant(value, row, index, field){
     //console.log(JSON.stringify(row));
     action = "<span class='icon-left-cell btn-group'>";
-    if(this.canChange=="True")action += "<button class='icon edit btn btn-success' data-form-url='/project/ajax/participant/"+row.pk+"/udpate' ><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canChange=="True" || row.has_perm == true)action += "<button class='icon edit btn btn-success' data-form-url='/project/ajax/participant/"+row.pk+"/udpate' ><i type = 'button' class='fas fa-edit'></i></button>";
     if(this.canDelete=="True")action += "<button class='icon delete btn btn-danger ' data-form-url='/project/ajax/participant/"+row.pk+"/delete' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;

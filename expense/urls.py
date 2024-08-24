@@ -27,4 +27,10 @@ urlpatterns += [
     
     path('ajax/contract_type/add/', views_modal.ContractTypeCreateView.as_view(), name='add_contracttype'),
     path('ajax/contract_type/<pk>/update/', views_modal.ContractTypeUpdateView.as_view(), name='update_contract_type'),
+    
+    path('expense/<pk>/update/', views_modal.ExpenseUpdateView.as_view(), name='update_expense'),
+    path('expense/<pk>/delete/', views_modal.ExpenseDeleteView.as_view(), name='delete_expense'),
+    path('expense/add/<fund>', views_modal.ExpenseCreateView.as_view(), name='add_expense'),
+    
+    path('expense/fund/<fund_id>/sync',views_modal.ConfirmSyncView.as_view(), name="fund_expense_sync" ),
 ]

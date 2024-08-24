@@ -13,12 +13,14 @@ from auditlog.registry import auditlog
 
 from faicon.fields import FAIconField
 
-from labsmanager.mixin import ActiveDateMixin
+from labsmanager.mixin import ActiveDateMixin, RightsCheckerMixin
 
 from collections.abc import Iterable
+import rules
+from rules.contrib.models import RulesModel
 
 ### Models 
-class Employee(models.Model):
+class Employee(models.Model, RightsCheckerMixin):
     
     class Meta:
         """Metaclass defines extra model properties"""
@@ -112,6 +114,21 @@ class Employee(models.Model):
     def __str__(self):
         """Return a string representation of the Employee (for use in the admin interface)"""
         return  f"{self.first_name} {self.last_name}"
+    
+    @classmethod
+    def get_instances_for_user(cls,perm, user, queryset=None):
+        qset = super().get_instances_for_user(perm, user, queryset)
+        if qset:
+            return qset
+        if not queryset:
+            queryset = cls.objects.all()
+
+        try:
+            relation = Employee_Superior.objects.filter(superior__user=user).values_list("employee", flat=True)
+            queryset = queryset.filter(Q(pk__in=relation)|Q(user=user))
+        except:
+            queryset = cls.objects.none()
+        return queryset
 
 
 
@@ -163,8 +180,8 @@ class Employee_Superior(ActiveDateMixin):
             superior = [superior]
             
         try:
-            relation = Employee_Superior.objects.filter(employee__in=superior)
-            if  relation.filter(superior=employee):
+            relation = Employee_Superior.current.filter(employee__in=superior)
+            if  relation.filter(superior=employee).exists():
                 return True
             elif len(relation)==0:
                 return False 
@@ -193,7 +210,7 @@ class Employee_Type(models.Model):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.name} ({self.shortname})"
 
-class Team(models.Model):
+class Team(models.Model, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Team")
@@ -219,7 +236,7 @@ class Team(models.Model):
 
 
 
-class TeamMate(ActiveDateMixin):
+class TeamMate(ActiveDateMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("TeamMate")    

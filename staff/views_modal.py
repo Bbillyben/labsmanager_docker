@@ -41,7 +41,8 @@ class TeamMateCreateView(LoginRequiredMixin, BSModalCreateView):
     success_url = reverse_lazy('team_index')
     
     def get(self, request, *args, **kwargs):
-        initial={}
+        kw = self.get_form_kwargs()
+        initial={} 
         data=request.GET
         
         team_pk=data.get("team_pk", None)
@@ -49,7 +50,8 @@ class TeamMateCreateView(LoginRequiredMixin, BSModalCreateView):
             initial['team']=team_pk
 
         
-        form = self.form_class(initial=initial)
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         context = {'form': form}
         return render(request, self.template_name , context)
 
@@ -167,10 +169,13 @@ class EmployeeSuperiorCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Employee_Superior
     
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}
         if 'employee' in kwargs:
-            form = self.form_class(initial={'employee': kwargs['employee']})
-        else:
-            form = self.form_class()
+            initial['employee']= kwargs['employee']
+
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         
         context = {'form': form}
         return render(request, self.template_name , context)
@@ -183,10 +188,13 @@ class EmployeeSubordinateCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Employee_Superior
     
     def get(self, request, *args, **kwargs):
+        kw = self.get_form_kwargs()
+        initial={}        
         if 'employee' in kwargs:
+            initial['superior']= kwargs['employee']
             form = self.form_class(initial={'superior': kwargs['employee']})
-        else:
-            form = self.form_class()
+        kw['initial'] = initial
+        form = self.form_class(**kw)
         
         context = {'form': form}
         return render(request, self.template_name , context)

@@ -3,6 +3,8 @@
 
 {% if user_setting %}
 {% setting_object key user=request.user as setting %}
+{% elif project %}
+{% setting_object key project=project as setting %}
 {% else %}
 {% setting_object key as setting %}
 {% endif %}
@@ -22,7 +24,7 @@
         {% include "settings/setting_boolean.html" %}
         {% else %}
         <div id='setting-{{ setting.pk }}'>
-            <span id='setting-value-{{ setting.pk }}-{{ setting.type }}' fieldname='{{ setting.key.upper }}'>
+            <span id='setting-value-{{ setting.pk }}-{{ setting.setting_type }}' fieldname='{{ setting.key.upper }}'>
                 {% if setting.value %}
                 {% if setting.is_choice %}
                 <strong>{{ setting.as_choice }}</strong>
@@ -41,6 +43,7 @@
                     pk='{{ setting.pk }}'
                     setting='{{ setting.key.upper }}'
                     {% if user_setting %}user='{{request.user.id}}'{% endif %}
+                    {% if project %}project='{{project}}'{% endif %}
                 >
                     <span class='fas fa-edit icon-green'></span>
                 </button>

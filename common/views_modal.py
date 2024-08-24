@@ -22,14 +22,14 @@ class FavoriteDeleteView(LoginRequiredMixin,BSmodalDeleteViwGenericForeingKeyMix
     success_url = reverse_lazy('employee')    
 
 ### for password management with modal form ###
-from allauth.account.forms import ChangePasswordForm
+from .forms import ChangeLabPasswordForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth import update_session_auth_hash
 
 class ChangePasswordBSView(LoginRequiredMixin, BSModalFormView):
     model = get_user_model()
-    template_name = 'form_base.html'
-    form_class = ChangePasswordForm
+    template_name = 'account/change_password_form.html' #'form_base.html'
+    form_class = ChangeLabPasswordForm
     success_message = _('Your password has been changed')
     success_url = '/'
     

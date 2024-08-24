@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.db.models import Q, F, ExpressionWrapper, fields, Value
+from django.db.models import Q, F, ExpressionWrapper, Value, Case, When, BooleanField
 from django.db.models.functions import Cast, Coalesce, Now, Extract, Abs
 from datetime import datetime
 
@@ -11,15 +11,19 @@ from labsmanager import serializers
 from .models import Fund, Fund_Item, Budget, Cost_Type, Fund_Institution, Contribution
 from dashboard import utils
 from expense.models import Expense_point, Contract_type
-from staff.models import Team, TeamMate
+from staff.models import Team, TeamMate, Employee
 from project.filters import ProjectFilter
 from project.models import Participant
+from expense.models import Expense, Contract_expense
+
 from .resources import FundItemResource, BudgetResource, FundConsumptionResource, ContributionResource
 
 from labsmanager.helpers import DownloadFile
 from labsmanager.utils import str2bool
 
-from settings.models import LMUserSetting
+from project.models import Project
+
+from settings.models import LMUserSetting, LabsManagerSetting
 
 from datetime import datetime
 
@@ -100,7 +104,14 @@ class FundViewSet(viewsets.ModelViewSet):
         
         return JsonResponse(serializers.FundConsumptionSerialize(fund, many=True).data, safe=False) 
     
-    
+    @action(methods=['get'], detail=True, url_path='expense', url_name='fund_expense_list')
+    def expense_list(self, request, pk=None):
+        if pk==None:
+             exp = Expense.objects.none()
+        else:
+            exp = Expense.object_inherit.filter(fund_item=pk).select_subclasses()
+        return JsonResponse(serializers.ExpenseSerializer(exp, many=True).data, safe=False) 
+        
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
         dataset = FundConsumptionResource().export(queryset=queryset)
@@ -130,6 +141,14 @@ class FundItemViewSet(viewsets.ModelViewSet):
         filename = f"FundItems_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
     
+    def get_queryset(self, *arg, **kwargs):
+        queryset = super().get_queryset( *arg, **kwargs)
+        # Right Management #########  test if user as right over all fund_items
+        if not self.request.user.has_perm('fund.change_funditem'):
+            queryset = Fund_Item.get_instances_for_user('change', self.request.user, queryset)
+        ########################################
+        
+        return queryset
     def filter_queryset(self, queryset):
         params = self.request.GET
         queryset = super().filter_queryset(queryset)
@@ -304,6 +323,12 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
         export = request.GET.get('export', None)
         if export is not None:
             return self.download_queryset(qset, export)
+        try:
+            proj = Project.objects.get(pk=proj_pk)
+            if request.user.has_perm("project.change_project", proj):
+                qset = qset.annotate(has_perm=Value(True))
+        except:
+            pass
 
         return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
     
@@ -315,6 +340,17 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
         export = request.GET.get('export', None)
         if export is not None:
             return self.download_queryset(qset, export)
+        # ====== Right Management
+        user=request.user
+        qset_right=[item.pk for item in qset if user.has_perm("fund.change_contribution", item)]
+        qset = qset.annotate(
+                        has_perm=Case(
+                            When(pk__in=qset_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        # =======================
         
         return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
     
@@ -333,6 +369,10 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
         export = request.GET.get('export', None)
         if export is not None:
             return self.download_queryset(qset, export)
+        # ==========  Right Management
+        if not request.user.has_perm('fund.change_budget'):
+            qset= self.__class__.Meta.model.get_instances_for_user('change', self.request.user, qset)
+        #=============================
         return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
 
 class BudgetViewSet(BudgetAbstractViewSet):

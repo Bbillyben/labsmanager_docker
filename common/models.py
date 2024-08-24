@@ -41,9 +41,11 @@ class RightsSupport(models.Model):
                                  # and "view" default permissions
 
         permissions = ( 
+            ('self_edit', 'Permission to edit own employee'), 
             ('employee_list', 'Permission to see employee list'),  
             ('team_list', 'Permission to see team list'), 
             ('project_list', 'Permission to see project list'),
+            ('contract_list', 'Permission to see contract list'),
             ('display_calendar', 'Permission to see main calendar'),
             ('display_dashboard', 'Permission to see dasgboard'), 
             ('display_infos', 'Permission to see organization informations'),

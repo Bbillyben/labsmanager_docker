@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load lab_rules %}
 
 {% block page_title %}
 {% trans "LabManager Employee" %}
@@ -23,7 +24,7 @@
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
 {% include 'modals.html' with modal_id='single-modal' modal_title='Single' %}
-
+{% has_project_add_perm user as can_add_employee %}
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
         <div class="panel-heading">
@@ -31,7 +32,7 @@
                 <h4>{% trans 'Employee List' %}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
                 <div class="btn-group" role="group">
-                    {% if  perms.staff.add_employee %}
+                    {% if  can_add_employee %}
                     <button type="button" class="btn btn-success" id="employee_create" title="Create New Employee">
                         <span class='fa fa-user-plus'></span>
                         {% trans 'Add Employee' %}
