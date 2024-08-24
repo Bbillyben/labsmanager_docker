@@ -11,6 +11,7 @@ note : this version need an update for group fiwture.
 * [UPDATE] timepoint import : constrain to project's setting (mirroring expense import)
 * [UPDATE] User rules and permission
 * [UPDATE] Tasks.py to fit order with new models
+* [ADD] Version number and update login screen with footer
 
 ### 2024-07-27
 

@@ -1,0 +1,13 @@
+footer{
+    
+    color:#808893;
+}
+footer .footer-content{
+    background-color:#9bbaaa5e;
+    display: flex;
+    line-height: 2em;
+}
+footer .right{
+    /* float: right; */
+    margin-right: 2em;
+}
