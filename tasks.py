@@ -158,6 +158,9 @@ def content_excludes(
         'django_q.schedule',
         'django_q.task',
         'django_q.ormq',
+        'django_q.Failure',
+        'django_password_validators.password_history.UserPasswordHistoryConfig',
+        'django_password_validators.password_history.PasswordHistory',
         'common.rightssupport',
     ]
 
@@ -202,7 +205,7 @@ def contentorder():
         "infos.OrganizationInfosType",
         "infos.ContactType",
         "infos.ContactInfoType",
-        "infos.GenericNote", # generic foreing key
+        
          
         "staff.Employee_Status",# require Employee_type, Employee
         "staff.Employee_Superior",# require Employee
@@ -235,11 +238,13 @@ def contentorder():
         "common.subscription",# require User ContentType
 
         "settings.LMUserSetting",# require User
+        "settings.LMProjectSetting", # require project
 
         "infos.OrganizationInfos",# require ContentType, institution fund_institution
 
         "infos.Contact",# require ContentType, institution fund_institution
         "infos.ContactInfo",# require Contact       
+        "infos.GenericNote", # generic foreing key
     ]
     cmd_list = " ".join(app_list)
     return cmd_list
