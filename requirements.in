@@ -98,6 +98,7 @@ django-js-asset==2.2.0
     # via
     #   -r requirements.in
     #   django-mptt
+django-model-utils==4.5.1
 git+https://github.com/ierror/django-js-reverse
     # via -r requirements.in
 django-mptt==0.16.0
