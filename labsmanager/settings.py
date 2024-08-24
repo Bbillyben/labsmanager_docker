@@ -16,9 +16,14 @@ import os
 from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir
 import logging
 
+import version
+
 logger = logging.getLogger('labsmanager')
 
 
+LABSMANAGER_VERSION = version.LABSMANAGER_VERSION
+
+logger.debug(f"========= LABSMANAGER / version {LABSMANAGER_VERSION}  =========")
 
 es_formats.DATETIME_FORMAT = "d M Y H:i:s"
 

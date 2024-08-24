@@ -1,8 +1,16 @@
 ## Changelog LabsManager
 
-### XXX
-* [ADD] for Cost TYpe model, add is_hr paramter to specify wether a cost type is related to human resource, to switch on that to constrain Budget Form.
+### 2024-08-24
+note : this version need an update for group fiwture. 
 
+* [ADD] for Cost Type model, add is_hr paramter to specify wether a cost type is related to human resource, to switch on that to constrain Budget Form.
+* [ADD] Project Setting, to add project settings
+   * base calculation for project's fund, either 'Simple' (as before,only timepoint), 'Expense' : base on single expense sum for timepoint expense, or hybrid : can refer expenses, but no expense timepoint calculation, except by forcing syncing
+   * Co leader can change project : True/False : define wether a co leader of a project as the same right for project modification
+* [ADD] Single expense import / export, constrain to project's setting
+* [UPDATE] timepoint import : constrain to project's setting (mirroring expense import)
+* [UPDATE] User rules and permission
+* [UPDATE] Tasks.py to fit order with new models
 
 ### 2024-07-27
 
