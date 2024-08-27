@@ -92,7 +92,7 @@ class UserEmployeeSerializer(serializers.ModelSerializer):
     employee=serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ['pk','username', 'first_name','last_name','employee'] 
+        fields = ['pk','username', 'first_name','last_name', 'last_login', 'employee'] 
     
     def get_employee(self,obj):
         try:

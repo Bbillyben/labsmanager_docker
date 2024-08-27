@@ -378,6 +378,7 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
             'columns':[
                 #{'name':_('User'),'item':'user.username',},
                 {'name':_('User'),'item':'username',},
+                {'name':_('Last Login'),'item':'last_login','formatter':'baseDateTimeFormatter'},
                 {'name':_('Employee'),'item':'employee','formatter':'employeeFormatter'},
             ], 
             'action':{

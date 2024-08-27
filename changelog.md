@@ -12,6 +12,7 @@ note : this version need an update for group fiwture.
 * [UPDATE] User rules and permission
 * [UPDATE] Tasks.py to fit order with new models
 * [ADD] Version number and update login screen with footer
+* [UPDATE] Default expense status to Realised
 
 ### 2024-07-27
 

@@ -95,6 +95,20 @@ function baseDateFormatter(value, row, index, field){
     if (d == "Invalid Date" )return value;
     return d.toLocaleDateString()
 }
+function baseDateTimeFormatter(value, row, index, field){
+    const options = { 
+        weekday: 'short',
+        year: 'numeric', 
+        month: 'short', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    };
+    if(value == null || value =="")return value
+    d=new Date(value)
+    if (d == "Invalid Date" )return value;
+    return d.toLocaleString(undefined, options)
+}
 
 function calDateFormatter(value, row, index, field){
     if(value == null || value =="")return value
