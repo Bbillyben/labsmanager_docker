@@ -184,7 +184,14 @@ function userFormatter(value, row, index, field){
 
     return response;
 }
+function userAdminSettingFormatter(value, row, index, field){
+    response = value;
+    console.log(value, row.is_staff, row.is_superuser);
+    if(row.is_staff) response += '<i class="fas fa-gear icon-spaced" style="color:cadetblue" title="staff"></i>';
+    if(row.is_superuser) response += '<i class="fas fa-crown icon-spaced" style="color: coral" title="superuser"></i>'
+    return response;
 
+}
 function employeeFormatter(value, row, index, field){
 
     if(!isIterable(value)){

@@ -1,5 +1,8 @@
 ## Changelog LabsManager
 
+### 
+* [UPDATE] : Information on user/employee setting page for admin
+
 ### 2024-08-24
 note : this version need an update for group fiwture. 
 
