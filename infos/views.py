@@ -75,7 +75,7 @@ class InstitutionView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixi
         context['urls']={               
             }
         if self.request.user.is_staff:
-            context['urls']['admin']=reverse("admin:"+self.app+"_"+self.model+"_change", kwargs={'object_id':id} )
+            context['urls']['admin']=reverse("admin:"+self.app+"_"+self.model+"_change", kwargs={'object_id':self.id} )
         if self.request.user.has_perm(self.app+".change_"+self.model):
             context['urls']['change']=reverse("update_"+self.app+"_"+self.model, kwargs={'pk':self.id} )
 

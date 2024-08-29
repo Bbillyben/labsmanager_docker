@@ -4,6 +4,7 @@
 * [UPDATE] : Information on user/employee setting page for admin
 * [ADD] : address type for info (contact and organisation)
 * [ADD] : User parameter to set default map provider to build location link for adress type info
+* [FIX] : bug for admin button in organisation panel
 
 ### 2024-08-24
 note : this version need an update for group fiwture. 
