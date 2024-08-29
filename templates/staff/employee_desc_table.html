@@ -20,7 +20,7 @@
             <td><i class="fas fa-at"></i></td>
             <td  class="desc_title">{% trans 'Email' %}</td>
             {% if employee.email %}
-            <td><a href="mailto:{{employee.email}}">{{employee.email}}</a></td>
+            <td><a class="copy-target" href="mailto:{{employee.email}}">{{employee.email}}</a><span class="copy-btn"><i class="fa-solid fa-copy"></i></span></td>
             {%else%}
             <td>-</td>
             {%endif%}
@@ -71,3 +71,12 @@
         {%endif%}
     </tbody>
 </table>
+<script>
+(function() {
+   $(".copy-btn").each(function(){
+        $(this).copy_btn()
+   })
+
+})();
+
+</script>

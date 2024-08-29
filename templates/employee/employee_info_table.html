@@ -16,7 +16,7 @@
         <tr>
             <td>{% get_faIcon i.info.icon %}</i></td>
             <td  class="desc_title">{{i.info}}</td>
-            <td>{{i.value}}</td>
+            <td><span class="copy-target">{{i.value}}</span><span class="copy-btn"><i class="fa-solid fa-copy"></i></span></td>
             <td>
                 <span class="icon-left-cell btn-group">
                     {% if can_change_genericinfo %}
@@ -33,4 +33,13 @@
         </tbody>
     </table>
 </div>
+<script>
+(function() {
+   $(".copy-btn").each(function(){
+        $(this).copy_btn()
+   })
+
+})();
+
+</script>
 {% endif %}

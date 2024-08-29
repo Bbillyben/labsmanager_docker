@@ -12,10 +12,11 @@
         <td>{% get_faIcon i.info.icon %}</i></td>
         <td  class="desc_title">{{i.info}}</td>
         <td>
-            {% contact_info i user %}
+            <span class="copy-target">{% contact_info i user %}</span>
             {% if i.comment %}
                 <span class="availComment" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="{{i.comment}}"><span class="aicon fa fa-comment"> </span></span>
             {%endif%}
+            <span class="copy-btn"><i class="fa-solid fa-copy"></i></span>
         </td>
         <td>
             <span class="icon-left-cell btn-group">
@@ -44,3 +45,12 @@
         {% endif %}
     </tbody>
 </table>
+<script>
+(function() {
+   $(".copy-btn").each(function(){
+        $(this).copy_btn()
+   })
+
+})();
+
+</script>

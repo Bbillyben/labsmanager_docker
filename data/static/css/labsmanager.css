@@ -1689,3 +1689,14 @@ li.list-spacer{
         line-height: inherit;
         margin-right: 0.5em;
       }
+/* for the copy btn */
+.copy-btn {
+    font-size: small;
+    color:var(--primary-color-alpha-dark);
+    cursor: pointer;
+    margin-left: 0.4em;
+}
+.copy-btn:hover {
+    color:var(--primary-color);
+}
+/* end  copy btn */
