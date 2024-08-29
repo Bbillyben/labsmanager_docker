@@ -24,7 +24,7 @@ data-url= "{% url 'api:organization-orga_contact' app=app model=model id=id %}"
             <th data-sortable="true" class="th-inner sortable both" data-field="type.name" data-formatter="typeContactFormatter">
                 {% trans 'type' %}
             </th>
-            <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminContactFormatter"
+            <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminContactFormatter"
             data-can-change="{{ perms.infos.change_contact }}"
             data-can-delete="{{ perms.infos.delete_contact }}"
             data-is-staff="{{ request.user.is_staff }}"

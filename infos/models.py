@@ -20,7 +20,7 @@ class InfoTypeClass(models.Model):
         ordering = ['name']
     name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
     icon = FAIconField(null=True,)
-    type_choices=[("none",_("None")), ("tel",_("Phone Number")), ("mail", _("EMail")), ("link", _("Link")), ]
+    type_choices=[("none",_("None")), ("tel",_("Phone Number")), ("mail", _("EMail")), ("link", _("Link")), ("addr", _("Address")),]
     type = models.CharField(
         max_length=4,
         choices=type_choices,

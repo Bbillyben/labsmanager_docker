@@ -53,7 +53,7 @@
             
                         
                         {% if perms.project.change_institution %}
-                        <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="InstutionActionFormatter"
+                        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="InstutionActionFormatter"
                         data-can-change="{{ perms.project.change_institution}}"
                         data-is-staff="{{ request.user.is_staff }}"
                         >
@@ -100,7 +100,7 @@
             
                         
                         {% if perms.project.change_institution %}
-                        <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="funderActionFormatter"
+                        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="funderActionFormatter"
                         data-can-change="{{ perms.fund.change_fund_institution }}"
                         data-is-staff="{{ request.user.is_staff }}"
                         >

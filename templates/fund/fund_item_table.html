@@ -34,7 +34,7 @@
                     {% trans 'Amount' %}
                 </th>
                 {% if perms.fund.change_fund_item or perms.fund.delete_fund_item or has_perm %}
-                <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionFundItem"
+                <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionFundItem"
                 data-can-change="{% if perms.fund.change_fund_item or has_perm %}True{%endif%}"
                 data-can-delete="{{ perms.fund.delete_fund_item }}"
                 >

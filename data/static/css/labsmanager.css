@@ -1188,6 +1188,11 @@ li.list-spacer{
 	padding: 0.12rem;
 }
 
+.table td.fit-content, 
+.table th.fit-content {
+   white-space: nowrap;
+   width: 1%;
+}
 
 /*   for tab radio button   */
 .tabs {

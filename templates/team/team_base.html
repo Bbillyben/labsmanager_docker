@@ -68,7 +68,7 @@
                         </th>
                         
                         {% if  perms.staff.change_team or perms.staff.delete_team %}
-                        <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminTeamFormatter" data-searchable="false"
+                        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="adminTeamFormatter" data-searchable="false"
                         data-can-change="{{ perms.staff.change_team }}"
                         data-can-delete="{{ perms.staff.delete_team }}"
                         data-is-staff="{{ request.user.is_staff }}"

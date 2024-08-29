@@ -226,6 +226,7 @@ TEMPLATES = [
             'libraries':{
                 'customs_tags': 'labsmanager.templatetags.customs_tags',
                 'lab_rules': 'labsmanager.templatetags.lab_rules',
+                'format_tag': 'labsmanager.templatetags.format_tag',
             
             }
         },

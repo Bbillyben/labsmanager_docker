@@ -37,7 +37,7 @@ data-url={{ dataURL }}
         <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
             {% trans 'Active' %}
         </th>
-        <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionFund"
+        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionFund"
         data-can-change="{{ perms.fund.change_fund }}"
         data-can-delete="{{ perms.fund.delete_fund }}"
         data-is-staff="{{ request.user.is_staff }}"
