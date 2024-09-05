@@ -25,8 +25,10 @@
 
 
 <body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.png" %}); background-size: cover;'></body>
+ 
+<div class='main body-wrapper flex'>
 {% if user.is_authenticated %}
-<nav class="navbar navbar-expand-lg navbar-light">
+<nav class="navbar navbar-expand-lg navbar-light fixed-top">
     {% if user.employee %}
     <div class="container-fluid"><span class="dropdown-item">{% trans 'Welcome' %} <b><i><a class="no_color" href="{% url 'employee' pk=user.employee.pk %}" title="{{user.employee}}">{{user.employee.first_name}}</a></i></b></span></div>
     {%else%}
@@ -37,8 +39,7 @@
     </div>
 </nav>
     
-{% endif %}   
-<div class='main body-wrapper flex'>
+{% endif %}  
     <div class="liencont index-screen d-flex" style='width:75%; margin:auto;'>
         <div class="row align-items-center justify-content-center" style="width:100%;">
             <div class="row"></div>
@@ -140,13 +141,14 @@
 
 
     </div>
-</div>
-<footer>
-    <div class="footer-content">
+    <footer>
+    <div class="footer-content fixed-bottom">
         <span class="flex" style="flex-grow: 1;"></span>  
         <div class="right"><i>{%trans "LabsManager version" %}: </i><b>{{LABSMANAGER_VERSION}}</b></div>
     </div>
 </footer>
+</div>
+
 
     
 </div>

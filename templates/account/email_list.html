@@ -62,20 +62,25 @@ $('.mail-mngt').click(function(){
     // console.log("mail-mngt"+$(this).data("pk")+" / type :"+$(this).data("type"));
 
     var postData={}
+    var message = "Not defined";
     postData['email']=$(this).data("email")
     switch ($(this).data("type")) {
         case 'make-primary':
-            postData['action_primary']=true;   
+            postData['action_primary']=true;  
+            message=postData['email'] + " {%trans 'set as Primary' %}" ;
             break;
         case 'send-verif':
             postData['action_send']=true; 
+            message="{%trans 'Verification eMail sent to' %} " +postData['email'];
             break;
         case 'remove':
             postData['action_remove']=true; 
+            message="{%trans 'eMail deleted' %} "+postData['email'] 
             break;
         case 'add':
             postData['action_add']=true; 
             postData['email']=$('#id_email').val();
+            message="{%trans 'eMail added' %} :"+postData['email'] 
             break;
         default:
             console.log(`Error On email action type :`+$(this).data("type"));
@@ -98,6 +103,9 @@ $('.mail-mngt').click(function(){
         success: function( data )
         {
             loadInTemplate(elt=$('#user_email_cont'),url="{% url 'user_emaillist' %}");
+            showMessage(message, {
+                    'style':'success',
+                })
         },
         error:function( err )
         {

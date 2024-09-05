@@ -1,14 +1,18 @@
 ## Changelog LabsManager
 
-### 
+### 2024-09-05
+note : require static update
 * [UPDATE] : Information on user/employee setting page for admin
 * [ADD] : address type for info (contact and organisation)
 * [ADD] : User parameter to set default map provider to build location link for adress type info
 * [ADD] : Copy buytton for information in employee, project, contact, organisation's infos.
 * [FIX] : bug for admin button in organisation panel
+* [FIX] : prevent index card from overlapping and addigin minimum size
+* [ADD] : Notification popup for email actions in setting panel.
+* [UPDATE] : translation
 
 ### 2024-08-24
-note : this version need an update for group fiwture. 
+note : this version need an update for group fixture. 
 
 * [ADD] for Cost Type model, add is_hr paramter to specify wether a cost type is related to human resource, to switch on that to constrain Budget Form.
 * [ADD] Project Setting, to add project settings

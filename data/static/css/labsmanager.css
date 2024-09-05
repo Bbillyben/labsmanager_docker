@@ -1287,7 +1287,13 @@ li.list-spacer{
 .lab-card-col a:visited  {text-decoration: none;}
 .lab-card-col a:hover  {text-decoration: none;}
 .lab-card-col a:active  {text-decoration: none;}
-
+.lab-card-col{
+    min-width: 13em;
+    margin-bottom: 0.5em;
+}
+.card.lab-card{
+    min-width: 12em;
+}
 .card .lab-card-link{
     display: table;
     width: 100%;
