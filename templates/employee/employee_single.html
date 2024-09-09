@@ -123,7 +123,7 @@
                                                 {% trans 'Active' %}
                                             </th>
                                             {% if perms.staff.change_employee_status or perms.staff.delete_employee_status or can_edit_employee %}
-                                            <th data-sortable="false" class="th-inner" data-field="admin_action" 
+                                            <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" 
                                             data-can-change="{% if perms.staff.change_employee_status or can_edit_employee %}True{%endif%}"
                                             data-can-delete="{{ perms.staff.delete_employee_status }}"
                                             data-formatter="empStatusFormatter"
@@ -181,7 +181,7 @@
                                             {% trans 'Active' %}
                                         </th>
                                         {% if perms.staff.change_employee_superior or perms.staff.delete_employee_superior or can_edit_employee%}
-                                        <th data-sortable="false" class="th-inner" data-field="admin_action" 
+                                        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" 
                                         data-can-change="{% if perms.staff.change_employee_superior or can_edit_employee %}True{%endif%}"
                                         data-can-delete="{{ perms.staff.delete_employee_superior }}"
                                         data-formatter="empActionSsuperiorFormatter"
@@ -217,7 +217,7 @@
                                         {% trans 'Active' %}
                                     </th>
                                     
-                                    <th data-sortable="false" class="th-inner" data-field="admin_action" 
+                                    <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" 
                                     data-can-change="{% if perms.staff.change_employee_superior or can_edit_employee %}True{%endif%}"
                                     data-can-delete="{{ perms.staff.delete_employee_superior }}"
                                     data-formatter="empActionSsuperiorFormatter"
@@ -412,7 +412,7 @@
                                                     {% trans 'Quotity' %}
                                                 </th>
                                                 
-                                                <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionParticipant" 
+                                                <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="adminActionParticipant" 
                                                 data-can-change="{{ perms.project.change_participant }}"
                                                 data-can-delete="{{ perms.project.delete_participant }}"
                                                 >
@@ -540,7 +540,7 @@
                                                             {% trans 'Nb Days' %}
                                                         </th>
                                                         {% if perms.leave.change_leave or perms.leave.delete_leave %}
-                                                        <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionLeave" 
+                                                        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="adminActionLeave" 
                                                             data-can-change="{{ perms.leave.change_leave }}"
                                                             data-can-delete="{{ perms.leave.delete_leave }}"
                                                             data-is-staff="{{ request.user.is_staff }}"

@@ -23,7 +23,10 @@
                     <tr>
                         <td><i class="fas fa-id-card"></i></td>
                         <td  class="desc_title">{% trans 'LabsManager User' %}</td>
-                        <td>{% user_display user %}</td>
+                        <td>{% user_display user %}
+                            {% if user.is_staff%}<i class="fas fa-gear icon-spaced" style="color:cadetblue" title="staff"></i>{%endif%}
+                            {% if user.is_superuser%}<i class="fas fa-crown icon-spaced" style="color: coral" title="superuser"></i>{%endif%}
+                        </td>
                     </tr>
                     <tr>
                         <td><i class="fas fa-user"></i></td>
@@ -33,6 +36,12 @@
                             {% else %}
                             <i>{% trans 'None' %}</i>
                             {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fas fa-right-to-bracket"></i></td>
+                        <td  class="desc_title">{% trans "Last Login" %}</td>
+                        <td>{{user.last_login}}
                         </td>
                     </tr>
                 </tbody>

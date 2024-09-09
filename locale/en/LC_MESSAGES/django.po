@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-24 09:23+0200\n"
+"POT-Creation-Date: 2024-09-05 15:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 #: data/media/report/report_template/employee/employee_pdf_leave_report.html:257
 #: data/media/report/report_template/employee/employee_pdf_report.html:569
 #: data/media/report/report_template/project/project_pdf_report.html:675
-#: settings/models.py:925 settings/models.py:926 settings/views.py:380
+#: settings/models.py:934 settings/models.py:935 settings/views.py:380
 #: staff/models.py:34 staff/ressources.py:231
 #: templates/staff/employee_desc_table.html:63
 msgid "User"
@@ -46,7 +46,7 @@ msgid "Your password has been changed"
 msgstr ""
 
 #: dashboard/views.py:29 templates/dashboard/global_dashboard.html:22
-#: templates/labmanager/index.html:110 templates/navbar.html:100
+#: templates/labmanager/index.html:112 templates/navbar.html:100
 #: templates/project/project_sidebar.html:24
 #: templates/settings/dashboard_settings.html:7
 msgid "Dashboard"
@@ -139,7 +139,7 @@ msgstr ""
 #: data/media/report/report_template/project/project_pdf_report.html:465
 #: expense/models.py:134 expense/resources.py:114 fund/resources.py:277
 #: leave/models.py:48 leave/resources.py:85 project/models.py:210
-#: settings/views.py:381 staff/models.py:27 staff/models.py:28
+#: settings/views.py:382 staff/models.py:27 staff/models.py:28
 #: staff/models.py:144 staff/models.py:195 staff/models.py:245
 #: staff/models.py:284 staff/views.py:35 staff/views.py:75 staff/views.py:78
 #: templates/dashboard/dashboard_sidebar.html:13
@@ -153,7 +153,7 @@ msgstr ""
 #: templates/expense/contract_fund_modal.html:74
 #: templates/expense/contract_table.html:34
 #: templates/expense/contract_table.html:42 templates/fund/budget_table.html:49
-#: templates/fund/contrib_table.html:48 templates/labmanager/index.html:49
+#: templates/fund/contrib_table.html:48 templates/labmanager/index.html:51
 #: templates/navbar.html:24 templates/project/project_single.html:150
 #: templates/project/project_single.html:438
 msgid "Employee"
@@ -177,7 +177,7 @@ msgstr ""
 #: templates/expense/contract_table.html:29
 #: templates/expense/contract_table.html:39 templates/fund/budget_table.html:23
 #: templates/fund/contrib_table.html:24 templates/fund/fund_finder.html:56
-#: templates/labmanager/index.html:81
+#: templates/labmanager/index.html:83
 #: templates/organization/institution_single.html:148
 #: templates/organization/orga_desc_table.html:46
 #: templates/project/project_base.html:54
@@ -222,7 +222,7 @@ msgstr ""
 #: data/media/report/report_template/project/project_pdf_report.html:356
 #: data/media/report/report_template/project/project_pdf_report.html:409
 #: expense/models.py:30 expense/resources.py:80 fund/models.py:269
-#: reports/models.py:131 templates/expense/expense_list.html:40
+#: reports/models.py:131 templates/expense/expense_list.html:42
 #: templates/fund/budget_table.html:36
 msgid "Description"
 msgstr ""
@@ -248,7 +248,7 @@ msgstr ""
 #: templates/employee/employee_single.html:532
 #: templates/expense/contract_item_expense.html:28
 #: templates/expense/contract_item_expense.html:31
-#: templates/expense/expense_list.html:43
+#: templates/expense/expense_list.html:45
 #: templates/expense/expense_timepoint.html:36
 #: templates/fund/fund_finder.html:71 templates/fund/fund_item_table.html:31
 #: templates/fund/fund_overview_type.html:8
@@ -407,7 +407,7 @@ msgstr ""
 #: data/media/report/report_template/project/project_pdf_report.html:601
 #: data/media/report/report_template/project/project_pdf_report.html:624
 #: data/media/report/report_template/project/project_pdf_report.html:675
-#: fund/models.py:312 templates/expense/expense_list.html:37
+#: fund/models.py:312 templates/expense/expense_list.html:39
 msgid "Date"
 msgstr ""
 
@@ -461,7 +461,7 @@ msgstr ""
 #: templates/endpoints/milestones_table.html:40
 #: templates/expense/contract_fund_modal.html:81
 #: templates/expense/contract_item_expense.html:34
-#: templates/expense/expense_list.html:46
+#: templates/expense/expense_list.html:48
 #: templates/organization/institution_single.html:167
 #: templates/project/project_base.html:93
 #: templates/project/project_single.html:122
@@ -549,7 +549,7 @@ msgstr ""
 #: data/media/report/report_template/employee/employee_pdf_report.html:432
 #: staff/models.py:216 staff/models.py:244 staff/views.py:294
 #: templates/employee/employee_sidebar.html:16
-#: templates/labmanager/index.html:67 templates/team/team_single.html:28
+#: templates/labmanager/index.html:69 templates/team/team_single.html:28
 msgid "Team"
 msgstr ""
 
@@ -567,8 +567,8 @@ msgstr ""
 #: data/media/report/report_template/employee/employee_pdf_report.html:463
 #: data/media/report/report_template/project/project_pdf_report.html:354
 #: data/media/report/report_template/project/project_pdf_report.html:405
-#: fund/models.py:91 project/resources.py:87 settings/models.py:983
-#: settings/models.py:984 templates/expense/contract_fund_modal.html:15
+#: fund/models.py:91 project/resources.py:87 settings/models.py:992
+#: settings/models.py:993 templates/expense/contract_fund_modal.html:15
 #: templates/fund/budget_table.html:27 templates/fund/contrib_table.html:28
 #: templates/organization/institution_single.html:163
 #: templates/project/project_base.html:69
@@ -583,7 +583,7 @@ msgstr ""
 #: expense/models.py:33 expense/models.py:70 expense/resources.py:50
 #: fund/models.py:263 fund/models.py:310 labsmanager/mixin.py:96
 #: templates/expense/contract_item_expense.html:37
-#: templates/expense/expense_list.html:49
+#: templates/expense/expense_list.html:51
 #: templates/expense/expense_timepoint.html:39
 #: templates/fund/budget_table.html:56 templates/fund/contrib_table.html:55
 #: templates/fund/fund_finder.html:78 templates/fund/fund_item_table.html:34
@@ -722,7 +722,7 @@ msgstr ""
 #: templates/employee/employee_sidebar.html:4
 #: templates/expense/contract_fund_modal.html:16
 #: templates/expense/contract_fund_modal.html:65
-#: templates/expense/expense_list.html:52 templates/labmanager/index.html:73
+#: templates/expense/expense_list.html:54 templates/labmanager/index.html:75
 #: templates/organization/institution_single.html:184
 #: templates/organization/orga_desc_table.html:78
 #: templates/organization/orga_single_sidebar.html:13
@@ -1100,7 +1100,7 @@ msgstr ""
 msgid "import"
 msgstr ""
 
-#: infos/models.py:23 templates/settings/user_settings.html:34
+#: infos/models.py:23 templates/settings/user_settings.html:37
 msgid "None"
 msgstr ""
 
@@ -1114,6 +1114,10 @@ msgstr ""
 
 #: infos/models.py:23
 msgid "Link"
+msgstr ""
+
+#: infos/models.py:23
+msgid "Address"
 msgstr ""
 
 #: infos/models.py:39
@@ -1177,7 +1181,7 @@ msgstr ""
 msgid "note"
 msgstr ""
 
-#: infos/views.py:25 infos/views.py:55 templates/labmanager/index.html:90
+#: infos/views.py:25 infos/views.py:55 templates/labmanager/index.html:92
 #: templates/organization/institution_single.html:24
 #: templates/settings/sidebar.html:49
 msgid "Organization"
@@ -1362,7 +1366,7 @@ msgstr ""
 msgid "Report template is enabled"
 msgstr ""
 
-#: settings/models.py:335 settings/models.py:918 settings/models.py:976
+#: settings/models.py:335 settings/models.py:927 settings/models.py:985
 msgid "Settings key (must be unique - case insensitive)"
 msgstr ""
 
@@ -1632,23 +1636,39 @@ msgstr ""
 msgid "Color theme for LabsManager"
 msgstr ""
 
-#: settings/models.py:946
+#: settings/models.py:903
+msgid "Map provider for location link"
+msgstr ""
+
+#: settings/models.py:904
+msgid "choose a map provider for link pointing to location"
+msgstr ""
+
+#: settings/models.py:907
+msgid "Google Map"
+msgstr ""
+
+#: settings/models.py:908
+msgid "Openstreetmap"
+msgstr ""
+
+#: settings/models.py:955
 msgid "Expense base calculation"
 msgstr ""
 
-#: settings/models.py:947
+#: settings/models.py:956
 msgid "Simple : Timepoint only, Expense : sum of expense, hybrid"
 msgstr ""
 
-#: settings/models.py:956
+#: settings/models.py:965
 msgid "Leader can edit fund"
 msgstr ""
 
-#: settings/models.py:957
+#: settings/models.py:966
 msgid "wether the leader can edit fund of project"
 msgstr ""
 
-#: settings/views.py:20 templates/labmanager/index.html:122
+#: settings/views.py:20 templates/labmanager/index.html:124
 #: templates/navbar.html:112 templates/settings/modal_project_settings.html:4
 #: templates/settings/settings.html:18 templates/settings/sidebar.html:9
 msgid "Settings"
@@ -1716,6 +1736,10 @@ msgstr ""
 msgid "Users"
 msgstr ""
 
+#: settings/views.py:381 templates/settings/user_settings.html:43
+msgid "Last Login"
+msgstr ""
+
 #: staff/admin.py:61
 msgid "User Attached"
 msgstr ""
@@ -1733,7 +1757,7 @@ msgid ""
 msgstr ""
 
 #: staff/models.py:38 staff/ressources.py:225
-#: templates/settings/user_settings.html:52
+#: templates/settings/user_settings.html:61
 #: templates/staff/employee_desc_table.html:21
 msgid "Email"
 msgstr ""
@@ -1883,6 +1907,22 @@ msgstr ""
 msgid "Add Email"
 msgstr ""
 
+#: templates/account/email_list.html:70
+msgid "set as Primary"
+msgstr ""
+
+#: templates/account/email_list.html:74
+msgid "Verification eMail sent to"
+msgstr ""
+
+#: templates/account/email_list.html:78
+msgid "eMail deleted"
+msgstr ""
+
+#: templates/account/email_list.html:83
+msgid "eMail added"
+msgstr ""
+
 #: templates/account/login.html:7 templates/account/login.html:9
 #: templates/account/logout.html:7 templates/account/logout.html:9
 #: templates/account/password_reset.html:7
@@ -1993,8 +2033,8 @@ msgid "Bad Token"
 msgstr ""
 
 #: templates/account/password_reset_from_key.html:42
-#: templates/settings/user_settings.html:46
-#: templates/settings/user_settings.html:73
+#: templates/settings/user_settings.html:55
+#: templates/settings/user_settings.html:82
 msgid "Change Password"
 msgstr ""
 
@@ -2042,7 +2082,7 @@ msgid "LabManager Calendar"
 msgstr ""
 
 #: templates/calendar/main_calendar.html:25
-#: templates/calendar/main_calendar.html:45 templates/labmanager/index.html:102
+#: templates/calendar/main_calendar.html:45 templates/labmanager/index.html:104
 #: templates/navbar.html:92
 msgid "Calendar"
 msgstr ""
@@ -2224,7 +2264,7 @@ msgstr ""
 #: templates/endpoints/milestones_table.html:49
 #: templates/expense/contract_item_expense.html:44
 #: templates/expense/contract_table.html:74
-#: templates/expense/expense_list.html:59
+#: templates/expense/expense_list.html:61
 #: templates/expense/expense_timepoint.html:47
 #: templates/fund/budget_table.html:67 templates/fund/contrib_table.html:66
 #: templates/fund/fund_item_table.html:41 templates/fund/fund_table.html:45
@@ -2246,8 +2286,8 @@ msgid "Add Status"
 msgstr ""
 
 #: templates/employee/employee_single.html:66
-#: templates/organization/contact_info_table.html:37
-#: templates/organization/orga_info_table.html:39
+#: templates/organization/contact_info_table.html:39
+#: templates/organization/orga_info_table.html:42
 #: templates/project/project_single.html:64
 msgid "Add Info"
 msgstr ""
@@ -2361,7 +2401,7 @@ msgstr ""
 msgid "Prospective"
 msgstr ""
 
-#: templates/expense/expense_list.html:6
+#: templates/expense/expense_list.html:8
 msgid "Expenses List"
 msgstr ""
 
@@ -2490,16 +2530,20 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
-#: templates/labmanager/index.html:30 templates/labmanager/index.html:32
+#: templates/labmanager/index.html:33 templates/labmanager/index.html:35
 msgid "Welcome"
 msgstr ""
 
-#: templates/labmanager/index.html:35 templates/navbar.html:121
+#: templates/labmanager/index.html:38 templates/navbar.html:121
 msgid "Logout"
 msgstr ""
 
-#: templates/labmanager/index.html:129 templates/navbar.html:114
+#: templates/labmanager/index.html:131 templates/navbar.html:114
 msgid "Admin"
+msgstr ""
+
+#: templates/labmanager/index.html:147
+msgid "LabsManager version"
 msgstr ""
 
 #: templates/labmanager/index_card_tools.html:13 templates/navbar.html:64
@@ -2759,6 +2803,10 @@ msgstr ""
 msgid "Organization Setting"
 msgstr ""
 
+#: templates/settings/interface_setting.html:44
+msgid "General Setting"
+msgstr ""
+
 #: templates/settings/list_setting_panel_contract.html:8
 msgid "List Settings - Contract"
 msgstr ""
@@ -2847,11 +2895,11 @@ msgstr ""
 msgid "LabsManager User"
 msgstr ""
 
-#: templates/settings/user_settings.html:30
+#: templates/settings/user_settings.html:33
 msgid "User's Employee"
 msgstr ""
 
-#: templates/settings/user_settings.html:65
+#: templates/settings/user_settings.html:74
 msgid "Password Saved"
 msgstr ""
 

@@ -19,7 +19,7 @@
             <tr>
                 {% for c in columns %}
                 <th data-sortable="true" 
-                class="th-inner sortable both" 
+                class="th-inner sortable both {% if c.class %}{{c.class}}{% endif %}" 
                 data-field="{{c.item}}"
                 {% if c.formatter %}data-formatter="{{c.formatter}}"{% endif %}
                 {% if c.cellstyle %}data-cell-style="{{c.cellstyle}}"{% endif %}
@@ -30,7 +30,7 @@
                 {% endfor %}
                 {% if  action.update or action.delete or action.admin %}
                  <th data-sortable="false" 
-                 class="th-inner sortable both" 
+                 class="th-inner sortable both fit-content" 
                  data-urlupdate="{{action.update}}"
                  data-urldelete="{{action.delete}}"
                  data-urladmin="{{action.admin}}"

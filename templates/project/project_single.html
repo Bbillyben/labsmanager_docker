@@ -165,7 +165,7 @@
                                                 {% trans 'Employee Active' %}
                                             </th>
                                             {% if perms.project.change_participant or perms.project.delete_participant or can_edit_project %}
-                                            <th data-sortable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionParticipant"
+                                            <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="adminActionParticipant"
                                             data-can-change="{% if can_edit_project or perms.project.change_participant %}True{%endif%}"
                                             data-can-delete="{{ perms.project.delete_participant }}"
                                             >

@@ -40,7 +40,7 @@
                 </th>
                 {% if project_calc == 's' or  project_calc == 'h' %}
                 {% if perms.expense.delete_expense_point or can_change_expense_point  %}
-                <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpensePointdItem"
+                <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpensePointdItem"
                 data-can-change="{% if can_change_expense_point %}True{%endif%}"
                 data-can-delete="{{ perms.expense.delete_expense_point }}"
                 >

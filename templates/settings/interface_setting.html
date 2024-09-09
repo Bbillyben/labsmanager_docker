@@ -41,6 +41,15 @@
                 </table>
                 
             </div>
+            <div class="subheading">{%trans 'General Setting' %}</div>
+            <div class="card  mb-2">
+                <table class='table table-striped table-condensed'>
+                    <tbody>
+                        {% include "settings/setting.html" with key="MAP_PROVIDER" user_setting=True icon='fa-location-dot' %}
+                    </tbody>
+                </table>
+                
+            </div>
         </div>
     </div>
 </div> <!-- end container -->

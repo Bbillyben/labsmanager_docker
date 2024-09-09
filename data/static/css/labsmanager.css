@@ -1188,6 +1188,11 @@ li.list-spacer{
 	padding: 0.12rem;
 }
 
+.table td.fit-content, 
+.table th.fit-content {
+   white-space: nowrap;
+   width: 1%;
+}
 
 /*   for tab radio button   */
 .tabs {
@@ -1282,7 +1287,13 @@ li.list-spacer{
 .lab-card-col a:visited  {text-decoration: none;}
 .lab-card-col a:hover  {text-decoration: none;}
 .lab-card-col a:active  {text-decoration: none;}
-
+.lab-card-col{
+    min-width: 13em;
+    margin-bottom: 0.5em;
+}
+.card.lab-card{
+    min-width: 12em;
+}
 .card .lab-card-link{
     display: table;
     width: 100%;
@@ -1684,3 +1695,14 @@ li.list-spacer{
         line-height: inherit;
         margin-right: 0.5em;
       }
+/* for the copy btn */
+.copy-btn {
+    font-size: small;
+    color:var(--primary-color-alpha-dark);
+    cursor: pointer;
+    margin-left: 0.4em;
+}
+.copy-btn:hover {
+    color:var(--primary-color);
+}
+/* end  copy btn */

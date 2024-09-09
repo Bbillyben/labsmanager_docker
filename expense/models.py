@@ -39,7 +39,7 @@ class Expense(LabsManagerFocusTypeMixin):
         max_length=1,
         choices=status_mod,
         blank=False,
-        default='e', verbose_name=_('Status'),
+        default='r', verbose_name=_('Status'),
     )
     fund_item = models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'), related_name='tot_expense')
     history = AuditlogHistoryField()

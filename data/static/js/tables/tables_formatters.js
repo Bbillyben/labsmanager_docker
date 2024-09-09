@@ -95,6 +95,20 @@ function baseDateFormatter(value, row, index, field){
     if (d == "Invalid Date" )return value;
     return d.toLocaleDateString()
 }
+function baseDateTimeFormatter(value, row, index, field){
+    const options = { 
+        weekday: 'short',
+        year: 'numeric', 
+        month: 'short', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    };
+    if(value == null || value =="")return value
+    d=new Date(value)
+    if (d == "Invalid Date" )return value;
+    return d.toLocaleString(undefined, options)
+}
 
 function calDateFormatter(value, row, index, field){
     if(value == null || value =="")return value
@@ -170,7 +184,14 @@ function userFormatter(value, row, index, field){
 
     return response;
 }
+function userAdminSettingFormatter(value, row, index, field){
+    response = value;
+    console.log(value, row.is_staff, row.is_superuser);
+    if(row.is_staff) response += '<i class="fas fa-gear icon-spaced" style="color:cadetblue" title="staff"></i>';
+    if(row.is_superuser) response += '<i class="fas fa-crown icon-spaced" style="color: coral" title="superuser"></i>'
+    return response;
 
+}
 function employeeFormatter(value, row, index, field){
 
     if(!isIterable(value)){

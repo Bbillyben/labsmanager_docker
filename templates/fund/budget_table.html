@@ -59,7 +59,7 @@ data-toolbar='#tracking-table-toolbar_{{filterName}}'
             {% trans 'Is Active' %}
         </th>
         {% if datatype != "search" and datatype != "team" %}
-        <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminAction{{idTable}}"
+        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminAction{{idTable}}"
         data-can-change="{{ perms.fund.change_budget }}"
         data-can-delete="{{ perms.fund.delete_budget }}"
         data-is-staff="{{ request.user.is_staff }}"

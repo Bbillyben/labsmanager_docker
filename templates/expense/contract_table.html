@@ -66,7 +66,7 @@
             <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                 {% trans 'Is Active' %}
             </th>
-            <th data-sortable="false" data-searchable="false" class="th-inner" data-field="admin_action" data-formatter="adminActionContract"
+            <th data-sortable="false" data-searchable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="adminActionContract"
             data-can-change="{{ perms.expense.change_contract }}"
             data-can-delete="{{ perms.expense.delete_contract }}"
             data-is-staff="{{ request.user.is_staff }}"

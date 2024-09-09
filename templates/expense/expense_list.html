@@ -54,7 +54,7 @@
                     {% trans 'Contract' %}
                 </th>
                 {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense or has_perm  %}
-                <th data-sortable="false" class="th-inner" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpenseItem"
+                <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpenseItem"
                 data-can-change="{% if perms.expense.change_expense or has_perm %}True{%endif%}"
                 data-can-delete="{{ perms.expense.delete_expense }}"
                 >

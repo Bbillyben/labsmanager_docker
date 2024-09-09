@@ -899,6 +899,15 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': LabTheme.default_color_theme[0],
             'choices':LabTheme.get_themes_choices(),
         },
+        'MAP_PROVIDER': {
+            'name': _('Map provider for location link'),
+            'description': _('choose a map provider for link pointing to location'),
+            'default': 'gmap',
+            'choices': [
+                ('gmap', _('Google Map')),
+                ('opensm', _('Openstreetmap'))
+            ],
+        },
         
         
     }
