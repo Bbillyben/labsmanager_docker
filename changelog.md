@@ -1,5 +1,9 @@
 ## Changelog LabsManager
 
+### 
+* [FIX] : Issue with delete form for superior/subordinate delete view
+* [ADD] : color type setting with RGBvalidator
+
 ### 2024-09-05
 note : require static update
 * [UPDATE] : Information on user/employee setting page for admin

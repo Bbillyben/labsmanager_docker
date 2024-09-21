@@ -47,15 +47,13 @@
 {% include "settings/calendar_settings.html" %}
 
 {% include "settings/users_setting_panel.html" %}
+{% include "settings/plugins_settings.html" %}
 {% endif %}
 
 
 
 {{ request.user.id|json_script:"user_id" }}
 {{ project.pk|json_script:"project_id" }}
-
-
-
 
 
 

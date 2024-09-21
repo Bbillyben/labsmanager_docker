@@ -21,7 +21,9 @@
     </td>
     <td>
         {% if setting.is_bool %}
-        {% include "settings/setting_boolean.html" %}
+            {% include "settings/setting_boolean.html" %}
+        {% elif setting.is_color %}
+            {% include "settings/setting_color.html" %}
         {% else %}
         <div id='setting-{{ setting.pk }}'>
             <span id='setting-value-{{ setting.pk }}-{{ setting.setting_type }}' fieldname='{{ setting.key.upper }}'>

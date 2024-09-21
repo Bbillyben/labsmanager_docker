@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     'common.apps.CommonConfig',
     'settings.apps.SettingsConfig',
     'infos.apps.InfosConfig',
+    'plugin.apps.PluginConfig',
     
     
 ]
@@ -397,7 +398,7 @@ Q_CLUSTER = {
 ACCOUNT_FORMS = {'reset_password_from_key': 'common.forms.ResetLabPasswordKeyForm', 
                  }
 # Session 
-SESSION_COOKIE_AGE = 6400
+SESSION_COOKIE_AGE = get_setting('LAB_SESSION_COOKIE_AGE', 'session_cookie_age', 6400)
 # SESSION_COOKIE_NAME = '__Secure-sessionid'
 # CSRF_COOKIE_NAME = '__Secure-csrftoken'
 
@@ -490,4 +491,19 @@ logger.debug(f'  - MEDIA_ROOT: {MEDIA_ROOT}')
 logger.debug(f'  - STATICFILES_DIRS: {STATICFILES_DIRS}')
 logger.debug(f'  - STATIC_COLOR_THEMES_DIR: {STATIC_COLOR_THEMES_DIR}')
 logger.debug(f'  - FIXTURE_DIRS: {FIXTURE_DIRS}')
+logger.debug('=========  =========  =========')
+
+
+# For plugins 
+PLUGINS_ENABLED = True
+TESTING = False
+PLUGIN_TESTING = False
+PLUGIN_RETRY = True
+PLUGIN_DIR = get_setting('LABSMANAGER_PLUGIN_DIR', 'plugin_dir')
+TESTING_ENV = False
+logger.debug('=========  Plugins  =========')
+logger.debug(f'  - PLUGINS_ENABLED: {PLUGINS_ENABLED}')
+logger.debug(f'  - PLUGIN_DIR: {PLUGIN_DIR}')
+logger.debug(f'  - PLUGIN_TESTING: {PLUGIN_TESTING}')
+logger.debug(f'  - PLUGIN_RETRY: {PLUGIN_RETRY}')
 logger.debug('=========  =========  =========')

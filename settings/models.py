@@ -12,6 +12,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import AppRegistryNotReady, ValidationError
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     URLValidator, DecimalValidator)
+from labsmanager.validators import RGBColorValidator
 from django.db import models, transaction
 from django.db.utils import IntegrityError, OperationalError
 from django.urls import reverse
@@ -29,10 +30,46 @@ from labsmanager.themes import LabTheme
 
 from decimal import Decimal
 
+from typing import Any, Callable, TypedDict, Union
+class SettingsKeyType(TypedDict, total=False):
+    """Type definitions for a SettingsKeyType.
+
+    Attributes:
+        name: Translatable string name of the setting (required)
+        description: Translatable string description of the setting (required)
+        units: Units of the particular setting (optional)
+        validator: Validation function/list of functions for the setting (optional, default: None, e.g: bool, int, str, MinValueValidator, ...)
+        default: Default value or function that returns default value (optional)
+        choices: Function that returns or value of list[tuple[str: key, str: display value]] (optional)
+        hidden: Hide this setting from settings page (optional)
+        before_save: Function that gets called after save with *args, **kwargs (optional)
+        after_save: Function that gets called after save with *args, **kwargs (optional)
+        protected: Protected values are not returned to the client, instead "***" is returned (optional, default: False)
+        required: Is this setting required to work, can be used in combination with .check_all_settings(...) (optional, default: False)
+        model: Auto create a dropdown menu to select an associated model instance (e.g. 'company.company', 'auth.user' and 'auth.group' are possible too, optional)
+    """
+
+    name: str
+    description: str
+    units: str
+    validator: Union[Callable, list[Callable], tuple[Callable]]
+    default: Union[Callable, Any]
+    choices: Union[list[tuple[str, str]], Callable[[], list[tuple[str, str]]]]
+    hidden: bool
+    before_save: Callable[..., None]
+    after_save: Callable[..., None]
+    protected: bool
+    required: bool
+    model: str
+    
+    
+
 class BaseLabsManagerSetting(models.Model):
     """An base LabsManagerSetting object is a key:value pair used for storing single values (e.g. one-off settings values)."""
 
-    SETTINGS = {}
+    SETTINGS: dict[str, SettingsKeyType] = {}
+    CHECK_SETTING_KEY = False
+    extra_unique_fields: list[str] = []
 
     class Meta:
         """Meta options for BaseLabsManagerSetting -> abstract stops creation of database entry."""
@@ -114,7 +151,142 @@ class BaseLabsManagerSetting(models.Model):
         Subclasses should override this function to ensure the kwargs are correctly set.
         """
         return {}
+    
+    @classmethod
+    def get_filters(cls, **kwargs):
+        """Enable to filter by other kwargs defined in cls.extra_unique_fields."""
+        return {
+            key: value
+            for key, value in kwargs.items()
+            if key in cls.extra_unique_fields
+        }
 
+    def get_filters_for_instance(self):
+        """Enable to filter by other fields defined in self.extra_unique_fields."""
+        return {
+            key: getattr(self, key, None)
+            for key in self.extra_unique_fields
+            if hasattr(self, key)
+        }
+
+    @classmethod
+    def all_settings(
+        cls,
+        *,
+        exclude_hidden=False,
+        settings_definition: Union[dict[str, SettingsKeyType], None] = None,
+        **kwargs,
+    ):
+        """Return a list of "all" defined settings.
+
+        This performs a single database lookup,
+        and then any settings which are not *in* the database
+        are assigned their default values
+        """
+        filters = cls.get_filters(**kwargs)
+
+        results = cls.objects.all()
+
+        if exclude_hidden:
+            # Keys which start with an underscore are used for internal functionality
+            results = results.exclude(key__startswith='_')
+
+        # Optionally filter by other keys
+        results = results.filter(**filters)
+
+        settings: dict[str, BaseLabsManagerSetting] = {}
+
+        # Query the database
+        for setting in results:
+            if setting.key:
+                settings[setting.key.upper()] = setting
+
+        # Specify any "default" values which are not in the database
+        settings_definition = settings_definition or cls.SETTINGS
+        for key, setting in settings_definition.items():
+            if key.upper() not in settings:
+                settings[key.upper()] = cls(
+                    key=key.upper(),
+                    value=cls.get_setting_default(key, **filters),
+                    **filters,
+                )
+
+            # remove any hidden settings
+            if exclude_hidden and setting.get('hidden', False):
+                del settings[key.upper()]
+
+        # format settings values and remove protected
+        for key, setting in settings.items():
+            validator = cls.get_setting_validator(key, **filters)
+
+            if cls.is_protected(key, **filters) and setting.value != '':
+                setting.value = '***'
+            elif cls.validator_is_bool(validator):
+                setting.value = InvenTree.helpers.str2bool(setting.value)
+            elif cls.validator_is_int(validator):
+                try:
+                    setting.value = int(setting.value)
+                except ValueError:
+                    setting.value = cls.get_setting_default(key, **filters)
+
+        return settings
+    @classmethod
+    def allValues(
+        cls,
+        *,
+        exclude_hidden=False,
+        settings_definition: Union[dict[str, SettingsKeyType], None] = None,
+        **kwargs,
+    ):
+        """Return a dict of "all" defined global settings.
+
+        This performs a single database lookup,
+        and then any settings which are not *in* the database
+        are assigned their default values
+        """
+        all_settings = cls.all_settings(
+            exclude_hidden=exclude_hidden,
+            settings_definition=settings_definition,
+            **kwargs,
+        )
+
+        settings: dict[str, Any] = {}
+
+        for key, setting in all_settings.items():
+            settings[key] = setting.value
+
+        return settings
+    
+    @classmethod
+    def check_all_settings(
+        cls,
+        *,
+        exclude_hidden=False,
+        settings_definition: Union[dict[str, SettingsKeyType], None] = None,
+        **kwargs,
+    ):
+        """Check if all required settings are set by definition.
+
+        Returns:
+            is_valid: Are all required settings defined
+            missing_settings: List of all settings that are missing (empty if is_valid is 'True')
+        """
+        all_settings = cls.all_settings(
+            exclude_hidden=exclude_hidden,
+            settings_definition=settings_definition,
+            **kwargs,
+        )
+
+        missing_settings: list[str] = []
+
+        for setting in all_settings.values():
+            if setting.required:
+                value = setting.value or cls.get_setting_default(setting.key, **kwargs)
+
+                if value == '':
+                    missing_settings.append(setting.key.upper())
+
+        return len(missing_settings) == 0, missing_settings
     @classmethod
     def get_setting_definition(cls, key, **kwargs):
         """Return the 'definition' of a particular settings value, as a dict object.
@@ -565,12 +737,19 @@ class BaseLabsManagerSetting(models.Model):
         Warning: Only use on values where is_bool evaluates to true!
         """
         return labsmanager.utils.str2bool(self.value)
+    
+    def is_color(self):
+        validator = self.__class__.get_setting_validator(self.key, **self.get_kwargs())
+        return self.__class__.validator_is_color(validator)
 
     def setting_type(self):
         """Return the field type identifier for this setting object."""
         if self.is_bool():
             return 'boolean'
-
+        
+        elif self.is_color():
+            return 'color'
+        
         elif self.is_int():
             return 'integer'
 
@@ -595,7 +774,21 @@ class BaseLabsManagerSetting(models.Model):
                     return True
 
         return False
+    @classmethod
+    def validator_is_color(cls, validator):
+        """Return if validator is for bool."""
+        if validator == RGBColorValidator:
+            return True
 
+        if type(validator) in [list, tuple]:
+            for v in validator:
+                if v == RGBColorValidator:
+                    return True
+
+        return False
+    def as_color(self,):
+        return self.value
+        
     def is_int(self,):
         """Check if the setting is required to be an integer value."""
         validator = self.__class__.get_setting_validator(self.key, **self.get_kwargs())
@@ -722,6 +915,12 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'choices': get_vac_zone,
             'type':'choices',
         },
+        'TEST_COLOR': {
+            'name': _('This is a test for color settings'),
+            'description': _('select color'),
+            'default': "#c9e0cf",
+            'validator': RGBColorValidator,
+        },
          
     }       
         
@@ -746,7 +945,7 @@ def checkNotif(lmu):
     checkuser_notification_tasks(lmu.user)
     
 class LMUserSetting(BaseLabsManagerSetting):
-    
+    extra_unique_fields = ['user']
     SETTINGS = {
         'DASHBOARD_FUND_STALE_FROM_MONTH': {
             'name': _('Dashboard Stale From Calculation'),
@@ -908,6 +1107,17 @@ class LMUserSetting(BaseLabsManagerSetting):
                 ('opensm', _('Openstreetmap'))
             ],
         },
+        ## For plugin 
+        # 'PLUGIN_ON_STARTUP': {
+        #     'name': _('Check plugins on startup'),
+        #     'description': _(
+        #         'Check that all plugins are installed on startup - enable in container environments'
+        #     ),
+        #     'default': str(os.getenv('INVENTREE_DOCKER', 'False')).lower()
+        #     in ['1', 'true'],
+        #     'validator': bool,
+        #     'requires_restart': True,
+        # },
         
         
     }
@@ -950,6 +1160,7 @@ class LMUserSetting(BaseLabsManagerSetting):
         }
     
 class LMProjectSetting(BaseLabsManagerSetting):
+    extra_unique_fields = ['project']
     SETTINGS = {
         'EXPENSE_CALCULATION': {
             'name': _('Expense base calculation'),

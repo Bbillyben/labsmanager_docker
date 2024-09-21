@@ -509,6 +509,14 @@ main {
 .form-switch {
     font-size: 120%;
 }
+.form-color {
+    font-size: 120%;
+}
+.form-color .form-color-input{
+    height: 1.5em;
+  border-radius: 0.5em; 
+
+}
 
 .media {
     /* padding-top: 15px; */

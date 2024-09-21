@@ -39,6 +39,47 @@ function initSettingsPage(){
         );
 
     });
+    $('table').find('.color-setting').unbind().change(function() {
+        var pk = $(this).attr('pk');
+        var setting = $(this).attr('setting');
+        var plugin = $(this).attr('plugin');
+        var user = $(this).attr('user');
+        var project = $(this).attr('project');
+        var notification = $(this).attr('notification');
+
+        var val = this.value;
+        console.log("color-setting CHANGE : "+val)
+
+        // Global setting by default
+        var url = `/api/settings/global/${setting}/`;
+
+        if  (user) {
+            url = `/api/settings/user/${setting}/`;
+        }
+
+        if  (project) {
+            url = `/api/settings/project/${setting}/`;
+        }
+
+        var data = {
+            value: val.toString(),
+        }
+        if (project){
+            data.project = project;
+        }
+        labsmanagerPut(
+            url, data,
+            {
+                method: 'PATCH',
+                success: function(data) {
+                },
+                error: function(xhr) {
+                    showApiError(xhr, url);
+                }
+            }
+        );
+
+    });
 
     // Callback for when non-boolean settings are edited
     $('table').find('.btn-edit-setting').unbind().click(function() {

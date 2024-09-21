@@ -202,3 +202,8 @@ def get_custom_file(env_ref: str, conf_ref: str, log_ref: str, lookup_media: boo
         value = False
 
     return value
+
+
+def get_plugin_dir():
+    """Returns the path of the custom plugins directory."""
+    return get_setting('LABSMANAGER_PLUGIN_DIR', 'plugin_dir')
