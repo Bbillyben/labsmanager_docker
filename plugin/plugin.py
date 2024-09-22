@@ -30,7 +30,7 @@ class MetaBase:
     SLUG = None
     TITLE = None
 
-    def get_meta_value(self, key: str, __default=None):
+    def get_meta_value(self, key: str, sec_key:str, __default=None):
         """Reference a meta item with a key.
 
         Args:
@@ -40,7 +40,9 @@ class MetaBase:
         Returns:
             Value referenced with key, old_key or __default if set and not value found
         """
-        value = getattr(self, key, None)    
+        value = getattr(self, key, None) 
+        if not value:
+            value = getattr(self, sec_key, None) 
         # Use __default if still nothing set
         if (value is None) and __default:
             return __default
@@ -216,7 +218,7 @@ class LabManagerPlugin(VersionMixin, MixinBase, MetaBase):
         super().__init__( *args, **kwargs)
         self.add_mixin('base')
 
-        self.define_package()
+        # self.define_package()
 
     @classmethod
     def file(cls) -> Path:
@@ -238,8 +240,8 @@ class LabManagerPlugin(VersionMixin, MixinBase, MetaBase):
             str: Extracted value, None if nothing found.
         """
         val = getattr(self, meta_name, None)
-        if not val:
-            val = self.package.get(package_name, None)
+        # if not val:
+        #     val = self.package.get(package_name, None)
         return val
 
     # region properties
@@ -264,7 +266,7 @@ class LabManagerPlugin(VersionMixin, MixinBase, MetaBase):
         """Publishing date of plugin - either from plugin settings or git."""
         pub_date = getattr(self, 'PUBLISH_DATE', None)
         if not pub_date:
-            pub_date = self.package.get('date')
+            pub_date = None
         else:
             pub_date = datetime.fromisoformat(str(pub_date))
 
@@ -407,22 +409,22 @@ class LabManagerPlugin(VersionMixin, MixinBase, MetaBase):
             'license': meta['License'],
         }
 
-    def define_package(self):
-        """Add package info of the plugin into plugins context."""
-        try:
-            package = (
-                self._get_package_metadata()
-                if self._is_package
-                else self._get_package_commit()
-            )
-        except TypeError:
-            package = {}
+    # def define_package(self):
+    #     """Add package info of the plugin into plugins context."""
+    #     try:
+    #         package = (
+    #             self._get_package_metadata()
+    #             if self._is_package
+    #             else self._get_package_commit()
+    #         )
+    #     except TypeError:
+    #         package = {}
 
-        # process date
-        if package.get('date'):
-            package['date'] = datetime.fromisoformat(package.get('date'))
+    #     # process date
+    #     if package.get('date'):
+    #         package['date'] = datetime.fromisoformat(package.get('date'))
 
-        # set variables
-        self.package = package
+    #     # set variables
+    #     self.package = package
 
     # endregion

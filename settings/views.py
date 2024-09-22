@@ -12,12 +12,13 @@ from staff.models import Employee_Type, GenericInfoType
 from project.models import Institution, GenericInfoTypeProject
 
 from common.models import favorite, subscription
+from django.conf import settings
 
 class SettingsView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'settings/settings.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = LMUserSetting
-    crumbs = [(_("Settings"),"settings")]
+    crumbs = [(_("Settings"),"settings")]    
     
 class SettingList_cost_type(LoginRequiredMixin, TemplateView):
     template_name = 'settings/setting_table.html'

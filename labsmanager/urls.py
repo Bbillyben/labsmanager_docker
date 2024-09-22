@@ -29,6 +29,7 @@ from staff import apiviews as staffApiViews
 from endpoints import apiviews as endPointApiViews
 from leave import apiviews as leaveApiViews
 from common import apiviews as commonApiViews
+from plugin import apiviews as pluginApiViews
 from settings import apiviews as settingAppiViews
 from infos import apiviews as infoApiViews
 from django.conf.urls.i18n import i18n_patterns
@@ -89,9 +90,12 @@ router.register(r'subscription', commonApiViews.subscriptionViewSet, basename='s
 router.register(r'organization', infoApiViews.organisationViewSet, basename='organization')
 # router.register(r'settings', UserSettingsDetail.as_view(), basename='settings')
 
+# router.register(r'plugin', pluginApiViews.PluginConfigViewSet, basename='plugin')
+
 urlpatterns += [
     path('api/', include((router.urls, 'api_app'), namespace='api')),
     path('api/settings/', include('settings.urls_api')),
+    path('api/plugin/', include('plugin.urls_api')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
 

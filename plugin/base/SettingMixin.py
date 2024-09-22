@@ -9,10 +9,8 @@ logger = logging.getLogger('labsmanager')
 
 # import only for typechecking, otherwise this throws a model is unready error
 if TYPE_CHECKING:
-    print("############# TYPE CHECKING")
     from settings.models import SettingsKeyType
 else:
-    print("############# NOTE TYPE CHECKING")
     class SettingsKeyType:
         """Dummy class, so that python throws no error."""
 
@@ -27,11 +25,12 @@ class SettingsMixin:
 
         MIXIN_NAME = 'Settings'
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """Register mixin."""
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.add_mixin('settings', 'has_settings', __class__)
         self.settings = getattr(self, 'SETTINGS', {})
+        
 
     @classmethod
     def _activate_mixin(cls, registry, plugins, *args, **kwargs):

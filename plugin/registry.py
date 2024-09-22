@@ -318,7 +318,7 @@ class PluginsRegistry:
 
                 # Load from user specified directories (unless in testing mode)
                 # dirs.append('plugins')
-
+            logger.debug(f"########### plugin_dirs / custom_dirs : {custom_dirs}")
             if custom_dirs is not None:
                 # Allow multiple plugin directories to be specified
                 for pd_text in custom_dirs.split(','):
@@ -390,14 +390,7 @@ class PluginsRegistry:
                     ).load_module()
             else:
                 raw_module = importlib.import_module(plugin)
-            print(f"####### parent_path : {parent_path}")
-            print(f"####### parent_obj : {parent_obj}")
-            print(f"####### path : { str(parent_obj.joinpath('__init__.py'))}")
-            print(f"####### PLUGIN : {plugin}")
-            print(f"####### raw_module : {raw_module}")
-            
             modules = get_plugins(raw_module, LabManagerPlugin, path=parent_path)
-            print(f"####### PLUGIN MODULES : {modules}")
             for item in modules or []:
                 collected_plugins.append(item)
 

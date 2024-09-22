@@ -228,6 +228,7 @@ TEMPLATES = [
                 'customs_tags': 'labsmanager.templatetags.customs_tags',
                 'lab_rules': 'labsmanager.templatetags.lab_rules',
                 'format_tag': 'labsmanager.templatetags.format_tag',
+                'plugin_tag': 'plugin.templatetags.plugin_tags',
             
             }
         },
@@ -495,7 +496,7 @@ logger.debug('=========  =========  =========')
 
 
 # For plugins 
-PLUGINS_ENABLED = True
+PLUGINS_ENABLED = get_boolean_setting('LABSMANAGER_PLUGINS_ENABLED', 'plugin_enable', False)
 TESTING = False
 PLUGIN_TESTING = False
 PLUGIN_RETRY = True

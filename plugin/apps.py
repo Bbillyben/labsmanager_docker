@@ -48,7 +48,7 @@ class PluginConfig(AppConfig):
                 registry.reload_plugins(
                     full_reload=True, force_reload=True, collect=True
                 )
-
+                logger.info('... End Loading Plugin')  # pragma: no cover
                 # drop out of maintenance
                 # makes sure we did not have an error in reloading and maintenance is still active
                 # set_maintenance_mode(False)

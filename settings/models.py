@@ -150,7 +150,11 @@ class BaseLabsManagerSetting(models.Model):
         from the implementing class (e.g plugins)
         Subclasses should override this function to ensure the kwargs are correctly set.
         """
-        return {}
+        return {
+            key: getattr(self, key, None)
+            for key in self.extra_unique_fields
+            if hasattr(self, key)
+        }
     
     @classmethod
     def get_filters(cls, **kwargs):
@@ -222,7 +226,7 @@ class BaseLabsManagerSetting(models.Model):
             if cls.is_protected(key, **filters) and setting.value != '':
                 setting.value = '***'
             elif cls.validator_is_bool(validator):
-                setting.value = InvenTree.helpers.str2bool(setting.value)
+                setting.value = labsmanager.helpers.str2bool(setting.value)
             elif cls.validator_is_int(validator):
                 try:
                     setting.value = int(setting.value)

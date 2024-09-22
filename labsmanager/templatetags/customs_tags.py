@@ -88,6 +88,8 @@ def setting_object(key, *args, **kwargs):
     if a user-setting was requested return that
     """
     from settings.models import LMUserSetting, LabsManagerSetting, LMProjectSetting
+    from plugin.models import PluginSetting, PluginConfig
+    from plugin import LabManagerPlugin
 
     if 'user' in kwargs:
         return LMUserSetting.get_setting_object(key, user=kwargs['user'])
@@ -98,7 +100,17 @@ def setting_object(key, *args, **kwargs):
         return LMProjectSetting.get_setting_object(key, project=proj)
         # except:
         #     return None
-    
+    if 'plugin' in kwargs:
+        plg = kwargs['plugin']
+        if issubclass(plg.__class__, LabManagerPlugin):
+            try:
+                plg = plg.plugin_config()
+            except PluginConfig.DoesNotExist:
+                return None
+
+        return PluginSetting.get_setting_object(
+            key, plugin=plg
+        )
     return LabsManagerSetting.get_setting_object(key)
     # else:
     #     raise Warning("User Is not set for User settings display")

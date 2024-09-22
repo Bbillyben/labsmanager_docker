@@ -176,7 +176,6 @@ def get_modules(pkg, path=None):
         path = pkg.__path__
     elif type(path) is not list:
         path = [path]
-
     for finder, name, _ in pkgutil.walk_packages(path):
         try:
             if sys.version_info < (3, 12):

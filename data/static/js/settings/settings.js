@@ -8,7 +8,9 @@ function initSettingsPage(){
         var notification = $(this).attr('notification');
 
         var checked = this.checked;
-
+        var data = {
+            value: checked.toString(),
+        }
         // Global setting by default
         var url = `/api/settings/global/${setting}/`;
 
@@ -18,14 +20,13 @@ function initSettingsPage(){
 
         if  (project) {
             url = `/api/settings/project/${setting}/`;
-        }
-
-        var data = {
-            value: checked.toString(),
-        }
-        if (project){
             data.project = project;
         }
+        if  (plugin) {
+            url = `/api/plugin/${plugin}/settings/${setting}/`;
+            data.plugin = plugin;
+        }
+
         labsmanagerPut(
             url, data,
             {
@@ -48,7 +49,9 @@ function initSettingsPage(){
         var notification = $(this).attr('notification');
 
         var val = this.value;
-        console.log("color-setting CHANGE : "+val)
+        var data = {
+            value: val.toString(),
+        }
 
         // Global setting by default
         var url = `/api/settings/global/${setting}/`;
@@ -59,14 +62,13 @@ function initSettingsPage(){
 
         if  (project) {
             url = `/api/settings/project/${setting}/`;
-        }
-
-        var data = {
-            value: val.toString(),
-        }
-        if (project){
             data.project = project;
         }
+        if  (plugin) {
+            url = `/api/plugin/${plugin}/settings/${setting}/`;
+            data.plugin = plugin;
+        }
+
         labsmanagerPut(
             url, data,
             {
@@ -114,6 +116,10 @@ function initSettingsPage(){
             title: title,
         }
         data={}
+        if(plugin){
+            data.plugin = plugin;
+            options.plugin = plugin;
+        }
         if(project){
             data.project = project;
             options.project = project;
