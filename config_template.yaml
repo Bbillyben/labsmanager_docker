@@ -59,4 +59,4 @@ secure_hsts_include_subdomains: 'true'
 secure_hsts_preload: 'true'
 
 # Cookie lifespan when logged
-session_cookie_age = 12800
+session_cookie_age: 12800
