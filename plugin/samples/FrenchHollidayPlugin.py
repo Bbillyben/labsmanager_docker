@@ -48,6 +48,15 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         },
     }
     @classmethod
+    def _activate_mixin(cls, registry, plugins, *args, **kwargs):
+        """Activate plugin calendarevent.
+        """
+        logger.debug('Activating plugin calendarevent')
+        super()._activate_mixin( registry, plugins, *args, **kwargs)
+        cls.FHP_pull()
+        
+        
+    @classmethod
     def get_static_folder(cls):
         return str(settings.MEDIA_ROOT) +"/frenchholliday"
     
