@@ -181,11 +181,15 @@ class LeaveSerializer1DCal(LeaveSerializer1D):
     end_period_di=serializers.SerializerMethodField()
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
-    
+    origin=serializers.SerializerMethodField()
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'start_period_di', 'end', 'end_period_di', 'title', 'color', 'comment','resourceId',]  
-    
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 
+                  'start', 'start_period_di', 'end', 'end_period_di', 'title', 'color', 'comment','resourceId',
+                  'origin',
+                  ]  
+    def get_origin(self,obj):
+        return 'lm'
     def get_start(self,obj):
         st= obj.start_date.isoformat()
         if obj.start_period == "MI":

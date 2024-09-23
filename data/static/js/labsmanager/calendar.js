@@ -13,6 +13,7 @@
         $(info.el).tooltip('dispose');
         $('.popover').popover('dispose');
         if (info.event.display == "background" )return  { html: "" }
+        if(info.event.extendedProps.origin != "lm")return  { html: "" } // only event from labsmanager process are clickable
         // console.log(JSON.stringify(info.event))
         titleP ='<div class="d-flex flex-wrap">'
         titleP += "<b>"+info.event.extendedProps.type+"</b>";
@@ -208,7 +209,7 @@
         // console.log(event.view.type)
         htmlEvt = ""
         
-        if (event.event.display == "background" )return  { html: "" }
+        if (event.event.display == "background" && event.event.extendedProps.origin == "lm")return  { html: "" }
 
 
         if(event.view.type.toUpperCase().includes("YEAR")){
@@ -227,14 +228,19 @@
 
 
         props = event.event.extendedProps
-        if(event.view.type.toUpperCase().includes("RESOURCE")){
-            htmlEvt += "<span class='resource-name'>"+props.type+"</span>" + '<span class="initial-circle"><span class="initial-circle-inner">'+ getInitials(props.employee).join('')+'</span></span>';
-            htmlEvt = "<div class='ressource-cont'>"+htmlEvt+"</div>"
-        }else if(event.view.type.toUpperCase().includes("GRID")){
-            htmlEvt += props.employee + ' <small>-'+ props.type+'</small>';
+        if(props.origin=="lm"){
+            if(event.view.type.toUpperCase().includes("RESOURCE")){
+                htmlEvt += "<span class='resource-name'>"+props.type+"</span>" + '<span class="initial-circle"><span class="initial-circle-inner">'+ getInitials(props.employee).join('')+'</span></span>';
+                htmlEvt = "<div class='ressource-cont'>"+htmlEvt+"</div>"
+            }else if(event.view.type.toUpperCase().includes("GRID")){
+                htmlEvt += props.employee + ' <small>-'+ props.type+'</small>';
+            }else{
+                htmlEvt += props.employee + " - " + props.type;
+            }
         }else{
-            htmlEvt += props.employee + " - " + props.type;
+            htmlEvt += event.event._def.title;
         }
+        
 
         
 

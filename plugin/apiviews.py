@@ -145,12 +145,7 @@ class PluginConfigViewSet(viewsets.ModelViewSet):
     
     @action(methods=['patch'], detail=False, url_path='(?P<plugin>[^/.]+)/settings/(?P<setting>[^/.]+)', url_name='plugin_setting')
     def set_plugin_setting(self, request, plugin, setting):
-        print("  ------------------------ set_plugin_setting ----------------")
-        print(f'  -plugin :{plugin}')
-        print(f'  -setting :{setting}')
-        print(f'  -request.DATA :{request.data}')
         plugin_ob = check_plugin(plugin, None)
-        print(f'  -plugin_ob :{plugin_ob}')
         return HttpResponse("Ok", status=200)
 
 
@@ -244,13 +239,15 @@ class PluginReload(generics.CreateAPIView):
     
 #### FOR CalendarEvent Plugin 
 def get_calevent_mixin_events(request):
-    print("#### #### #### #### #### #### #### ####  get_calevent_mixin_events ")
-    print(f" ## request.GET : {request.GET}")
+    # print("------------------------------------------------------------------------------")
+    # print("-----------------          get_calevent_mixin_events   -----------------------")
+    # for k, v in request.GET.items():
+    #     print(f'  - {k} : {v}')
+    # print(f'  - user : {request.user}')
+    # print(f'  - method : {request.method}')
+    # print("------------------------------------------------------------------------------")
     from plugin import registry
     event_list = []
     for plugin in registry.with_mixin("calendarevent", active=True):
-        print(f' using {plugin}')
         plugin.get_event(request, event_list)
-    
-    print(event_list)
     return JsonResponse(event_list, safe=False)

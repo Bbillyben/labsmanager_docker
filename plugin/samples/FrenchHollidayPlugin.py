@@ -31,6 +31,12 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             'default': "#c9e0cf",
             'validator': [RGBColorValidator],
         },
+        'FHP_TITLE': {
+            'name': _('Add Leave Title'),
+            'description': _('add the name of the day off'),
+            'default': False,
+            'validator': [bool],
+        },
         'FHP_VACATION_ZONE': {
             'name': _('French Vacation Zone'),
             'description': _('one of the zone defined for french vacation'),
@@ -53,7 +59,18 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         """
         logger.debug('Activating plugin FrenchHollidayPlugin')
         self.__class__.FHP_pull()
-        
+    def desactivate(self):
+        folder = self.__class__.get_static_folder()
+        if not Path(folder).is_dir():
+            return
+        delete_count = 0
+        if os.path.exists( folder+"/vac.json"):
+            os.remove( folder+"/vac.json")
+            delete_count+=1
+        if os.path.exists( folder+"/dayoff.json"):
+            os.remove( folder+"/dayoff.json")
+            delete_count+=1
+        logger.info("Delete %s file from %s", (delete_count, folder))
         
     @classmethod
     def get_static_folder(cls):
@@ -109,6 +126,9 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         
         zone = __class__.get_setting(__class__(), key="FHP_VACATION_ZONE")
         color = __class__.get_setting(__class__(), key="FHP_COLOR")
+        title = __class__.get_setting(__class__(), key="FHP_TITLE")
+        logger.debug(f" vacation event parameters : zone :{zone} / color {color} / title :{title}")
+        
         if "start" in request.GET:
             start= request.GET["start"]
             start= datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ")
@@ -151,6 +171,8 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                     'color': bg_color_vac,
                     # 'className': classname_color_vac,
                 }
+                if title:
+                    tmp['title'] ="<span style='color:black;'>"+ v['description']+"</span>"
                 data.append(tmp)
                 
         for item in dayoff_json:

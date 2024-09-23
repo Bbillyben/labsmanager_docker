@@ -215,7 +215,7 @@ class PluginSetting(BaseLabsManagerSetting):
 
     @classmethod
     def get_setting_definition(cls, key, **kwargs):
-        """In the BaseInvenTreeSetting class, we have a class attribute named 'SETTINGS', which is a dict object that fully defines all the setting parameters.
+        """In the BaseLabsManagerSetting class, we have a class attribute named 'SETTINGS', which is a dict object that fully defines all the setting parameters.
 
         Here, unlike the BaseInvenTreeSetting, we do not know the definitions of all settings
         'ahead of time' (as they are defined externally in the plugins).

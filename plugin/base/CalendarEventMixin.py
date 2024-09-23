@@ -27,7 +27,6 @@ class CalendarEventMixin:
         logger.debug('Activating plugin calendarevent')
         if settings.PLUGIN_TESTING or get_global_setting('ENABLE_PLUGINS_CALENDAR'):
             for _key, plugin in plugins:
-                print(f" - activating :  {plugin} : {plugin.mixin_enabled('calendarevent')}")
                 if plugin.mixin_enabled('calendarevent') and plugin.is_active():
                     plugin.activate()
 
@@ -36,24 +35,43 @@ class CalendarEventMixin:
     def _deactivate_mixin(cls, registry, **kwargs):
         """Deactivate all plugin settcalendareventings."""
         logger.debug('Deactivating plugin calendarevent')
-
     
     @classmethod
     def get_event(cls, request, event_list):
         """
-        This method has to be overriden
-        append to 'event_list' events we want to add in calendar view 
-        if not overrided, the mixin is not enabled on the plugin.
-        request: the request object from labcalendar
-            request.GET contain information about date slots, calendar filters
+        Add extra events to full calendar 
+        This method has to be overriden if not overrided, the mixin is not enabled on the plugin.
         
-        event should be in fullcalendar format
         
+        Args : 
+            request : the request object from labcalendar. request.GET contain information about date slots, calendar filters
+            event_list : the list of events that will be send to calendar. Has to be in full calendar format, eg :
+                {
+                    'title':'the title', # if not set as labmanager event, will be printed as is
+                    'start':start_date,
+                    'end': end_date,
+                    'desc': description,
+                    'display': display, #see https://fullcalendar.io/docs/eventDisplay
+                    'color': bg_color,
+                    'className': "class-name",
+                    # 'origin': 'lm', # add this one to be considered as labsmanager event! require resource, type, ....check api
+                }
+        
+        extends event_list with new event :
+              event_list.extends(newEvent)
+              to not overwrite existing data
         """
         raise MixinImplementationError('CalendarEventMixin : get_event should be overriden')
 
     def activate(self):
-        ''' launch when activated for preparing if needed '''
+        ''' when mixin is activated and plugin activated call activate.
+        usefull to preparing data if reaquired (ie load data source)'''
+        pass
+    def desactivate(self):
+        ''' when mixin is desactivated and plugin activated call desactivate.
+        usefull to unpreparing data if required (ie load data source)'''
+        pass
+        
     @property
     def has_extended_meth(self):
         """

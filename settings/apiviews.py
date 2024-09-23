@@ -6,7 +6,8 @@ from django_filters import rest_framework as filters
 from django.http import JsonResponse
 from . import models, serializers
 from labsmanager import serializers as labserializers
-
+import logging
+logger=logging.getLogger("labsmanager")
 
 class UserSettingsDetail(generics.RetrieveUpdateAPIView):
     """Detail view for an individual "user setting" object.
@@ -65,7 +66,7 @@ class ProjectSettingsDetail(generics.RetrieveUpdateAPIView):
                 # project = json.loads(list(self.request.GET.keys())[0]).get("project", None) #
                 project =self.request.GET.get("project", None)
             except:
-                print(f"Unable to find project setting {key}")
+                logger.warning(f"Unable to find project setting {key}")
         
         if key not in models.LMProjectSetting.SETTINGS.keys() or not project :
             raise Exception('Not found') 

@@ -338,7 +338,6 @@ class ProjectReport(TemplateReport):
         abstract = True
     
     def get_context_data(self, request, options):
-        print("[ProjectWordReport] get_context_data")
         pk=options.get('pk', None)
         if not pk:
             return {}

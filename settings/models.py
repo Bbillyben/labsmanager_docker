@@ -390,6 +390,7 @@ class BaseLabsManagerSetting(models.Model):
 
         filters = {
             'key__iexact': key,
+            **cls.get_filters(**kwargs),
         }
 
         # Filter by user
@@ -958,7 +959,6 @@ class LabsManagerSetting(BaseLabsManagerSetting):
         return self.__class__.get_setting(self.key)
 
 def checkNotif(lmu):   
-    print(f'object : {lmu} for user : {lmu.user}')
     from common.tasks import checkuser_notification_tasks 
     checkuser_notification_tasks(lmu.user)
     
@@ -1160,9 +1160,9 @@ class LMUserSetting(BaseLabsManagerSetting):
 
     def get_kwargs(self):
         """Explicit kwargs required to uniquely identify a particular setting object, in addition to the 'key' parameter."""
-        return {
-            'user': self.user,
-        }
+        kwargs = super().get_kwargs()
+        kwargs['user']=self.user
+        return kwargs
     
 class LMProjectSetting(BaseLabsManagerSetting):
     extra_unique_fields = ['project']

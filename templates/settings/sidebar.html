@@ -74,13 +74,18 @@
 
 
     {% trans "Plugin Lists" as text %}
+    {% plugin_list as pl_list %}
+    {% if pl_list|length > 0 %}
     {% include "sidebar_header_accordion.html" with text=text icon='fa-list' Id='PG_lists' %}
+    {% endif %}
     
-        {% plugin_list as pl_list %}
+        
         {% for plugin_key, plugin in pl_list.items %}
             {% if plugin.registered_mixins %}
-                {% include "sidebar_item.html" with icon="fa-puzzle-piece" label='plugin-'|add:plugin_key text=plugin.human_name %}
+                {% include "sidebar_item_accordion.html" with icon="fa-puzzle-piece" label='plugin-'|add:plugin_key text=plugin.human_name %}
             {% endif %}
         {% endfor %}
+    {% if pl_list|length > 0 %}
     {% include "sidebar_header_accordion_end.html" %}
+    {% endif %}
 {% endif %}

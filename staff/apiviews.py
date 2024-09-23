@@ -173,7 +173,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         emp = self.get_object()
         t1=Participant.objects.filter(employee=emp.pk)
         # ========= Right Management
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  HAYAYAYAY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
         user=request.user
         qset_right=[item.pk for item in t1 if user.has_perm("staff.change_participant", item)]
         t1 = t1.annotate(
