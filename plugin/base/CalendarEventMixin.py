@@ -1,5 +1,7 @@
 """Plugin mixin class for Calendar Event."""
 from plugin.helpers import MixinImplementationError
+from django.conf import settings
+from settings.accessor import get_global_setting
 import logging
 logger = logging.getLogger('labsmanager')
 
@@ -23,6 +25,11 @@ class CalendarEventMixin:
         """Activate plugin calendarevent.
         """
         logger.debug('Activating plugin calendarevent')
+        if settings.PLUGIN_TESTING or get_global_setting('ENABLE_PLUGINS_CALENDAR'):
+            for _key, plugin in plugins:
+                print(f" - activating :  {plugin} : {plugin.mixin_enabled('calendarevent')}")
+                if plugin.mixin_enabled('calendarevent') and plugin.is_active():
+                    plugin.activate()
 
 
     @classmethod
@@ -45,6 +52,8 @@ class CalendarEventMixin:
         """
         raise MixinImplementationError('CalendarEventMixin : get_event should be overriden')
 
+    def activate(self):
+        ''' launch when activated for preparing if needed '''
     @property
     def has_extended_meth(self):
         """

@@ -7,7 +7,7 @@ from labsmanager.validators import RGBColorValidator
 from labsmanager import settings
 import json
 import datetime
-        
+from pathlib import Path       
 import os
 import urllib.request
 import logging
@@ -47,13 +47,12 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             'schedule': "D",
         },
     }
-    @classmethod
-    def _activate_mixin(cls, registry, plugins, *args, **kwargs):
+
+    def activate(self):
         """Activate plugin calendarevent.
         """
-        logger.debug('Activating plugin calendarevent')
-        super()._activate_mixin( registry, plugins, *args, **kwargs)
-        cls.FHP_pull()
+        logger.debug('Activating plugin FrenchHollidayPlugin')
+        self.__class__.FHP_pull()
         
         
     @classmethod
@@ -94,10 +93,16 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         
         folder = cls.get_static_folder()
         path = folder+"/vac.json"
+        if not Path(path).is_file():
+            return None
+            
         with open(path) as json_file:
             file_contents = json_file.read()
         vac_json = json.loads(file_contents)
+        
         path = folder+"/dayoff.json"
+        if not Path(path).is_file():
+            return None
         with open(path) as json_file:
             file_contents = json_file.read()
         dayoff_json = json.loads(file_contents)
@@ -167,6 +172,8 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
     def get_vacation_zones_choices(cls):
             folder = cls.get_static_folder()
             path = folder+"/vac.json"
+            if not Path(path).is_file():
+                return None
             with open(path) as json_file:
                 file_contents = json_file.read()
             vac_json = json.loads(file_contents)

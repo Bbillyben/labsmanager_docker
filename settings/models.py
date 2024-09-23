@@ -932,6 +932,13 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'validator': bool,
             'after_save': reload_plugin_registry,
         },
+        'ENABLE_PLUGINS_CALENDAR': {
+            'name': _('Enable Custom Calendar Event'),
+            'description': _('Enable plugins to add event to calendar'),
+            'default': False,
+            'validator': bool,
+            'after_save': reload_plugin_registry,
+        },
          
     }       
         
