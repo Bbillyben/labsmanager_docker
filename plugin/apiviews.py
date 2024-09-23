@@ -203,3 +203,54 @@ def check_plugin(plugin_slug: Optional[str], plugin_pk: Optional[int]) -> LabMan
         raise NotFound(detail=f"Plugin '{ref}' not installed")
 
     return plugin
+
+class PluginActivate(generics.UpdateAPIView):
+    """Endpoint for activating a plugin.
+
+    - PATCH: Activate a plugin
+
+    Pass a boolean value for the 'active' field.
+    If not provided, it is assumed to be True,
+    and the plugin will be activated.
+    """
+
+    queryset = PluginConfig.objects.all()
+    serializer_class = serializers.PluginActivateSerializer
+    permission_classes = [permissions.IsAdminUser]
+    lookup_field = 'key'
+    lookup_url_kwarg = 'plugin'
+
+    def get_object(self):
+        """Returns the object for the view."""
+        if self.request.data.get('pk', None):
+            return self.queryset.get(pk=self.request.data.get('pk'))
+        return super().get_object()
+
+    def perform_update(self, serializer):
+        """Activate the plugin."""
+        serializer.save()
+        
+class PluginReload(generics.CreateAPIView):
+    """Endpoint for reloading all plugins."""
+
+    queryset = PluginConfig.objects.none()
+    serializer_class = serializers.PluginReloadSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def perform_create(self, serializer):
+        """Saving the serializer instance performs plugin installation."""
+        return serializer.save()
+    
+    
+#### FOR CalendarEvent Plugin 
+def get_calevent_mixin_events(request):
+    print("#### #### #### #### #### #### #### ####  get_calevent_mixin_events ")
+    print(f" ## request.GET : {request.GET}")
+    from plugin import registry
+    event_list = []
+    for plugin in registry.with_mixin("calendarevent", active=True):
+        print(f' using {plugin}')
+        plugin.get_event(request, event_list)
+    
+    print(event_list)
+    return JsonResponse(event_list, safe=False)

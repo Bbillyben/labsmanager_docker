@@ -1,8 +1,14 @@
 ## Changelog LabsManager
 
-### 
+### v0.9.0 / 2024-09
+note : require full update (migration and static)
+
 * [FIX] : Issue with delete form for superior/subordinate delete view
 * [ADD] : color type setting with RGBvalidator
+* [ADD] : **Major Addition** : add plugin system. (Implement from Inventree.plugin)
+    * add SettingMixin for a plugin to add setting for admin
+    * add ScheduleMixin for a plugin to add task to schedule
+    * add CalendarEventMixin for a plugin to provide event to be display in calendar view
 
 ### 2024-09-05
 note : require static update

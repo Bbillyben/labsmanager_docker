@@ -167,7 +167,6 @@ class PluginConfig(models.Model):
     @admin.display(boolean=True, description=_('Builtin Plugin'))
     def is_builtin(self) -> bool:
         """Return True if this is a 'builtin' plugin."""
-        print(f' Admin test if building : {self.plugin}')
         if not self.plugin:
             return False
 

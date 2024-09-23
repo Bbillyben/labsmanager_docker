@@ -35,6 +35,8 @@ from infos import apiviews as infoApiViews
 from django.conf.urls.i18n import i18n_patterns
 from django_js_reverse import views as jsrev_views
 
+from plugin.urls import get_plugin_urls
+
 
 urlpatterns = [
     path('filter_code_list', get_filters_lists, name='filter_code_list'),
@@ -108,6 +110,9 @@ urlpatterns += [
     path('report/<path:path>', serve_protected_media, name='serve_protected_media'),
 ]
 
+# Append custom plugin URLs (if custom plugin support is enabled)
+if settings.PLUGINS_ENABLED:
+    urlpatterns.append(get_plugin_urls())
 
 if settings.DEBUG:
     # Static file access

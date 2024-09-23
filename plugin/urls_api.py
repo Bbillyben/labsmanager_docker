@@ -12,6 +12,7 @@ urlpatterns = [
     #     # Plugin Settings List
     #     re_path(r'^.*$', apiviews.PluginConfigViewSet.as_view(), name='api-plugin-setting-list'),
     # ])),
+    path('reload/', apiviews.PluginReload.as_view(), name='api-plugin-reload'),
     path(
         '<str:plugin>/',
         include([
@@ -30,23 +31,13 @@ urlpatterns = [
                     # ),
                 ]),
             ),
-            # path(
-            #     'metadata/',
-            #     PluginMetadataView.as_view(),
-            #     {'model': PluginConfig, 'lookup_field': 'key'},
-            #     name='api-plugin-metadata',
-            # ),
-            # path(
-            #     'activate/',
-            #     PluginActivate.as_view(),
-            #     name='api-plugin-detail-activate',
-            # ),
-            # path(
-            #     'uninstall/',
-            #     PluginUninstall.as_view(),
-            #     name='api-plugin-uninstall',
-            # ),
-            # path('', PluginDetail.as_view(), name='api-plugin-detail'),
+            path(
+                'activate/',
+                apiviews.PluginActivate.as_view(),
+                name='api-plugin-detail-activate',
+            ),
         ]),
     ),
+    ## for calendarevent mixin
+    path('calendar_plugin/', apiviews.get_calevent_mixin_events, name='api-plugin-calendarevent'),
 ]

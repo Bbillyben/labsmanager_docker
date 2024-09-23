@@ -55,6 +55,7 @@ class PluginConfigAdmin(admin.ModelAdmin):
         'key',
         'active',
         'is_builtin',
+        'is_sample',
     ]
     list_filter = ['active']
     actions = [plugin_activate, plugin_deactivate]

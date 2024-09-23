@@ -289,8 +289,8 @@
                         method: 'GET',
                         extraParams:getExtraSetting,
                     },
-                    {
-                        url: Urls['vacation_events'](),
+                    { /*   Plugin CalendarEvent */
+                        url: Urls['api-plugin-calendarevent'](),
                         method: 'GET',
                         extraParams:getExtraSetting,
                     },

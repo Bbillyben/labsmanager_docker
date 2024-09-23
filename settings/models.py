@@ -31,6 +31,18 @@ from labsmanager.themes import LabTheme
 from decimal import Decimal
 
 from typing import Any, Callable, TypedDict, Union
+
+import logging
+logger = logging.getLogger("labsmanager")
+def reload_plugin_registry(setting):
+    """When a core plugin setting is changed, reload the plugin registry."""
+    from plugin import registry
+
+    logger.info("Reloading plugin registry due to change in setting '%s'", setting.key)
+
+    registry.reload_plugins(full_reload=True, force_reload=True, collect=True)
+    
+    
 class SettingsKeyType(TypedDict, total=False):
     """Type definitions for a SettingsKeyType.
 
@@ -874,13 +886,6 @@ def update_instance_name(setting):
     site_obj.save()
 
 
-def get_vac_zone():
-    from leave.apiviews import get_vacation_zones_choices
-    return get_vacation_zones_choices()
-def get_default_vac_zone():
-    from leave.apiviews import get_vacation_zones_choices
-    return get_vacation_zones_choices()[0][0]
-
 class LabsManagerSetting(BaseLabsManagerSetting):
 
     SETTINGS = {
@@ -912,18 +917,20 @@ class LabsManagerSetting(BaseLabsManagerSetting):
                 MinValueValidator(1),
             ]
         },
-        'VACATION_ZONE': {
-            'name': _('French Vacation Zone'),
-            'description': _('one of the zone defined for french vacation'),
-            'default': 'Zone B',
-            'choices': get_vac_zone,
-            'type':'choices',
+        ## For plugin 
+        'ENABLE_PLUGINS_SCHEDULE': {
+            'name': _('Enable schedule integration'),
+            'description': _('Enable plugins to run scheduled tasks'),
+            'default': False,
+            'validator': bool,
+            'after_save': reload_plugin_registry,
         },
-        'TEST_COLOR': {
-            'name': _('This is a test for color settings'),
-            'description': _('select color'),
-            'default': "#c9e0cf",
-            'validator': RGBColorValidator,
+        'ENABLE_PLUGINS_URL': {
+            'name': _('Enable URL integration'),
+            'description': _('Enable plugins to add URL routes'),
+            'default': False,
+            'validator': bool,
+            'after_save': reload_plugin_registry,
         },
          
     }       
@@ -1110,20 +1117,7 @@ class LMUserSetting(BaseLabsManagerSetting):
                 ('gmap', _('Google Map')),
                 ('opensm', _('Openstreetmap'))
             ],
-        },
-        ## For plugin 
-        # 'PLUGIN_ON_STARTUP': {
-        #     'name': _('Check plugins on startup'),
-        #     'description': _(
-        #         'Check that all plugins are installed on startup - enable in container environments'
-        #     ),
-        #     'default': str(os.getenv('INVENTREE_DOCKER', 'False')).lower()
-        #     in ['1', 'true'],
-        #     'validator': bool,
-        #     'requires_restart': True,
-        # },
-        
-        
+        },       
     }
     class Meta:
         """Meta options for LabsManagerUserSetting."""

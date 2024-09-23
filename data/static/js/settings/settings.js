@@ -91,7 +91,7 @@ function initSettingsPage(){
         var notification = $(this).attr('notification');
         var user = $(this).attr('user')
         var project = $(this).attr('project')
-        if (user || project){
+        if (user || project || plugin){
             is_global = false;
         }
 
@@ -147,6 +147,8 @@ function editSetting(key, options={}, data={}) {
         url = `/api/settings/global/${key}/`;
     } else if(options.project){
         url = `/api/settings/project/${key}/`;
+    } else if(options.plugin){
+        url = `/api/plugin/${options.plugin}/settings/${key}/`;
     } else {
         url = `/api/settings/user/${key}/`;
     }

@@ -50,10 +50,10 @@ class PluginsRegistry:
 
     # from .base.integration.AppMixin import AppMixin
     # from .base.integration.ScheduleMixin import ScheduleMixin
-    from .base.SettingMixin import  SettingsMixin
+    from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin
     # from .base.integration.UrlsMixin import UrlsMixin
 
-    DEFAULT_MIXIN_ORDER = [SettingsMixin] #[SettingsMixin, ScheduleMixin, AppMixin, UrlsMixin]
+    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin] #[SettingsMixin, ScheduleMixin, AppMixin, UrlsMixin]
 
     def __init__(self) -> None:
         """Initialize registry.
@@ -306,7 +306,7 @@ class PluginsRegistry:
     def plugin_dirs(self):
         """Construct a list of directories from where plugins can be loaded."""
         # Builtin plugins are *always* loaded
-        dirs = ['plugin.builtin']
+        dirs = ['plugin.builtin', 'plugin.samples']
 
         if settings.PLUGINS_ENABLED:
             # Any 'external' plugins are only loaded if PLUGINS_ENABLED is set to True
@@ -318,7 +318,6 @@ class PluginsRegistry:
 
                 # Load from user specified directories (unless in testing mode)
                 # dirs.append('plugins')
-            logger.debug(f"########### plugin_dirs / custom_dirs : {custom_dirs}")
             if custom_dirs is not None:
                 # Allow multiple plugin directories to be specified
                 for pd_text in custom_dirs.split(','):

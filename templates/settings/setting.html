@@ -48,6 +48,7 @@
                     setting='{{ setting.key.upper }}'
                     {% if user_setting %}user='{{request.user.id}}'{% endif %}
                     {% if project %}project='{{project}}'{% endif %}
+                    {% if plugin %}plugin='{{ plugin.slug }}'{% endif %}
                 >
                     <span class='fas fa-edit icon-green'></span>
                 </button>

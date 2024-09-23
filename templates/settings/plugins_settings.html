@@ -9,13 +9,25 @@
 
 {% block content %}
 
-{%plugin_enabled as plug %}
+{% plugin_enabled as plug %}
 
 {% if not plug %}
 <div class='alert alert-warning alert-block'>
     {% trans "External plugins are not enabled for this LabsManager installation" %}<br>
 </div>
 {% endif %}
+
+<div class='table-responsive'>
+<table class='table table-striped table-condensed'>
+    <tbody>
+        {% include "settings/setting.html" with key="ENABLE_PLUGINS_SCHEDULE" icon="fa-calendar-alt" %}
+        {% include "settings/setting.html" with key="ENABLE_PLUGINS_URL" icon="fa-link" %}
+    </tbody>
+</table>
+</div>
+
+
+
 
 <div class='subheading'>
     <div class='d-flex flex-wrap'>
@@ -48,13 +60,16 @@
                 <th data-sortable="true" class="th-inner sortable both" data-field="meta.description" data-formatter="" >
                     {% trans 'Description' %}
                 </th>
+                <th data-sortable="true" class="th-inner sortable both fit-content" data-field="mixins" data-formatter="pg_mixin_formatter" >
+                    {% trans 'mixins' %}
+                </th>
                 <th data-sortable="true" class="th-inner sortable both fit-content" data-field="meta.version" data-formatter="" >
                     {% trans 'Version' %}
                 </th>
                 <th data-sortable="true" class="th-inner sortable both fit-content" data-field="meta.author" data-formatter="" >
                     {% trans 'Author' %}
                 </th>
-                <th data-sortable="true" class="th-inner sortable both fit-content" data-field="" data-formatter="" >
+                <th data-sortable="true" class="th-inner sortable both fit-content" data-field="" data-formatter="pg_action_formatter" >
                     {% trans 'Action' %}
                 </th>
             </tr>

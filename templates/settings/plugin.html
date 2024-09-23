@@ -62,6 +62,17 @@
                 <td>{{ plugin.license }}</td>
             </tr>
             {% endif %}
+            <tr>
+                <td><span class='fas fa-puzzle-piece'></span></td>
+                <td>{% trans "Mixin" %}</td>
+                <td>{% for mixin in plugin.get_registered_mixins %}
+                    {{mixin}}
+                    {% if not forloop.last %}, {% endif %}
+
+                {% endfor  %}
+                
+                </td>
+            </tr>
         </table>
         </div>
 
