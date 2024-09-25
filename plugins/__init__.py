@@ -1,1 +1,0 @@
-# labsmanager plugin directory

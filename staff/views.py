@@ -133,7 +133,7 @@ class EmployeeCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         
-        if not request.user.has_perm("staff.change_employee", self.object):
+        if not request.user.has_perm("staff.change_employee"):
             try:
                 emp = Employee.objects.get(user= request.user)
                 sup = Employee_Superior.objects.create(

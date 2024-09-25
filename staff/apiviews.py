@@ -186,9 +186,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         # =========================
         
         return JsonResponse(serializers.ParticipantSerializer(t1, many=True).data, safe=False)
-    
-    @action(methods=['get'], detail=False, url_path='calendar-resource', url_name='calendar-resource')
-    def employee_calendar(self, request, pk=None):
+    @classmethod
+    def select_ressource_from_request(cls, request):
         emp = request.data.get('employee', request.query_params.get('employee', None))
         if emp is not None:
             if isinstance(emp, str):
@@ -216,6 +215,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             empS=Employee_Status.current.filter(type=emp_status).values('employee')
             t1= t1.filter(pk__in=empS)
         
+        return t1
+    @action(methods=['get'], detail=False, url_path='calendar-resource', url_name='calendar-resource')
+    def employee_calendar(self, request, pk=None):
+        t1 = self.__class__.select_ressource_from_request(request)
         return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='contract-resource', url_name='contract-resource')

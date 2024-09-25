@@ -1,6 +1,7 @@
 (function ($) {
     var elts;
     var settingsCal;
+    flagFirst = false;
     function calendar_refresh(){
         //console.log("calendar_refresh")
         $('#calendar-box').unbind('click');
@@ -13,36 +14,46 @@
         $(info.el).tooltip('dispose');
         $('.popover').popover('dispose');
         if (info.event.display == "background" )return  { html: "" }
-        if(info.event.extendedProps.origin != "lm")return  { html: "" } // only event from labsmanager process are clickable
         // console.log(JSON.stringify(info.event))
-        titleP ='<div class="d-flex flex-wrap">'
-        titleP += "<b>"+info.event.extendedProps.type+"</b>";
-        titleP += '<span class="flex" style="flex-grow: 1;"></span>';
-        titleP += '<div class="btn-group" role="group">';
-        titleP += '<button type="button" id="popover_close" class="btn btn-close close" ></button>',
-        titleP += '</div>';
-        titleP += '</div>';
-        textP = "<em><b>" + info.event.extendedProps.employee + "</b></em>";
-        var d = new Date(info.event.end);
-        if(d.getUTCHours()==0)d.setDate(d.getDate() - 1)
-        textP += "</br>" + info.event.start.toLocaleDateString() + "<small> (" + info.event.extendedProps.start_period_di+")</small> " + " - " + d.toLocaleDateString() + "<small> (" + info.event.extendedProps.end_period_di+")</small>";
-        if(info.event.extendedProps.comment) textP +="</br><i>"+ info.event.extendedProps.comment+"</i>";
-        if(USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("leave.delete_leave") || USER_PERMS.includes("staff.view_employee")){
-            textP +="<hr/>";
-            textP +="<div class='d-flex flex-wrap btn-group btn-group-sm' role='group'>";
-            //textP +="<span class='btn-group'>";
-            if(USER_PERMS.includes("leave.change_leave"))textP +="<button class='icon edit_leave btn btn-success' data-form-url='/calendar/update/"+info.event.extendedProps.pk+"/' title='edit leave'><i type = 'button' class='fas fa-edit'></i></button>";
-            if(USER_PERMS.includes("staff.view_employee")) textP +="<a role='button' class=' btn btn-secondary' href='/staff/employee/"+info.event.extendedProps.employee_pk+"' title='navigate to user'><i type = 'button' class='fas fa-user'></i></a>"; 
-            if(USER_PERMS.includes("is_staff"))textP +="<a role='button' class=' btn btn-primary'  href='/admin/leave/leave/"+info.event.extendedProps.pk+"/change/' title='see in admin'><i type = 'button' class='fas fa-shield-halved'></i></a>"; 
-            //textP += '<span class="flex" style="flex-grow: 1;min-width:1.5em;"></span>';
-            if(USER_PERMS.includes("leave.delete_leave"))textP +="<button class='icon delete_leave btn btn-danger ' data-form-url='/calendar/delete/"+info.event.extendedProps.pk+"/' title='delete leave'><i type = 'button' class='fas fa-trash'></i></button>";
-            //textP +="</span>";
+        if(info.event.extendedProps.origin != "lm"){// if event from plugin
+           if(!info.event.title || !info.event.extendedProps.desc)return  { html: "" }// no title or no description provided
+            titleP = '<div class="d-flex flex-wrap">'
+            titleP += "<b>"+info.event.title+"</b>";
+            titleP += '<span class="flex" style="flex-grow: 1;"></span>';
+            titleP += '<div class="btn-group" role="group">';
+            titleP += '<button type="button" id="popover_close" class="btn btn-close close" ></button>',
+            titleP += '</div>';
+            titleP += '</div>';
+            textP =  info.event.extendedProps.desc;
+        }else{ // if event labsmanager
+            titleP ='<div class="d-flex flex-wrap">'
+            titleP += "<b>"+info.event.extendedProps.type+"</b>";
+            titleP += '<span class="flex" style="flex-grow: 1;"></span>';
+            titleP += '<div class="btn-group" role="group">';
+            titleP += '<button type="button" id="popover_close" class="btn btn-close close" ></button>',
+            titleP += '</div>';
+            titleP += '</div>';
+            textP = "<em><b>" + info.event.extendedProps.employee + "</b></em>";
+            var d = new Date(info.event.end);
+            if(d.getUTCHours()==0)d.setDate(d.getDate() - 1)
+            textP += "</br>" + info.event.start.toLocaleDateString() + "<small> (" + info.event.extendedProps.start_period_di+")</small> " + " - " + d.toLocaleDateString() + "<small> (" + info.event.extendedProps.end_period_di+")</small>";
+            if(info.event.extendedProps.comment) textP +="</br><i>"+ info.event.extendedProps.comment+"</i>";
+            if(USER_PERMS.includes("leave.change_leave") || USER_PERMS.includes("leave.delete_leave") || USER_PERMS.includes("staff.view_employee")){
+                textP +="<hr/>";
+                textP +="<div class='d-flex flex-wrap btn-group btn-group-sm' role='group'>";
+                //textP +="<span class='btn-group'>";
+                if(USER_PERMS.includes("leave.change_leave"))textP +="<button class='icon edit_leave btn btn-success' data-form-url='/calendar/update/"+info.event.extendedProps.pk+"/' title='edit leave'><i type = 'button' class='fas fa-edit'></i></button>";
+                if(USER_PERMS.includes("staff.view_employee")) textP +="<a role='button' class=' btn btn-secondary' href='/staff/employee/"+info.event.extendedProps.employee_pk+"' title='navigate to user'><i type = 'button' class='fas fa-user'></i></a>"; 
+                if(USER_PERMS.includes("is_staff"))textP +="<a role='button' class=' btn btn-primary'  href='/admin/leave/leave/"+info.event.extendedProps.pk+"/change/' title='see in admin'><i type = 'button' class='fas fa-shield-halved'></i></a>"; 
+                //textP += '<span class="flex" style="flex-grow: 1;min-width:1.5em;"></span>';
+                if(USER_PERMS.includes("leave.delete_leave"))textP +="<button class='icon delete_leave btn btn-danger ' data-form-url='/calendar/delete/"+info.event.extendedProps.pk+"/' title='delete leave'><i type = 'button' class='fas fa-trash'></i></button>";
+                //textP +="</span>";
 
-            textP +="</div>";
+                textP +="</div>";
+
+            }
 
         }
-        
-
         $(info.el).popover({
             title: titleP,
             content: textP,
@@ -54,9 +65,6 @@
             delay: { "show": 50, "hide": 50 },
             sanitize  : false,
         });
-        // $(info.el).on('shown.bs.popover', function () {
-        //     this.onclick = function() { alert($(this).text()); };
-        //   });
 
         $(info.el).popover('show');
         updateLeaveButtonHandler();
@@ -96,6 +104,22 @@
 
         // to specify it's from calendar
         extraSetting["cal"]=1;
+        // extra params for 
+        return  extraSetting
+    }
+    function getExtraSetting_plugin(){
+        extraSetting = getExtraSetting();
+        var csrftoken = getCookie('csrftoken');
+        extraSetting["csrfmiddlewaretoken"] = csrftoken
+        console.log(typeof(calendar))
+        if(typeof(calendar) == 'undefined'){
+            extraSetting["view"]=settingsCal.initialView;
+            extraSetting['resources']=null;
+        }else{
+            extraSetting["view"]=calendar.view.type;
+            extraSetting['resources']=JSON.stringify(calendar.getResources());
+        }
+        extraSetting['settings']=JSON.stringify(settingsCal);
         return  extraSetting
     }
     function getExtraSettingURL(){
@@ -237,8 +261,10 @@
             }else{
                 htmlEvt += props.employee + " - " + props.type;
             }
-        }else{
+        }else if(event.event._def.title){
             htmlEvt += event.event._def.title;
+        }else{
+            htmlEvt += "<div style='min-height:1em;'></div>";
         }
         
 
@@ -290,22 +316,23 @@
                 locale:settingsCal.local,
                 initialView: settingsCal.initialView,
                 headerToolbar:settingsCal.headerToolbar,
-                eventSources:[{
-                        url: Urls['api:leave-search-calendar'](),
-                        method: 'GET',
-                        extraParams:getExtraSetting,
-                    },
-                    { /*   Plugin CalendarEvent */
-                        url: Urls['api-plugin-calendarevent'](),
-                        method: 'GET',
-                        extraParams:getExtraSetting,
-                    },
-                    ],
                 resources:{
-                        url: Urls['api:employee-calendar-resource'](),
-                        method: 'GET',
-                        extraParams:getExtraSetting,
-                    },
+                    url: Urls['api:employee-calendar-resource'](),
+                    method: 'GET',
+                    extraParams:getExtraSetting,
+                },
+                eventSources:[{
+                            url: Urls['api:leave-search-calendar'](),
+                            method: 'GET',
+                            extraParams:getExtraSetting,
+                        },
+                        { /*   Plugin CalendarEvent */
+                            url: Urls['api-plugin-calendarevent'](),
+                            method: 'POST',
+                            extraParams:getExtraSetting_plugin,
+                        },
+                    ],
+                
                 resourceGroupField:"employee",
                 resourceAreaWidth:"10%",
                 selectable: settingsCal.selectable,

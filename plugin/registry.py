@@ -50,10 +50,10 @@ class PluginsRegistry:
 
     # from .base.integration.AppMixin import AppMixin
     # from .base.integration.ScheduleMixin import ScheduleMixin
-    from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin
+    from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin
     # from .base.integration.UrlsMixin import UrlsMixin
 
-    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin] #[SettingsMixin, ScheduleMixin, AppMixin, UrlsMixin]
+    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin] #[SettingsMixin, ScheduleMixin, AppMixin, UrlsMixin]
 
     def __init__(self) -> None:
         """Initialize registry.

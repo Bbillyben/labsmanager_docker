@@ -1,5 +1,7 @@
 ## Changelog LabsManager
 
+
+
 ### v0.9.0 / 2024-09
 note : require full update (migration and static)
 
@@ -9,7 +11,7 @@ note : require full update (migration and static)
     * add SettingMixin for a plugin to add setting for admin
     * add ScheduleMixin for a plugin to add task to schedule
     * add CalendarEventMixin for a plugin to provide event to be display in calendar view
-
+* [UPDATE] : item creation (project/employee) automatic leader attribution fix if user has right to change items afterwards (global right)
 ### 2024-09-05
 note : require static update
 * [UPDATE] : Information on user/employee setting page for admin

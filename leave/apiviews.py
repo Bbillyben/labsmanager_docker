@@ -19,7 +19,8 @@ from collections.abc import Iterable
 
 from .resources import LeaveItemResources
 from labsmanager.helpers import DownloadFile
-
+import logging
+logger=logging.getLogger("labsmanager")
 class LeaveViewSet(viewsets.ModelViewSet):
     queryset = Leave.objects.select_related('employee', 'type').all()
     serializer_class = serializers.LeaveSerializerBasic
@@ -35,7 +36,7 @@ class LeaveViewSet(viewsets.ModelViewSet):
                 data[key]=self.request.query_params.get(key)
                 
         if not data:
-            return queryset
+            return self.plugin_filter_queryset(queryset, self.request.user, data)
         
         qset=queryset
         types= data.get('type', None)
@@ -103,8 +104,16 @@ class LeaveViewSet(viewsets.ModelViewSet):
             query=Q(end_date__gte=today) & (Q(start_date__lte=today) )
             qset= qset.filter(query)
         
-        return qset
+        return self.plugin_filter_queryset(qset, self.request.user, data)
         
+    def plugin_filter_queryset(self, qset, user,  filters_data):
+        from plugin import registry
+        for plugin in registry.with_mixin("calendarevent", active=True):
+           try:
+               qset = plugin.filter_queryset(qset, user,  filters_data)
+           except Exception as e:
+               logger.warning(f"Error Filtering Leaves by plugin {plugin.name} : {e}")
+        return qset
     
     def data(self, request, format=None):
         return Response("ok")

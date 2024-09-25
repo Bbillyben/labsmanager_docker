@@ -216,7 +216,7 @@ TEMPLATES = [
         'DIRS': [os.path.join(BASE_DIR, 'templates'),
                     MEDIA_ROOT.joinpath('report'),
                 ],
-        'APP_DIRS': True,
+        # 'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -230,7 +230,16 @@ TEMPLATES = [
                 'format_tag': 'labsmanager.templatetags.format_tag',
                 'plugin_tag': 'plugin.templatetags.plugin_tags',
             
-            }
+            },
+            'loaders': [
+                (   'labsmanager.template.LabsManagerTemplateLoader',
+                 [
+                        'plugin.template.PluginTemplateLoader',
+                        'django.template.loaders.filesystem.Loader',
+                        'django.template.loaders.app_directories.Loader',
+                    ],
+                )
+            ],
         },
     },
 ]

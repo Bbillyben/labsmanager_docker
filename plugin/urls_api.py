@@ -39,5 +39,5 @@ urlpatterns = [
         ]),
     ),
     ## for calendarevent mixin
-    path('calendar_plugin/', apiviews.get_calevent_mixin_events, name='api-plugin-calendarevent'),
+    path('calendar_plugin/', apiviews.PluginCalendarEventDispatcher.as_view(), name='api-plugin-calendarevent'),
 ]

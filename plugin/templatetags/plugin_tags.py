@@ -22,6 +22,10 @@ def plugin_list(*args, **kwargs):
     """List of all installed plugins."""
     return registry.plugins
 
+@register.simple_tag()
+def plugin_list_mixin(mixin, active=True, *args, **kwargs):
+    """List of all installed plugins."""
+    return registry.with_mixin(mixin, active=active)
 
 @register.simple_tag()
 def inactive_plugin_list(*args, **kwargs):
