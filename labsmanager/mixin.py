@@ -382,6 +382,9 @@ class RightsCheckerMixin():
     
     @classmethod
     def get_instances_for_user(cls, perm, user, queryset=None):
+        '''
+        This method to be overriden to add the layer of object layer permission, here only global right layer
+        '''
         if perm.lower() not in cls.perms_auth:
             logger.error(f"{perm} permission is not valid")
             return cls.objects.none()

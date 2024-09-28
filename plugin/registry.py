@@ -741,10 +741,8 @@ class PluginsRegistry:
         """A list of keys which are used to store plugin settings."""
         return [
             'ENABLE_PLUGINS_URL',
-            'ENABLE_PLUGINS_NAVIGATION',
-            'ENABLE_PLUGINS_APP',
             'ENABLE_PLUGINS_SCHEDULE',
-            'ENABLE_PLUGINS_EVENTS',
+            'ENABLE_PLUGINS_CALENDAR',
         ]
 
     def calculate_plugin_hash(self):

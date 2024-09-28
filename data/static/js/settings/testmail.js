@@ -69,7 +69,6 @@ function callOpenTestMail(el){
             })
             var w = window.open("", "Test Mail");
             w.document.title = "LabsManager Test Mail"
-            w.document.
             w.document.body.style.background = "#FFFFFF";
             w.document.body.innerHTML=data; 
         },

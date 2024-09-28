@@ -1325,13 +1325,13 @@ li.list-spacer{
     flex: 1 1 auto;
     padding: 1rem 0rem;
   }
-  
+
   /* for calendard view */
-  #leave_type {
+  div.calendar-filter {
     margin:1em;
 
   }
-  #leave_type li{
+  div.calendar-filter li{
     list-style:none;
     margin: 0em;
 

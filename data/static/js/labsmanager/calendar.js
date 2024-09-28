@@ -111,7 +111,6 @@
         extraSetting = getExtraSetting();
         var csrftoken = getCookie('csrftoken');
         extraSetting["csrfmiddlewaretoken"] = csrftoken
-        console.log(typeof(calendar))
         if(typeof(calendar) == 'undefined'){
             extraSetting["view"]=settingsCal.initialView;
             extraSetting['resources']=null;
@@ -237,9 +236,10 @@
 
 
         if(event.view.type.toUpperCase().includes("YEAR")){
-            start=event.event.start
-            end = event.event.end         
-            if (end.getUTCHours() != 12 )end.setDate(end.getDate()-1)
+            start=event.event.start;
+            end = event.event.end;
+            if(!end)end = start   ;   
+            if (end.getUTCHours() != 12 )end.setDate(end.getDate()-1);  
             const day1 = start.getDate();
             const month1 = start.getMonth()+1;
             const day2 = end.getDate();

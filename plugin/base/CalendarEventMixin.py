@@ -2,6 +2,7 @@
 from plugin.helpers import MixinImplementationError
 from django.conf import settings
 from settings.accessor import get_global_setting
+import copy
 import logging
 logger = logging.getLogger('labsmanager')
 
@@ -12,11 +13,30 @@ class CalendarEventMixin:
     use __class__.get_current_resources(request) to get resources used in the current view
     '''
     FILTERS={}
-    '''
-        if implemented, will add some filter to the calendar, override __class__.get_filters() to leverage behaviors
-        filters will only have effect after all other builtin filters
+    '''FILTERS 
+        if implemented, will add some filter choices to main calendar page (not in employee nor team panels), 
         
+        FILTERS={
+            "TEST_CHOICES":{            # this will add a filter in main calendar
+                                            # TEST_CHOICES in lower case (aka test_choices) will be used as filter name
+                                            # filter value will be accissible through [plugin-slug]-test_choices
+                "title":"Test Choices", # title prompted on the filter box
+                "type":"select",        # could be "select" for a dropdown/select item, 
+                                            #   "checkbox" for a bunch of checkboxes
+                                            #   "radio" for a radio list
+                                            #   "input-text" "input-color" for input type selectors, no choices required
+                "choices":{             # dict of valid choices with pair value:name, value will be returned as filter value
+                    "val1":"Value 1",
+                    "val2":"Value 2",
+                    ....
+                "choices":"myClassMethod" // could be the string name of a **classmethod** as well
+        },            
+    }
     '''
+    
+    authorized_type=["select", "checkbox", "radio","input-text", "input-color",] # authorized type, corresponding to a specific template
+    type_with_choices=["select", "checkbox", "radio",] # type that require choices
+    
     class MixinMeta:
         """Meta options for this mixin."""
         MIXIN_NAME = 'CalendarEvent'
@@ -24,17 +44,17 @@ class CalendarEventMixin:
     def __init__(self):
         """Register mixin."""
         super().__init__()
-        self.add_mixin('calendarevent', self.has_extended_meth, __class__)
-        
+        self.add_mixin('calendarevent', 'is_setting_enabled', __class__)
+    
+    def is_setting_enabled(cls):
+       return get_global_setting('ENABLE_PLUGINS_CALENDAR')
     @classmethod
     def get_event(cls, request, event_list):
         """
-        Add extra events to full calendar 
-        This method has to be overriden if not overrided, the mixin is not enabled on the plugin.
-        
+        Add extra events to full calendar       
         
         Args : 
-            request : the request object from labcalendar. request.GET contain information about date slots, calendar filters
+            request : the request object from labcalendar. request.GET contain information about date slots, calendar filters + filters from plugins 
 
                 request as in POST dict : 
                 filters from main calendar
@@ -73,9 +93,10 @@ class CalendarEventMixin:
     def filter_queryset(cls, queryset, filters_data):
         '''
         method to add filtering on events (all events from labsmanager process)
+        only filtering leave instance from 
         Args : 
-           * queryset : the queryset comming from the labsmanager filtering process
-           * filters_data : dict containing the filters
+           * queryset : the queryset comming from the labsmanager filtering process of leave instances
+           * filters_data : dict containing the filters, including FILTERS value (under slug-filtername (lower case))
         '''
         return queryset
     
@@ -123,15 +144,41 @@ class CalendarEventMixin:
                 request.query_params = QueryDict(request.GET.urlencode())
         res = EmployeeViewSet.select_ressource_from_request(request)
         return res
-        
-    @property
-    def has_extended_meth(self):
-        """
-        Check if the get_event method has been overriden. if not => error of implementation
-        """
-        method_name = 'get_event'
-        derived_method = getattr(self.__class__, method_name, None).__func__
-        original_method = getattr(CalendarEventMixin, method_name, None).__func__
-
-        # Si la méthode de la classe dérivée est différente de celle du mixin, elle a été surchargée
-        return derived_method != original_method
+    
+    @classmethod
+    def get_filters(cls):
+        '''
+        method called by filter template to get filter definition should return the FILTERS copy with all choices in good shape and remove not allowed type
+        '''
+        return cls.build_filters()
+    
+    @classmethod
+    def build_filters(cls):
+        '''
+        method to build a clean dict from FILTERS definition
+        '''
+        # copy only filters in authorized types
+        build_filters = {k: v for k, v in cls.FILTERS.items() if v.get("type") in cls.authorized_type}
+        key_to_pop=[]
+        for filter, option in build_filters.items():
+            if "choices" in option:
+                vals = option["choices"]
+                # check if choices is classmethod and execute it to get choices
+                if isinstance(vals, str) and hasattr(cls, vals):
+                    methode = getattr(cls, vals)
+                    if callable(methode):
+                        vals = methode()  # Exécute la méthode 
+                        option["choices"] =vals
+                # test if choices are well formed, i.e. alla value are not another dict
+                if isinstance(vals, str) or not all(not isinstance(value, dict) for value in vals.values()):
+                    logger.warning(f"Error for filters '{filter}' in {cls} in choices format")
+                    key_to_pop.append(filter)
+            elif option["type"] in cls.type_with_choices:
+                logger.warning(f"Error for filters '{filter}' in {cls} missing choices")
+                key_to_pop.append(filter) # no choices defined for filters with choice mandatory
+                
+        for key in key_to_pop: # remove key with unwanted format
+            build_filters.pop(key)
+        return build_filters
+                
+                

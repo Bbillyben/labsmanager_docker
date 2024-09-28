@@ -107,7 +107,6 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         
     @classmethod   
     def get_vacation_events(cls, request):
-        
         folder = cls.get_static_folder()
         path = folder+"/vac.json"
         if not Path(path).is_file():
@@ -129,13 +128,13 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         title = __class__.get_setting(__class__(), key="FHP_TITLE")
         logger.debug(f" vacation event parameters : zone :{zone} / color {color} / title :{title}")
         
-        if "start" in request.GET:
-            start= request.GET["start"]
+        if "start" in request.POST:
+            start= request.POST["start"]
             start= datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ")
         else:
             start = datetime.datetime(datetime.MINYEAR, 1, 1)
-        if "end" in request.GET:
-            end = request.GET["end"]
+        if "end" in request.POST:
+            end = request.POST["end"]
             end= datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%SZ")
         else:
             end = datetime.datetime(datetime.MAXYEAR, 12, 31)
@@ -187,6 +186,8 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                     'color': bg_color_off,
                     # 'className': classname_color_off,
                 }
+                if title:
+                    tmp['title'] ="<span style='color:black;'>"+ dayoff_json[item]+"</span>"
                 data.append(tmp)
             
         return  data  

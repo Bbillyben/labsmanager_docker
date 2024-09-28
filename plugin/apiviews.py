@@ -243,30 +243,14 @@ from settings.accessor import get_global_setting
 class PluginCalendarEventDispatcher(View):
     
     def post(self, request,*args, **kwargs):
-        print("=====================================   PluginCalendarEventDispatcher [POST]    =====================================")
         from plugin import registry
         event_list = []
         for plugin in registry.with_mixin("calendarevent", active=True):
             plugin.get_event(request, event_list)
         return JsonResponse(event_list, safe=False)
     def get(self, request,*args, **kwargs):
-        print("=====================================   PluginCalendarEventDispatcher [GET]    =====================================")
         from plugin import registry
         event_list = []
         for plugin in registry.with_mixin("calendarevent", active=True):
             plugin.get_event(request, event_list)
         return JsonResponse(event_list, safe=False)
-    
-# def get_calevent_mixin_events(request):
-#     # print("------------------------------------------------------------------------------")
-#     # print("-----------------          get_calevent_mixin_events   -----------------------")
-#     # for k, v in request.GET.items():
-#     #     print(f'  - {k} : {v}')
-#     # print(f'  - user : {request.user}')
-#     # print(f'  - method : {request.method}')
-#     # print("------------------------------------------------------------------------------")
-#     from plugin import registry
-#     event_list = []
-#     for plugin in registry.with_mixin("calendarevent", active=True):
-#         plugin.get_event(request, event_list)
-#     return JsonResponse(event_list, safe=False)

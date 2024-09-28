@@ -14,7 +14,6 @@ def get_global_setting(key, backup_value=None, enviroment_key=None, **kwargs):
 
     if backup_value is not None:
         kwargs['backup_value'] = backup_value
-
     return LabsManagerSetting.get_setting(key, **kwargs)
 
 

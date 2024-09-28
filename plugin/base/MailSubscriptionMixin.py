@@ -1,11 +1,14 @@
 
 import os
+from settings.accessor import get_global_setting
 import logging
 logger = logging.getLogger("labsmanager.plugin")
 class MailSubscriptionMixin:
     '''
-    Mixin to add context data to subscription mail send as well as template (subdir tempaltes/[slug]/mytemplate.html)
+    Mixin to add context data to subscription mail 
+    send as well as template (subdir tempaltes/[slug]/mytemplate.html)
     the template will be added at the bottom of the mail, before the footer
+    context data will be accessible by [mypugin-slug].mydata
     '''
     TEMPLATE_FILE = "plugin_template.html"  # report here the name of the template. ie : 'mytemplate.html' 
                                             # under templates/[slug]/mytemplate.html
@@ -17,7 +20,7 @@ class MailSubscriptionMixin:
     def __init__(self):
         """Register mixin."""
         super().__init__()
-        self.add_mixin('mailsubscription', True, __class__)
+        self.add_mixin('mailsubscription', 'is_setting_enabled', __class__)
         
     @classmethod
     def add_context(cls, user, current_context):
@@ -30,6 +33,10 @@ class MailSubscriptionMixin:
         """
         return {}
     
+    
+    def is_setting_enabled(cls):
+       return get_global_setting('ENABLE_PLUGINS_SUBSCRIPTION')
+   
     @classmethod
     def _activate_mixin(cls, registry, plugins, *args, **kwargs):
         """Activate plugin MailSubscription.

@@ -47,6 +47,11 @@ def plugin_settings_content(context, plugin, *args, **kwargs):
         return plg.get_settings_content(context.request)
     return None
 
+@register.simple_tag()
+def plugin_filter_choice_clug(pluginSlug, filter, *args, **kwargs):
+    """return a slug for a plugin filter ."""
+    from django.utils.text import slugify
+    return pluginSlug + "-"+slugify(filter)
 
 @register.simple_tag()
 def mixin_enabled(plugin, key, *args, **kwargs):

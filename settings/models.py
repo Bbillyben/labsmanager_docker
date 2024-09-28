@@ -940,6 +940,13 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'validator': bool,
             'after_save': reload_plugin_registry,
         },
+        'ENABLE_PLUGINS_SUBSCRIPTION': {
+            'name': _('Enable Subscription Plugin'),
+            'description': _('enable plugin to add custom template to subscription'),
+            'default': False,
+            'validator': bool,
+            'after_save': reload_plugin_registry,
+        },
          
     }       
         
