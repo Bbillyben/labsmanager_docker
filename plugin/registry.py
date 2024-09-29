@@ -47,14 +47,16 @@ logger = logging.getLogger('labsmanager')
 
 class PluginsRegistry:
     """The PluginsRegistry class."""
-
-    # from .base.integration.AppMixin import AppMixin
-    # from .base.integration.ScheduleMixin import ScheduleMixin
     from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin
-    # from .base.integration.UrlsMixin import UrlsMixin
 
-    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin] #[SettingsMixin, ScheduleMixin, AppMixin, UrlsMixin]
+    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin] 
 
+    MIXIN_SETTING_ENABLE = {
+        # 'settings':'ENABLE_PLUGINS_SETTINGS', 
+        'schedule':'ENABLE_PLUGINS_SCHEDULE', 
+        'calendarevent':'ENABLE_PLUGINS_CALENDAR', 
+        'mailsubscription':'ENABLE_PLUGINS_SUBSCRIPTION', 
+    }
     def __init__(self) -> None:
         """Initialize registry.
 
@@ -196,6 +198,9 @@ class PluginsRegistry:
         self.check_reload()
 
         result = []
+        
+        if mixin in self.MIXIN_SETTING_ENABLE and not get_global_setting(self.MIXIN_SETTING_ENABLE[mixin], backup_value=False):
+            return result
 
         for plugin in self.plugins.values():
             if plugin.mixin_enabled(mixin):

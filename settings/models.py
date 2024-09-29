@@ -947,6 +947,13 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'validator': bool,
             'after_save': reload_plugin_registry,
         },
+        'ENABLE_PLUGINS_SETTINGS': {
+            'name': _('Enable Setting Plugin'),
+            'description': _('enable plugin to add custom settings'),
+            'default': False,
+            'validator': bool,
+            'after_save': reload_plugin_registry,
+        },
          
     }       
         

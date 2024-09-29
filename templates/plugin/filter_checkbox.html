@@ -20,7 +20,16 @@ options : a list of pair id:name
                             <ul class="list-group">
                                 <li class="">
                                     <div class="form-check form-check-inline">
-                                        <input id="{{slug}}-{{ val }}" type="checkbox" class="form-check-input " name="{{ name }}" value="{{ val }}" checked>
+                                        <input id="{{slug}}-{{ val }}" type="checkbox" class="form-check-input " name="{{ name }}" value="{{ val }}" 
+                                        {% if default%}
+                                            {% if val in default%}
+                                                checked
+                                            {%endif%}
+                                        {%else%}
+                                            checked
+                                        {%endif%}
+                                        
+                                        >
                                         <label class="form-check-label" for="{{slug}}-{{val}}">{{ name }}</label>
                                     </div>
                                 </li>

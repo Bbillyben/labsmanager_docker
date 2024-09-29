@@ -20,9 +20,8 @@ add_all_option : add a "All" option at the top
                     <div class="in-card d-flex flex-wrap collapse" style="margin-left:1em;">
                         <div class="col-auto" >
                             <select class="form-select form-select-sm calendar-filter" aria-label=".form-select-sm example" data-filter-id="{{slug}}">
-                                {%if add_all_option %}<option value="all">{% trans 'All' %}</option>{% endif %}
                                 {% for val, name in options.items %}
-                                    <option value="{{val}}">{{ name }}</option>
+                                    <option value="{{val}}" {% if val == default%}selected="selected"{%endif%}>{{ name }}</option>
                                 {%endfor%}
                             </select>                             
                         </div>

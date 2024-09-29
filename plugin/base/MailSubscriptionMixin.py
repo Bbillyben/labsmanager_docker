@@ -20,7 +20,7 @@ class MailSubscriptionMixin:
     def __init__(self):
         """Register mixin."""
         super().__init__()
-        self.add_mixin('mailsubscription', 'is_setting_enabled', __class__)
+        self.add_mixin('mailsubscription', True, __class__)
         
     @classmethod
     def add_context(cls, user, current_context):
@@ -32,10 +32,6 @@ class MailSubscriptionMixin:
         datas will be added to the global email context accessible by plugin's [slug]
         """
         return {}
-    
-    
-    def is_setting_enabled(cls):
-       return get_global_setting('ENABLE_PLUGINS_SUBSCRIPTION')
    
     @classmethod
     def _activate_mixin(cls, registry, plugins, *args, **kwargs):

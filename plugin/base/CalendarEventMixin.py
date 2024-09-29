@@ -29,7 +29,9 @@ class CalendarEventMixin:
                     "val1":"Value 1",
                     "val2":"Value 2",
                     ....
-                "choices":"myClassMethod" // could be the string name of a **classmethod** as well
+                "choices":"myClassMethod"   # could be the string name of a **classmethod** as well
+                "default":"default value"   # could be the string name of a **classmethod** as well
+                                            # for checkbox, give a separated string list of value to be checked
         },            
     }
     '''
@@ -44,10 +46,8 @@ class CalendarEventMixin:
     def __init__(self):
         """Register mixin."""
         super().__init__()
-        self.add_mixin('calendarevent', 'is_setting_enabled', __class__)
+        self.add_mixin('calendarevent', True, __class__)
     
-    def is_setting_enabled(cls):
-       return get_global_setting('ENABLE_PLUGINS_CALENDAR')
     @classmethod
     def get_event(cls, request, event_list):
         """
@@ -176,7 +176,13 @@ class CalendarEventMixin:
             elif option["type"] in cls.type_with_choices:
                 logger.warning(f"Error for filters '{filter}' in {cls} missing choices")
                 key_to_pop.append(filter) # no choices defined for filters with choice mandatory
-                
+            if "default" in option:
+                default = option["default"]
+                if isinstance(default, str) and hasattr(cls, default):
+                    methode = getattr(cls, vals)
+                    if callable(methode):
+                        default = methode()  # Exécute la méthode 
+                        option["default"] =default
         for key in key_to_pop: # remove key with unwanted format
             build_filters.pop(key)
         return build_filters
