@@ -489,7 +489,9 @@ hr.light {
 {% plugin_list_mixin "mailsubscription" as plugins%}
 {% for pg in plugins %}
     {% if pg.get_template %}
-        {% include pg.get_template %}
+        {% for tempalte in pg.get_template %}
+            {% include tempalte %}
+        {%endfor%}
     {%endif%}
 {% endfor %}
 

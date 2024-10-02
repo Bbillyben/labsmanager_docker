@@ -10,7 +10,7 @@ class MailSubscriptionMixin:
     the template will be added at the bottom of the mail, before the footer
     context data will be accessible by [mypugin-slug].mydata
     '''
-    TEMPLATE_FILE = "plugin_template.html"  # report here the name of the template. ie : 'mytemplate.html' 
+    TEMPLATE_FILES = []  # report here the name of the template. ie : 'mytemplate.html' 
                                             # under templates/[slug]/mytemplate.html
                                             # in template, data are accessible by [slug].mydata
     class MixinMeta:
@@ -53,12 +53,19 @@ class MailSubscriptionMixin:
         avoid overriding this method.
         '''
         pgI = cls()
-        if len(pgI.TEMPLATE_FILE) <1:
-            logger.warning(f"[MailSubscriptionMixin] : {pgI.name} do not have template file parametered")
-            return False
-        tempPath = pgI.slug+"/"+pgI.TEMPLATE_FILE
-        testPath = os.path.join(pgI.path(), 'templates', tempPath)        
-        if os.path.isfile(testPath):
-            return tempPath
-        logger.warning(f"[MailSubscriptionMixin] : {pgI.name} / {pgI.TEMPLATE_FILE} not found at {testPath}")
-        return False
+        print(f">>>>>> {pgI.TEMPLATE_FILES} ")
+        if len(pgI.TEMPLATE_FILES) < 1:
+            logger.warning(f"[MailSubscriptionMixin] : {pgI.name} n'a pas de fichiers de template paramétrés")
+            return []
+
+        valid_templates = []
+        for template in pgI.TEMPLATE_FILES:
+            tempPath = pgI.slug + "/" + template
+            testPath = os.path.join(pgI.path(), 'templates', tempPath)
+            if os.path.isfile(testPath):
+                valid_templates.append(tempPath)
+            else:
+                logger.warning(f"[MailSubscriptionMixin] : {pgI.name} / {template} not found at {testPath}")
+
+        return valid_templates
+    

@@ -53,6 +53,15 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             'schedule': "D",
         },
     }
+    FILTERS={
+        "ZONE":{
+            "title":_("Vacation Zone Choice"),
+            "type":"select",
+            "choices":"get_vacation_zones_object",
+            "default":"get_default_zone", 
+        }
+    }
+    
 
     def activate(self):
         """Activate plugin calendarevent.
@@ -101,7 +110,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         logger.debug("[FrenchHollidayPlugin / pull_vacation_file] END ~~~~~~~~~~~~~~~ ")
         
     @classmethod
-    def get_event(cls, request, event_list):
+    def get_event(cls, request, event_list):        
         nex_evt = cls.get_vacation_events(request)
         event_list.extend(nex_evt)
         
@@ -123,7 +132,11 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             file_contents = json_file.read()
         dayoff_json = json.loads(file_contents)
         
-        zone = __class__.get_setting(__class__(), key="FHP_VACATION_ZONE")
+        if "frenchholliday-zone" in request.POST:
+            zone = request.POST["frenchholliday-zone"]
+        else:
+            zone = __class__.get_setting(__class__(), key="FHP_VACATION_ZONE")
+        
         color = __class__.get_setting(__class__(), key="FHP_COLOR")
         title = __class__.get_setting(__class__(), key="FHP_TITLE")
         logger.debug(f" vacation event parameters : zone :{zone} / color {color} / title :{title}")
@@ -208,17 +221,13 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                     unik.append(item["zones"])
             listZone.sort(key=lambda x: x[1])
             return listZone 
-# def get_vacation_location_choices(cls):
-#     folder = cls.get_static_folder()
-#     path = folder+"/vac.json"
-#     with open(path) as json_file:
-#         file_contents = json_file.read()
-#     vac_json = json.loads(file_contents)
-#     listZone = []
-#     unik = []
-#     for item in vac_json:
-#         if not item["location"] in unik:
-#             listZone.append((item["location"], item["location"]))
-#             unik.append(item["location"])
-#     listZone.sort(key=lambda x: x[1])
-#     return listZone
+    @classmethod
+    def get_vacation_zones_object(cls):
+        zones = cls.get_vacation_zones_choices()
+        listZone = {key: value for key, value in zones}
+        return listZone
+    @classmethod
+    def get_default_zone(cls):
+        setZone = cls().get_setting("FHP_VACATION_ZONE", backup_value=None)
+        return setZone
+    

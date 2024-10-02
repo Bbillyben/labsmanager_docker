@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-28 20:51+0200\n"
+"POT-Creation-Date: 2024-10-02 10:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 #: data/media/report/report_template/employee/employee_pdf_leave_report.html:257
 #: data/media/report/report_template/employee/employee_pdf_report.html:569
 #: data/media/report/report_template/project/project_pdf_report.html:675
-#: settings/models.py:1156 settings/models.py:1157 settings/views.py:381
+#: settings/models.py:1163 settings/models.py:1164 settings/views.py:381
 #: staff/models.py:34 staff/ressources.py:231
 #: templates/staff/employee_desc_table.html:63
 msgid "User"
@@ -215,7 +215,7 @@ msgstr ""
 #: templates/organization/orga_base.html:51
 #: templates/organization/orga_base.html:98 templates/settings/plugin.html:22
 #: templates/settings/plugin/urls.html:13
-#: templates/settings/plugins_settings.html:98
+#: templates/settings/plugins_settings.html:100
 msgid "Name"
 msgstr ""
 
@@ -227,7 +227,7 @@ msgstr ""
 #: expense/models.py:30 expense/resources.py:80 fund/models.py:269
 #: reports/models.py:131 templates/expense/expense_list.html:42
 #: templates/fund/budget_table.html:36 templates/settings/plugin.html:27
-#: templates/settings/plugins_settings.html:62
+#: templates/settings/plugins_settings.html:64
 msgid "Description"
 msgstr ""
 
@@ -572,8 +572,8 @@ msgstr ""
 #: data/media/report/report_template/employee/employee_pdf_report.html:463
 #: data/media/report/report_template/project/project_pdf_report.html:354
 #: data/media/report/report_template/project/project_pdf_report.html:405
-#: fund/models.py:91 project/resources.py:87 settings/models.py:1215
-#: settings/models.py:1216 templates/expense/contract_fund_modal.html:15
+#: fund/models.py:91 project/resources.py:87 settings/models.py:1222
+#: settings/models.py:1223 templates/expense/contract_fund_modal.html:15
 #: templates/fund/budget_table.html:27 templates/fund/contrib_table.html:28
 #: templates/organization/institution_single.html:163
 #: templates/project/project_base.html:69
@@ -1303,7 +1303,7 @@ msgid "Package Plugin"
 msgstr ""
 
 #: plugin/models.py:212 templates/settings/plugin.html:9
-#: templates/settings/plugins_settings.html:59
+#: templates/settings/plugins_settings.html:61
 msgid "Plugin"
 msgstr ""
 
@@ -1311,17 +1311,17 @@ msgstr ""
 msgid "No author found"
 msgstr ""
 
-#: plugin/registry.py:532
+#: plugin/registry.py:537
 #, python-brace-format
 msgid "Plugin '{p}' is not compatible with the current labsmanager version {v}"
 msgstr ""
 
-#: plugin/registry.py:535
+#: plugin/registry.py:540
 #, python-brace-format
 msgid "Plugin requires at least version {v}"
 msgstr ""
 
-#: plugin/registry.py:537
+#: plugin/registry.py:542
 #, python-brace-format
 msgid "Plugin requires at most version {v}"
 msgstr ""
@@ -1360,6 +1360,10 @@ msgstr ""
 
 #: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:42
 msgid "one of the zone defined for french vacation"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:58
+msgid "Vacation Zone Choice"
 msgstr ""
 
 #: plugin/serializers.py:58
@@ -1508,7 +1512,7 @@ msgstr ""
 msgid "Report template is enabled"
 msgstr ""
 
-#: settings/models.py:524 settings/models.py:1149 settings/models.py:1208
+#: settings/models.py:524 settings/models.py:1156 settings/models.py:1215
 msgid "Settings key (must be unique - case insensitive)"
 msgstr ""
 
@@ -1608,229 +1612,237 @@ msgstr ""
 msgid "enable plugin to add custom template to subscription"
 msgstr ""
 
-#: settings/models.py:961
+#: settings/models.py:951
+msgid "Enable Setting Plugin"
+msgstr ""
+
+#: settings/models.py:952
+msgid "enable plugin to add custom settings"
+msgstr ""
+
+#: settings/models.py:968
 msgid "Settings key (must be unique - case insensitive"
 msgstr ""
 
-#: settings/models.py:976
+#: settings/models.py:983
 msgid "Dashboard Stale From Calculation"
 msgstr ""
 
-#: settings/models.py:977
+#: settings/models.py:984
 msgid "Number of previous month to get in stale scope from now"
 msgstr ""
 
-#: settings/models.py:982
+#: settings/models.py:989
 msgid "Dashboard Stale To Calculation"
 msgstr ""
 
-#: settings/models.py:983 settings/models.py:989 settings/models.py:995
-#: settings/models.py:1002 settings/models.py:1008
+#: settings/models.py:990 settings/models.py:996 settings/models.py:1002
+#: settings/models.py:1009 settings/models.py:1015
 msgid "Number of month to get in stale scope from now"
 msgstr ""
 
-#: settings/models.py:988
+#: settings/models.py:995
 msgid "Contract Stale month"
 msgstr ""
 
-#: settings/models.py:994
+#: settings/models.py:1001
 msgid "Project Stale month"
 msgstr ""
 
-#: settings/models.py:1001
+#: settings/models.py:1008
 msgid "Milestones Stale to month"
 msgstr ""
 
-#: settings/models.py:1007
+#: settings/models.py:1014
 msgid "Milestones Stale from month"
 msgstr ""
 
-#: settings/models.py:1014
+#: settings/models.py:1021
 msgid "Fund ratio consumption report type"
 msgstr ""
 
-#: settings/models.py:1015 settings/models.py:1025
+#: settings/models.py:1022 settings/models.py:1032
 msgid "Fund ratio consumption to report project in dahsboard"
 msgstr ""
 
-#: settings/models.py:1024
+#: settings/models.py:1031
 msgid "Fund ratio consumption threshold"
 msgstr ""
 
-#: settings/models.py:1030
+#: settings/models.py:1037
 msgid "Use project Stale period for Consumption"
 msgstr ""
 
-#: settings/models.py:1031
+#: settings/models.py:1038
 msgid "use Project Stale month scope period for under consommation calculation"
 msgstr ""
 
-#: settings/models.py:1036
+#: settings/models.py:1043
 msgid "Margin to detect linear ratio"
 msgstr ""
 
-#: settings/models.py:1037
+#: settings/models.py:1044
 msgid ""
 "margin in % to identifyed deviation in budget consumption from linear ratio"
 msgstr ""
 
-#: settings/models.py:1042
+#: settings/models.py:1049
 msgid "E-Mail Notification"
 msgstr ""
 
-#: settings/models.py:1043
+#: settings/models.py:1050
 msgid "enable automatic mail notification"
 msgstr ""
 
-#: settings/models.py:1049
+#: settings/models.py:1056
 msgid "Notification frequency"
 msgstr ""
 
-#: settings/models.py:1050
+#: settings/models.py:1057
 msgid "frequency wanted for notice transmission"
 msgstr ""
 
-#: settings/models.py:1053
+#: settings/models.py:1060
 msgid "dayli"
 msgstr ""
 
-#: settings/models.py:1054
+#: settings/models.py:1061
 msgid "weekly"
 msgstr ""
 
-#: settings/models.py:1055
+#: settings/models.py:1062
 msgid "fortnightly"
 msgstr ""
 
-#: settings/models.py:1056
+#: settings/models.py:1063
 msgid "monthly"
 msgstr ""
 
-#: settings/models.py:1061
+#: settings/models.py:1068
 msgid "Notification Incomming Employee"
 msgstr ""
 
-#: settings/models.py:1062
+#: settings/models.py:1069
 msgid "report all incomming employee"
 msgstr ""
 
-#: settings/models.py:1067
+#: settings/models.py:1074
 msgid "Notification Leaves"
 msgstr ""
 
-#: settings/models.py:1068
+#: settings/models.py:1075
 msgid "report all leaves of current month"
 msgstr ""
 
-#: settings/models.py:1073
+#: settings/models.py:1080
 msgid "Notification Leaves Format"
 msgstr ""
 
-#: settings/models.py:1074
+#: settings/models.py:1081
 msgid "choose to report by calendar or list view for leaves"
 msgstr ""
 
-#: settings/models.py:1077
+#: settings/models.py:1084
 msgid "calendar"
 msgstr ""
 
-#: settings/models.py:1078
+#: settings/models.py:1085
 msgid "list"
 msgstr ""
 
-#: settings/models.py:1082
+#: settings/models.py:1089
 msgid "Notification Report Employee without leaves in calendar"
 msgstr ""
 
-#: settings/models.py:1083
+#: settings/models.py:1090
 msgid "report all employee even without leaves in calendar views"
 msgstr ""
 
-#: settings/models.py:1088
+#: settings/models.py:1095
 msgid "Notification Leaves Timeframe"
 msgstr ""
 
-#: settings/models.py:1089
+#: settings/models.py:1096
 msgid "choose which timeframe to report (current month or 31 days timeframe)"
 msgstr ""
 
-#: settings/models.py:1092
+#: settings/models.py:1099
 msgid "current month"
 msgstr ""
 
-#: settings/models.py:1093
+#: settings/models.py:1100
 msgid "31 days Timeframe"
 msgstr ""
 
-#: settings/models.py:1097
+#: settings/models.py:1104
 msgid "Notification Report language"
 msgstr ""
 
-#: settings/models.py:1098
+#: settings/models.py:1105
 msgid "choose the language for reports"
 msgstr ""
 
-#: settings/models.py:1103
+#: settings/models.py:1110
 msgid "Fixed Navbar"
 msgstr ""
 
-#: settings/models.py:1104
+#: settings/models.py:1111
 msgid "navbar position fixed to the top of the screen"
 msgstr ""
 
-#: settings/models.py:1109
+#: settings/models.py:1116
 msgid "Print Full Background colors"
 msgstr ""
 
-#: settings/models.py:1110
+#: settings/models.py:1117
 msgid "When printing, use displayed backgrounds instead of bordered boxew"
 msgstr ""
 
-#: settings/models.py:1115
+#: settings/models.py:1122
 msgid "Display Only Current Organisation"
 msgstr ""
 
-#: settings/models.py:1116
+#: settings/models.py:1123
 msgid "show/hide past hierarchical links"
 msgstr ""
 
-#: settings/models.py:1121
+#: settings/models.py:1128
 msgid "Theme"
 msgstr ""
 
-#: settings/models.py:1122
+#: settings/models.py:1129
 msgid "Color theme for LabsManager"
 msgstr ""
 
-#: settings/models.py:1127
+#: settings/models.py:1134
 msgid "Map provider for location link"
 msgstr ""
 
-#: settings/models.py:1128
+#: settings/models.py:1135
 msgid "choose a map provider for link pointing to location"
 msgstr ""
 
-#: settings/models.py:1131
+#: settings/models.py:1138
 msgid "Google Map"
 msgstr ""
 
-#: settings/models.py:1132
+#: settings/models.py:1139
 msgid "Openstreetmap"
 msgstr ""
 
-#: settings/models.py:1178
+#: settings/models.py:1185
 msgid "Expense base calculation"
 msgstr ""
 
-#: settings/models.py:1179
+#: settings/models.py:1186
 msgid "Simple : Timepoint only, Expense : sum of expense, hybrid"
 msgstr ""
 
-#: settings/models.py:1188
+#: settings/models.py:1195
 msgid "Leader can edit fund"
 msgstr ""
 
-#: settings/models.py:1189
+#: settings/models.py:1196
 msgid "wether the leader can edit fund of project"
 msgstr ""
 
@@ -2231,7 +2243,6 @@ msgstr ""
 
 #: templates/calendar/calendar_filters.html:37
 #: templates/calendar/filter_select.html:23
-#: templates/plugin/filter_select.html:23
 msgid "All"
 msgstr ""
 
@@ -2354,49 +2365,49 @@ msgid "Current Leaves"
 msgstr ""
 
 #: templates/email/notification_email copy.html:450
-#: templates/email/notification_email.html:498
+#: templates/email/notification_email.html:500
 msgid " Your subscription parameters :"
 msgstr ""
 
 #: templates/email/notification_email copy.html:452
-#: templates/email/notification_email.html:500
+#: templates/email/notification_email.html:502
 msgid "User Name"
 msgstr ""
 
 #: templates/email/notification_email copy.html:453
-#: templates/email/notification_email.html:501
+#: templates/email/notification_email.html:503
 msgid "Notification activated"
 msgstr ""
 
 #: templates/email/notification_email copy.html:453 copy.html:454
-#: templates/email/notification_email.html:501
-#: templates/email/notification_email.html:502
+#: templates/email/notification_email.html:503
+#: templates/email/notification_email.html:504
 msgid "Yes"
 msgstr ""
 
 #: templates/email/notification_email copy.html:453 copy.html:454
-#: templates/email/notification_email.html:501
-#: templates/email/notification_email.html:502
+#: templates/email/notification_email.html:503
+#: templates/email/notification_email.html:504
 msgid "No"
 msgstr ""
 
 #: templates/email/notification_email copy.html:454
-#: templates/email/notification_email.html:502
+#: templates/email/notification_email.html:504
 msgid "Report Leaves"
 msgstr ""
 
 #: templates/email/notification_email copy.html:455
-#: templates/email/notification_email.html:503
+#: templates/email/notification_email.html:505
 msgid "frequency"
 msgstr ""
 
 #: templates/email/notification_email copy.html:456
-#: templates/email/notification_email.html:504
+#: templates/email/notification_email.html:506
 msgid "Next report"
 msgstr ""
 
 #: templates/email/notification_email copy.html:457
-#: templates/email/notification_email.html:505
+#: templates/email/notification_email.html:507
 msgid "Current Date"
 msgstr ""
 
@@ -2440,7 +2451,7 @@ msgstr ""
 #: templates/organization/orga_base.html:107
 #: templates/project/project_base.html:102
 #: templates/project/project_single.html:172
-#: templates/settings/plugins_settings.html:74
+#: templates/settings/plugins_settings.html:76
 #: templates/settings/setting_table.html:39 templates/team/team_base.html:76
 msgid "Action"
 msgstr ""
@@ -3020,12 +3031,12 @@ msgid "Plugin information"
 msgstr ""
 
 #: templates/settings/plugin.html:32
-#: templates/settings/plugins_settings.html:71
+#: templates/settings/plugins_settings.html:73
 msgid "Author"
 msgstr ""
 
 #: templates/settings/plugin.html:42
-#: templates/settings/plugins_settings.html:68
+#: templates/settings/plugins_settings.html:70
 msgid "Version"
 msgstr ""
 
@@ -3065,7 +3076,7 @@ msgid "Open in new tab"
 msgstr ""
 
 #: templates/settings/plugins_settings.html:8
-#: templates/settings/plugins_settings.html:35
+#: templates/settings/plugins_settings.html:37
 #: templates/settings/sidebar.html:71
 msgid "Plugins"
 msgstr ""
@@ -3074,24 +3085,24 @@ msgstr ""
 msgid "External plugins are not enabled for this LabsManager installation"
 msgstr ""
 
-#: templates/settings/plugins_settings.html:41
-#: templates/settings/plugins_settings.html:42
+#: templates/settings/plugins_settings.html:43
+#: templates/settings/plugins_settings.html:44
 msgid "Reload Plugins"
 msgstr ""
 
-#: templates/settings/plugins_settings.html:65
+#: templates/settings/plugins_settings.html:67
 msgid "mixins"
 msgstr ""
 
-#: templates/settings/plugins_settings.html:88
+#: templates/settings/plugins_settings.html:90
 msgid "Plugin Error Stack"
 msgstr ""
 
-#: templates/settings/plugins_settings.html:97
+#: templates/settings/plugins_settings.html:99
 msgid "Stage"
 msgstr ""
 
-#: templates/settings/plugins_settings.html:99
+#: templates/settings/plugins_settings.html:101
 msgid "Message"
 msgstr ""
 

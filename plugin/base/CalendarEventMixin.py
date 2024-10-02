@@ -87,15 +87,17 @@ class CalendarEventMixin:
               event_list.extends(newEvent)
               to not overwrite existing data
         """
-        raise MixinImplementationError('CalendarEventMixin : get_event should be overriden')
+        pass
+        # raise MixinImplementationError('CalendarEventMixin : get_event should be overriden')
    
     @classmethod
-    def filter_queryset(cls, queryset, filters_data):
+    def filter_queryset(cls, queryset, user, filters_data):
         '''
         method to add filtering on events (all events from labsmanager process)
         only filtering leave instance from 
         Args : 
            * queryset : the queryset comming from the labsmanager filtering process of leave instances
+           * user : the current user requesting calendar update
            * filters_data : dict containing the filters, including FILTERS value (under slug-filtername (lower case))
         '''
         return queryset
@@ -179,7 +181,7 @@ class CalendarEventMixin:
             if "default" in option:
                 default = option["default"]
                 if isinstance(default, str) and hasattr(cls, default):
-                    methode = getattr(cls, vals)
+                    methode = getattr(cls, default)
                     if callable(methode):
                         default = methode()  # Exécute la méthode 
                         option["default"] =default
