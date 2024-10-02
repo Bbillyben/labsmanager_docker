@@ -258,11 +258,13 @@ class PluginsRegistry:
         """
         logger.info('Start unloading plugins')
 
-        # remove all plugins from registry
-        self._clean_registry()
+        
 
         # deactivate all integrations
         self._deactivate_plugins(force_reload=force_reload)
+        
+        # remove all plugins from registry
+        self._clean_registry()
 
         logger.info('Finished unloading plugins')
 

@@ -50,7 +50,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         # Name of the task (will be prepended with the plugin name)
         'FHP_PULL': {
             'func': 'FHP_pull',
-            'schedule': "D",
+            'schedule': "W",
         },
     }
     FILTERS={
@@ -67,8 +67,13 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         """Activate plugin calendarevent.
         """
         logger.debug('Activating plugin FrenchHollidayPlugin')
-        self.__class__.FHP_pull()
-    def desactivate(self):
+        folder = self.__class__.get_static_folder()
+        path = folder+"/vac.json"
+        if not Path(path).is_file():
+            self.__class__.FHP_pull()
+        
+    def deactivate(self):
+        logger.debug(f"Start {self.__class__} deactivation .....")
         folder = self.__class__.get_static_folder()
         if not Path(folder).is_dir():
             return
@@ -79,7 +84,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         if os.path.exists( folder+"/dayoff.json"):
             os.remove( folder+"/dayoff.json")
             delete_count+=1
-        logger.info("Delete %s file from %s", (delete_count, folder))
+        logger.info("Delete %s file from %s", delete_count, folder)
         
     @classmethod
     def get_static_folder(cls):

@@ -84,6 +84,12 @@
     {% include 'settings/plugin/settings.html' %}
 {% endif %}
 
+{% mixin_enabled plugin 'schedule' as schedule %}
+{% if schedule %}
+    {% include 'settings/plugin/schedule.html' %}
+{% endif %}
+
+
 {% mixin_enabled plugin 'urls' as urls %}
 {% if urls %}
     {% include 'settings/plugin/urls.html' %}

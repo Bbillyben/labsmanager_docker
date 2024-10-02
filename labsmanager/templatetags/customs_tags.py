@@ -153,6 +153,14 @@ def extractArgs(context, key):
        return context[key]
    return None
 
+@register.simple_tag()
+def get_item(dictionary, key):
+    return dictionary.get(key)
+
+@register.filter
+def getattr(obj, attr):
+    return getattr(obj, attr, '')
+
 
 @register.filter
 def is_in_leavelist(d, d_list):   

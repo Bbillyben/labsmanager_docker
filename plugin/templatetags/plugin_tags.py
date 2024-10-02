@@ -111,3 +111,19 @@ def plugin_static(context, file: str, **kwargs):
         return file
 
     return static(f'plugins/{plugin}/{file}')
+
+
+@register.simple_tag()
+def plugin_scheduled_tasks(plugin, *args, **kwargs):
+    from django_q.models import Schedule
+    tasks_names = plugin.get_task_names()
+    result={"task_names":tasks_names,}
+    for task_name in tasks_names:
+        scheduled_plugin_tasks = Schedule.objects.filter(
+                name=task_name
+            )
+        result[task_name]=scheduled_plugin_tasks #.values()
+    return result
+    
+    
+    

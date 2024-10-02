@@ -108,7 +108,7 @@ class CalendarEventMixin:
         ''' when mixin is activated and plugin activated call activate.
         usefull to preparing data if reaquired (ie load data source)'''
         pass
-    def desactivate(self):
+    def deactivate(self):
         ''' when mixin is desactivated and plugin activated call desactivate.
         usefull to unpreparing data if required (ie load data source)'''
         pass
@@ -128,6 +128,10 @@ class CalendarEventMixin:
     def _deactivate_mixin(cls, registry, **kwargs):
         """Deactivate all plugin settcalendareventings."""
         logger.debug('Deactivating plugin calendarevent')
+        plugins = registry.plugins.items()
+        for _key, plugin in plugins:
+            if plugin.mixin_enabled('calendarevent'):
+                plugin.deactivate()
         
     @classmethod
     def get_current_resources(cls, request):

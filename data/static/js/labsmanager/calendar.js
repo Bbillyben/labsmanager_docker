@@ -151,7 +151,7 @@
         }catch (error) {
             console.log(error);
         }
-        
+        modURL = encodeURI(modURL);
         $(elts).labModalForm({
             formURL: modURL,
             addModalFormFunction: calendar_refresh,
