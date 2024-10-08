@@ -380,7 +380,9 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
                 #{'name':_('User'),'item':'user.username',},
                 {'name':_('User'),'item':'username','formatter':'userAdminSettingFormatter', 'class':'fit-content'},
                 {'name':_('Last Login'),'item':'last_login','formatter':'baseDateTimeFormatter'},
+                {'name':_('Groups'),'item':'groups','formatter':''},
                 {'name':_('Employee'),'item':'employee','formatter':'employeeFormatter'},
+                {'name':_('Is active'),'item':'is_active','formatter':'simpleFormatter'},
             ], 
             'action':{
             },

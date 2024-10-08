@@ -286,6 +286,10 @@ ACCOUNT_AUTHENTICATION_METHOD  = 'username_email'
 
 ACCOUNT_SESSION_REMEMBER = False
 
+ACCOUNT_ALLOW_SINGUP = get_boolean_setting('ACCOUNT_ALLOW_SINGUP', 'allow_sign_up', False)
+
+ACCOUNT_ADAPTER = 'labsmanager.labs_account_adaptater.LabsManagerAccountAdapter'
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 

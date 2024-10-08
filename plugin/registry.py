@@ -47,9 +47,9 @@ logger = logging.getLogger('labsmanager')
 
 class PluginsRegistry:
     """The PluginsRegistry class."""
-    from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin
+    from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin
 
-    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin] 
+    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin] 
 
     MIXIN_SETTING_ENABLE = {
         # 'settings':'ENABLE_PLUGINS_SETTINGS', 

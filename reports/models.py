@@ -40,7 +40,7 @@ from labsmanager.manager import FileModelManager
 from .signals import auto_delete_templatefile_on_delete
 logger = logging.getLogger("labsmanager")
 
-
+from plugin import registry
 
 
 def rename_template(instance, filename):
@@ -317,7 +317,15 @@ class EmployeeReport(TemplateReport):
  
         context["notes"]=notes
         
-        return context
+        # for plugin
+        for plugin in registry.with_mixin('report'):
+            try:
+                plugin.add_report_data(self, request, context)
+            except Exception as e:
+                logger.error(
+                    f'plugins.{plugin.slug}.add_report_context on {self} raise error :{e}'
+                )
+        return context 
     
     
 class EmployeeWordReport(EmployeeReport, WordReport):
@@ -392,6 +400,15 @@ class ProjectReport(TemplateReport):
         notes = GenericNote.objects.filter(content_type=ct,object_id=proj.id)
  
         context["notes"]=notes
+        
+        # for plugin
+        for plugin in registry.with_mixin('report'):
+            try:
+                plugin.add_report_data(self, request, context)
+            except Exception as e:
+                logger.error(
+                    f'plugins.{plugin.slug}.add_report_context on {self} raise error :{e}'
+                )
         
         return context 
 

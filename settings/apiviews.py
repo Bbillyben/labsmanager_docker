@@ -191,5 +191,6 @@ class SettingListViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='employeeuser', url_name='employeeuser')
     def employeeuser(self, request):
-        usermodel = get_user_model()
-        return JsonResponse(labserializers.UserEmployeeSerializer(usermodel.objects.all(), many=True).data, safe=False)
+        User = get_user_model()
+        usermodels = User.objects.order_by('-is_active', 'username')
+        return JsonResponse(labserializers.UserEmployeeSerializer(usermodels, many=True).data, safe=False)

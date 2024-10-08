@@ -24,7 +24,7 @@ function initFullCalendar(){
     if (view){
         option.initialView = view
     }
-    calendar = $('#calendar-box').lab_calendar(option);
+    calendar = $('#calendar-box').lab_calendar_employee(option);
 }
 function initPrintCalendar(options){
     // console.log('[initPrintCalendar]'+JSON.stringify(options))

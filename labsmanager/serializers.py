@@ -90,10 +90,12 @@ class EmployeeSerialize_Min(serializers.ModelSerializer):
  
 class UserEmployeeSerializer(serializers.ModelSerializer):
     employee=serializers.SerializerMethodField()
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
     class Meta:
         model = User
         fields = ['pk','username', 'first_name','last_name', 'last_login', 'employee',
-                  'is_staff','is_superuser',
+                  'is_staff','is_superuser','is_active',
+                  'groups',
                   ] 
     
     def get_employee(self,obj):

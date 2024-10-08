@@ -60,3 +60,7 @@ secure_hsts_preload: 'true'
 
 # Cookie lifespan when logged
 session_cookie_age: 12800
+
+
+# allow sign up 
+allow_sign_up: 'false'

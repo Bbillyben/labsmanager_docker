@@ -204,20 +204,26 @@ https://github.com/trco/django-bootstrap-modal-forms
                 directUpdate: false,
                 forceExitFunction: false,
                 
-            }
+            },
+            direct_show:false,
         };
 
         // Extend default settings with provided options
         var settings = $.extend(defaults, options);
-
+        
         this.each(function () {
-            $(this).unbind('click');
             // Add click event handler to the element with attached modalForm
-            $(this).click(function (event) {
-                // Instantiate new form in modal
-                //console.log("CLIC");
+            if(settings.direct_show){
                 modalForm(settings);
-            });
+            }else{
+                $(this).unbind("click").click(function (event) {
+                    event.stopPropagation();
+                    // Instantiate new form in modal
+                    modalForm(settings);
+                });
+            }
+            
+            
         });
 
         return this;
