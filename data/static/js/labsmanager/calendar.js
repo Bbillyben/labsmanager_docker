@@ -98,7 +98,7 @@
 
                   // ------------------------------------------
                 
-                  eventContent:this.eventContentRender,  
+                  eventContent:plugin.eventContentRender,  
                   eventDisplay:'block',
             }
             if (plugin.settingsCal.useDatePicker == true){

@@ -189,7 +189,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                     # 'className': classname_color_vac,
                 }
                 if title:
-                    tmp['title'] ="<span style='color:black;'>"+ v['description']+"</span>"
+                    tmp['title'] ="<span style='color:black;margin-left:0.5em;'>"+ v['description']+"</span>"
                 data.append(tmp)
                 
         for item in dayoff_json:
