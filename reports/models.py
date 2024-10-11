@@ -105,7 +105,6 @@ class BaseReport(models.Model):
         """
         template = self.template.name
 
-        # TODO @matmair change to using new file objects
         template = template.replace('/', os.path.sep)
         template = template.replace('\\', os.path.sep)
 

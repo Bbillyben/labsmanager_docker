@@ -57,7 +57,7 @@ function initPrintCalendar(options){
 
 
 
-    calendar = $('#calendar-box').lab_calendar(option);
+    calendar = $('#calendar-box').lab_calendar_employee(option);
     calendar.gotoDate(options["start"]);
 
 }
