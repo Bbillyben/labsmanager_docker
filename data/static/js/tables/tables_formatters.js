@@ -90,10 +90,26 @@ function dueDatePassed(value, row, index, field){
     return value
 }
 function baseDateFormatter(value, row, index, field){
+
     if(value == null || value =="")return value
     d=new Date(value)
     if (d == "Invalid Date" )return value;
     return d.toLocaleDateString()
+}
+function colorDateFormatter(value, row, index, field){
+    if(value == null || value =="")return value
+    d=new Date(value)
+    if (d == "Invalid Date" )return value;
+    icon= "";
+    curr=new Date();
+    if(curr.getTime()>d && row.status == false){
+        icon="<span class='icon-spaced '><i class='fa-solid fa-circle-xmark text-danger'></i></span>";
+    }else if((d-curr.getTime())/86400000< 30 && row.status == false){
+        icon="<span class='icon-spaced '><i class='fa fa-circle-exclamation text-warning'></i></span>";
+    }else if(row.status == false){
+            icon="<span class='icon-spaced '><i class='fa fa-circle-check text-success'></i></span>";
+    }
+    return d.toLocaleDateString()+icon;
 }
 function baseDateTimeFormatter(value, row, index, field){
     const options = { 
@@ -264,7 +280,6 @@ function incommingEmployeeFormatter(value, row, index, field){
     return response;
 }
 function ParticipantFormatter(value, row, index, field){
-
     if(!isIterable(value)){
         value=[{"employee":value}];
     }
@@ -283,6 +298,20 @@ function ParticipantFormatter(value, row, index, field){
             tm+="</a>";
             response+= (response.length > 1 ? ', ' : '') + tm;
         }
+      }
+      return response;
+}
+function milestoneEmployeeFormatter(value, row, index, field){
+    can_see = USER_PERMS.includes('staff.view_employee')
+    response = "";
+    for (const item of value) {
+        if(can_see){
+            tm ="<a href='/staff/employee/"+item.pk+"'>"+item.user_name+"</a>";
+        }else{
+            tm =item.user_name;
+        }
+        if(!item.is_active)tm +='<sup><img src="/static/admin/img/icon-no.svg" alt="False" style="width:1em;"></img></sup>'
+        response+= (response.length > 1 ? ', ' : '') + tm;
       }
       return response;
 }

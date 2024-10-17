@@ -180,13 +180,17 @@ class MilestonesCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
             'title':_('Stale Milestones'),
             'columns':[
                 {'name':_('Project'),'item':'project',  'formatter':'projectFormatterDirect'},
-                {'name':_('Name'),'item':'name'},
+                {'name':_('Name'),'item':'name', 'formatter':'hasnoteformatter'},
                 {'name':_('Description'),'item':'desc'},
                 {'name':_('Type'),'item':'get_type_display'},
                 {'name':_('Quotity'),'item':'quotity', 'formatter':'quotityFormatter'},
                 {'name':_('Deadline'),'item':'deadline_date', 'formatter':'dueDatePassed'},
+                {'name':_('Attribution'),'item':'employee', 'formatter':'milestoneEmployeeFormatter'},
                 
-            ]  
+            ], 
+            'static':[
+                'js/tables/milestones_table.js',
+            ],
         }
         
         return render(request, self.template_general, context)

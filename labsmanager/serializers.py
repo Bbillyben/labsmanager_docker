@@ -116,11 +116,20 @@ class ContractTypeSerializer(serializers.ModelSerializer):
 class MilestonesSerializer(serializers.ModelSerializer):
     project=ProjectSerializer(many=False, read_only=True)
     has_perm = serializers.BooleanField(read_only=True)
+    employee = EmployeeSerialize_Min(many=True, read_only=True)
+    notes = serializers.SerializerMethodField()
     class Meta:
         model = Milestones
         fields = ['pk', 'name', 'deadline_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project', 
-                  'has_perm']  
-
+                  'employee',
+                  'has_perm', 
+                  'notes',
+                  ]  
+    def get_notes(self,obj):
+       return GenericNote.objects.filter(
+            content_type=ContentType.objects.get_for_model(obj),
+            object_id=obj.pk
+        ).count()
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Leave
 class LeaveTypeSerializer(serializers.ModelSerializer):
@@ -137,7 +146,7 @@ class LeaveTypeSerializer_tree(serializers.ModelSerializer):
         
     def get_ancestors_count(self,obj):
         return obj.get_ancestors(ascending=False, include_self=False).count()
-        
+
         
 class LeaveSerializerBasic(serializers.ModelSerializer):
     class Meta:

@@ -21,16 +21,16 @@
     >
     <thead class="">
         <tr>
-            {% if datatype == 'all' %}
+            {% if datatype == 'all' or datatype == 'employee' %}
             <th data-sortable="true" class="th-inner sortable both" data-field="project" data-formatter="ProjectFormatter">
                 {% trans 'Project' %}
             </th>
             {% endif %}
-            <th data-sortable="true" class="th-inner sortable both" data-field="name">
+            <th data-sortable="true" class="th-inner sortable both" data-field="name" data-formatter="hasnoteformatter">
                 {% trans 'Name' %}
             </th>
             
-            <th data-sortable="true" class="th-inner sortable both" data-field="deadline_date" data-formatter="baseDateFormatter">
+            <th data-sortable="true" class="th-inner sortable both" data-field="deadline_date" data-formatter="colorDateFormatter">
                 {% trans 'End Date' %}
             </th>
             <th data-sortable="true" class="th-inner sortable both" data-field="quotity" data-formatter="quotityFormatter">
@@ -39,8 +39,11 @@
             <th data-sortable="true" class="th-inner sortable both" data-field="status" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
                 {% trans 'Status' %}
             </th>
-            <th data-sortable="true" class="th-inner sortable both" data-field="desc">
+            <th data-sortable="true" class="th-inner sortable both" data-field="desc" data-formatter="descriptionFormatter">
                 {% trans 'Desc' %}
+            </th>
+            <th data-sortable="true" class="th-inner sortable both" data-field="employee" data-formatter="milestoneEmployeeFormatter">
+                {% trans 'Attribution' %}
             </th>
             <th data-sortable="false" data-searchable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="adminActionMilestones"
             data-can-change="{{ perms.endpoints.change_milestones }}"
@@ -54,3 +57,6 @@
 
     </tbody>
 </table>
+<div class="card" id="milestones_notes">
+                               
+</div>

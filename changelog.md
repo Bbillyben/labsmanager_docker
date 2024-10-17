@@ -1,6 +1,10 @@
 ## Changelog LabsManager
 
+### v0.9.1/ 2024-10-17
+note : require full update (migration and static)
 
+* [add] employee attribution to milestones
+* [add] note system to milestones   
 
 ### v0.9.0 / 2024-09
 note : require full update (migration and static)
