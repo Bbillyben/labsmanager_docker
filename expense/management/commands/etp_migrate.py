@@ -7,7 +7,8 @@ from django.db.models import Q
 
 from expense.models import Expense_point
 from fund.models import AmountHistory
-
+import logging
+logger=logging.getLogger("labsmanager")
 class Command(BaseCommand):
     help = 'migrate the expense point before any updates'
     
@@ -38,7 +39,7 @@ class Command(BaseCommand):
             main=etp_no.filter(fund=e.fund, type=e.type).first()
 
             if not main:
-                print(str(e)+" NOT FOUND IN MAIN")
+                logger.info(str(e)+" NOT FOUND IN MAIN")
             else:
                 
                 tid=str(str(e.fund)+"-"+str(e.type))

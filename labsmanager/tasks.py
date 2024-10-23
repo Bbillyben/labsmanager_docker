@@ -56,21 +56,6 @@ def scheduleBaseTasks():
         logger.debug("Already in schedules :"+str(currSch))
         
         
-    # for Vacation JSON file pulling
-    currSch = Schedule.objects.filter(func='leave.tasks.pull_vacation_file')
-    if not currSch:
-        sch = Schedule.objects.create(name="pull_vacation_file",
-                                      func='leave.tasks.pull_vacation_file',
-                            #hook='hooks.print_result',
-                            schedule_type=Schedule.CRON,
-                            cron = '40 3 * * 1-5',
-                            #hook="labsmanager.tasks.sendSuperUserMail",
-                            )
-        logger.debug("New Schedule :"+str(sch))
-    else:
-        logger.debug("Already in schedules :"+str(currSch))    
-        
-        
     # for Notifications
     currSch = Schedule.objects.filter(func='common.tasks.check_notifications_tasks')
     if not currSch:

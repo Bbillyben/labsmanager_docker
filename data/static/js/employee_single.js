@@ -144,7 +144,7 @@ function initEmployeeCalendar(){
     if (view){
         option.initialView = view
     }
-    calendar = $('#calendar-employee-box').lab_calendar(option);
+    calendar = $('#calendar-employee-box').lab_calendar_employee(option);
     
 
 }

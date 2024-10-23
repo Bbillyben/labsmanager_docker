@@ -8,6 +8,7 @@ from . import models
 from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,GenericInfoTypeForm, EmployeeUserModelForm, UserEmployeeModelForm, EmployeeSuperiorForm,EmployeeSubordinateForm
 
 from labsmanager.mixin import CreateModalNavigateMixin
+from labsmanager.views_modal import BSmodalDeleteViwGenericForeingKeyMixin
 
 # Update
 class TeamUpdateView(LoginRequiredMixin, BSModalUpdateView):
@@ -207,7 +208,7 @@ class EmployeeSuperiorUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_url = reverse_lazy('employee_index')
     label_confirm = "Confirm"
     
-class EmployeeSuperiorDeleteView(LoginRequiredMixin, BSModalDeleteView):
+class EmployeeSuperiorDeleteView(LoginRequiredMixin, BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = models.Employee_Superior
     template_name = 'form_delete_base.html'
     # form_class = EmployeeModelForm

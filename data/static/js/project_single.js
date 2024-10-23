@@ -115,7 +115,7 @@ function initProjectCalendar(){
         editable:canMod,
         extraParams:{project:project_id},
     }
-    calendar = $('#calendar-project-box').lab_calendar(option);
+    calendar = $('#calendar-project-box').lab_calendar_employee(option);
     
     
     

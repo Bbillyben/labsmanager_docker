@@ -16,7 +16,7 @@ urlpatterns = [
     
     path('subscription/send_test_mail', tasks.send_test_mail, name='subs_test_mail'),
     path('subscription/send_test', tasks.test_check, name='subs_check_tasks'),
-    
+    path('subscription/open_test', views.get_test_email, name='get_test_mail'),
     
     path('user_maillist/', views.get_user_emaillist, name='user_emaillist'),
     

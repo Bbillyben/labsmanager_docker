@@ -26,11 +26,6 @@ from bootstrap_modal_forms.forms import BSModalForm
 
 class ConfirmForm(BSModalForm):
     def __init__(self, *args, **kwargs):
-        print("[ConfirmForm - init]")
-        for a in args:
-            print(f' - {a}')
-        for k, v in kwargs.items():
-            print(f'  - {k}:{v}')
         if "initial" in kwargs:
             for k,v in kwargs["initial"].items():
                 self.base_fields[k]=CharField(

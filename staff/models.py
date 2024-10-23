@@ -80,6 +80,8 @@ class Employee(models.Model, RightsCheckerMixin):
         from project.models import Participant
         return Participant.current.filter(Q(employee=self.pk) & Q(project__status=True)  ).aggregate(Sum('quotity'))["quotity__sum"]
     
+    def active_milestones(self):
+        return self.milestones.filter(status=False)
     
     def info(self):
         return GenericInfo.objects.filter(employee=self.pk)

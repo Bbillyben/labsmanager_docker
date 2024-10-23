@@ -28,6 +28,17 @@ class MilestonesViewSet(viewsets.ModelViewSet):
         except:
             pass
         return JsonResponse(serializers.MilestonesSerializer(t1, many=True).data, safe=False)
+
+    @action(methods=['get'], detail=False, url_path='employee/(?P<emp_pk>[^/.]+)', url_name='employee')
+    def employee(self, request, emp_pk=None, pk=None):
+        t1=self.queryset.filter(employee=emp_pk)
+        # try:
+        #     proj = Project.objects.get(pk=pj_pk)
+        #     if request.user.has_perm("staff.change_employee", proj):
+        #         t1 = t1.annotate(has_perm=Value(True))
+        # except:
+        #     pass
+        return JsonResponse(serializers.MilestonesSerializer(t1, many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='milestones_stale', url_name='milestones_stale')
     def milestones_stale(self, request, pj_pk=None, pk=None):

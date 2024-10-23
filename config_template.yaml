@@ -34,7 +34,8 @@ admin_index_title: "Menu"
 
 static_root: '/home/labsmanager/data/static/'
 media_root: "/home/labsmanager/data/media/"
-
+plugin_dir: '/home/labsmanager/data/plugin/'
+plugin_enable: 'false'
 # CSP policy
 admin_use_csp: 'true'
 #admin_csp_default: "site1.com, site2.com"
@@ -56,3 +57,10 @@ x_frame_options: 'DENY'
 secure_hsts_seconds: 300
 secure_hsts_include_subdomains: 'true'
 secure_hsts_preload: 'true'
+
+# Cookie lifespan when logged
+session_cookie_age: 12800
+
+
+# allow sign up 
+allow_sign_up: 'false'

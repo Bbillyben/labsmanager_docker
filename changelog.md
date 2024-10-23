@@ -1,5 +1,21 @@
 ## Changelog LabsManager
 
+### v0.9.1/ 2024-10-17
+note : require full update (migration and static)
+
+* [add] employee attribution to milestones
+* [add] note system to milestones   
+
+### v0.9.0 / 2024-09
+note : require full update (migration and static)
+
+* [FIX] : Issue with delete form for superior/subordinate delete view
+* [ADD] : color type setting with RGBvalidator
+* [ADD] : **Major Addition** : add plugin system. (Implement from Inventree.plugin)
+    * add SettingMixin for a plugin to add setting for admin
+    * add ScheduleMixin for a plugin to add task to schedule
+    * add CalendarEventMixin for a plugin to provide event to be display in calendar view
+* [UPDATE] : item creation (project/employee) automatic leader attribution fix if user has right to change items afterwards (global right)
 ### 2024-09-05
 note : require static update
 * [UPDATE] : Information on user/employee setting page for admin

@@ -33,7 +33,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         
-        if not request.user.has_perm("project.change_project", self.object):
+        if not request.user.has_perm("project.change_project"):
             try:
                 emp = Employee.objects.get(user= request.user)
                 part = Participant.objects.create(

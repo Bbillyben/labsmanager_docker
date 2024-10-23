@@ -1,0 +1,21 @@
+{% extends "account/account_base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+<!-- templates/registration/login.html -->
+
+{% block head_title %}{% trans "Account Inactive" %}{% endblock %}
+{% block content %}
+<h2>{% trans "Account Inactive" %}</h2>
+<div>
+{% blocktranslate %}
+Your account has been deactivated.</br>
+Contact the administrators of the site
+{% endblocktranslate %}
+ </br>
+    <div class="btn-group float-right" role="group">
+      <a class="btn btn-success" href="{% url 'account_login' %}">{% trans "Back to login page" %}</a>
+  </div>
+</div>
+
+{% endblock %}

@@ -293,8 +293,11 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         # for projects
         conttype_proj = ContentType.objects.get(app_label="project", model="project")
         proj_ids = subs.filter(content_type= conttype_proj).values_list("object_id")
-        projects = Project.objects.filter(pk__in = proj_ids).order_by("name")
-        fund_lines = Fund.objects.filter(project__in=proj_ids).order_by("project__name")
+        # projects = Project.objects.filter(pk__in = proj_ids).order_by("name")
+        # fund_lines = Fund.objects.filter(project__in=proj_ids).order_by("project__name")
+        
+        projects = Project.get_instances_for_user('view', user).filter(pk__in = proj_ids).order_by("name")
+        fund_lines = Fund.get_instances_for_user('view', user).filter(project__in=proj_ids).order_by("project__name")
         
         self.context['projects']=projects
         self.context['funds']=fund_lines
@@ -307,10 +310,12 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         # for employees
         conttype_emp = ContentType.objects.get(app_label="staff", model="employee")
         emp_ids = subs.filter(content_type= conttype_emp).values_list("object_id")
-        employees  = Employee.objects.filter(pk__in = emp_ids).order_by("last_name")
+        # employees  = Employee.objects.filter(pk__in = emp_ids).order_by("last_name")
+        employees = Employee.get_instances_for_user('view', user).filter(pk__in = emp_ids).order_by("last_name")
         
         # for active contract
-        contracts = Contract.objects.filter(employee__in=emp_ids, is_active=True)
+        # contracts = Contract.objects.filter(employee__in=emp_ids, is_active=True)
+        contracts = Contract.get_instances_for_user('view', user).filter(employee__in=emp_ids, is_active=True)
         
         self.context['employees']=employees 
         self.context['contracts']= contracts
@@ -372,3 +377,15 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         if inc_emp:
             em_list = Employee.get_incomming(relativedelta(months=+2))
             self.context['inc_emp']=serializers.IncommingEmployeeSerialize(em_list, many=True).data
+            
+        from plugin import registry
+        
+        pg_context = {}
+        for plugin in registry.with_mixin("mailsubscription", active=True):
+            ctx = plugin.add_context(user, self.context.copy())
+            pg_context[plugin.slug]=ctx
+        
+        self.context.update(pg_context)
+        
+        
+        

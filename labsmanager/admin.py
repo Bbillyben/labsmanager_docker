@@ -59,8 +59,6 @@ class UsedContenTypeFilter(admin.SimpleListFilter):
     
     def lookups(self, request, model_admin):
         
-        print(f"==============> [UsedContenTypeFilter] :{model_admin}")
-        
         content_types = model_admin.model.objects.values('content_type').annotate(count=Count('content_type')).order_by('content_type')
 
         CT_LIST = [(ct['content_type'], str(ContentType.objects.get(id=ct['content_type']))) for ct in content_types]

@@ -38,7 +38,6 @@ class BSmodalConfirmViewMixin(BSModalFormView):
         return context
     
     def get(self, request, *args, **kwargs):
-        print(f"[BSmodalConfirmViewMixin - GET]")
         hidden={}
         for hf in self.hidden_field:
             if hf in kwargs:
@@ -47,11 +46,6 @@ class BSmodalConfirmViewMixin(BSModalFormView):
         self.hidden_field_initial=hidden
         return super().get(request, *args, **kwargs)
     def post(self, request, *args, **kwargs):
-        print(f"[BSmodalConfirmViewMixin - POST]")
-        for a in args:
-            print(f"  - {a}")
-        for k,v in kwargs.items():
-            print(f"  - {k}:{v}")
         # return super().post(request, *args, **kwargs)
         return self.action(*args,**kwargs)
     

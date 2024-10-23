@@ -15,7 +15,8 @@ $.fn.labModalForm = function(options) {
             dataUrl: 'no url',
             dataElementId: 'no data elt',
             dataKey: 'table',
-        }
+        },
+        direct_show:false,
     };
     settings = $.extend(defaults, options);
 
@@ -30,6 +31,7 @@ $.fn.labModalForm = function(options) {
         errorClass: ".form-validation-warning",
         asyncUpdate: true,
         modal_title:settings.modal_title,
+        direct_show:settings.direct_show,
         asyncSettings: {
             directUpdate: settings.asyncSettings.directUpdate,
             closeOnSubmit: settings.asyncSettings.closeOnSubmit,

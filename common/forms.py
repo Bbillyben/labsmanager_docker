@@ -26,12 +26,6 @@ class ResetLabPasswordKeyForm(ResetPasswordKeyForm):
     password1 = CheckPasswordField(label=_("New Password"))
     
     def __init__(self, *args, **kwargs):
-        print("[ResetLabPasswordKeyForm] -------------------------------------------------")
-        print("Args :")
-        for a in args:
-            print(f'    - {a}')
-        print("Kwargs : ")
-        for k,v in kwargs.items():
-            print(f'    - {k}:{v}')
+
         super(ResetLabPasswordKeyForm, self).__init__(*args, **kwargs)
         self.hints = password_validation.password_validators_help_text_html()

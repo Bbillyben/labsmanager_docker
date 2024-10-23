@@ -1,0 +1,45 @@
+<!--
+title : the title of filter
+slug : the slug for parameter
+options : a list of pair id:name
+-->
+<div class="col-auto" >
+    <div class="d-flex flex-wrap ">
+        <div class="card mr-2" >
+            <div class="row-header">                                  
+                <div class="d-flex flex-wrap subheading" role="button" data-bs-toggle="collapse" data-bs-target="#{{slug}}_filters">
+                    <h4><i class="fas fa-filter"></i> {{title}}</h4> 
+                </div>
+            </div>
+            <div class="row">
+                <div id="{{slug}}_filters" class="collapse">
+                    <div  class="in-card d-flex flex-wrap collapse calendar-filter" data-filter-id="{{slug}}" style="margin-left:1em;">
+                        <div class="col-auto" >
+                        {% for val, name in options.items %}
+                        
+                            <ul class="list-group">
+                                <li class="">
+                                    <div class="form-check form-check-inline">
+                                        <input id="{{slug}}-{{ val }}" type="checkbox" class="form-check-input " name="{{ name }}" value="{{ val }}" 
+                                        {% if default%}
+                                            {% if val in default%}
+                                                checked
+                                            {%endif%}
+                                        {%else%}
+                                            checked
+                                        {%endif%}
+                                        
+                                        >
+                                        <label class="form-check-label" for="{{slug}}-{{val}}">{{ name }}</label>
+                                    </div>
+                                </li>
+                            </ul>
+                        
+                        {%endfor%}  
+                        </div>                      
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

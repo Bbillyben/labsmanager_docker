@@ -1,0 +1,36 @@
+<!--
+title : the title of filter
+slug : the slug for parameter
+options : a list of pair id:name
+-->
+{% load mptt_tags %} 
+<div class="col-auto" >
+    <div class="d-flex flex-wrap ">
+        <div class="card mr-2" >
+            <div class="row-header">                                  
+                <div class="d-flex flex-wrap subheading" role="button" data-bs-toggle="collapse" data-bs-target="#{{slug}}_filters">
+                    <h4><i class="fas fa-filter"></i> {{title}}</h4> 
+                </div>
+            </div>
+            <div class="row">
+                <div id="{{slug}}_filters" class="collapse">
+                    <div  class="in-card d-flex flex-wrap collapse"  style="margin-left:1em;">
+                        <div class="col-auto" >
+                            <form class="calendar-filter"  data-filter-id="{{slug}}">
+
+                            {% for val, name in options.items %}
+                                        <div>
+                                            <input class="form-check-input" type="radio" name="{{slug}}"  value="{{val}}"
+                                            {% if val == default%}checked{%endif%}
+                                            >
+                                            <label class="form-check-label" for="with_event">{{name}}</label>
+                                        </div>
+                            {%endfor%}    
+                            </form> 
+                        </div>                   
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
