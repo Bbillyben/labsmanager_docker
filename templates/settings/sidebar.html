@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load customs_tags %}
+{% load plugin_tags %}
 
 
 
@@ -67,4 +68,24 @@
     {% trans "Users Management" as text %}
     {% include "sidebar_item.html" with label='users_admin' text=text icon="fa-users" %}
 
+    {% trans "Plugins" as text %}
+    {% include "sidebar_item.html" with label='plugin_admin' text=text icon="fa-puzzle-piece" %}
+
+
+
+    {% trans "Plugin Lists" as text %}
+    {% plugin_list as pl_list %}
+    {% if pl_list|length > 0 %}
+    {% include "sidebar_header_accordion.html" with text=text icon='fa-list' Id='PG_lists' %}
+    {% endif %}
+    
+        
+        {% for plugin_key, plugin in pl_list.items %}
+            {% if plugin.registered_mixins %}
+                {% include "sidebar_item_accordion.html" with icon="fa-puzzle-piece" label='plugin-'|add:plugin_key text=plugin.human_name %}
+            {% endif %}
+        {% endfor %}
+    {% if pl_list|length > 0 %}
+    {% include "sidebar_header_accordion_end.html" %}
+    {% endif %}
 {% endif %}

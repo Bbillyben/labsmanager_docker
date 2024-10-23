@@ -9,7 +9,7 @@ def is_user_custom_note(user, rulesname):
     perms=rulesname.split("#")
     perm_name = rulesname[0]
     pk=rulesname[1]
-    print(f"[PreciCate is_user_custom_note] : {user} / {perm_name} - {pk}")
+    # print(f"[PreciCate is_user_custom_note] : {user} / {perm_name} - {pk}")
     if not rules.perm_exists(perm_name):
         return False
     app_def=perm_name.split(".change_")

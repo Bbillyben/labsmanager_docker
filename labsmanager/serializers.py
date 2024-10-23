@@ -90,10 +90,12 @@ class EmployeeSerialize_Min(serializers.ModelSerializer):
  
 class UserEmployeeSerializer(serializers.ModelSerializer):
     employee=serializers.SerializerMethodField()
+    groups = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
     class Meta:
         model = User
         fields = ['pk','username', 'first_name','last_name', 'last_login', 'employee',
-                  'is_staff','is_superuser',
+                  'is_staff','is_superuser','is_active',
+                  'groups',
                   ] 
     
     def get_employee(self,obj):
@@ -114,11 +116,20 @@ class ContractTypeSerializer(serializers.ModelSerializer):
 class MilestonesSerializer(serializers.ModelSerializer):
     project=ProjectSerializer(many=False, read_only=True)
     has_perm = serializers.BooleanField(read_only=True)
+    employee = EmployeeSerialize_Min(many=True, read_only=True)
+    notes = serializers.SerializerMethodField()
     class Meta:
         model = Milestones
         fields = ['pk', 'name', 'deadline_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project', 
-                  'has_perm']  
-
+                  'employee',
+                  'has_perm', 
+                  'notes',
+                  ]  
+    def get_notes(self,obj):
+       return GenericNote.objects.filter(
+            content_type=ContentType.objects.get_for_model(obj),
+            object_id=obj.pk
+        ).count()
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Leave
 class LeaveTypeSerializer(serializers.ModelSerializer):
@@ -135,7 +146,7 @@ class LeaveTypeSerializer_tree(serializers.ModelSerializer):
         
     def get_ancestors_count(self,obj):
         return obj.get_ancestors(ascending=False, include_self=False).count()
-        
+
         
 class LeaveSerializerBasic(serializers.ModelSerializer):
     class Meta:
@@ -181,11 +192,15 @@ class LeaveSerializer1DCal(LeaveSerializer1D):
     end_period_di=serializers.SerializerMethodField()
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
-    
+    origin=serializers.SerializerMethodField()
     class Meta:
         model = Leave
-        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 'start', 'start_period_di', 'end', 'end_period_di', 'title', 'color', 'comment','resourceId',]  
-    
+        fields = ['pk', 'employee', 'employee_pk', 'type', 'type_pk', 
+                  'start', 'start_period_di', 'end', 'end_period_di', 'title', 'color', 'comment','resourceId',
+                  'origin',
+                  ]  
+    def get_origin(self,obj):
+        return 'lm'
     def get_start(self,obj):
         st= obj.start_date.isoformat()
         if obj.start_period == "MI":

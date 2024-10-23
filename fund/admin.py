@@ -121,7 +121,6 @@ def get_content_type_filter(title, parameter_name=u'', separator='-', content_ty
         def lookups(self, request, model_admin):
             qs = model_admin.model.objects.all().distinct(content_type_id_field).values(content_type_id_field)
             ctIn=ContentType.objects.filter(id__in=qs)
-            print("  - qs:"+str(qs)) 
             return [
                 (
                     str(ct.app_label)+"."+str(ct.model),

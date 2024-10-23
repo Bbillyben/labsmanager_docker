@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     'common.apps.CommonConfig',
     'settings.apps.SettingsConfig',
     'infos.apps.InfosConfig',
+    'plugin.apps.PluginConfig',
     
     
 ]
@@ -215,7 +216,7 @@ TEMPLATES = [
         'DIRS': [os.path.join(BASE_DIR, 'templates'),
                     MEDIA_ROOT.joinpath('report'),
                 ],
-        'APP_DIRS': True,
+        # 'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -227,8 +228,18 @@ TEMPLATES = [
                 'customs_tags': 'labsmanager.templatetags.customs_tags',
                 'lab_rules': 'labsmanager.templatetags.lab_rules',
                 'format_tag': 'labsmanager.templatetags.format_tag',
+                'plugin_tag': 'plugin.templatetags.plugin_tags',
             
-            }
+            },
+            'loaders': [
+                (   'labsmanager.template.LabsManagerTemplateLoader',
+                 [
+                        'plugin.template.PluginTemplateLoader',
+                        'django.template.loaders.filesystem.Loader',
+                        'django.template.loaders.app_directories.Loader',
+                    ],
+                )
+            ],
         },
     },
 ]
@@ -274,6 +285,10 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET=False
 ACCOUNT_AUTHENTICATION_METHOD  = 'username_email'
 
 ACCOUNT_SESSION_REMEMBER = False
+
+ACCOUNT_ALLOW_SINGUP = get_boolean_setting('ACCOUNT_ALLOW_SINGUP', 'allow_sign_up', False)
+
+ACCOUNT_ADAPTER = 'labsmanager.labs_account_adaptater.LabsManagerAccountAdapter'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -397,7 +412,7 @@ Q_CLUSTER = {
 ACCOUNT_FORMS = {'reset_password_from_key': 'common.forms.ResetLabPasswordKeyForm', 
                  }
 # Session 
-SESSION_COOKIE_AGE = 6400
+SESSION_COOKIE_AGE = get_setting('LAB_SESSION_COOKIE_AGE', 'session_cookie_age', 6400)
 # SESSION_COOKIE_NAME = '__Secure-sessionid'
 # CSRF_COOKIE_NAME = '__Secure-csrftoken'
 
@@ -490,4 +505,19 @@ logger.debug(f'  - MEDIA_ROOT: {MEDIA_ROOT}')
 logger.debug(f'  - STATICFILES_DIRS: {STATICFILES_DIRS}')
 logger.debug(f'  - STATIC_COLOR_THEMES_DIR: {STATIC_COLOR_THEMES_DIR}')
 logger.debug(f'  - FIXTURE_DIRS: {FIXTURE_DIRS}')
+logger.debug('=========  =========  =========')
+
+
+# For plugins 
+PLUGINS_ENABLED = get_boolean_setting('LABSMANAGER_PLUGINS_ENABLED', 'plugin_enable', False)
+TESTING = False
+PLUGIN_TESTING = False
+PLUGIN_RETRY = True
+PLUGIN_DIR = get_setting('LABSMANAGER_PLUGIN_DIR', 'plugin_dir')
+TESTING_ENV = False
+logger.debug('=========  Plugins  =========')
+logger.debug(f'  - PLUGINS_ENABLED: {PLUGINS_ENABLED}')
+logger.debug(f'  - PLUGIN_DIR: {PLUGIN_DIR}')
+logger.debug(f'  - PLUGIN_TESTING: {PLUGIN_TESTING}')
+logger.debug(f'  - PLUGIN_RETRY: {PLUGIN_RETRY}')
 logger.debug('=========  =========  =========')

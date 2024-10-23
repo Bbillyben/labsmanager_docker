@@ -3,8 +3,41 @@
 {% load static %}
 {% load customs_tags %}
 
-{% block 'dash-content' %}
+{% comment %}
+Note for use of dahsboard cards, context format : 
 
+ context={
+            'url':reverse_lazy("api:fund-stale_fund"),
+            'title':_('Stale Fund'),
+            'columns':[
+                {'name':_('project'),'item':'project',  'formatter':'ProjectFormatter'},
+                {'name':_('funder'),'item':'funder'},
+                {'name':_('Institution'),'item':'institution'},
+                {'name':_('end date'),'item':'end_date', 'formatter':'dueDatePassed'},
+                {'name':_('Availability'),'item':'available', 'formatter':'moneyFormatter'},
+                {'name':_('Availability Focus'),'item':'available_f', 'formatter':'moneyFormatter'},
+            ], 
+            'action':[
+                {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'} // the action on the button added at the top 
+            ],
+            'options':{
+                'download':1, // option for lab_table
+            },  
+            'static':[
+                'js/tables/milestones_table.js', // static file list to load
+            ],
+            'js_callback':{ // call of a JS function on document ready
+                'funct':'testCallback', // the func name
+                'args':[ // args
+                    'it s ok',
+                    'or it s not',
+                    ],
+            }       
+        }
+
+{% endcomment %}
+
+{% block 'dash-content' %}
 
 <div class="col chart_card  mb-2" id="c_chart">
     <div id='tracking-table-toolbar'>
@@ -44,15 +77,21 @@
         
 </div>
 
-
-
+{% if static %}
+    {% for file in static%}
+        <script type='text/javascript' src="{% static file %}"></script>
+    {% endfor %}
+{%endif%}
 
 <script>
+    function testCallback(val, val2){
+        console.log("TEST CALLBACK :"+val+" / "+val2);
+    }
     {% if options %}
        var card_option={{options|safe}};
     {%else%}
         var card_option={};
-    {%endif%}
+    {% endif %}
 
         var idTable="dashboard_card_{% makeId title %}";
         $( document ).ready(function(){
@@ -74,6 +113,14 @@
             }
 
             $('#dashboard_card_{% makeId title %}').bootstrapTable(options);
+
+            // specific call back from options
+            {% if js_callback %}
+                var callbackArgs = {{ js_callback.args|safe }};
+                {{js_callback.funct}}(...callbackArgs);
+            {% endif %}
+
+            //
         });
 
        

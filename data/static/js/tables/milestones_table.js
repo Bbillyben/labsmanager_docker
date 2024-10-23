@@ -6,13 +6,14 @@ function initializeMilestoneTable(tableurl, type=null, callback_ms=null){
     callbackMs=callback_ms;
 
     var options={
-        //callback: updateMilestonesBtnHandler,
+        // callback: updateMilestonesBtnHandler,
         url:tableurl,
         name:'milestones',
+        onClickRow:milestoneRowclick, 
         
     }
-    if(type!='project'){
-        var filters = loadTableFilters('contract');
+    if(type!='project' &&  type!='employee'){
+        var filters = loadTableFilters('milestones');
         var filterOption={
             download:true,
         }
@@ -29,6 +30,12 @@ function initializeMilestoneTable(tableurl, type=null, callback_ms=null){
 
 }
 
+function milestoneRowclick(row, element, field){
+    pk=row["pk"];
+    loadInTemplate(elt=$("#milestones_notes"),Urls['generic_info_template']('endpoints', 'milestones', pk) )
+    makeTableRowSelect(element);
+}
+
 
 // ------------- Formatters ---------------------------------------------- //
 
@@ -39,7 +46,15 @@ function adminActionMilestones(value, row, index, field){
     action += "</span>"
     return action;
 }
-
+function hasnoteformatter(value, row, index, field){
+    action = value;
+    if(row.notes>0)action += '<sup class="icon-spaced">'+row.notes+' <i class="fa fa-note-sticky "></i></sup>'
+    return action
+}
+function descriptionFormatter(value, row, index, field){
+    action = "<i><small>"+value+"</small></i>";
+    return action
+}
 // ------------- Update Function ---------------------------------------------- //
 function updateMilestones(){
     $('#milestones_table').bootstrapTable('refresh');

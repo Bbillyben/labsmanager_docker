@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import LMUserSetting, LabsManagerSetting
-    
-class SettingsSerializer(serializers.ModelSerializer):
+from labsmanager.serializers_base import LabsManagerModelSerializer 
+
+class SettingsSerializer(LabsManagerModelSerializer):
     """Base serializer for a settings object."""
 
     key = serializers.CharField(read_only=True)
@@ -17,6 +18,7 @@ class SettingsSerializer(serializers.ModelSerializer):
     model_name = serializers.CharField(read_only=True)
 
     api_url = serializers.CharField(read_only=True)
+    typ = serializers.CharField(read_only=True)
 
     def get_choices(self, obj):
         """Returns the choices available for a given item."""
@@ -107,3 +109,43 @@ class GlobalSettingsSerializer(SettingsSerializer):
             'model_name',
             'api_url',
         ]
+class GenericReferencedSettingSerializer(SettingsSerializer):
+    """Serializer for a GenericReferencedSetting model.
+
+    Args:
+        MODEL: model class for the serializer
+        EXTRA_FIELDS: fields that need to be appended to the serializer
+            field must also be defined in the custom class
+    """
+
+    MODEL = None
+    EXTRA_FIELDS = None
+
+    def __init__(self, *args, **kwargs):
+        """Init overrides the Meta class to make it dynamic."""
+
+        class CustomMeta:
+            """Scaffold for custom Meta class."""
+
+            fields = [
+                'pk',
+                'key',
+                'value',
+                'name',
+                'description',
+                'type',
+                'choices',
+                'model_name',
+                'api_url',
+                'typ',
+                # 'required',
+            ]
+
+        # set Meta class
+        self.Meta = CustomMeta
+        self.Meta.model = self.MODEL
+        # extend the fields
+        self.Meta.fields.extend(self.EXTRA_FIELDS)
+
+        # resume operations
+        super().__init__(*args, **kwargs)

@@ -51,20 +51,16 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
     
     
     def dispatch(self, request, *args, **kwargs):
-        print(f'[EmployeeView - dispatch]')
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         
         if request.user.is_staff or request.user.has_perm('staff.view_employee'):
-            print(f'-> staff or perm OK')
             return super().dispatch(request, *args, **kwargs)
         
         emp = Employee.objects.get(pk=kwargs['pk'])
         if request.user == emp.user or request.user.has_perm("staff.change_employee", emp):
-            print(f'-> perm on object OK')
             return super().dispatch(request, *args, **kwargs)
         else:
-            print(f'-> Back to redirect')
             return HttpResponseRedirect(reverse('employee_index'))
     
         
@@ -137,7 +133,7 @@ class EmployeeCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         
-        if not request.user.has_perm("staff.change_employee", self.object):
+        if not request.user.has_perm("staff.change_employee"):
             try:
                 emp = Employee.objects.get(user= request.user)
                 sup = Employee_Superior.objects.create(

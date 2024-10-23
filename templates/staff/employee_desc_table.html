@@ -8,8 +8,8 @@
     <tbody>
         <tr>
             <td><i class="fas fa-id-card"></i></td>
-            <td  class="desc_title">{% trans 'Employee Id' %}</td>
-            <td>{{employee.first_name }} {{employee.last_name }}</td>
+            <td  class="desc_title copy-target">{% trans 'Employee Id' %}</td>
+            <td><span class="copy-target">{{employee.first_name }} {{employee.last_name }} </span><span class="copy-btn"><i class="fa-solid fa-copy"></i></span></td>
         </tr>
         <tr>
             <td><i class="fas fa-birthday-cake"></i></td>
@@ -49,6 +49,11 @@
             <td><i class="fas fa-person-digging"></i></td>
             <td  class="desc_title">{% trans 'Contribution Quotity' %}</td>
             <td>{% quotityFormat employee.contribution_quotity %}</td>
+        </tr>
+        <tr>
+            <td><i class="fas fa-location-dot"></i></td>
+            <td  class="desc_title">{% trans 'Ongoing Milestones' %}</td>
+            <td>{{ employee.active_milestones.count }}</td>
         </tr>
         <tr>
             <td><i class="fas fa-user"></i></td>

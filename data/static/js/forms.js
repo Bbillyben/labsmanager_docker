@@ -521,7 +521,7 @@ function constructFormBody(fields, options) {
     $(modal).find('#modal-footer-buttons').html('');
 
     // Insert "confirm" button (if required)
-    if (options.confirm && global_settings.labsmanager_REQUIRE_CONFIRM) {
+    if (options.confirm) {
         insertConfirmButton(options);
     }
 

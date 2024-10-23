@@ -37,6 +37,7 @@
             // Add click event handler to the element with attached modalForm
             $(this).click(function (event) {
                 // Instantiate new form in modal
+                event.stopPropagation();
                 labModalSimple(settings);
             });
         });

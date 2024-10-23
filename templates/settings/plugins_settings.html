@@ -1,0 +1,121 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load customs_tags %}
+{% load plugin_tags %}
+
+{% block label %}plugin_admin{% endblock %}
+
+{% block heading %}{% trans 'Plugins' %}{% endblock %}
+
+{% block content %}
+
+{% plugin_enabled as plug %}
+
+{% if not plug %}
+<div class='alert alert-warning alert-block'>
+    {% trans "External plugins are not enabled for this LabsManager installation" %}<br>
+</div>
+{% endif %}
+
+<div class='table-responsive'>
+<table class='table table-striped table-condensed'>
+    <tbody>
+        {% include "settings/setting.html" with key="ENABLE_PLUGINS_SCHEDULE" icon="fa-calendar-alt" %}
+        {% include "settings/setting.html" with key="ENABLE_PLUGINS_URL" icon="fa-link" %}
+        {% include "settings/setting.html" with key="ENABLE_PLUGINS_CALENDAR" icon="fa-calendar-days" %}
+        {% include "settings/setting.html" with key="ENABLE_PLUGINS_SUBSCRIPTION" icon="fa-bell" %}
+        {% comment %} {% include "settings/setting.html" with key="ENABLE_PLUGINS_SETTINGS" icon="fa-sliders" %} {% endcomment %}
+    </tbody>
+</table>
+</div>
+
+
+
+<div class='subheading'>
+    <div class='d-flex flex-wrap'>
+        <h4>{% trans "Plugins" %}</h4>
+        {% include "spacer.html" %}
+        <div class='btn-group' role='group'>
+            {% url "admin:plugin_pluginconfig_changelist" as url %}
+            {% include "assets/admin_button.html" with url=url %}
+            {% if plug %}
+            <button class='btn btn-success' id='reload-plugins' title='{% trans "Reload Plugins" %}'>
+                <span class='fas fa-redo-alt'></span> {% trans "Reload Plugins" %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+
+<div id='plugin-button-toolbar'>
+    {% include "filter_list.html" with id="plugin" %}
+</div>
+<div class='table-responsive'>
+    <table class='table table-striped table-condensed' id='plugin-table' data-toolbar='#plugin-button-toolbar' style="font-size:small;">
+        <thead class="">
+            <tr>
+                <th data-sortable="true" class="th-inner sortable both" data-field="name" data-formatter="pg_name_formatter" >
+                    {% trans 'Plugin' %}
+                </th>
+                <th data-sortable="true" class="th-inner sortable both" data-field="meta.description" data-formatter="" >
+                    {% trans 'Description' %}
+                </th>
+                <th data-sortable="true" class="th-inner sortable both fit-content" data-field="mixins" data-formatter="pg_mixin_formatter" >
+                    {% trans 'mixins' %}
+                </th>
+                <th data-sortable="true" class="th-inner sortable both fit-content" data-field="meta.version" data-formatter="" >
+                    {% trans 'Version' %}
+                </th>
+                <th data-sortable="true" class="th-inner sortable both fit-content" data-field="meta.author" data-formatter="" >
+                    {% trans 'Author' %}
+                </th>
+                <th data-sortable="true" class="th-inner sortable both fit-content" data-field="" data-formatter="pg_action_formatter" >
+                    {% trans 'Action' %}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+
+{% plugin_errors as pl_errors %}
+{% if pl_errors %}
+<div class='panel-heading'>
+    <div class='d-flex flex-wrap'>
+        <h4>{% trans "Plugin Error Stack" %}</h4>
+        {% include "spacer.html" %}
+    </div>
+</div>
+
+<div class='table-responsive'>
+    <table class='table table-striped table-condensed'>
+        <thead>
+            <tr>
+                <th>{% trans "Stage" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Message" %}</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for stage, errors in pl_errors.items %}
+            {% for error_detail in errors %}
+            {% for name, message in error_detail.items %}
+            <tr>
+                <td>{{ stage }}</td>
+                <td>{{ name }}</td>
+                <td>{{ message }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endif %}
+
+{% endblock content %}

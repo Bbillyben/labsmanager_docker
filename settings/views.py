@@ -12,12 +12,13 @@ from staff.models import Employee_Type, GenericInfoType
 from project.models import Institution, GenericInfoTypeProject
 
 from common.models import favorite, subscription
+from django.conf import settings
 
 class SettingsView(LoginRequiredMixin, BaseBreadcrumbMixin, TemplateView):
     template_name = 'settings/settings.html'
     home_label = '<i class="fas fa-bars"></i>'
     model = LMUserSetting
-    crumbs = [(_("Settings"),"settings")]
+    crumbs = [(_("Settings"),"settings")]    
     
 class SettingList_cost_type(LoginRequiredMixin, TemplateView):
     template_name = 'settings/setting_table.html'
@@ -379,7 +380,9 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
                 #{'name':_('User'),'item':'user.username',},
                 {'name':_('User'),'item':'username','formatter':'userAdminSettingFormatter', 'class':'fit-content'},
                 {'name':_('Last Login'),'item':'last_login','formatter':'baseDateTimeFormatter'},
+                {'name':_('Groups'),'item':'groups','formatter':''},
                 {'name':_('Employee'),'item':'employee','formatter':'employeeFormatter'},
+                {'name':_('Is active'),'item':'is_active','formatter':'simpleFormatter'},
             ], 
             'action':{
             },

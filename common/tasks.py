@@ -79,7 +79,7 @@ def send_notification(*args, **kwargs):
         logger.error(f"Notification Send  has no user defined in kwargs : {kwargs}")
         return None    
     user = User.objects.get(pk=pkU)
-    
+    logger.debug(f" - notification to user : {user}")
     # find email in EmailAdress
     emails= EmailAddress.objects.filter(user=pkU, primary=True, verified=True)
     if not emails:

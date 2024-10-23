@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 
 from django.http import JsonResponse
 from django.http import HttpResponse
-
+import logging
+logger=logging.getLogger("labsmanager")
 def ajax_staff(request):
     
     if request.method == 'GET':
@@ -28,6 +29,6 @@ def ajax_staff(request):
             user.is_active = False
             user.save() 
     else:
-        print("================== >>>>  AJAX STAFF COMMAND NOT FOUDN "+datas['action_type']+"  <<<< ==============================")
+        logger.warning("================== >>>>  AJAX STAFF COMMAND NOT FOUDN "+datas['action_type']+"  <<<< ==============================")
         
     return JsonResponse({"status":"ok,"}, safe=False)

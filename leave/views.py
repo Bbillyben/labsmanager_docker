@@ -13,7 +13,6 @@ def main_calendar_view(request):
     leave=Leave_Type.objects.all()
     emp_types=Employee_Type.objects.all()
     team=Team.objects.all()
-    print(leave)
     context={
         'leave_type':leave,
         'emp_types':emp_types,

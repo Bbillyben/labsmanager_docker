@@ -2,11 +2,13 @@
 {% load i18n %}
 
 {% if user_setting %}
-{% setting_object key user=request.user as setting %}
+    {% setting_object key user=request.user as setting %}
 {% elif project %}
-{% setting_object key project=project as setting %}
+    {% setting_object key project=project as setting %}
+{% elif plugin %}
+    {% setting_object key plugin=plugin as setting %}
 {% else %}
-{% setting_object key as setting %}
+    {% setting_object key as setting %}
 {% endif %}
 
 <tr>
@@ -21,7 +23,9 @@
     </td>
     <td>
         {% if setting.is_bool %}
-        {% include "settings/setting_boolean.html" %}
+            {% include "settings/setting_boolean.html" %}
+        {% elif setting.is_color %}
+            {% include "settings/setting_color.html" %}
         {% else %}
         <div id='setting-{{ setting.pk }}'>
             <span id='setting-value-{{ setting.pk }}-{{ setting.setting_type }}' fieldname='{{ setting.key.upper }}'>
@@ -44,6 +48,7 @@
                     setting='{{ setting.key.upper }}'
                     {% if user_setting %}user='{{request.user.id}}'{% endif %}
                     {% if project %}project='{{project}}'{% endif %}
+                    {% if plugin %}plugin='{{ plugin.slug }}'{% endif %}
                 >
                     <span class='fas fa-edit icon-green'></span>
                 </button>

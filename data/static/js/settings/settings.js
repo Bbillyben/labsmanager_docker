@@ -8,6 +8,50 @@ function initSettingsPage(){
         var notification = $(this).attr('notification');
 
         var checked = this.checked;
+        var data = {
+            value: checked.toString(),
+        }
+        // Global setting by default
+        var url = `/api/settings/global/${setting}/`;
+
+        if  (user) {
+            url = `/api/settings/user/${setting}/`;
+        }
+
+        if  (project) {
+            url = `/api/settings/project/${setting}/`;
+            data.project = project;
+        }
+        if  (plugin) {
+            url = `/api/plugin/${plugin}/settings/${setting}/`;
+            data.plugin = plugin;
+        }
+
+        labsmanagerPut(
+            url, data,
+            {
+                method: 'PATCH',
+                success: function(data) {
+                },
+                error: function(xhr) {
+                    showApiError(xhr, url);
+                }
+            }
+        );
+
+    });
+    $('table').find('.color-setting').unbind().change(function() {
+        var pk = $(this).attr('pk');
+        var setting = $(this).attr('setting');
+        var plugin = $(this).attr('plugin');
+        var user = $(this).attr('user');
+        var project = $(this).attr('project');
+        var notification = $(this).attr('notification');
+
+        var val = this.value;
+        var data = {
+            value: val.toString(),
+        }
 
         // Global setting by default
         var url = `/api/settings/global/${setting}/`;
@@ -18,14 +62,13 @@ function initSettingsPage(){
 
         if  (project) {
             url = `/api/settings/project/${setting}/`;
-        }
-
-        var data = {
-            value: checked.toString(),
-        }
-        if (project){
             data.project = project;
         }
+        if  (plugin) {
+            url = `/api/plugin/${plugin}/settings/${setting}/`;
+            data.plugin = plugin;
+        }
+
         labsmanagerPut(
             url, data,
             {
@@ -48,7 +91,7 @@ function initSettingsPage(){
         var notification = $(this).attr('notification');
         var user = $(this).attr('user')
         var project = $(this).attr('project')
-        if (user || project){
+        if (user || project || plugin){
             is_global = false;
         }
 
@@ -73,6 +116,10 @@ function initSettingsPage(){
             title: title,
         }
         data={}
+        if(plugin){
+            data.plugin = plugin;
+            options.plugin = plugin;
+        }
         if(project){
             data.project = project;
             options.project = project;
@@ -100,6 +147,8 @@ function editSetting(key, options={}, data={}) {
         url = `/api/settings/global/${key}/`;
     } else if(options.project){
         url = `/api/settings/project/${key}/`;
+    } else if(options.plugin){
+        url = `/api/plugin/${options.plugin}/settings/${key}/`;
     } else {
         url = `/api/settings/user/${key}/`;
     }

@@ -1,0 +1,33 @@
+<!--
+title : the title of filter
+slug : the slug for parameter
+options : a list of pair id:name
+add_all_option : add a "All" option at the top
+-->
+{% load i18n %}
+<div class="col-auto" >
+    <div class="d-flex flex-wrap ">
+    
+        <div class="card mr-2" >
+            <div class="row-header">                                  
+                <div class="d-flex flex-wrap subheading" role="button" data-bs-toggle="collapse" data-bs-target="#{{slug}}_filters">
+                    <h4><i class="fas fa-filter"></i>  {{title}}</h4> 
+                </div>
+            
+            </div>
+            <div class="row">
+                <div id="{{slug}}_filters" class="collapse">
+                    <div class="in-card d-flex flex-wrap collapse" style="margin-left:1em;">
+                        <div class="col-auto" >
+                            <select class="form-select form-select-sm calendar-filter" aria-label=".form-select-sm example" data-filter-id="{{slug}}">
+                                {% for val, name in options.items %}
+                                    <option value="{{val}}" {% if val == default%}selected="selected"{%endif%}>{{ name }}</option>
+                                {%endfor%}
+                            </select>                             
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

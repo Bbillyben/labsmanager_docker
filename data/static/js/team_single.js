@@ -22,12 +22,13 @@ function initTeamCalendar(printURL, teamPk){
         editable:canMod,
         extraParams:{team:team_id},
         cal_type:'team',
+        // modal_target: $('#team_project_table'),
     }
     const view = localStorage.getItem(`labsmanager-calendar-view_team`);
     if (view){
         option.initialView = view
     }
-    calendar = $('#calendar-team-box').lab_calendar(option);
+    calendar = $('#calendar-team-box').lab_calendar_employee(option);
 
     $('#leave_print').on("click", function(){
         print_team_calendar(printURL, teamPk);

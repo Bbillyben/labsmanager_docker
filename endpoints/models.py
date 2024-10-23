@@ -27,9 +27,11 @@ class endpoint(models.Model):
         
 class Milestones(endpoint):
     from project.models import Project 
+    from staff.models import Employee
     
     project=models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'))
     history = AuditlogHistoryField()
+    employee= models.ManyToManyField(Employee, related_query_name="milestones_by_employee", related_name="milestones")
     
     class meta:
         verbose_name = _("Milestone")

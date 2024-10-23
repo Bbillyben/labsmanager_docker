@@ -48,7 +48,7 @@
 
 
     $.fn.copy_btn = function(options={}) {
-        console.log("copy_btn call : "+this)
+        // console.log("copy_btn call : "+this)
         var defaults = {
             target:"siblings",// could be "ancestors"
         };

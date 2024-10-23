@@ -189,8 +189,6 @@ from django.db.models import Sum
 from django.db.models import F  
 
 def get_project_fund_overviewReport_bytType(pk):
-    print("[get_project_fund_overviewReport_bytType]")
-    print(pk)
     fund=Fund.objects.filter(project=pk)
     a=Fund_Item.objects.filter(fund__in=fund)
     if not a:
@@ -207,9 +205,6 @@ def get_project_fund_overviewReport_bytType(pk):
     return a
 
 def get_fund_overviewReport_bytType(pk):
-    
-    print("[get_fund_overviewReport_bytType]")
-    print(pk)
     a=Fund_Item.objects.filter(fund=pk)
     if not a:
         return None
