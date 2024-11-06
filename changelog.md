@@ -1,5 +1,8 @@
 ## Changelog LabsManager
 
+### v0.9.1/ 2024-11-06
+* [FIX] Export template in resource in import view fix for resource without name
+
 ### v0.9.1/ 2024-10-17
 note : require full update (migration and static)
 
