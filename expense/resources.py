@@ -41,6 +41,10 @@ class CheckProjectTypeResourceMixin():
         return result
     
 class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorRessource):
+    expense_id=Field(
+        column_name=_('Expense Id'),
+        attribute='expense_id', 
+    )
     type=Field(
         column_name=_('type'),
         attribute='type', 
@@ -90,7 +94,7 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
                 #    'id',
                    'fund_item',
          ]
-        export_order  = ['desc', 'type', 'amount', 'status', 
+        export_order  = ['expense_id', 'desc', 'type', 'amount', 'status', 
                          'project', 'fund', 'funder', 'institution',
             
         ]
@@ -98,8 +102,16 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
         
     def before_import_row(self, row, row_number=None, **kwargs):
         super().before_import_row(row, row_number, **kwargs)
-        row["id"] = None
-        return Expense.objects.none()
+        qset = Expense.objects.none()
+        if row["id"] != None:
+            qset = Expense.objects.get(pk=row["id"])
+        elif row["Expense Id"] != None:
+            try:
+                qset = Expense.objects.get(expense_id=row["Expense Id"])
+                row["id"] = qset.pk
+            except:
+                pass
+        return qset
         
     
     @classmethod

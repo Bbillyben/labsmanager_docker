@@ -62,7 +62,7 @@ class CostTypeSerialize_tree(serializers.ModelSerializer):
     ancestors_count=serializers.SerializerMethodField()
     class Meta:
         model = Cost_Type
-        fields = ['pk', 'short_name', 'name', 'in_focus', 'ancestors_count',] 
+        fields = ['pk', 'short_name', 'name', 'in_focus', 'is_hr', 'ancestors_count',] 
         
     def get_ancestors_count(self,obj):
         return obj.get_ancestors(ascending=False, include_self=False).count()
@@ -510,7 +510,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
     class_type = serializers.SerializerMethodField() 
     class Meta:
         model = Expense
-        fields = ['pk', 'date', 'fund_item', 'type', 'status',  'amount',
+        fields = ['pk', 'expense_id', 'date', 'fund_item', 'type', 'status',  'amount',
                   'desc',
                   'contract',
                   'class_type',
@@ -574,7 +574,7 @@ class ContractExpenseSerializer_min(serializers.ModelSerializer):
     type =   CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Contract_expense
-        fields = ['pk', 'date', 'type', 'status', 'fund', 'amount']
+        fields = ['pk', 'expense_id', 'date', 'type', 'status', 'fund', 'amount']
         
     def get_status(self,obj):
         return obj.get_status_display()

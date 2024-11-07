@@ -26,7 +26,7 @@ class Contract_expenseInline(admin.TabularInline):
     model=Contract_expense
     extra=0
     formset = ContractExpenseInlineFormSet
-    fields =['date', 'type', 'amount', 'status','fund_item']
+    fields =['expense_id', 'date', 'type', 'amount', 'status','fund_item']
 
     
 class ContractAdmin(admin.ModelAdmin):

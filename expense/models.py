@@ -27,6 +27,7 @@ class Expense(LabsManagerFocusTypeMixin):
         """Metaclass defines extra model properties"""
         verbose_name = _("Expense")
     
+    expense_id = models.CharField(blank=True, null=True, verbose_name=_('Expense Id'))  
     desc = models.CharField(blank=True, null=True, verbose_name=_('Description'))   
     date = models.DateField(null=False, blank=False, verbose_name=_('Expense Date'))
     # type = models.ForeignKey(Cost_Type, on_delete=models.CASCADE, verbose_name=_('Type'))

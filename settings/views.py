@@ -33,6 +33,7 @@ class SettingList_cost_type(LoginRequiredMixin, TemplateView):
                 {'name':_('name'),'item':'name','formatter':'treeNameFormatter',},
                 {'name':_('Short name'),'item':'short_name'},
                 {'name':_('In Focus'),'item':'in_focus', 'formatter':'basicBoolean'},
+                {'name':_('Is HR'),'item':'is_hr', 'formatter':'basicBoolean'},
             ], 
             'action':{
             },
