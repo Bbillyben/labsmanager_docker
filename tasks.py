@@ -123,6 +123,12 @@ def loadfixture(c, fixture=None):
         manage(c, f"loaddata {fixture}")
     else:
          print(f" please provide a --fixture to load")
+         
+@task  
+def update_report(c):
+    print(f" Updating report template path")
+    manage(c, f"update_report_path")
+         
 @task
 def etpmigrate(c):
     """Migrate older Expense Point ."""
