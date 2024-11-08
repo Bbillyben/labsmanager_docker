@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from django.core.exceptions import  ImproperlyConfigured
+from django.core.exceptions import  ImproperlyConfigured, MultipleObjectsReturned
 from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, DateField, DecimalField
 
 from import_export.fields import Field
@@ -106,11 +106,12 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
         if row["id"] != None:
             qset = Expense.objects.get(pk=row["id"])
         elif row["Expense Id"] != None:
-            try:
-                qset = Expense.objects.get(expense_id=row["Expense Id"])
-                row["id"] = qset.pk
-            except:
-                pass
+            qset = Expense.objects.filter(expense_id=row["Expense Id"])
+            if qset.count()==1:
+                row["id"] = qset.first().pk
+            else:
+                print(f' should raise error')
+                raise MultipleObjectsReturned(_("Expense id : '%(eid)s' return %(count)s objects for fund ref '%(fund)s'")%({'eid':row["Expense Id"], 'count':qset.count(), 'fund': row["Ref"]}))
         return qset
         
     

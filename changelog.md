@@ -1,7 +1,11 @@
 ## Changelog LabsManager
 
-### v0.9.1/ 2024-11-06
+### v0.9.1/ 2024-11-08
+note : require full update (migration and static)
+
 * [FIX] Export template in resource in import view fix for resource without name
+* [ADD] expense Id to expense model, should be unique, if uniq, would be retrieve from it
+* [UPDATE] admin view for expense and contract expense
 
 ### v0.9.1/ 2024-10-17
 note : require full update (migration and static)
