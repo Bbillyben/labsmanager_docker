@@ -133,6 +133,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 MEDIA_ROOT = get_media_dir()
+MEDIA_URL = 'media/'
 
 # FOR CSP policies
 use_csp = get_boolean_setting('ADMIN_USE_CSP', 'admin_use_csp', False)
