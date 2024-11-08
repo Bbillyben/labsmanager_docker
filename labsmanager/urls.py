@@ -65,6 +65,10 @@ urlpatterns += [
 urlpatterns += [
     re_path(r'^jsreverse.json$', jsrev_views.urls_json, name='js_reverse'),
 ]
+# django-invitations
+urlpatterns += [
+    path("invitations/", include('invitations.urls', namespace='invitations')),
+]
 
 
 

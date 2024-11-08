@@ -386,6 +386,7 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
                 {'name':_('Is active'),'item':'is_active','formatter':'simpleFormatter'},
             ], 
             'action':{
+                'add':reverse('invitations:send-invite'),
             },
             'options':{
             },         

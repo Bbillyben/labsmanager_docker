@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     'faicon',                        #https://pypi.org/project/django-faicon/
     'allauth',
     'allauth.account',              # https://django-allauth.readthedocs.io/en/latest/installation.html
+    'invitations',                  # https://django-invitations.readthedocs.io
     'django_prose_editor',          # https://github.com/matthiask/django-prose-editor   rich text editor
     'rules.apps.AutodiscoverRulesConfig',       # https://pypi.org/project/rules/ For per object permission
     
@@ -289,7 +290,13 @@ ACCOUNT_SESSION_REMEMBER = False
 
 ACCOUNT_ALLOW_SINGUP = get_boolean_setting('ACCOUNT_ALLOW_SINGUP', 'allow_sign_up', False)
 
-ACCOUNT_ADAPTER = 'labsmanager.labs_account_adaptater.LabsManagerAccountAdapter'
+# ACCOUNT_ADAPTER = 'labsmanager.labs_account_adaptater.LabsManagerAccountAdapter'
+ACCOUNT_ADAPTER = "invitations.models.InvitationsAdapter" # for django-invitations
+
+### Specific conf for django-invitations
+INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
+INVITATIONS_ACCEPT_INVITE_AFTER_SIGNUP = True
+INVITATIONS_INVITATION_ONLY = True
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -410,8 +417,10 @@ Q_CLUSTER = {
     'label': 'Scheduled Tasks',
 }
 
-ACCOUNT_FORMS = {'reset_password_from_key': 'common.forms.ResetLabPasswordKeyForm', 
-                 }
+ACCOUNT_FORMS = {
+    'reset_password_from_key': 'common.forms.ResetLabPasswordKeyForm', 
+    'signup': 'common.forms.LabSignupForm'       
+    }
 # Session 
 SESSION_COOKIE_AGE = get_setting('LAB_SESSION_COOKIE_AGE', 'session_cookie_age', 6400)
 # SESSION_COOKIE_NAME = '__Secure-sessionid'
@@ -426,6 +435,7 @@ AUDITLOG_DISABLE_ON_RAW_SAVE = True
 
 ## breadcrumbs
 BREADCRUMBS_HOME_LABEL = '<i class="fas fa-bars"></i>'
+
 
 
 ## EMAIL

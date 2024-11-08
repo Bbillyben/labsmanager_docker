@@ -1,0 +1,67 @@
+{% extends "account/account_base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+<!-- templates/registration/login.html -->
+
+{% block css %}
+#pass_hints{
+    font-size:small;
+}
+#pass_hints div[data-bs-toggle="collapse"]{
+    font-style:italic;
+}
+#pass_hints div[data-bs-toggle="collapse"][aria-expanded="false"]::before {
+  content: ' ';
+  display: inline-block;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid currentColor;
+  vertical-align: middle;
+  margin-right: .7rem;
+  transform: translateY(-2px);
+  transition: transform .2s ease-out;
+}
+#pass_hints div[data-bs-toggle="collapse"][aria-expanded="true"]::before {
+  content: ' ';
+  display: inline-block;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 5px solid currentColor;
+  vertical-align: middle;
+  margin-right: .7rem;
+  transform: rotate(90deg) translateX(-1px);
+  transition: transform .2s ease-out;
+}
+#hint_id_password1{
+    display:none;
+}
+{% endblock %}
+
+{% block head_title %}{% trans "Set Password" %}{% endblock %}
+{% block content %}
+<h2>{% trans "Set Password" %}</h2>
+<form class="login password_change" method="POST">
+<div class='alert alert-block alert-danger form-validation-warning' id='form-validation-warning' style='display: none;'>
+    {% trans "Form errors exist" %}
+  </div>
+    {% csrf_token %}
+    <div class="modal-body">
+        {{ form | crispy }} 
+    </div>
+    <div id="pass_hints">
+        <div class="collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hints_container" aria-expanded="false" aria-controls="hintsContainer">
+        {% trans 'Hints' %}
+                <span></span>
+        </div>
+        <div id="hints_container" class="collapse">
+            {{form.hints}}
+        </div>
+    </div>
+    <div class="btn-group float-right" role="group">
+        <button class="btn btn-success" type="submit" name="action">
+            <span class='fas fa-sign-in-alt'></span> {% trans "Signup" %}
+        </button>
+    </div>
+</form>
+{% endblock %}

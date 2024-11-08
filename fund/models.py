@@ -108,7 +108,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
     
     
     def get_advancement_ratio(self):
-        if self.amount == 0:
+        if self.amount == 0 or self.start_date is None or self.end_date is None:
             return "-"
         
         date_ratio = decimal.Decimal((datetime.datetime.now().date()-self.start_date) / (self.end_date-self.start_date))
