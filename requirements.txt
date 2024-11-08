@@ -21,6 +21,8 @@ babel==2.15.0
     # via
     #   -r requirements.in
     #   docxcompose
+beautifulsoup4==4.12.3
+    # via panda?
 blessed==1.20.0
     # via
     #   -r requirements.in
