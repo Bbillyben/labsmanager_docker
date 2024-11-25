@@ -42,7 +42,7 @@
 
 
 {% if request.user.is_staff %}
-
+{% include "settings/general_settings.html" %}
 {% include "settings/mail_settings.html" %}
 {% include "settings/auditlog_settings.html" %}
 

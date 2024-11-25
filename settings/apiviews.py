@@ -135,6 +135,7 @@ from project.models import Institution, GenericInfoTypeProject
 from infos.models import OrganizationInfosType, ContactInfoType, ContactType
 from staff import models as staff_model
 from django.contrib.auth import get_user_model   
+from invitations.models import Invitation
 
 class SettingListViewSet(viewsets.ModelViewSet):
     queryset = None
@@ -194,3 +195,8 @@ class SettingListViewSet(viewsets.ModelViewSet):
         User = get_user_model()
         usermodels = User.objects.order_by('-is_active', 'username')
         return JsonResponse(labserializers.UserEmployeeSerializer(usermodels, many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='userinvitation', url_name='userinvitation')
+    def invitationsuser(self, request):
+        invi = Invitation.objects.all()
+        return JsonResponse(labserializers.InvitationSerializer(invi, many=True).data, safe=False)

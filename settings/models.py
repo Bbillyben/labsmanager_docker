@@ -918,6 +918,12 @@ class LabsManagerSetting(BaseLabsManagerSetting):
                 MinValueValidator(1),
             ]
         },
+        'NEW_EMPLOYEE_CASSE': {
+            'name': _('Force Upper Case'),
+            'description': _('Force Upper Case for new employee\'name'),
+            'default': True,
+            'validator': bool,
+        },
         ## For plugin 
         'ENABLE_PLUGINS_SCHEDULE': {
             'name': _('Enable schedule integration'),

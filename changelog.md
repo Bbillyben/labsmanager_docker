@@ -1,5 +1,9 @@
 ## Changelog LabsManager
 
+### 2024-11-25
+* [ADD] : labsmanager parameter to force upper case for new employee's name
+
+
 ### v0.9.4/ 2024-11-08
 note : require full update (migration and static)
 
@@ -7,7 +11,7 @@ note : require full update (migration and static)
 * [ADD] expense Id to expense model, should be unique, if uniq, would be retrieve from it
 * [UPDATE] admin view for expense and contract expense
 * [ADD] : add update_report task to update file path (try)
-* [FIX] : bug fix in advancement ratio for fung without start or end date
+* [FIX] : bug fix in advancement ratio for fund without start or end date
 * [ADD] : invitation process
 
 ### v0.9.1/ 2024-10-17

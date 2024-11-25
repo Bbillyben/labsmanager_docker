@@ -272,7 +272,15 @@ class FavoriteSerialize(serializers.ModelSerializer):
                 })
 
         return "-"
-    
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Invitation 
+from invitations.models import Invitation
+class InvitationSerializer(serializers.ModelSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    inviter = UserSerializer(many=False, read_only=True)
+    class Meta:
+        model = Invitation
+        fields = ['pk', 'email', 'created', 'sent', 'accepted', 'inviter' ]  
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #

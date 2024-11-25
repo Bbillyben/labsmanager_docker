@@ -20,9 +20,11 @@ urlpatterns = [
     path('favorites_setting', views.Favorite_List.as_view(), name='favorite_setting'),
     
     path('employee_user_setting', views.EmployeeUser_list.as_view(), name='employee_user_setting'),
+    path('user_invitation_setting', views.InvitationUser_list.as_view(), name='user_invitation_setting'),
     
     
     path('project_settings/<proj>/', views.get_project_setting_modal, name='project_setting'),
+    path('invitation/add', views.labInvitationCreateView.as_view(), name='lab_send_invite'),
     
 ]
 
