@@ -2,6 +2,7 @@
 
 ### 2024-11-25
 * [ADD] : labsmanager parameter to force upper case for new employee's name
+* [UPDATE] : css for hub card, and show accordion's card
 
 
 ### v0.9.4/ 2024-11-08
