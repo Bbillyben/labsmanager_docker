@@ -248,7 +248,6 @@ TEMPLATES = [
 
 FIXTURE_DIRS =[
     os.path.join(BASE_DIR, 'labsmanager', 'fixtures'), 
-    os.path.join(BASE_DIR, 'reports', 'fixtures'), 
     # BASE_DIR / "labsmanager" / "fixture",
 ]
 
