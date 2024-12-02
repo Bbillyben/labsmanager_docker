@@ -1,0 +1,225 @@
+{% extends "email/base_email.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load plugin_tags %}
+
+{% block css %}
+.main-container{
+    display:block;
+}
+.table_container{
+    width:100%;
+}
+table{
+    width:100%;
+    font-size: small;
+}
+
+.table_title{
+    padding-top:10px;
+    font-size: large;
+    width:100%;
+    text-align: center;
+    padding: 0.1em;
+}
+
+.table_title.milestones, .table_title.project{
+    color:white;
+    background-color: #568f67;
+    
+}
+thead tr.column_title{
+    background-color: #8fbc9d;
+}
+tbody tr.odd {
+    background-color: #dfece3;
+}
+
+
+.footer-para{
+    font-style: italic;
+    font-size:small;
+    margin-top: 5em;
+}
+
+.table_title.participant{
+    color:white;
+    background-color: #993366;
+}
+.participant thead tr.column_title{
+    background-color: #d98cb3;
+}
+.participant tbody tr.odd {
+    background-color: #f2d9e6;
+}
+
+.table_title.team_live{
+    color:white;
+    background-color: #0099cc;
+}
+.team thead tr.column_title{
+    background-color: #4dd2ff;
+}
+.team tbody tr.odd {
+    background-color: #ccf2ff;
+}
+.team tbody tr.even {
+    background-color: #e6f9ff;
+}
+
+.team tbody td.on-leave {
+    background-color: #4682b4;
+    color: #4682b4;
+}
+
+
+.table_title.leave{
+    color:white;
+    background-color: #cc7a00;
+}
+.leaves thead tr.column_title{
+    background-color: #ffb84d;
+}
+.leaves tbody tr.odd {
+    background-color: #ffe0b3;
+}
+.leaves tbody tr.even {
+    background-color: #fff5e6;
+}
+.leaves tbody td.on-leave {
+    background-color: 	#f08080;
+    color: 	#f08080;
+}
+
+td.leave{
+    text-align: center;;
+}
+
+
+
+hr {
+    display: block;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 1px;
+    width:50%;
+  }
+hr.light {
+    border-style: dashed;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+{% endblock %}
+
+
+
+{% block content %}
+{% setvar 'http'  as scheme %}
+    {% if user.employee %}
+        {% setvar user.employee.user_name  as username %}
+    {%else%}
+        {% setvar user  as username %}
+    {%endif%}
+
+    <p>
+        {% blocktrans %}Dear {{ username }},
+        Please find below your <a href='{{scheme}}://{{base_url}}'>labsmanager</a>'s notifications.
+        {% endblocktrans %}
+
+    </p>
+{%if notification.endpoints_milestones %}
+     <div class="main-container">
+        <div class="table_container">
+            <div class="table_title milestones">
+                {% trans "Milestones Notification" %}
+            </div>
+            <table class="table">
+                <thead>
+                    
+                    <tr class="column_title">
+                        <th>{% trans "Project" %}</th>
+                        <th>{% trans "Milestones" %}</th>
+                        <th>{% trans "Due Date" %}</th>
+                        <th>{% trans "Action" %}</th>
+                        <th>{% trans "Message" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for n in notification.endpoints_milestones%}
+                    <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
+                        <td align="left" valign="top"> <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=n.source_object.project.pk %}">{{n.source_object.project.name}}</a></td>
+                        <td align="center" valign="top">{{n.source_object.name}}</td>
+                        <td align="center" valign="top">{{n.source_object.deadline_date}}</td>
+                        <td align="center" valign="top">{{n.get_action_type_display}}</td>
+                        <td align="center" valign="top">{{n.message|default_if_none:"--"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <hr class="">
+
+{%endif%}
+
+{%if notification.project_participant %}
+    <div class="main-container">
+        <div class="table_container">
+            <div class="table_title participant">
+                {% trans "Project Notification" %}
+            </div>
+            <table class="table participant">
+                <thead>
+                    
+                    <tr class="column_title">
+                        <th>{% trans "Project" %}</th>
+                        <th>{% trans "Action" %}</th>
+                        <th>{% trans "Message" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for n in notification.project_participant%}
+                    <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
+                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=n.source_object.project.pk %}">{{n.source_object.project.name}}</a></td>
+                        <td align="center" valign="top">{{n.get_action_type_display}} {{n.source_content_type}}</td>
+                        <td align="center" valign="top">{{n.message|default_if_none:"--"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <hr class="">
+{%endif%}
+
+
+{% plugin_list_mixin "mailsubscription" as plugins%}
+{% for pg in plugins %}
+    {% if pg.get_template %}
+        {% for tempalte in pg.get_template %}
+            {% include tempalte %}
+        {%endfor%}
+    {%endif%}
+{% endfor %}
+
+
+<div class="footer-para">
+    {% blocktrans %} Your notification parameters :{% endblocktrans %}</br>
+    <div style="margin-left: 2em;">
+    {%trans "User Name" %}: <b>{{user.username}}</b></br>
+    {%trans "General Notification activated" %}: <b>{% if sub_status %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
+    {%trans "Milestones Notification activated" %}: <b>{% if milestone_enab %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
+    {%trans "Milestones Stales delay" %}: <b>{{milestone_stale}}</b></br>
+    {%trans "Milestones Repeat delay" %}: <b>{{milestone_repeat}}</b></br>
+    {%trans "Project Participant Notification activated" %}: <b>{% if participant_enab %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
+    </div>
+</div>
+
+
+ 
+{% endblock %}

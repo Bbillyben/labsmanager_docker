@@ -91,6 +91,7 @@ function initSettingsPage(){
         var notification = $(this).attr('notification');
         var user = $(this).attr('user')
         var project = $(this).attr('project')
+        var reload = $(this).attr('reload')=="True"
         if (user || project || plugin){
             is_global = false;
         }
@@ -114,6 +115,7 @@ function initSettingsPage(){
             global: is_global,
             notification: notification,
             title: title,
+            reload_required:reload,
         }
         data={}
         if(plugin){
@@ -223,13 +225,12 @@ function editSetting(key, options={}, data={}) {
                     showMessage("Setting Updated");
                     var setting_pk = response.pk;
                     var setting_type = response.type;
-
                     if (reload_required) {
                         location.reload();
                     } else if (response.type == 'boolean') {
                         var enabled = response.value.toString().toLowerCase() == 'true';
                         $(`#setting-value-${setting_pk}-${setting_type}`).prop('checked', enabled);
-                    } else if(response.hasOwnProperty("choices")){
+                    } else if(response.hasOwnProperty("choices") && response.choices.length>0){
                         value = response.value;
                         display_name = getDisplayNameByValue(response.choices, value);
                         $(`#setting-value-${setting_pk}-${setting_type}`).html(display_name);

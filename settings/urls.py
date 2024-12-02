@@ -14,7 +14,8 @@ urlpatterns = [
     path('setting_organizationinfo_type', views.SettingList_OrganizationInfosType.as_view(), name='setting_organizationinfo_type'),
     path('setting_contactinfo_type', views.SettingList_ContactInfosType.as_view(), name='setting_contactinfo_type'),
     path('setting_contact_type', views.SettingList_ContactType.as_view(), name='setting_contact_type'),
-    
+
+    path('setting_notif_pending', views.UserNotification_list.as_view(), name='setting_notif_pending'),    
     
     path('subscriptions_setting', views.Subscription_List.as_view(), name='subscriptions_setting'),
     path('favorites_setting', views.Favorite_List.as_view(), name='favorite_setting'),

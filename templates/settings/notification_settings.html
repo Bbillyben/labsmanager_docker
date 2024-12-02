@@ -1,0 +1,103 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load account %}
+
+{% block label %}notification{% endblock %}
+
+{% block heading %}{% trans 'Notifications' %}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 100%; padding: 5px;">
+    <div class="row">
+        <div class="col">
+            <div class="card  mb-2">
+                <div class="d-flex flex-wrap subheading">
+                    {%trans 'General Settings' %}
+                </div>
+                <table class='table table-striped table-condensed'>
+                    <tbody>
+                        {% include "settings/setting.html" with key="NOTIFCATION_STATUS" user_setting=True icon='fa-bell' reload="False"%}
+                        {% include "settings/setting.html" with key="NOTIFCATION_REPORT_LANGUAGE" user_setting=True icon='fa-earth-europe' reload="False"%}
+                            
+                    </tbody>
+                </table>
+            </div>
+            <div class="card  mb-2">
+                <div class="d-flex flex-wrap subheading">
+                    {%trans 'Milestone\'s notification' %}
+                </div>
+                <table class='table table-striped table-condensed'>
+                    <tbody>
+                        {% include "settings/setting.html" with key="NOTIFICATION_ENDPOINTS_MILESTONES" user_setting=True icon='fa-location-dot' %}
+                        {% include "settings/setting.html" with key="NOTIFICATION_ENDPOINTS_MILESTONES_STALE" user_setting=True icon='fa-calendar-days' reload="False"%}
+                        {% include "settings/setting.html" with key="NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT" user_setting=True icon='fa-wave-square' reload="False"%}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card  mb-2">
+                <div class="d-flex flex-wrap subheading">
+                    {%trans 'Project\'s notification' %}
+                </div>
+                <table class='table table-striped table-condensed'>
+                    <tbody>
+                        {% include "settings/setting.html" with key="NOTIFICATION_PROJECT_PARTICIPANT" user_setting=True icon='fa-flask' %}
+                            
+                    </tbody>
+                </table>
+            </div>
+            <div class="card  mb-2">
+                <div class="d-flex flex-wrap subheading">
+                    {%trans 'Subscription\'s Notification' %}
+                </div>
+                <table class='table table-striped table-condensed'>
+                    <tbody>
+                        
+                        {% include "settings/setting.html" with key="NOTIFCATION_FREQ" user_setting=True icon='fa-calendar-week' %}
+                        {% include "settings/setting.html" with key="NOTIFCATION_EMP_INCOMMING" user_setting=True icon='fa-user' %}
+                        {% include "settings/setting.html" with key="NOTIFCATION_INC_LEAVE" user_setting=True icon='fa-martini-glass-citrus' %}
+                        {% include "settings/setting.html" with key="NOTIFCATION_LEAVE_FORMAT" user_setting=True icon='fa-paragraph' %}
+                        {% include "settings/setting.html" with key="NOTIFCATION_LEAVE_REPORT_NONE" user_setting=True icon='fa-paragraph' %}
+                        {% include "settings/setting.html" with key="NOTIFCATION_LEAVE_TIMEFRAME" user_setting=True icon='fa-hourglass-half' %}
+                        <tr>
+                            <td colspan="100%">
+                                <div style ="text-align: center;">
+                                    <button type="button" id="send_test_mail" class="btn btn-primary">
+                                        <span class="initial" >{%trans 'Send Test Mail' %}</span>
+                                        <span class="spinner spinner-border spinner-border-sm" role="status" style="display: none;"></span>
+                                        <span class="spinner" style="display: none;">... {%trans 'Sending' %}</span>
+                                    </button>
+                                    <button type="button" id="open_test_mail" class="btn btn-primary">
+                                        <span class="initial" >{%trans 'Open Test Mail' %}</span>
+                                        <span class="spinner spinner-border spinner-border-sm" role="status" style="display: none;"></span>
+                                        <span class="spinner" style="display: none;">... {%trans 'Opening' %}</span>
+                                    </button>
+                                </div>
+                            </td>
+
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
+        
+    </div>
+    
+    <div class="row">
+        <div class="col col-6">
+           
+            <div class="card  mb-2 loadingCard" data-url="{% url 'subscriptions_setting' %}">
+            </div>
+            
+        </div>
+        <div class="col col-6">
+            <div class="card  mb-2 loadingCard" data-url="{% url 'favorite_setting' %}">
+            </div>
+        </div>
+    </div><!-- end row -->
+</div> <!-- end container -->
+
+{% endblock %}

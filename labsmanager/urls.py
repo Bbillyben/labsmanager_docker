@@ -55,6 +55,7 @@ urlpatterns = [
     path('reports/', include('reports.urls')),
     path('infos/', include('infos.urls')),
     path('import/', include('import.urls')),
+    path('notification/', include('notification.urls')),
 ]
 #  Authentications : 
 urlpatterns += [

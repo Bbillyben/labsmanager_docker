@@ -118,8 +118,8 @@ INSTALLED_APPS = [
     'settings.apps.SettingsConfig',
     'infos.apps.InfosConfig',
     'plugin.apps.PluginConfig',
-    
-    
+    'notification.apps.NotificationConfig',
+        
 ]
 
 MIDDLEWARE = [

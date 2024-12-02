@@ -23,6 +23,8 @@
 
 {% include "settings/interface_setting.html" %}
 
+{% include "settings/notification_settings.html" %}
+
 {% include "settings/common_settings.html" %}
 
 
@@ -44,6 +46,7 @@
 {% if request.user.is_staff %}
 {% include "settings/general_settings.html" %}
 {% include "settings/mail_settings.html" %}
+{% include "settings/notification_admin_settings.html" %}
 {% include "settings/auditlog_settings.html" %}
 
 {% include "settings/users_setting_panel.html" %}
@@ -76,6 +79,7 @@
 <script type='text/javascript' src="{% static 'js/settings/settings.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/settings/setting_list.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/settings/testmail.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/settings/notif_setting.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/plugin/plugin_settings.js' %}"></script>
 <script>
 
@@ -102,6 +106,7 @@
         onPanelLoad("calendar_setting", function(){loadCards('calendar_setting');});
         onPanelLoad("users_admin", function(){loadCards('users_admin');});
         onPanelLoad("plugin_admin", function(){initialize_plugin_list();});
+        onPanelLoad("notification_admin", function(){init_notif_admin_btn();loadCards('notification_admin');});
 
 
 

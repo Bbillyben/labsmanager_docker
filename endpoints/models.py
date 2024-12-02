@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
+from .manager import milestones_manager
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
@@ -29,9 +30,13 @@ class Milestones(endpoint):
     from project.models import Project 
     from staff.models import Employee
     
+    objects = models.Manager()
+    expired = milestones_manager()
+    
+    
     project=models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'))
     history = AuditlogHistoryField()
-    employee= models.ManyToManyField(Employee, related_query_name="milestones_by_employee", related_name="milestones")
+    employee= models.ManyToManyField(Employee, related_query_name="milestones_by_employee", related_name="milestones", blank=True)
     
     class meta:
         verbose_name = _("Milestone")

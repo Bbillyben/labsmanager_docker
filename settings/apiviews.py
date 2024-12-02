@@ -136,6 +136,7 @@ from infos.models import OrganizationInfosType, ContactInfoType, ContactType
 from staff import models as staff_model
 from django.contrib.auth import get_user_model   
 from invitations.models import Invitation
+from notification.models import UserNotification
 
 class SettingListViewSet(viewsets.ModelViewSet):
     queryset = None
@@ -200,3 +201,9 @@ class SettingListViewSet(viewsets.ModelViewSet):
     def invitationsuser(self, request):
         invi = Invitation.objects.all()
         return JsonResponse(labserializers.InvitationSerializer(invi, many=True).data, safe=False)
+    
+    
+    @action(methods=['get'], detail=False, url_path='pendingnotification', url_name='pendingnotification')
+    def pendingnotificationuser(self, request):
+        invi = UserNotification.objects.filter(send=None)
+        return JsonResponse(labserializers.UserNotificationSerializer(invi, many=True).data, safe=False)

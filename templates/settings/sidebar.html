@@ -17,8 +17,11 @@
 {% trans "Interface Settings" as text %}
 {% include "sidebar_item.html" with label='interface' text=text icon="fa-tablet-screen-button" %}
 
+{% trans "Notifications" as text %}
+{% include "sidebar_item.html" with label='notification' text=text icon="fa-message" %}
+
 {% trans "Favorites and Subscriptions" as text %}
-{% include "sidebar_item.html" with label='common' text=text icon="fa-message" %}
+{% include "sidebar_item.html" with label='common' text=text icon="fa-star" %}
 
 {% trans "Dashboard Settings" as text %}
 {% include "sidebar_item.html" with label='dashboard' text=text icon="fa-gauge" %}
@@ -61,6 +64,9 @@
 
     {% trans "Mails" as text %}
     {% include "sidebar_item.html" with label='mail_setting' text=text icon="fa-envelope" %}
+
+    {% trans "Notifications" as text %}
+    {% include "sidebar_item.html" with label='notification_admin' text=text icon="fa-message" %}
 
     {% trans "Audit Log" as text %}
     {% include "sidebar_item.html" with label='auditlog_setting' text=text icon="fa-clock-rotate-left" %}

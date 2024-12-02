@@ -437,6 +437,36 @@ def get_project_setting_modal(request, proj):
     
     return render(request=request,template_name="settings/modal_project_settings.html",context=context)
 
+from notification.models import UserNotification
+class UserNotification_list(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = UserNotification
+    
+    def get(self,request):
+        context={
+            'url':reverse_lazy("api:settinglist-pendingnotification"),
+            'title':_('Pending Notifications'),
+            'columns':[
+                {'name':_('User'),'item':'user.username',},
+                {'name':_('Content TYpe '),'item':'source_content_type.modelname', 'class':'fit-content'},
+                {'name':_('Action_type'),'item':'action_type','formatter':''},
+                {'name':_('Object'),'item':'source_object','formatter':''},
+                {'name':_('Created'),'item':'creation','formatter':'baseDateTimeFormatter'},
+            ], 
+            'action':{
+                # 'add':reverse('lab_send_invite'),
+            },
+            'options':{
+            },         
+        }
+        # if request.user.is_staff :
+        #     context["action"]["update"] = 'update_user_employee'
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:notification_usernotification_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+
+
 
 ## for invitation process
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalFormView

@@ -96,8 +96,6 @@ class BaseMail():
         )
         return response
 
-
-
 class EmbedImgMail(BaseMail):
     """ Extends Base Mail
     Able to embed images from static dir (see labsmanager.settings.STATIC_URL)
@@ -170,9 +168,6 @@ class EmbedImgMail(BaseMail):
         response= message.send(fail_silently=False)
         return response
     
-    
-    
-    
 class UserLanguageMail(BaseMail):
     """ change render_html of base mail
     Add translation from language defined in user setting NOTIFCATION_REPORT_LANGUAGE
@@ -225,13 +220,14 @@ class BodyTableMail(BaseMail):
         return result
     
     def render_body(self, html, **kwargs):
-        tablesPD = pd.read_html(html)
-        body = self.concatenate_tables_with_text(tablesPD, html)
-        body = super().render_body(body, **kwargs)
+        try:
+            tablesPD = pd.read_html(html)
+            body = self.concatenate_tables_with_text(tablesPD, html)
+            body = super().render_body(body, **kwargs)
+        except ValueError:
+            return super().render_body(html, **kwargs)
         return body
-    
    
-    
 from settings.models import LMUserSetting
 from labsmanager.utils import get_choiceitem
 from django_q.models import Schedule
@@ -252,7 +248,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
     NEED a user parameter in kwargs
      """
     mail_template="email/notification_email.html"
-    default_subject = "Notification Report"
+    default_subject = "Subscription Report"
     
 
     def generate_context(self, **kwargs):
