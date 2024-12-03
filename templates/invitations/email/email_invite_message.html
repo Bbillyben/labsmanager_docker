@@ -1,0 +1,25 @@
+{% extends "email/base_email.html" %}
+{% load i18n %}
+{% block title %}
+  LabsManager Invitation
+{% endblock %}
+{% block content %}
+
+ {% blocktrans %}
+Hello,
+<p>You ({{ email }}) have been invited to join {{ site_name }}.</p>
+
+<p>If you'd like to join, please follow <a href="{{ invite_url }}" > this link </a>.</p>
+<p><i>This link will expire in {{ expiration_days }} days.<i></p>
+<p>Best regards,</p>
+<p>labsmanager team</p>
+{% endblocktrans %}
+
+
+<p>
+<a href='{{scheme}}://{{base_url}}'>labsmanager</a>
+</p>
+
+
+
+{% endblock %}

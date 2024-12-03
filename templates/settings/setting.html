@@ -49,6 +49,7 @@
                     {% if user_setting %}user='{{request.user.id}}'{% endif %}
                     {% if project %}project='{{project}}'{% endif %}
                     {% if plugin %}plugin='{{ plugin.slug }}'{% endif %}
+                    {% if reload %}reload='{{ reload }}'{% endif %}
                 >
                     <span class='fas fa-edit icon-green'></span>
                 </button>

@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import password_validation
-from allauth.account.forms import ChangePasswordForm, PasswordField, ResetPasswordKeyForm
+from django import forms
+from allauth.account.forms import ChangePasswordForm, PasswordField, ResetPasswordKeyForm, SignupForm
 from allauth.account.adapter import get_adapter
 
 class CheckPasswordField(PasswordField):
@@ -29,3 +30,14 @@ class ResetLabPasswordKeyForm(ResetPasswordKeyForm):
 
         super(ResetLabPasswordKeyForm, self).__init__(*args, **kwargs)
         self.hints = password_validation.password_validators_help_text_html()
+
+class LabSignupForm(SignupForm):
+    def __init__(self, *args, **kwargs):
+        super(LabSignupForm, self).__init__(*args, **kwargs)
+        self.hints = password_validation.password_validators_help_text_html()
+    # def save(self, request):
+    #     user = super(CustomSignupForm, self).save(request)
+    #     user.first_name = self.cleaned_data['first_name']
+    #     user.last_name = self.cleaned_data['last_name']
+    #     user.save()
+    #     return user

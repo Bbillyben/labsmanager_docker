@@ -57,6 +57,31 @@ def scheduleBaseTasks():
         
         
     # for Notifications
+    # check stale and overdue
+    currSch = Schedule.objects.filter(func='notification.tasks.check_all_notification')
+    if not currSch:
+        sch = Schedule.objects.create(name="check_user_notifications_tasks",
+                                      func='notification.tasks.check_all_notification',
+                                    schedule_type=Schedule.CRON,
+                                    cron = '50 1 * * 1-5',
+                                )
+        logger.debug("New Schedule :"+str(sch))
+    else:
+        logger.debug("Already in schedules :"+str(currSch))
+    # send pending notification
+    currSch = Schedule.objects.filter(func='notification.tasks.send_pending_notification')
+    if not currSch:
+        sch = Schedule.objects.create(name="send_user_notifications_tasks",
+                                      func='notification.tasks.send_pending_notification',
+                                        schedule_type=Schedule.CRON,
+                                        cron = '00 2 * * 1-5',
+                                    )   
+        logger.debug("New Schedule :"+str(sch))
+    else:
+        logger.debug("Already in schedules :"+str(currSch))
+   
+    # for Subscription
+    
     currSch = Schedule.objects.filter(func='common.tasks.check_notifications_tasks')
     if not currSch:
         sch = Schedule.objects.create(name="check_notifications_tasks",

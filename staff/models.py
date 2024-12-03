@@ -19,6 +19,8 @@ from collections.abc import Iterable
 import rules
 from rules.contrib.models import RulesModel
 
+from settings.models import LabsManagerSetting
+
 ### Models 
 class Employee(models.Model, RightsCheckerMixin):
     
@@ -39,6 +41,17 @@ class Employee(models.Model, RightsCheckerMixin):
     is_active=models.BooleanField(default=True, null=False, verbose_name=_('Is Active'))
     history = AuditlogHistoryField()
     
+    
+    def save(self, *args, **kwargs):
+        
+        force_upper = LabsManagerSetting.get_setting('NEW_EMPLOYEE_CASSE', True)
+        if force_upper:
+            self.last_name = self.last_name.upper()
+        
+        # Appel de la méthode save() originale pour enregistrer l'objet
+        super().save(*args, **kwargs)
+        
+        
     @classmethod
     def get_incomming(cls, timeAdd):
         cdate =datetime.now()

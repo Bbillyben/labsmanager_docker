@@ -8,6 +8,8 @@ from project.models import Project, Institution, Participant,Institution_Partici
 from endpoints.models import Milestones
 from leave.models import Leave, Leave_Type
 from common.models import  favorite
+from notification.models import UserNotification
+
 from django.db.models import Sum, Count
 
 
@@ -62,7 +64,7 @@ class CostTypeSerialize_tree(serializers.ModelSerializer):
     ancestors_count=serializers.SerializerMethodField()
     class Meta:
         model = Cost_Type
-        fields = ['pk', 'short_name', 'name', 'in_focus', 'ancestors_count',] 
+        fields = ['pk', 'short_name', 'name', 'in_focus', 'is_hr', 'ancestors_count',] 
         
     def get_ancestors_count(self,obj):
         return obj.get_ancestors(ascending=False, include_self=False).count()
@@ -214,8 +216,7 @@ class LeaveSerializer1DCal(LeaveSerializer1D):
             ed = ed + timedelta(hours=-12)
         return ed
     
-    
-    
+
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    For calendar 
 class EmployeeSerialize_Cal(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)
@@ -272,7 +273,38 @@ class FavoriteSerialize(serializers.ModelSerializer):
                 })
 
         return "-"
-    
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Invitation 
+from invitations.models import Invitation
+class InvitationSerializer(serializers.ModelSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    inviter = UserSerializer(many=False, read_only=True)
+    class Meta:
+        model = Invitation
+        fields = ['pk', 'email', 'created', 'sent', 'accepted', 'inviter' ]  
+        
+        
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Notifivation
+class UserNotificationSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    source_content_type=ContentTypeSerialize(many=False, read_only=True)
+    source_object= serializers.SerializerMethodField()
+    action_type=serializers.CharField(source='get_action_type_display')
+    class Meta:
+        model = UserNotification
+        fields = ['pk', 'source_content_type', 'source_object_id','source_object',
+                  'user',
+                  'action_type',
+                  'creation','send',
+                  'message',
+                  ]  
+        
+    def get_source_object(self, obj):
+        """ Custom method to serialize the GenericForeignKey field """
+        if obj.source_object:
+            # Retrieve and return a representation of the related object
+            return obj.source_object.__str__() 
+        return None
 # --------------------------------------------------------------------------------------- #
 # ---------------------------    APP PROJECT / SERIALISZER    --------------------------- #
 # --------------------------------------------------------------------------------------- #
@@ -510,7 +542,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
     class_type = serializers.SerializerMethodField() 
     class Meta:
         model = Expense
-        fields = ['pk', 'date', 'fund_item', 'type', 'status',  'amount',
+        fields = ['pk', 'expense_id', 'date', 'fund_item', 'type', 'status',  'amount',
                   'desc',
                   'contract',
                   'class_type',
@@ -574,7 +606,7 @@ class ContractExpenseSerializer_min(serializers.ModelSerializer):
     type =   CostTypeSerialize(many=False, read_only=True)
     class Meta:
         model = Contract_expense
-        fields = ['pk', 'date', 'type', 'status', 'fund', 'amount']
+        fields = ['pk', 'expense_id', 'date', 'type', 'status', 'fund', 'amount']
         
     def get_status(self,obj):
         return obj.get_status_display()

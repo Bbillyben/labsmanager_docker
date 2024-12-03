@@ -1,4 +1,30 @@
 ## Changelog LabsManager
+* [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
+
+
+### v0.9.5/ 2024-11-08
+note : require full update (migration and static)
+
+* [ADD] : add notification app, for user to be notified when event occurs on items through the app, at first for Milestones (add, remove, complete, ....)
+* [ADD] : User Settings to enable/disable notification 
+* [ADD] : Admin Setting for pending notifications
+* [ADD] : task automation to check and send notification  
+* [UPDATE] : spread notification settings in nex tab (Notification)
+
+### 2024-11-25
+* [ADD] : labsmanager parameter to force upper case for new employee's name
+* [UPDATE] : css for hub card, and show accordion's card
+
+
+### v0.9.4/ 2024-11-08
+note : require full update (migration and static)
+
+* [FIX] Export template in resource in import view fix for resource without name
+* [ADD] expense Id to expense model, should be unique, if uniq, would be retrieve from it
+* [UPDATE] admin view for expense and contract expense
+* [ADD] : add update_report task to update file path (try)
+* [FIX] : bug fix in advancement ratio for fund without start or end date
+* [ADD] : invitation process
 
 ### v0.9.1/ 2024-10-17
 note : require full update (migration and static)

@@ -33,6 +33,7 @@ class SettingList_cost_type(LoginRequiredMixin, TemplateView):
                 {'name':_('name'),'item':'name','formatter':'treeNameFormatter',},
                 {'name':_('Short name'),'item':'short_name'},
                 {'name':_('In Focus'),'item':'in_focus', 'formatter':'basicBoolean'},
+                {'name':_('Is HR'),'item':'is_hr', 'formatter':'basicBoolean'},
             ], 
             'action':{
             },
@@ -385,6 +386,38 @@ class EmployeeUser_list(LoginRequiredMixin, TemplateView):
                 {'name':_('Is active'),'item':'is_active','formatter':'simpleFormatter'},
             ], 
             'action':{
+               
+            },
+            'options':{
+            },         
+        }
+        if request.user.is_staff :
+            context["action"]["update"] = 'update_user_employee'
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:auth_user_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+
+class InvitationUser_list(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = User
+    
+    def get(self,request):
+   
+        context={
+            'url':reverse_lazy("api:settinglist-userinvitation"),
+            'title':_('Invitations'),
+            'columns':[
+                #{'name':_('User'),'item':'user.username',},
+                {'name':_('Email'),'item':'email', 'class':'fit-content'},
+                {'name':_('Date Created'),'item':'created','formatter':'baseDateTimeFormatter'},
+                {'name':_('Date Sent'),'item':'sent','formatter':'baseDateTimeFormatter'},
+                {'name':_('Accepted'),'item':'accepted','formatter':'basicBoolean'},
+                {'name':_('Inviter'),'item':'inviter', 'formatter':'userSimpleFormatter', },
+                
+            ], 
+            'action':{
+                'add':reverse('lab_send_invite'),
             },
             'options':{
             },         
@@ -403,4 +436,86 @@ def get_project_setting_modal(request, proj):
         }
     
     return render(request=request,template_name="settings/modal_project_settings.html",context=context)
+
+from notification.models import UserNotification
+class UserNotification_list(LoginRequiredMixin, TemplateView):
+    template_name = 'settings/setting_table.html'
+    model = UserNotification
     
+    def get(self,request):
+        context={
+            'url':reverse_lazy("api:settinglist-pendingnotification"),
+            'title':_('Pending Notifications'),
+            'columns':[
+                {'name':_('User'),'item':'user.username',},
+                {'name':_('Content TYpe '),'item':'source_content_type.modelname', 'class':'fit-content'},
+                {'name':_('Action_type'),'item':'action_type','formatter':''},
+                {'name':_('Object'),'item':'source_object','formatter':''},
+                {'name':_('Created'),'item':'creation','formatter':'baseDateTimeFormatter'},
+            ], 
+            'action':{
+                # 'add':reverse('lab_send_invite'),
+            },
+            'options':{
+            },         
+        }
+        # if request.user.is_staff :
+        #     context["action"]["update"] = 'update_user_employee'
+        if request.user.is_staff :
+            context["action"]["admin"] = 'admin:notification_usernotification_change'
+        
+        return render(request=request,template_name=self.template_name,context=context)
+
+
+
+## for invitation process
+from bootstrap_modal_forms.generic import BSModalCreateView, BSModalFormView
+from labsmanager.utils import is_ajax
+from invitations.models import Invitation
+from invitations.views import SendInvite
+from .forms import labInviteForm
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+
+class labInvitationCreateView(LoginRequiredMixin, BSModalFormView, SendInvite):
+    model = Invitation
+    form_class= labInviteForm
+    success_message = 'Success: Invitation was created.'
+    success_url = reverse_lazy('project_index')
+    label_confirm = "Confirm"
+    # template_name = "invitations/forms/_invite.html"
+    template_name = 'form_base.html'
+    
+    from labsmanager.utils import is_ajax
+    
+    # def post(self, request, *args, **kwargs):
+    #     print("#######################  labInvitationCreateView POST ")
+    #     return super().post(request, *args, **kwargs)
+    
+    # def form_valid(self, form):
+    #     email = form.cleaned_data["email"]
+        
+    #     if is_ajax(self.request.META):
+    #         if form.is_valid():
+    #             return self.render_to_response(
+    #                 self.get_context_data(
+    #                     success_message=_("%(email)s has been invited") % {"email": email},
+    #                 ),
+    #             )
+    #         else:
+    #             return self.form_invalid(form)
+        
+        
+    #     try:
+    #         invite = form.save(email)
+    #         invite.inviter = self.request.user
+    #         invite.save()
+    #         invite.send_invitation(self.request)
+    #     except Exception:
+    #         return self.form_invalid(form)
+    #     return self.render_to_response(
+    #         self.get_context_data(
+    #             success_message=_("%(email)s has been invited") % {"email": email},
+    #         ),
+    #     )

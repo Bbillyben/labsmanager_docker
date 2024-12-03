@@ -2,15 +2,15 @@
 {% load i18n %}
 {% load customs_tags %}
 
-{% block label %}calendar_setting{% endblock %}
+{% block label %}general_settings{% endblock %}
 
-{% block heading %}{% trans 'Calendar Settings' %}{% endblock %}
+{% block heading %}{% trans 'General' %}{% endblock %}
 
 {% block content %}
 <div class='row'>
     <table class='table table-striped table-condensed'>
         <tbody>
-            {% include "settings/setting.html" with key="VACATION_ZONE" icon='fa-location-crosshairs' %}
+            {% include "settings/setting.html" with key="NEW_EMPLOYEE_CASSE" icon='fa-font' %}
         </tbody>
     </table>
 </div>

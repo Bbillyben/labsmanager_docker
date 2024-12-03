@@ -1,0 +1,34 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load account %}
+
+{% block label %}notification_admin{% endblock %}
+
+{% block heading %}{% trans 'Notifications' %}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 100%; padding: 5px;">
+    <div class="row">
+        <div class="col">
+            <div class="card  mb-2">
+                <div class="d-flex flex-wrap subheading">
+                    {%trans 'Launch Notifications' %}
+                </div>
+                <div class="">
+                    <button class="btn btn-success btn-launcher" data-url="{% url 'launch_notif' %}">{% trans 'Check Notification'%}</button>
+                    <button class="btn btn-success btn-launcher" data-url="{% url 'launch_send_pending' %}">{% trans 'Send Pending'%}</button>
+                </div>
+            </div>
+            <div class="card  mb-2 loadingCard" data-url="{% url 'setting_notif_pending' %}">
+            </div>
+            
+        
+        </div>
+        
+    </div>
+    
+</div> <!-- end container -->
+
+{% endblock %}

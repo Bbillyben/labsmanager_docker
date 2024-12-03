@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
-from django.core.exceptions import  ImproperlyConfigured
+from django.core.exceptions import  ImproperlyConfigured, MultipleObjectsReturned
 from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, DateField, DecimalField
 
 from import_export.fields import Field
@@ -41,6 +41,10 @@ class CheckProjectTypeResourceMixin():
         return result
     
 class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorRessource):
+    expense_id=Field(
+        column_name=_('Expense Id'),
+        attribute='expense_id', 
+    )
     type=Field(
         column_name=_('type'),
         attribute='type', 
@@ -90,7 +94,7 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
                 #    'id',
                    'fund_item',
          ]
-        export_order  = ['desc', 'type', 'amount', 'status', 
+        export_order  = ['expense_id', 'desc', 'type', 'amount', 'status', 
                          'project', 'fund', 'funder', 'institution',
             
         ]
@@ -98,8 +102,17 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
         
     def before_import_row(self, row, row_number=None, **kwargs):
         super().before_import_row(row, row_number, **kwargs)
-        row["id"] = None
-        return Expense.objects.none()
+        qset = Expense.objects.none()
+        if row["id"] != None:
+            qset = Expense.objects.get(pk=row["id"])
+        elif row["Expense Id"] != None:
+            qset = Expense.objects.filter(expense_id=row["Expense Id"])
+            if qset.count()==1:
+                row["id"] = qset.first().pk
+            else:
+                print(f' should raise error')
+                raise MultipleObjectsReturned(_("Expense id : '%(eid)s' return %(count)s objects for fund ref '%(fund)s'")%({'eid':row["Expense Id"], 'count':qset.count(), 'fund': row["Ref"]}))
+        return qset
         
     
     @classmethod

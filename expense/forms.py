@@ -83,7 +83,7 @@ class ContractModelForm(BSModalModelForm):
 class ExpenseModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract_expense
-        fields = ['date', 'desc', 'type','status','amount',]
+        fields = ['expense_id', 'date', 'desc', 'type','status','amount',]
         widgets = {
             'date': DateInput(),
         }
@@ -107,7 +107,7 @@ class ExpenseModelForm(BSModalModelForm):
 class ContractExpenseModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract_expense
-        fields = ['contract', 'desc', 'date', 'type','status','amount',]
+        fields = ['expense_id', 'contract', 'desc', 'date', 'type','status','amount',]
         widgets = {
             'date': DateInput(),
         }
@@ -182,7 +182,7 @@ class GenericExpenseModelForm(SanitizeDataFormMixin, BSModalModelForm):
             )
     class Meta:
         model = models.Expense
-        fields = ['fund_item', 'desc', 'contract', 'date', 'type','status','amount',]
+        fields = ['expense_id', 'fund_item', 'desc', 'contract', 'date', 'type','status','amount',]
         widgets = {
             'date': DateInput(),
         }

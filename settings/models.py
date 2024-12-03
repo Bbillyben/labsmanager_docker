@@ -910,13 +910,19 @@ class LabsManagerSetting(BaseLabsManagerSetting):
         },
         'AUDIT_LOG_RETENTION': {
             'name': _('Audit Log Retention'),
-            'description': _('Number of to retain AudiLog history'),
+            'description': _('Number of day to retain AudiLog history'),
             'units': _('Days'),
             'default': 180,
             'validator': [
                 int,
                 MinValueValidator(1),
             ]
+        },
+        'NEW_EMPLOYEE_CASSE': {
+            'name': _('Force Upper Case'),
+            'description': _('Force Upper Case for new employee\'name'),
+            'default': True,
+            'validator': bool,
         },
         ## For plugin 
         'ENABLE_PLUGINS_SCHEDULE': {
@@ -954,7 +960,6 @@ class LabsManagerSetting(BaseLabsManagerSetting):
             'validator': bool,
             'after_save': reload_plugin_registry,
         },
-         
     }       
         
     class Meta:
@@ -1106,6 +1111,34 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': 'en',
             'choices':LANGUAGES,
         },
+        ## for user notification sepcific (milestones etc...)
+        'NOTIFICATION_ENDPOINTS_MILESTONES': {
+            'name': _('Milestones notification'),
+            'description': _('enable automatic mail notification on milestones event'),
+            'default': True,
+            'validator': bool,
+            # 'after_save': checkNotif,
+        },
+        'NOTIFICATION_ENDPOINTS_MILESTONES_STALE': {
+            'name': _('Milestones Stale status from ... days'),
+            'description': _('Number of days to get in stale scope from now'),
+            'default': 30,
+            'validator': [int, MinValueValidator(1)]
+        },
+        'NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT': {
+            'name': _('Milestones Notfication repeat frequency'),
+            'description': _('Frequency in days to repeat Milestones notification (0 to disable repeat)'),
+            'default': 7,
+            'validator': [int, MinValueValidator(0)]
+        },
+        'NOTIFICATION_PROJECT_PARTICIPANT': {
+            'name': _('Project Participation notification'),
+            'description': _('enable automatic mail notification on participation event'),
+            'default': True,
+            'validator': bool,
+            # 'after_save': checkNotif,
+        },
+        
         'STICKY_NAVBAR': {
             'name': _('Fixed Navbar'),
             'description': _('navbar position fixed to the top of the screen'),
