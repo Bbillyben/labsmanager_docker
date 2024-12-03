@@ -7,7 +7,8 @@ note : require full update (migration and static)
 
 * [ADD] : add notification app, for user to be notified when event occurs on items through the app, at first for Milestones (add, remove, complete, ....)
 * [ADD] : User Settings to enable/disable notification 
-* [ADD] : Admin Setting for pending notifications 
+* [ADD] : Admin Setting for pending notifications
+* [ADD] : task automation to check and send notification  
 * [UPDATE] : spread notification settings in nex tab (Notification)
 
 ### 2024-11-25

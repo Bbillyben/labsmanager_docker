@@ -58,7 +58,7 @@ msgstr "Aperçu des pertes de projets"
 
 #: dashboard/views.py:89
 msgid "Stale Fund"
-msgstr "Fond Périmés"
+msgstr "Fond Fin Imminente"
 
 #: dashboard/views.py:91 dashboard/views.py:117 project/models.py:38
 msgid "project"
@@ -129,7 +129,7 @@ msgstr "Dépenses Totales"
 
 #: dashboard/views.py:151
 msgid "Stale Contract"
-msgstr "Contrat Périmé"
+msgstr "Contrat Fin Imminente"
 
 #: dashboard/views.py:153 dashboard/views.py:208
 #: data/media/report/report_template/project/project_pdf_report.html:270
@@ -1330,7 +1330,7 @@ msgstr "Reprogrammation de %(old)s à %(new)s"
 
 #: notification/views.py:15
 msgid "No Notification added"
-msgstr "Aucune Notification Ajouté"
+msgstr "Aucune Notification Ajoutée"
 
 #: notification/views.py:17
 #, python-format
@@ -1733,7 +1733,7 @@ msgstr "Clé des paramètres (doit être unique - insensible à la casse)"
 
 #: settings/models.py:988
 msgid "Dashboard Stale From Calculation"
-msgstr "Tableau de bord périmé par le calcul"
+msgstr "Tableau de bord imminent par le calcul"
 
 #: settings/models.py:989
 msgid "Number of previous month to get in stale scope from now"
@@ -1744,7 +1744,7 @@ msgstr ""
 
 #: settings/models.py:994
 msgid "Dashboard Stale To Calculation"
-msgstr "Tableau de bord des éléments périmés"
+msgstr "Tableau de bord des éléments imminents"
 
 #: settings/models.py:995 settings/models.py:1001 settings/models.py:1007
 #: settings/models.py:1014 settings/models.py:1020
@@ -1755,19 +1755,19 @@ msgstr ""
 
 #: settings/models.py:1000
 msgid "Contract Stale month"
-msgstr "Nombre de mois pour considérer périmé les contrats"
+msgstr "Nombre de mois pour considérer imminent les contrats"
 
 #: settings/models.py:1006
 msgid "Project Stale month"
-msgstr "Nombre de mois pour considérer périmé les projets"
+msgstr "Nombre de mois pour considérer imminent les projets"
 
 #: settings/models.py:1013
 msgid "Milestones Stale to month"
-msgstr "Nombre de mois pour considérer périmé les jalons"
+msgstr "Nombre de mois pour considérer imminent les jalons"
 
 #: settings/models.py:1019
 msgid "Milestones Stale from month"
-msgstr "Nombre de mois pour considérer périmé les jalons"
+msgstr "Nombre de mois pour considérer imminent les jalons"
 
 #: settings/models.py:1026
 msgid "Fund ratio consumption report type"
@@ -1911,7 +1911,7 @@ msgstr "activer la notification automatique pour les jalons"
 
 #: settings/models.py:1123
 msgid "Milestones Stale status from ... days"
-msgstr "Nombre de jours pour considérer périmé les jalons"
+msgstr "Délais pour considérer imminent les jalons"
 
 #: settings/models.py:1124
 msgid "Number of days to get in stale scope from now"
@@ -2725,7 +2725,7 @@ msgstr "Activation des notifications de jalons"
 
 #: templates/email/usernotification_email.html:217
 msgid "Milestones Stales delay"
-msgstr "Nombre de mois pour considérer périmé les jalons"
+msgstr "Nombre de mois pour considérer imminent les jalons"
 
 #: templates/email/usernotification_email.html:218
 msgid "Milestones Repeat delay"
