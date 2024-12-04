@@ -68,3 +68,8 @@
     font-weight: lighter;
     font-style: italic;
 }
+
+/* pour l'éditeur */
+.prose-menubar__button{
+    background: var(--secondary-color);
+}
