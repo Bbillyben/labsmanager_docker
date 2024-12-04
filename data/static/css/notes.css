@@ -73,3 +73,6 @@
 .prose-menubar__button{
     background: var(--secondary-color);
 }
+.ProseMirror ol{
+    padding-left: revert !important;
+}

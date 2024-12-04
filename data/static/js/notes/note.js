@@ -47,10 +47,17 @@
             })
         })
 
-
+        
+        $(panel).find('.note-cont .edit-label').css('visibility', 'hidden');
+        $(panel).find('.note-cont .edit-label').first().css('visibility', 'visible');
+        
         var tabEl = $(panel).find('.nav-link[data-bs-toggle="tab"]')
         tabEl.on('shown.bs.tab', function (event) {
             stop_edit();
+            $(panel).find('.note-cont .edit-label').css('visibility', 'hidden');
+            $(this).find('.edit-label').css('visibility', 'visible');
+            
+
         })
 
 
