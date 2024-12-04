@@ -69,10 +69,12 @@ from django_prose_editor.widgets import ProseEditorWidget
 class GenericNoteForm(BSModalModelForm):
     class Meta:
         model = GenericNote
-        fields = ['content_type', 'object_id', 'name', 'note',]
-        widgets = {
-            'note': ProseEditorWidget(),
-        }
+        fields = ['content_type', 'object_id', 'name', 
+                #   'note',
+                  ]
+        # widgets = {
+        #     'note': ProseEditorWidget(),
+        # }
     def __init__(self, *args, **kwargs):
         if ('initial' in kwargs and 'obj_id' in kwargs['initial'] ):
             ct = ContentType.objects.get(app_label=kwargs['initial']['app'], model=kwargs['initial']['model'])

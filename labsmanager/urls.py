@@ -95,6 +95,7 @@ router.register(r'leave', leaveApiViews.LeaveViewSet, basename='leave')
 router.register(r'favorite', commonApiViews.favoriteViewSet, basename='favorite')
 router.register(r'subscription', commonApiViews.subscriptionViewSet, basename='subscription')
 router.register(r'organization', infoApiViews.organisationViewSet, basename='organization')
+router.register(r'note', infoApiViews.genericnoteViewSet, basename='genericnote')
 # router.register(r'settings', UserSettingsDetail.as_view(), basename='settings')
 
 # router.register(r'plugin', pluginApiViews.PluginConfigViewSet, basename='plugin')

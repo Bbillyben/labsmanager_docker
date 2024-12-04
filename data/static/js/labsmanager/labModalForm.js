@@ -6,6 +6,7 @@ $.fn.labModalForm = function(options) {
         modalForm:".modal-body form",
         isDeleteForm: false,
         addModalFormFunction:null,
+        addModalPreFormFunction:null,
         forceExitFunction: false,
         modal_title:null,
         asyncSettings:{
@@ -41,6 +42,7 @@ $.fn.labModalForm = function(options) {
             dataKey: 'table',
             addModalFormFunction: settings.addModalFormFunction,
             forceExitFunction: settings.forceExitFunction,
+            addModalPreFormFunction: settings.addModalPreFormFunction,
         }
     });
 }

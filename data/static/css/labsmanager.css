@@ -1747,3 +1747,33 @@ li.list-spacer{
 .accordion-card-button::after {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23eff6f1'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
+
+/*        For notes ProseEditor in app */
+.note-content .prose-editor{
+    width: 100%;
+    max-width: 100%;
+}
+
+/*        For loader ?*/
+
+.loader {
+    border: 4px solid #f3f3f3; /* Couleur de fond de l'anneau */
+    border-top: 4px solid #3498db; /* Couleur de l'anneau en mouvement */
+    border-radius: 50%; /* Forme ronde */
+    width: 80%; /* La largeur sera 80% de la hauteur */
+    height: 100%; /* La hauteur s'adapte à celle du parent */
+    display: block;
+    margin: 0 auto;
+    opacity: 0; /* L'élément commence invisible */
+    transition: opacity 0.3s ease; /* Pour ajouter un effet de fondu lorsque visible */
+  }
+  
+  .loader {
+    animation: spin 2s linear infinite; /* Animation qui tourne continuellement */
+    opacity: 1; /* Rendre visible lorsqu'animé */
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }

@@ -201,6 +201,7 @@ https://github.com/trco/django-bootstrap-modal-forms
                 dataElementId: null,
                 dataKey: null,
                 addModalFormFunction: null,
+                addModalPreFormFunction: null,
                 directUpdate: false,
                 forceExitFunction: false,
                 
@@ -218,6 +219,10 @@ https://github.com/trco/django-bootstrap-modal-forms
             }else{
                 $(this).unbind("click").click(function (event) {
                     event.stopPropagation();
+                    // if addModalPreFormFunction e"xist
+                    if(settings.asyncSettings.addModalPreFormFunction){
+                        settings.asyncSettings.addModalPreFormFunction();
+                    }
                     // Instantiate new form in modal
                     modalForm(settings);
                 });
