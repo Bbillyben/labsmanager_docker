@@ -154,7 +154,7 @@ class GenericNote(TimeStampMixin):
                         "html": True,         # Add a button which allows editing the raw HTML
                         "typographic": True,  # Highlight typographic characters
                     }, 
-                    blank=True, null=True,
+                    blank=True,
                     verbose_name=_('note')                    
             )
     

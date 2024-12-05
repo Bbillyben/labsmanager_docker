@@ -19,11 +19,15 @@
         });
 
         $(panel).find('.note-cont .edit').each(function(){
-            $(this).on("click", function(){
+            $(this).show();
+            $(this).unbind().on("click", function(){
                 edit_note(this);
             })
             
         })
+        $(panel).find('.note-cont .unedit').unbind().hide();
+
+
         $(panel).find('.note-cont .delete').each(function(){
             $(this).labModalForm({
                 formURL:Urls['GenericNoteDeleteView']($(this).data("pk")),
@@ -104,9 +108,18 @@
             var disp_div = $("#"+id+"-tab-pane").find(".note-display")
             disp_div.show();
             disp_div.html(nText);
-            $("#"+id+"-tab-pane").find(".note-footer .edit").prop('disabled', false);
             clearInterval(saveTimeout);
+            $("#"+id+"-tab-pane").find('.note-footer .edit').each(function(){
+                $(this).show();
+                $(this).unbind().on("click", function(){
+                    edit_note(this);
+                })
+                
+            })
+            $("#"+id+"-tab-pane").find('.note-footer .unedit').unbind().hide()
         }
+        //reupdate btn
+        
         currentEditor = null;
     }
     function edit_note(target){
@@ -118,13 +131,20 @@
         var note_div=note_content.find(".note-display")
 
         //  disable edit btn
-        $("#"+id+"-tab-pane").find(".note-footer .edit").prop('disabled', true);
+        $("#"+id+"-tab-pane").find('.note-footer .unedit').each(function(){
+            $(this).show();
+            $(this).unbind().on("click", function(){
+                stop_edit();
+            })
+            
+        })
+        $("#"+id+"-tab-pane").find('.note-footer .edit').unbind().hide()
         // add the textarea
         var ta = '<textarea class="dummytxtarea proseeditorwidget" data-id="'+id+'" data-app="'+app+'" data-model="'+model+'"   data-pk="'+pk+'" data-django-prose-editor="{}">'+$(note_div).html()+'</textarea>'
         currentEditor = note_content.prepend(ta)
         
         const textareas = note_content.get(0).querySelector(`[${marker}]`);
-         createEditor(textareas)
+        createEditor(textareas)
         note_div.hide();
         originalHash = hashText($(note_div).html())
         initiateFollowUp();
@@ -272,7 +292,10 @@
             tab+='<div class="note-save"><div class="loader" style="display:none;"></div><div class="text-success" style="display:none;">saved</div><div class="text-danger" style="display:none;">error</div></div>';
             tab+='<span class="flex" style="flex-grow: 1;"></span>';
             if(USER_PERMS.includes("is_staff"))tab+="<a  class='icon admin_btn btn btn-secondary' href='"+Urls["admin:infos_genericnote_change"](note.pk)+"'><i type = 'button' class='fas fa-shield-halved'></i></a>";
-            if(USER_PERMS.includes("infos.change_genericnote") || settings.custom_rule)tab+="<button class='icon edit btn btn-success' data-app='"+settings.app+"' data-model='"+settings.model+"' data-pk='"+note.pk+"' data-id='"+id+"'><i type = 'button' class='fas fa-pen-to-square'></i></button>";
+            if(USER_PERMS.includes("infos.change_genericnote") || settings.custom_rule){
+                tab+="<button class='icon edit btn btn-success' data-app='"+settings.app+"' data-model='"+settings.model+"' data-pk='"+note.pk+"' data-id='"+id+"'><i type = 'button' class='fas fa-pen-to-square'></i></button>";
+                tab+="<button class='icon unedit btn btn-warning' data-app='"+settings.app+"' data-model='"+settings.model+"' data-pk='"+note.pk+"' data-id='"+id+"'><i type = 'button' class='fa fa-circle-xmark' style='color:white;'></i></button>";
+            }
             if(USER_PERMS.includes("infos.delete_genericnote"))tab+="<button class='icon delete btn btn-danger ' data-app='"+settings.app+"' data-model='"+settings.model+"' data-pk='"+note.pk+"'><i type = 'button' class='fas fa-trash'></i></button>";
             tab += '</div>';
             tab+= '</div>';

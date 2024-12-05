@@ -76,3 +76,7 @@
 .ProseMirror ol{
     padding-left: revert !important;
 }
+.note-content blockquote {
+    padding-left: 1rem !important;
+    border-left: 2px solid var(--secondary-color) !important;
+}
