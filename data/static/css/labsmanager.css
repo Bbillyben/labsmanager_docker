@@ -1728,6 +1728,8 @@ li.list-spacer{
 }
 
 .accordion-card-button::after {
+    position:absolute;
+    right:0.2em;
     flex-shrink: 0;
     width: 1.25rem;
     height: 1.25rem;

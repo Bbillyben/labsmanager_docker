@@ -139,6 +139,11 @@ function initEmployeeCalendar(){
         extraParams:{employee:employee_id},
         eventCallback: function(){ $('#employee_leave_table').bootstrapTable('refresh')},
         cal_type:'employee',
+        headerToolbar:{
+            left: 'prev,next today datePickerButton',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek,listWeek,timelineYearCustom'
+        },
     }
     const view = localStorage.getItem(`labsmanager-calendar-view_employee`);
     if (view){
