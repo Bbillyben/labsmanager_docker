@@ -1,6 +1,11 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
+### 
+[UPDATE] : report admin update to let user download the template
+[UPDATE] : css for notes and index card
+[FIX] : user able to add/update note for it's own employee
+ 
 
 ### v0.9.5/ 2024-11-08
 note : require full update (migration and static)

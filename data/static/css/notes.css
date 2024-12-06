@@ -11,6 +11,9 @@
     margin-right: 0.1em;
 }
 .nav-notes  .nav-link{
+    padding: 0rem 1rem 0rem 0.5rem;
+}
+.nav-notes  .nav-link:has(sup){
     padding: 0rem 0rem 0rem 0.5rem;
 }
 .nav-notes  .nav-link, .nav-notes  .show > .nav-link{

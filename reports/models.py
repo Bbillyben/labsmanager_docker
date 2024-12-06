@@ -195,7 +195,7 @@ class TemplateReport(BaseReport):
         if self.template:
             url = reverse('download_template_report', args=[app_label, model_name, self.pk])
             return format_html('<a href="{}" target="_blank">%s</a>'%self.template.name, url)
-        return "Aucun fichier"
+        return  _("No file")
     
     download_link.short_description = _("Template Report Link")
     
