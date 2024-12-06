@@ -36,7 +36,7 @@ def check_stale_milestones():
     milestones = Milestones.objects.filter(deadline_date__gte=cdate)
     count = 0
     for mil in milestones:
-        for emp in mil.employee.filter(~Q(user=None)): 
+        for emp in mil.employee.filter(~Q(user=None) & Q(is_active=True)): 
             stale=LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=emp.user, backup_value=0)
             repeat = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT", user=emp.user, backup_value=0)
             if mil.deadline_date <= cdate+ timedelta(days= stale):
@@ -62,7 +62,7 @@ def check_overdue_milestones():
     print("---------------------------  check_overdue_milestones")
     count = 0
     for mil in milestones:
-        for emp in mil.employee.filter(~Q(user=None)): 
+        for emp in mil.employee.filter(~Q(user=None) & Q(is_active=True)): 
             # get user setting for repeat
             repeat = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT", user=emp.user, backup_value=0)
             kw={

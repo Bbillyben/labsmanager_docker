@@ -91,8 +91,16 @@ class BudgetModelForm(BSModalModelForm):
     #     pass
         
     def __init__(self, *args, **kwargs):        
+        # print(f'[BudgetModelForm - Init] ----------------------------------------------------------')
+        # for a in args:
+        #     print(f'  - args : {a} ')
+        # for k, v in kwargs.items():
+        #     print(f'  - {k} : {v}')
         
-        self.base_fields['employee'].queryset=Employee.objects.filter(is_active=True)
+        if (('initial' in kwargs and 'employee' in kwargs['initial']) or "data" in kwargs):
+            self.base_fields['employee'].queryset=Employee.objects.all()
+        else:
+            self.base_fields['employee'].queryset=Employee.objects.filter(is_active=True)
         
         if ('initial' in kwargs and 'project' in kwargs['initial']):
             self.base_fields['fund'].queryset=models.Fund.objects.filter(project=kwargs['initial']['project'])

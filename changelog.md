@@ -5,7 +5,8 @@
 [UPDATE] : report admin update to let user download the template
 [UPDATE] : css for notes and index card
 [FIX] : user able to add/update note for it's own employee
- 
+[FIX] : issue when an employee is disabled, unable to update contract, budget
+[FIX] : issue when an admin in setting check notif, for refresh table (id is dependent of Languages!)
 
 ### v0.9.5/ 2024-11-08
 note : require full update (migration and static)

@@ -38,7 +38,7 @@ function init_btn_launcher(btn){
             complete:function(arg)
             {
                 // update pending notification table
-                table=$("#cardtable_container_PendingNotifications").find('table');
+                table=$("#pending_notif_cont").find('table');
                 $(table).bootstrapTable('refresh');
                 
             }
