@@ -113,9 +113,6 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
                 row["id"] = qset.first().pk
             # else:
             #     raise MultipleObjectsReturned(_("Expense id : '%(eid)s' return %(count)s objects for fund ref '%(fund)s'")%({'eid':row["Expense Id"], 'count':qset.count(), 'fund': row["Ref"]}))
-        refI = row.get('Ref', None)
-        if refI is not None:
-            query = query & Q(fund__ref=refI)
         return qset
         
     
