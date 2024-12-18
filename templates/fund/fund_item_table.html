@@ -5,7 +5,7 @@
     <div class="d-flex flex-wrap subheading">
         <h4><i class="fas fa-money-bills"></i>  {% trans 'Fund Items' %} : <i class="super-small">{{ fund }}</i></h4> 
         <span class="flex" style="flex-grow: 1;"></span>
-        {% if perms.fund.add_fund_item %}
+        {% if perms.fund.add_fund_item or has_perm %}
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-secondary" id="add_fund_item_temp" title="Add Item" data-fundPk="{{ fund.pk }}" >
                 <span class='fa fas fa-plus'></span>

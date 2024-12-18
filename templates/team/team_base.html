@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load lab_rules %}
 
 {% block page_title %}
 {% trans "LabManager Team" %}
@@ -18,6 +19,7 @@
 
 {% block content %}
 {% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
+{% has_team_add_perm user as can_add_team %}
 
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
@@ -26,7 +28,7 @@
                 <h4>{% trans 'Team List' %}</h4>
                 <span class="flex" style="flex-grow: 1;"></span>
                 <div class="btn-group" role="group">
-                    {% if  perms.staff.add_team %}
+                    {% if  can_add_team %}
                     <button type="button" class="btn btn-success" id="team_create" title="Create New Team">
                         <span class='fa fa-user-plus'></span>
                         {% trans 'Add Team' %}

@@ -27,3 +27,11 @@ def has_employee_add_perm( user):
     if user.has_perm("staff.change_employee"):
         return True
     return Employee.objects.filter(user=user).exists()
+
+@register.simple_tag
+def has_team_add_perm( user):
+    if not user.has_perm("staff.add_team"):
+        return False
+    if user.has_perm("staff.change_team"):
+        return True
+    return Employee.objects.filter(user=user).exists()

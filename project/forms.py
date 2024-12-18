@@ -4,8 +4,9 @@ from django.core.exceptions import ValidationError
 from . import models
 from django.utils.translation import gettext_lazy as _
 from django import forms
+from django.db.models import Q
 from staff.models import Employee
-from project.models import Project
+from project.models import Project, Participant
 from labsmanager.forms import DateInput
 from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 
@@ -70,9 +71,10 @@ class ParticipantModelForm(BSModalModelForm):
 
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.fields['employee'].widget = forms.HiddenInput()
-            self.fields['employee'].queryset=Employee.objects.filter()
+            self.fields['employee'].queryset=Employee.objects.all()
         elif('initial' in kwargs and 'project' in kwargs['initial']):
-            self.fields['employee'].queryset=Employee.objects.filter(is_active=True)
+            part = Participant.objects.filter(project=kwargs['initial']['project']).values("employee")
+            self.fields['employee'].queryset=Employee.objects.filter(Q(is_active=True)&~Q(pk__in=part))
              
         if instance and instance.pk:
             self.fields['employee'].widget = forms.HiddenInput()
@@ -81,7 +83,7 @@ class ParticipantModelForm(BSModalModelForm):
             self.fields['project'].disabled = True
         
         # ===== Right Management
-        if ('request' in kwargs):
+        if ('request' in kwargs and "data" not in kwargs):
             user = kwargs['request'].user
             self.fields['project'].queryset=Project.get_instances_for_user('change', user, self.fields['project'].queryset)
             self.fields['employee'].queryset=Employee.get_instances_for_user('change', user, self.fields['employee'].queryset)

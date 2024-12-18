@@ -10,6 +10,8 @@ from .forms import TeamModelForm, TeamMateModelForm, EmployeeTypeModelForm,Gener
 from labsmanager.mixin import CreateModalNavigateMixin
 from labsmanager.views_modal import BSmodalDeleteViwGenericForeingKeyMixin
 
+import logging
+logger = logging.getLogger("labsmanager")
 # Update
 class TeamUpdateView(LoginRequiredMixin, BSModalUpdateView):
     model = models.Team
@@ -26,6 +28,20 @@ class TeamCreateView(LoginRequiredMixin, CreateModalNavigateMixin):
     success_url = reverse_lazy('team_index')
     
     success_single = 'team_single'
+    
+    # def save(self, commit=True):
+    #     instance = super().save(commit=False)
+    #     if not self.request.user.has_perm("staff.change_team"):
+    #         try:
+    #             emp = Employee.objects.get(user= self.request.user)
+    #             instance.leader = emp
+    #         except Exception as e:
+    #             logger.debug(f"Unable to create Project Leader from user {self.request.user} for project : {self.object}")
+    #             logger.debug(f" ERROR : {e}")
+    #     # Appliquer ici des modifications personnalisées à l'instance
+    #     if commit:
+    #         instance.save()
+    #     return instance
     
 # remove
 class TeamRemoveView(LoginRequiredMixin, BSModalDeleteView):
