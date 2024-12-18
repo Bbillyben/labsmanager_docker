@@ -13,6 +13,8 @@ note : require fixture update asn static
 [FIX] : manage participant for leader where leader is not employee superior
 [UPDATE] : add participant : only show not already in participant list of the current project
 [UPDATE] : ability to create team for user who have rights + team mates form to focus on active employee/ change groupe rights 
+[FIX] : Import error on expense when exp Id is set for new expense
+
 ### v0.9.5/ 2024-11-08
 note : require full update (migration and static)
 
