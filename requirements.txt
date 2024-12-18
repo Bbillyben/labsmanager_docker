@@ -109,6 +109,9 @@ django-faicon @ git+https://github.com/Bimbel-Masuk-UI/django-faicon
 django-filter==24.2
     # via -r requirements.in
 django-import-export==3.3.7
+
+django-invitations==2.1.0
+
     # via -r requirements.in
 django-js-asset==2.2.0
     # via

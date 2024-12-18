@@ -165,8 +165,8 @@ def content_excludes(
         'django_q.task',
         'django_q.ormq',
         'django_q.Failure',
-        'django_password_validators.password_history.UserPasswordHistoryConfig',
-        'django_password_validators.password_history.PasswordHistory',
+        'password_history.UserPasswordHistoryConfig',
+        'password_history.PasswordHistory',
         'common.rightssupport',
     ]
 
