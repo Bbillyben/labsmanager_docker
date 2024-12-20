@@ -34,7 +34,7 @@ class NotificationMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
             'participant_enab':participant_enab,    
         })
         # get all notification and separate them by content_type of source object
-        userNote = UserNotification.objects.filter(user = user)
+        userNote = UserNotification.objects.filter(user = user, send = None) ## Onlye unsent notification
         notif={}
         for note in userNote:
             key = ("%s_%s")%(note.source_content_type.app_label, note.source_content_type.model)

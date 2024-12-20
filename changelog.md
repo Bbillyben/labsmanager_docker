@@ -1,7 +1,7 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
-### 20214-12-18
+### 20214-12-18 v0.9.6
 note : require fixture update asn static
 
 [UPDATE] : report admin update to let user download the template
@@ -15,6 +15,8 @@ note : require fixture update asn static
 [UPDATE] : ability to create team for user who have rights + team mates form to focus on active employee/ change groupe rights 
 [FIX] : Import error on expense when exp Id is set for new expense
 [FIX] : docker invoke task for dumpdata
+[FIX] : bug fix for resending alreadyn sent notification with new one
+[UPDATE] : milestones notification for leader and coleader of a project.
 
 ### v0.9.5/ 2024-11-08
 note : require full update (migration and static)
