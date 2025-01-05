@@ -1,13 +1,15 @@
+from django.utils.translation import gettext_lazy as _
+
 from settings.models import LMUserSetting
 from endpoints.models import Milestones
 
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Sum, F
 
 from project.models import Participant
 from settings.models import LMUserSetting
-from staff.models import Employee
+from staff.models import Employee, Employee_Superior
 def check_enabled_notification_user(user, content_type) -> bool:
     '''
     check if a user has enabled/disabled notification for User Notificaiton on app/model 
@@ -25,7 +27,7 @@ def check_enabled_notification_user(user, content_type) -> bool:
 
 
 
-def _add_notification(user, instance, action):
+def _add_notification(user, instance, action, message = None):
     from .models import UserNotification
     repeat = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT", user=user, backup_value=0)
     kw={
@@ -33,6 +35,7 @@ def _add_notification(user, instance, action):
                 'instance':instance,
                 'action':action,
                 'repeat_delay':repeat,
+                'message': message,
             }
     return UserNotification.add_notification(**kw)
 ###### Check what has to be notified
@@ -89,4 +92,32 @@ def check_overdue_milestones():
             if not notif is None:
                     count+=1
     # print("------------------------------------------------------")
+    return count
+
+def check_overload_employee():
+    '''
+    check if an employee is overloaded and report to its superior
+    '''
+    print("---------------------------  check_overload_employee")
+    count = 0
+    employees_over_quotity = (
+        Participant.current.filter(Q(employee__is_active=True) & Q(project__status=True))
+        .values("employee")
+        .annotate(total_quotity=Sum("quotity"))
+        .filter(total_quotity__gt=1)
+    )
+    
+    print(f' - overloaded employees : {employees_over_quotity}')
+    
+    for emp in employees_over_quotity:
+        sup = Employee_Superior.objects.filter(Q(employee = emp['employee']) & ~Q(superior__user = None))
+        e = Employee.objects.get(pk= emp['employee'])
+        print(f' - sup : {sup}')
+        for s in sup:
+            message = _("overloaded up to %s")%emp['total_quotity']
+            notif = _add_notification(s.superior.user, e, 'ovl', message)
+            if not notif is None:
+                count+=1
+    print("------------------------------------------------------")
+    
     return count

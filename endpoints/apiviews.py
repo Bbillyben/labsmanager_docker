@@ -11,12 +11,9 @@ from rest_framework.decorators import action
 
 from dashboard import utils
 
-
 class MilestonesViewSet(viewsets.ModelViewSet):
     queryset = Milestones.objects.prefetch_related('project').all()
     serializer_class = serializers.MilestonesSerializer
-    
-    
     
     @action(methods=['get'], detail=False, url_path='project/(?P<pj_pk>[^/.]+)', url_name='project')
     def project(self, request, pj_pk=None, pk=None):
@@ -26,8 +23,8 @@ class MilestonesViewSet(viewsets.ModelViewSet):
             if request.user.has_perm("project.change_project", proj):
                 t1 = t1.annotate(has_perm=Value(True))
         except:
-            pass
-        return JsonResponse(serializers.MilestonesSerializer(t1, many=True).data, safe=False)
+            pass                                  
+        return JsonResponse(serializers.MilestonesSerializer(t1, many=True,  context={'request': request}).data, safe=False)
 
     @action(methods=['get'], detail=False, url_path='employee/(?P<emp_pk>[^/.]+)', url_name='employee')
     def employee(self, request, emp_pk=None, pk=None):

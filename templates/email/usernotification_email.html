@@ -197,6 +197,35 @@ hr.light {
     <hr class="">
 {%endif%}
 
+{%if notification.staff_employee %}
+    <div class="main-container">
+        <div class="table_container">
+            <div class="table_title participant">
+                {% trans "Employee Notification" %}
+            </div>
+            <table class="table participant">
+                <thead>
+                    
+                    <tr class="column_title">
+                        <th>{% trans "Employee" %}</th>
+                        <th>{% trans "Action" %}</th>
+                        <th>{% trans "Message" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for n in notification.staff_employee%}
+                    <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
+                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=n.source_object.pk %}">{{n.source_object.user_name}}</a></td>
+                        <td align="center" valign="top">{{n.get_action_type_display}} {{n.source_content_type}}</td>
+                        <td align="center" valign="top">{{n.message|default_if_none:"--"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <hr class="">
+{%endif%}
 
 {% plugin_list_mixin "mailsubscription" as plugins%}
 {% for pg in plugins %}
@@ -217,6 +246,7 @@ hr.light {
     {%trans "Milestones Stales delay" %}: <b>{{milestone_stale}}</b></br>
     {%trans "Milestones Repeat delay" %}: <b>{{milestone_repeat}}</b></br>
     {%trans "Project Participant Notification activated" %}: <b>{% if participant_enab %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
+    {%trans "Employee Notification activated" %}: <b>{% if employee_enab %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
     </div>
 </div>
 

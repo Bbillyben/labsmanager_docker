@@ -1,8 +1,15 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
+### 
+[ADD] : add notification for project participant overload for employee's superior
+[ADD] : Employee can edit a milestones he is attributed
+[ADD] : project parameter => wether an employee can edit a milestone he is attributed
+
+
+
 ### 20214-12-18 v0.9.6
-note : require fixture update asn static
+note : require fixture update and static
 
 [UPDATE] : report admin update to let user download the template
 [UPDATE] : css for notes and index card

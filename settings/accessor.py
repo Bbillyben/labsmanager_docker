@@ -47,3 +47,13 @@ def set_user_setting(key, value, user, **kwargs):
 
     return LMUserSetting.set_setting(key, value, **kwargs)
 
+def get_project_setting(key, project, backup_value=None, **kwargs):
+    """Return the value of a user-specific setting using the provided key."""
+    from settings.models import LMProjectSetting
+
+    kwargs['project'] = project
+
+    if backup_value is not None:
+        kwargs['backup_value'] = backup_value
+
+    return LMProjectSetting.get_setting(key, **kwargs)

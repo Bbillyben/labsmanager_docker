@@ -24,6 +24,7 @@ class NotificationMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         milestone_stale =  LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=user)
         milestone_repeat =  LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT", user=user)
         participant_enab =  LMUserSetting.get_setting("NOTIFICATION_PROJECT_PARTICIPANT", user=user)
+        employee_enab =  LMUserSetting.get_setting("NOTIFICATION_STAFF_EMPLOYEE", user=user)
         
         self.context.update({
             'user':user,
@@ -31,7 +32,8 @@ class NotificationMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
             'milestone_enab':milestone_enab,
             'milestone_stale':milestone_stale,
             'milestone_repeat':milestone_repeat,
-            'participant_enab':participant_enab,    
+            'participant_enab':participant_enab,   
+            'employee_enab':employee_enab, 
         })
         # get all notification and separate them by content_type of source object
         userNote = UserNotification.objects.filter(user = user, send = None) ## Onlye unsent notification

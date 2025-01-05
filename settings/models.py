@@ -1139,6 +1139,14 @@ class LMUserSetting(BaseLabsManagerSetting):
             # 'after_save': checkNotif,
         },
         
+        'NOTIFICATION_STAFF_EMPLOYEE': {
+            'name': _('Employee notification'),
+            'description': _('enable automatic mail notification on employee event'),
+            'default': True,
+            'validator': bool,
+            # 'after_save': checkNotif,
+        },
+        
         'STICKY_NAVBAR': {
             'name': _('Fixed Navbar'),
             'description': _('navbar position fixed to the top of the screen'),
@@ -1227,6 +1235,12 @@ class LMProjectSetting(BaseLabsManagerSetting):
         'LEADER_EDIT_FUND': {
             'name': _('Leader can edit fund'),
             'description': _('wether the leader can edit fund of project'),
+            'default': True,
+            'validator': bool,
+        },
+        'EMPLOYEE_EDIT_MILESTONE': {
+            'name': _('Employee can edit Milestones'),
+            'description': _('wether an employee can edit a milestones he is attributed'),
             'default': True,
             'validator': bool,
         },

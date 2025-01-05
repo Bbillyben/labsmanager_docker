@@ -41,7 +41,7 @@ function milestoneRowclick(row, element, field){
 
 function adminActionMilestones(value, row, index, field){
     action = "<span class='icon-left-cell btn-group'>";
-    if(this.canChange=='True' || row.has_perm==true)action += "<button class='icon edit btn btn-success' data-form-url='/milestones/"+row.pk+"/update/' ><i type = 'button' class='fas fa-edit'></i></button>";
+    if(this.canChange=='True' || row.has_perm==true || row.can_edit)action += "<button class='icon edit btn btn-success' data-form-url='/milestones/"+row.pk+"/update/' ><i type = 'button' class='fas fa-edit'></i></button>";
     if(this.canDelete=='True')action += "<button class='icon delete btn btn-danger ' data-form-url='/milestones/"+row.pk+"/delete/' ><i type = 'button' class='fas fa-trash'></i></button>";
     action += "</span>"
     return action;

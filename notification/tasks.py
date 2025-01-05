@@ -13,7 +13,7 @@ from settings.models import LMUserSetting
 
 from .models import UserNotification
 from .mails import NotificationMail
-from .utils import check_overdue_milestones, check_stale_milestones
+from .utils import check_overdue_milestones, check_stale_milestones, check_overload_employee
 
 
 import logging
@@ -22,7 +22,8 @@ logger = logging.getLogger('labsmanager')
 def check_all_notification():
     logger.debug(f"[check_all_notification] called")
     check_overdue_milestones()
-    check_stale_milestones()
+    check_stale_milestones(), 
+    check_overload_employee()
 
 
 
