@@ -72,11 +72,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
         addModalFormFunction: update_status,
         modal_title:"Add Status",
     })
-    $('#add-info').labModalForm({
-        formURL:  Urls['create_info_employee'](employee_id),
-        addModalFormFunction: update_employee_info,
-        modal_title:"Add Info",
-    })
+
     $('#add-superior').labModalForm({
         formURL:  Urls['create_superior'](employee_id),
         addModalFormFunction: function(){$('#employee_superior_table').bootstrapTable('refresh');},
@@ -263,6 +259,11 @@ function update_info_btn(){
             modal_title:"Delete Info",
         })
     });
+        $('#add-info-gen').labModalForm({
+        formURL:  Urls['create_info_employee'](employee_id),
+        addModalFormFunction: update_employee_info,
+        modal_title:"Add Info",
+    })
 }
 function empStatusFormatter(value, row, index, field){
     //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);

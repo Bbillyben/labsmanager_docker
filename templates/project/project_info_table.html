@@ -1,6 +1,6 @@
 {% load customs_tags %}
 {% load i18n %}
-{% if infoProject %}
+
 
 {% load lab_rules %}
 
@@ -12,7 +12,6 @@
             <col width="2">
         </colgroup>
         <tbody>
-            
         {% for i in infoProject %}
         <tr>
             <td>{% get_faIcon i.info.icon %}</i></td>
@@ -31,6 +30,18 @@
 
         </tr>
         {%endfor%}
+
+{% if can_edit_project or perms.info.add_genericinfo %}
+    <td colspan="12" class="text-center">
+        
+        <button type="button" class="btn btn-secondary" id="add-info-gen" title="Add New Info">
+            <span class='fa fa-circle-info'></span>
+            {% trans 'Add Info' %}
+        </button>
+    </td>
+{% endif %}
+
+
         </tbody>
     </table>
 </div>
@@ -43,4 +54,4 @@
 })();
 
 </script>
-{% endif %}
+

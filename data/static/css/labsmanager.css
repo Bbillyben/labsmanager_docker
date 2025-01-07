@@ -428,29 +428,6 @@ main {
     background: #eee;
 }
 
-/* pricing table widths */
-.table-price-two tr td:first-child {
-    width: 40%;
-}
-
-.table-price-three tr td:first-child {
-    width: 40%;
-}
-
-.table-price-two tr td:last-child {
-    width: 60%;
-}
-
-.table-price-three tr td:last-child {
-    width: 30%;
-}
-
-/* tracking table column size */
-#track-table .table-condensed th {
-    inline-size: 30%;
-    overflow-wrap: break-word;
-}
-
 .panel-heading .badge {
     float: right;
 }

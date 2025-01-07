@@ -75,11 +75,11 @@ function initProjectSingleView(user_idA, project_idA){
         modal_title:"Export PDF",
     })
 
-    $('#add-info').labModalForm({
-        formURL:  Urls['create_info_project'](project_id),
-        addModalFormFunction: update_project_info,
-        modal_title:"Add Info",
-    })
+    // $('#add-info').labModalForm({
+    //     formURL:  Urls['create_info_project'](project_id),
+    //     addModalFormFunction: update_project_info,
+    //     modal_title:"Add Info",
+    // })
 
     $('#project-setting').labModalForm({
         formURL:  Urls['project_setting'](project_id),
@@ -211,6 +211,7 @@ function update_project_info(){
         },
         success: function( data )
         {
+            console.log(" Data : "+JSON.stringify(data))
             $('#project_info_table').html(data);
             update_info_btn();
         },
@@ -218,7 +219,8 @@ function update_project_info(){
         {
              $("body").html(err.responseText)
             //console.log(JSON.stringify(err));
-        }
+        },
+
     })    
 }
 
@@ -238,6 +240,12 @@ function update_info_btn(){
             modal_title:"Delete Info",
         })
     });
+    $('#add-info-gen').labModalForm({
+        formURL:  Urls['create_info_project'](project_id),
+        addModalFormFunction: update_project_info,
+        modal_title:"Add Info",
+    })
+    
 }
 
 // ----------------------  Participant  ------------------- //

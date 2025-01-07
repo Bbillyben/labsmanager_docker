@@ -5,6 +5,7 @@
 [ADD] : add notification for project participant overload for employee's superior
 [ADD] : Employee can edit a milestones he is attributed
 [ADD] : project parameter => wether an employee can edit a milestone he is attributed
+[UPDATE] : change first panel button layout in employee and project view, move from menu to table directly 
 
 
 
