@@ -85,6 +85,7 @@ class BaseReport(models.Model):
         path = os.path.join('report', 'report_template', self.getSubdir(), filename)
 
         fullpath = settings.MEDIA_ROOT.joinpath(path).resolve()
+        logger.debug(f'BaseReport - rename_file to "{fullpath}"')
 
         # If the report file is the *same* filename as the one being uploaded,
         # remove the original one from the media directory
@@ -110,7 +111,7 @@ class BaseReport(models.Model):
         template = template.replace('\\', os.path.sep)
 
         template = settings.MEDIA_ROOT.joinpath(template)
-
+        logger.debug(f'BaseReport - template_name to "{template}"')
         return template
     
     name = models.CharField(
@@ -234,6 +235,9 @@ class WordReport(TemplateReport):
         doc_io.seek(0)
         
         filename = self.generate_filename(request, options)
+        logger.debug(f'>>>  WordReport - Render :')
+        logger.debug(f'    - filename : {filename}')
+        logger.debug(f'    - template : {self.template.path}')
         response = DownloadFile(doc_io.read(), 
                                 filename, 
                                 content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",

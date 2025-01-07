@@ -6,6 +6,9 @@ from bootstrap_modal_forms.generic import BSModalFormView
 from .models import EmployeeWordReport, EmployeePDFReport, ProjectWordReport, ProjectPDFReport, TemplateReport
 from .forms import ReportBaseForm, EmployeeWordReportForm, EmployeePDFReportForm, ProjectWordReportForm, ProjectPDFReportForm
 
+import logging
+logger =logging.getLogger("labsmanager")
+
 class WordBaseReportView(BSModalFormView):
     template_name = 'form_base.html'
     form_class = ReportBaseForm
@@ -40,7 +43,7 @@ class WordBaseReportView(BSModalFormView):
         # self.success_url = reverse('employee_report', kwargs={'pk':emp_id, 'template':template_id,})
         urlP = reverse(self.nav_url, kwargs={'pk':emp_id, 'template':template_id,})
         urlP = request.build_absolute_uri(urlP)
-        
+        logger.debug(f"WordBaseReportView-post / urlP : {urlP}")
         # build GET parameter from post data
         param=""
         for ke in request.POST:
