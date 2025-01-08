@@ -3,6 +3,6 @@ data/dbs/
 config.yaml
 **/*.pyc
 *.bck
-*.json
+# *.json
 *_dump.json
 /pull_all.sh
