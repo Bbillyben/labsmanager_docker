@@ -12,4 +12,7 @@ urlpatterns = [
     
     path('employee/pdf/<pk>/<int:template>/', views.userPDFReport, name='employee_pdf_report'),
     path('employee/pdf/<pk>/generate/', views.EmployeePDFReportView.as_view(), name="employee_pdf_report_generate"),
+    
+    path('download_template/<app>/<model>/<int:pk>', views.download_template_report, name="download_template_report"),
+    
 ]

@@ -21,7 +21,8 @@ from django_weasyprint import WeasyTemplateResponseMixin
 import jinja2
 import json
 
-
+from django.urls import reverse
+from django.utils.html import format_html
 
 from staff.models import Employee,Employee_Status, GenericInfo, Team, TeamMate, Employee_Superior
 from expense.models import Contract
@@ -84,6 +85,7 @@ class BaseReport(models.Model):
         path = os.path.join('report', 'report_template', self.getSubdir(), filename)
 
         fullpath = settings.MEDIA_ROOT.joinpath(path).resolve()
+        logger.debug(f'BaseReport - rename_file to "{fullpath}"')
 
         # If the report file is the *same* filename as the one being uploaded,
         # remove the original one from the media directory
@@ -109,7 +111,7 @@ class BaseReport(models.Model):
         template = template.replace('\\', os.path.sep)
 
         template = settings.MEDIA_ROOT.joinpath(template)
-
+        logger.debug(f'BaseReport - template_name to "{template}"')
         return template
     
     name = models.CharField(
@@ -188,6 +190,16 @@ class TemplateReport(BaseReport):
         # rendering    
         raise  Exception("render method as to be overriden in TemplateReport")
     
+    def download_link(self):
+        app_label = self._meta.app_label
+        model_name = self._meta.model_name
+        if self.template:
+            url = reverse('download_template_report', args=[app_label, model_name, self.pk])
+            return format_html('<a href="{}" target="_blank">%s</a>'%self.template.name, url)
+        return  _("No file")
+    
+    download_link.short_description = _("Template Report Link")
+    
     filename_pattern = models.CharField(
         default="report.docx",
         verbose_name=_('Filename Pattern'),
@@ -223,6 +235,9 @@ class WordReport(TemplateReport):
         doc_io.seek(0)
         
         filename = self.generate_filename(request, options)
+        logger.debug(f'>>>  WordReport - Render :')
+        logger.debug(f'    - filename : {filename}')
+        logger.debug(f'    - template : {self.template.path}')
         response = DownloadFile(doc_io.read(), 
                                 filename, 
                                 content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",

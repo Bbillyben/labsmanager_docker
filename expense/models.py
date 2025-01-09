@@ -123,14 +123,14 @@ class Contract_type(models.Model):
 from .manager import effective_Manager, provisionnal_Manager
 import decimal
 class Contract(DateMixin, RightsCheckerMixin):
-    
+    objects = models.Manager()
     provisionnal = provisionnal_Manager()
     effective = effective_Manager()
     
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Contract")
-        default_manager_name = "objects"
+        # default_manager_name = "objects"
         
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
     quotity = models.DecimalField(max_digits=4, decimal_places=3, default=1, validators=PERCENTAGE_VALIDATOR, verbose_name=_('Time quotity'))

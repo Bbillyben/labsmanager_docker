@@ -523,6 +523,7 @@ logger.debug('=========  =========  =========')
 PLUGINS_ENABLED = get_boolean_setting('LABSMANAGER_PLUGINS_ENABLED', 'plugin_enable', False)
 TESTING = False
 PLUGIN_TESTING = False
+PLUGIN_TESTING_SETUP = False
 PLUGIN_RETRY = True
 PLUGIN_DIR = get_setting('LABSMANAGER_PLUGIN_DIR', 'plugin_dir')
 TESTING_ENV = False

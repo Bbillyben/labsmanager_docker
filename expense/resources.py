@@ -15,6 +15,8 @@ from expense.models import Expense_point
 from fund.models import Fund, Cost_Type
 from project.models import Project
 from settings.models import LMProjectSetting
+
+
 class CheckProjectTypeResourceMixin():
     class Meta:
         abstract=True
@@ -68,17 +70,17 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
     project=FundField(
         column_name=_('Project'),
         attribute='fund_item', 
-        widget=widgets.ForeignKeyWidget(Fund, 'project__name'), readonly=False
+        widget=widgets.ForeignKeyWidget(Fund, 'project__name'), readonly=True
     )
     funder=FundField(
         column_name=_('Funder'),
         attribute='fund_item', 
-        widget=widgets.ForeignKeyWidget(Fund, 'funder__short_name'), readonly=False
+        widget=widgets.ForeignKeyWidget(Fund, 'funder__short_name'), readonly=True
     )
     institution=FundField(
         column_name=_('Institution'),
         attribute='fund_item', 
-        widget=widgets.ForeignKeyWidget(Fund, 'institution__short_name'), readonly=False
+        widget=widgets.ForeignKeyWidget(Fund, 'institution__short_name'), readonly=True
     )
     desc=Field(
         column_name=_('Description'),
@@ -109,9 +111,8 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
             qset = Expense.objects.filter(expense_id=row["Expense Id"])
             if qset.count()==1:
                 row["id"] = qset.first().pk
-            else:
-                print(f' should raise error')
-                raise MultipleObjectsReturned(_("Expense id : '%(eid)s' return %(count)s objects for fund ref '%(fund)s'")%({'eid':row["Expense Id"], 'count':qset.count(), 'fund': row["Ref"]}))
+            # else:
+            #     raise MultipleObjectsReturned(_("Expense id : '%(eid)s' return %(count)s objects for fund ref '%(fund)s'")%({'eid':row["Expense Id"], 'count':qset.count(), 'fund': row["Ref"]}))
         return qset
         
     

@@ -26,7 +26,7 @@
 </form>
 {{ form.media }}
 <script>
-  $('.form-check-input').change(function(){
+  $('#modal-confirm.form-check-input').change(function(){
     var enabled = this.checked;
     //$(this).parent().find(':submit').prop( "disabled", !enabled );
     $('#modal-form-submit').prop( "disabled", !enabled );

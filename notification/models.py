@@ -61,6 +61,7 @@ class TypedNotification(models.Model):
                ("com", _("Complete")),
                ("del", _("Delete")),
                ("res", _("Reschedule")),
+               ("ovl", _("Overload")),
             )
     action_type = models.CharField(
         max_length=3,

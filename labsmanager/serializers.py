@@ -15,7 +15,7 @@ from django.db.models import Sum, Count
 
 from datetime import timedelta, datetime
 
-
+import rules
 
 
 
@@ -120,18 +120,23 @@ class MilestonesSerializer(serializers.ModelSerializer):
     has_perm = serializers.BooleanField(read_only=True)
     employee = EmployeeSerialize_Min(many=True, read_only=True)
     notes = serializers.SerializerMethodField()
+    can_edit = serializers.SerializerMethodField()
     class Meta:
         model = Milestones
         fields = ['pk', 'name', 'deadline_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project', 
                   'employee',
                   'has_perm', 
                   'notes',
+                  'can_edit',
                   ]  
     def get_notes(self,obj):
        return GenericNote.objects.filter(
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk
         ).count()
+    def get_can_edit(self, obj):
+        user = self.context['request'].user 
+        return user.has_perm('endpoints.change_milestones', obj) # rules.test_rule('endpoints.change_milestones', user, obj)
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Leave
 class LeaveTypeSerializer(serializers.ModelSerializer):

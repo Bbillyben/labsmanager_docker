@@ -36,6 +36,10 @@ class ContractModelForm(BSModalModelForm):
                 queryset=Employee.objects.all().order_by('first_name'),
                 widget=forms.HiddenInput
             )
+        elif("data" in kwargs):
+            self.base_fields['employee'] = forms.ModelChoiceField(
+                queryset=Employee.objects.all().order_by('first_name'),
+            )
         else:
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.filter(is_active=True).order_by('first_name'),

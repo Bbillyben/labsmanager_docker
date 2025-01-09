@@ -3,8 +3,11 @@ from django.http import HttpResponse, JsonResponse
 from django.urls import reverse, reverse_lazy
 
 from bootstrap_modal_forms.generic import BSModalFormView
-from .models import EmployeeWordReport, EmployeePDFReport, ProjectWordReport, ProjectPDFReport
+from .models import EmployeeWordReport, EmployeePDFReport, ProjectWordReport, ProjectPDFReport, TemplateReport
 from .forms import ReportBaseForm, EmployeeWordReportForm, EmployeePDFReportForm, ProjectWordReportForm, ProjectPDFReportForm
+
+import logging
+logger =logging.getLogger("labsmanager")
 
 class WordBaseReportView(BSModalFormView):
     template_name = 'form_base.html'
@@ -40,7 +43,7 @@ class WordBaseReportView(BSModalFormView):
         # self.success_url = reverse('employee_report', kwargs={'pk':emp_id, 'template':template_id,})
         urlP = reverse(self.nav_url, kwargs={'pk':emp_id, 'template':template_id,})
         urlP = request.build_absolute_uri(urlP)
-        
+        logger.debug(f"WordBaseReportView-post / urlP : {urlP}")
         # build GET parameter from post data
         param=""
         for ke in request.POST:
@@ -85,4 +88,16 @@ def projectPDFReport(request, pk, template):
     return rep.render(request, {"pk":int(pk),})
 
     
-    
+from django.http import FileResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.apps import apps
+
+@login_required
+def download_template_report(request, app, model, pk):
+    templateModel = apps.get_model(app_label=app, model_name=model)
+    report = get_object_or_404(templateModel, pk=pk)
+    if not report.template:
+        raise Http404("Aucun fichier n'est associé à ce rapport.")
+    response = FileResponse(report.template.open('rb'), as_attachment=True, filename=report.template.name)
+    return response

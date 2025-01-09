@@ -12,6 +12,9 @@ from django.contrib.auth import get_user_model
 
 from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
 
+import logging
+logger = logging.getLogger("labsmanager")
+
 class TeamMateForm(forms.ModelForm):
     model = TeamMate
     fields = [
@@ -176,6 +179,27 @@ class TeamModelForm(SanitizeDataFormMixin, BSModalModelForm):
         model = Team
         fields = ['name', 'leader',]
 
+    def __init__(self, *args, **kwargs): 
+        print ('--------------------------------  TeamModelForm')
+        for a in args:
+            print(f" - {a}")
+        for k,v in kwargs.items():
+            print(f" - {k}:{v}")
+            
+        if 'request' in kwargs :
+            request = kwargs["request"]
+            print(f'  - request : {request}')
+            print(f'  - User : {request.user}')
+            if not request.user.has_perm("staff.change_team"):
+                try:
+                    emp = Employee.objects.get(user= request.user)
+                    self.base_fields['leader'].queryset =Employee.objects.filter(pk=emp.pk)
+                except Exception as e:
+                    logger.debug(f"Unable to create Team Leader from user {request.user} ")
+                    logger.debug(f" ERROR : {e}")
+            else:
+                 self.base_fields['leader'].queryset =Employee.objects.filter(is_active=True)
+        return super().__init__(*args, **kwargs)
         
 class TeamMateModelForm(BSModalModelForm):
     class Meta:
@@ -191,11 +215,11 @@ class TeamMateModelForm(BSModalModelForm):
             team_id=kwargs['initial']['team']
             mateInTeam=TeamMate.objects.filter(team=team_id).values('employee')
             self.base_fields['employee'] = forms.ModelChoiceField(
-                queryset=Employee.objects.filter(~Q(pk__in=mateInTeam)),
+                queryset=Employee.objects.filter(~Q(pk__in=mateInTeam) & Q(is_active=True)),
             )
         else:
              self.base_fields['employee'] = forms.ModelChoiceField(
-                queryset=Employee.objects.all(),
+                queryset=Employee.objects.filter(is_active=True),
             )
             
         

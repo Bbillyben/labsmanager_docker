@@ -13,11 +13,42 @@ from labsmanager import serializers
 
 from django.contrib.contenttypes.models import ContentType
 
-from .models import OrganizationInfos, Contact
+from .models import OrganizationInfos, Contact, GenericNote
 from project.models import Project, Institution, Institution_Participant
 from fund.models import Fund_Institution, Fund
 from expense.models import Contract
 
+class genericnoteViewSet(viewsets.ModelViewSet):
+    queryset = GenericNote.objects.all()
+    serializer_class = serializers.GenericInfoSerialiszer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def list(self, request):
+        serializer = self.serializer_class(self.queryset, many=True)
+        return Response(serializer.data)
+    
+    def retrieve(self, request, pk=None):
+        note = get_object_or_404(self.queryset, pk=pk)
+        serializer = self.serializer_class(note)
+        return Response(serializer.data)
+    
+    # def update(self, request, pk=None):
+    #     note = get_object_or_404(self.queryset, pk=pk)
+    #     serializer = self.serializer_class(note, data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # # Mise à jour partielle de la note
+    # def partial_update(self, request, pk=None):
+    #     note = get_object_or_404(self.queryset, pk=pk)
+    #     serializer = self.serializer_class(note, data=request.data, partial=True)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class organisationViewSet(viewsets.ViewSet):
     queryset = OrganizationInfos.objects.all()
     serializer_class = serializers.OrganizationInfoSerializer

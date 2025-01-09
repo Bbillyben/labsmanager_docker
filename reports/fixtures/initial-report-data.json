@@ -1,0 +1,75 @@
+[
+  {
+    "model": "reports.employeewordreport",
+    "pk": 1,
+    "fields": {
+      "name": "Default Employee Report",
+      "description": "Full Reports for employee",
+      "revision": 7,
+      "filename_pattern": "report_{{employee.first_name}}_{{employee.last_name}}_{{datetime_SI}}.docx",
+      "enabled": true,
+      "template": "report/report_template/employee/employee_report.docx"
+    }
+  },
+  {
+    "model": "reports.employeewordreport",
+    "pk": 2,
+    "fields": {
+      "name": "Employee Leave Report",
+      "description": "Report leaves of an employee",
+      "revision": 2,
+      "filename_pattern": "leave_report_{{employee.first_name}}_{{employee.last_name}}_{{datetime_SI}}.docx",
+      "enabled": true,
+      "template": "report/report_template/employee/employee_leave_report.docx"
+    }
+  },
+  {
+    "model": "reports.employeepdfreport",
+    "pk": 1,
+    "fields": {
+      "name": "Employee PDF report - Full",
+      "description": "Full information employee report",
+      "revision": 3,
+      "filename_pattern": "report_{{employee.first_name}}_{{employee.last_name}}_{{datetime_SI}}.pdf",
+      "enabled": true,
+      "template": "report/report_template/employee/employee_pdf_report.html"
+    }
+  },
+  {
+    "model": "reports.employeepdfreport",
+    "pk": 2,
+    "fields": {
+      "name": "Employee Leave Report",
+      "description": "Report leaves of an employee",
+      "revision": 2,
+      "filename_pattern": "report_{{employee.first_name}}_{{employee.last_name}}_{{datetime_SI}}.pdf",
+      "enabled": true,
+      "template": "report/report_template/employee/employee_pdf_leave_report.html"
+    }
+  },
+  {
+    "model": "reports.projectwordreport",
+    "pk": 1,
+    "fields": {
+      "name": "Default Project Report",
+      "description": "Full Reports for prject",
+      "revision": 10,
+      "filename_pattern": "report_{{project.name}}_{{datetime_SI}}.docx",
+      "enabled": true,
+      "template": "report/report_template/project/Project_report.docx"
+    }
+  },
+  {
+    "model": "reports.projectpdfreport",
+    "pk": 1,
+    "fields": {
+      "name": "Project PDF report - Full",
+      "description": "full project report",
+      "revision": 2,
+      "filename_pattern": "report_{{project.name}}_{{datetime_SI}}.pdf",
+      "enabled": true,
+      "template": "report/report_template/project/project_pdf_report.html"
+    }
+  }
+]
+    

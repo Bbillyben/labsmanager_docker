@@ -198,6 +198,7 @@ def get_generic_infos_template(request, app, model, pk):
     data['object_id']=pk
     #custom permission rules
     rulesname = f'{app}.change_{model}'
+    spec_rulesname = f'{app}.changenote_{model}'
     if not rules.perm_exists(rulesname):
         data['custom_rule']=False
     else:
@@ -206,7 +207,7 @@ def get_generic_infos_template(request, app, model, pk):
         if not obj:
             data['custom_rule']=False
         else:
-             data['custom_rule']=request.user.has_perm(rulesname, obj)
+             data['custom_rule']=request.user.has_perm(rulesname, obj)|request.user.has_perm(spec_rulesname, obj)
 
     return render(request, 'notes/note_panel.html', data)
 

@@ -13,6 +13,9 @@
 .nav-notes  .nav-link{
     padding: 0rem 1rem 0rem 0.5rem;
 }
+.nav-notes  .nav-link:has(sup){
+    padding: 0rem 0rem 0rem 0.5rem;
+}
 .nav-notes  .nav-link, .nav-notes  .show > .nav-link{
     color:var(--bs-body-color);
     /* background-color: var(--subheading-color); */
@@ -61,4 +64,22 @@
     font-size: 80%;
     padding:0.187rem 0.375rem;
     margin:0.2em 0 0.2em 0;
+}
+.note-cont .note-save{
+    margin-left: 0.5em;
+    font-size: 70%;
+    font-weight: lighter;
+    font-style: italic;
+}
+
+/* pour l'éditeur */
+.prose-menubar__button{
+    background: var(--secondary-color);
+}
+.ProseMirror ol{
+    padding-left: revert !important;
+}
+.note-content blockquote {
+    padding-left: 1rem !important;
+    border-left: 2px solid var(--secondary-color) !important;
 }

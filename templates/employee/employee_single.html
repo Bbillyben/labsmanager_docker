@@ -26,7 +26,6 @@
 {% include 'modals.html' with modal_id='single-modal' modal_title='Single' %}
 {% include 'modals.html' with modal_id='note-modal' modal_title='Single' %}
 {% has_lab_perm 'staff.change_employee' user employee as can_edit_employee %}
-{% has_lab_perm 'staff.add_genericinfo' user employee as can_add_genericinfo %}
 
 {% has_lab_perm 'reports.view_employeewordreport' user employee as can_print_report %}
 
@@ -56,14 +55,6 @@
                         {% if can_edit_employee %}
                         <li><a class="dropdown-item" href="#" id="edit-employee" title="Edit Employee">
                             <i class='fa fa-edit'></i> {% trans 'Edit Employee' %}
-                        </a></li>
-                        <li><a class="dropdown-item" href="#" id="add-status" title="Add Status">
-                            <i class='fa fa-user-plus'></i> {% trans 'Add Status' %}
-                        </a></li>
-                        {% endif %}
-                        {% if can_add_genericinfo %}
-                        <li><a class="dropdown-item" href="#" id="add-info" title="Add Info">
-                            <i class='fa fa-person-circle-plus'></i> {% trans 'Add Info' %}
                         </a></li>
                         {% endif %}
                         {% if can_print_report %}
@@ -96,6 +87,18 @@
                     <div class="card  mb-2">
                         <div class="row">
                             <div class="col">
+                                <div class="d-flex flex-wrap subheading">
+                                    <h4><i class="fa-regular fa-id-badge"></i>  {% trans 'Status' %} </h4>
+                                    <span class="flex" style="flex-grow: 1;"></span>
+                                    {% if can_edit_employee %}
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-secondary" id="add-status" title="Add Item" data-pk="105" data-form-url="">
+                                            <svg class="svg-inline--fa fa-plus" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="plus" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"></path></svg><!-- <span class="fa fas fa-plus"></span> Font Awesome fontawesome.com -->
+                                        </button> 
+                                    </div>
+                                    {% endif %}
+
+                                </div>
                                 <table
                                     class='table table-striped table-condensed'
                                     id="employee_status_table"

@@ -1,6 +1,30 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
+### 
+[ADD] : add notification for project participant overload for employee's superior
+[ADD] : Employee can edit a milestones he is attributed
+[ADD] : project parameter => wether an employee can edit a milestone he is attributed
+[UPDATE] : change first panel button layout in employee and project view, move from menu to table directly 
+[ADD] : Milestones notification for project leader about Milestones edition
+
+
+### 20214-12-18 v0.9.6
+note : require fixture update and static
+
+[UPDATE] : report admin update to let user download the template
+[UPDATE] : css for notes and index card
+[FIX] : user able to add/update note for it's own employee
+[FIX] : issue when an employee is disabled, unable to update contract, budget
+[FIX] : issue when an admin in setting check notif, for refresh table (id is dependent of Languages!)
+[FIX] : funditem add for projet leader
+[FIX] : manage participant for leader where leader is not employee superior
+[UPDATE] : add participant : only show not already in participant list of the current project
+[UPDATE] : ability to create team for user who have rights + team mates form to focus on active employee/ change groupe rights 
+[FIX] : Import error on expense when exp Id is set for new expense
+[FIX] : docker invoke task for dumpdata
+[FIX] : bug fix for resending alreadyn sent notification with new one
+[UPDATE] : milestones notification for leader and coleader of a project.
 
 ### v0.9.5/ 2024-11-08
 note : require full update (migration and static)

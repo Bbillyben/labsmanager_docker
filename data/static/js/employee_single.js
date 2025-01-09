@@ -72,11 +72,7 @@ function initEmployeeSingleView(user_idA, employee_idA){
         addModalFormFunction: update_status,
         modal_title:"Add Status",
     })
-    $('#add-info').labModalForm({
-        formURL:  Urls['create_info_employee'](employee_id),
-        addModalFormFunction: update_employee_info,
-        modal_title:"Add Info",
-    })
+
     $('#add-superior').labModalForm({
         formURL:  Urls['create_superior'](employee_id),
         addModalFormFunction: function(){$('#employee_superior_table').bootstrapTable('refresh');},
@@ -139,6 +135,11 @@ function initEmployeeCalendar(){
         extraParams:{employee:employee_id},
         eventCallback: function(){ $('#employee_leave_table').bootstrapTable('refresh')},
         cal_type:'employee',
+        headerToolbar:{
+            left: 'prev,next today datePickerButton',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek,listWeek,timelineYearCustom'
+        },
     }
     const view = localStorage.getItem(`labsmanager-calendar-view_employee`);
     if (view){
@@ -258,6 +259,11 @@ function update_info_btn(){
             modal_title:"Delete Info",
         })
     });
+        $('#add-info-gen').labModalForm({
+        formURL:  Urls['create_info_employee'](employee_id),
+        addModalFormFunction: update_employee_info,
+        modal_title:"Add Info",
+    })
 }
 function empStatusFormatter(value, row, index, field){
     //console.log('statusFormatter : '+JSON.stringify(value)+" - row : "+JSON.stringify(row) + "  - index :"+index+ " - fiels :"+field+"  # allow :"+this.allow);
