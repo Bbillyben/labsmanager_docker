@@ -291,7 +291,6 @@ main {
 
 .filter-list {
     display: inline-block;
-    *display: inline;
     margin-bottom: 1px;
     margin-top: 1px;
     vertical-align: middle;
@@ -318,7 +317,6 @@ main {
 
 .filter-tag {
     display: inline-block;
-    *display: inline;
     zoom: 1;
     padding-top: 3px;
     padding-left: 3px;
@@ -340,7 +338,6 @@ main {
 
 .filter-input {
     display: inline-block;
-    *display: inline;
     zoom: 1;
 }
 
@@ -1755,4 +1752,13 @@ li.list-spacer{
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+
+  /*  Tooltip fot popper */
+  div[role="tooltip"]{
+    display: none;
+  }
+  div[role="tooltip"][data-show]{
+    display: block;
   }

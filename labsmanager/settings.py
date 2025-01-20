@@ -16,6 +16,8 @@ import os
 from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir
 import logging
 
+from django.utils.translation import gettext_lazy as _
+
 from .lab_version import *
 
 logger = logging.getLogger('labsmanager')
@@ -533,3 +535,26 @@ logger.debug(f'  - PLUGIN_DIR: {PLUGIN_DIR}')
 logger.debug(f'  - PLUGIN_TESTING: {PLUGIN_TESTING}')
 logger.debug(f'  - PLUGIN_RETRY: {PLUGIN_RETRY}')
 logger.debug('=========  =========  =========')
+
+LABSMANAGER_SHOW_HELP=get_boolean_setting("LABSMANAGER_SHOW_HELP", 'show_help', True)
+HELP_LINKS = []
+help_lk= get_setting('HELP_LINK', 'help_link', None)
+if help_lk:
+    links=help_lk.split(' ')
+    for link in links:
+        label, url = link.split(';')
+        HELP_LINKS.append({
+            "label": _(label),
+            "url": url,
+        })
+else:
+    HELP_LINKS=[
+            {
+                "label":_("Documentation"),
+                "url":"https://labsmanager-doc.readthedocs.io/en/latest/",
+            },
+            {
+                "label":_("Issues"),
+                "url":"https://github.com/Bbillyben/labsmanager/issues",
+            },
+        ]
