@@ -1,10 +1,13 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
+### 2025-02-20
+[FIX] bug of leave add or modification issue with employee
+
 ### 2025-01-19
 [ADD] : add notification for project participant overload for employee's superior
 [ADD] : Employee can edit a milestones he is attributed
-    [FIX] : Milestones display in user's employee page
+[FIX] : Milestones display in user's employee page
 [ADD] : project parameter => wether an employee can edit a milestone he is attributed
 [UPDATE] : change first panel button layout in employee and project view, move from menu to table directly 
 [ADD] : Milestones notification for project leader about Milestones edition

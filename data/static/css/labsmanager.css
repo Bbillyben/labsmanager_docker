@@ -1756,9 +1756,9 @@ li.list-spacer{
 
 
   /*  Tooltip fot popper */
-  div[role="tooltip"]{
+  /* div[role="tooltip"]{
     display: none;
   }
   div[role="tooltip"][data-show]{
     display: block;
-  }
+  } */
