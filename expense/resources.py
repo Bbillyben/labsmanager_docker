@@ -50,7 +50,7 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
     type=Field(
         column_name=_('type'),
         attribute='type', 
-        widget=widgets.ForeignKeyWidget(Cost_Type, 'name'), readonly=False
+        widget=widgets.ForeignKeyWidget(Cost_Type, 'short_name'), readonly=False
     )
     amount=DecimalField(
         column_name=_('Amount'),
@@ -105,14 +105,16 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
     def before_import_row(self, row, row_number=None, **kwargs):
         super().before_import_row(row, row_number, **kwargs)
         qset = Expense.objects.none()
-        if row["id"] != None:
+        if "id" in row and row["id"] != None:
             qset = Expense.objects.get(pk=row["id"])
-        elif row["Expense Id"] != None:
+        elif "Expense Id" in row and row["Expense Id"] != None:
             qset = Expense.objects.filter(expense_id=row["Expense Id"])
             if qset.count()==1:
                 row["id"] = qset.first().pk
             # else:
             #     raise MultipleObjectsReturned(_("Expense id : '%(eid)s' return %(count)s objects for fund ref '%(fund)s'")%({'eid':row["Expense Id"], 'count':qset.count(), 'fund': row["Ref"]}))
+        else:
+            row["id"]=None
         return qset
         
     
