@@ -1,10 +1,11 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
 from django.core.exceptions import  ImproperlyConfigured, MultipleObjectsReturned
-from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, DateField, DecimalField
+from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, SkipSameValueRessource, DateField, DecimalField
 
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
+from labsmanager.ressources import NormalizedDecimalField
 import import_export.widgets as widgets
 from import_export import resources, results
 
@@ -42,7 +43,7 @@ class CheckProjectTypeResourceMixin():
                 raise ImproperlyConfigured(_("The project %(proj)s is not configured to accept '%(imp_class)s' import (setting value : '%(set_val)s')")%({'proj':project.name, 'imp_class':self._meta.model.__name__, 'set_val':proj_set.as_choice()}))
         return result
     
-class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorRessource):
+class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipSameValueRessource, SkipErrorRessource):
     expense_id=Field(
         column_name=_('Expense Id'),
         attribute='expense_id', 
@@ -52,7 +53,7 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
         attribute='type', 
         widget=widgets.ForeignKeyWidget(Cost_Type, 'short_name'), readonly=False
     )
-    amount=DecimalField(
+    amount=NormalizedDecimalField(
         column_name=_('Amount'),
         attribute='amount', 
         widget=widgets.DecimalWidget(),
