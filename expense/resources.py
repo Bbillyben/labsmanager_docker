@@ -86,10 +86,11 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipSameValueR
     desc=Field(
         column_name=_('Description'),
         attribute='desc', 
-    )
+    )   
     
     class Meta:
         """Metaclass"""
+        name=_("Single Expense Import")
         model = Expense
         skip_unchanged = False
         clean_model_instances = False
@@ -255,7 +256,7 @@ class ExpensePointResource(CheckProjectTypeResourceMixin, labResource, SkipError
     
     
     class Meta:
-        name=_("Expense Point Resource")
+        name=_("Global Expense by type Import")
         model = Expense_point
         skip_unchanged = True
         clean_model_instances = False

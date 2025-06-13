@@ -1,7 +1,9 @@
 from import_export.resources import ModelResource
 from import_export import results, widgets
 from import_export.fields import Field
-import datetime
+import functools
+from decimal import Decimal
+from datetime import datetime, date
 
 from decimal import Decimal
 from django.utils.encoding import force_str, smart_str
@@ -16,7 +18,7 @@ class labResource(ModelResource):
     Ensures that exported data are escaped to prevent malicious formula injection.
     Ref: https://owasp.org/www-community/attacks/CSV_Injection
     """
-
+    
     def export_resource(self, obj):
         """Custom function to override default row export behaviour.
         Specifically, strip illegal leading characters to prevent formula injection
@@ -78,9 +80,7 @@ class SkipErrorRessource(ModelResource):
     class Meta:
         abstract = True
 
-import functools
-from decimal import Decimal
-from datetime import datetime, date
+
 
 def resolve_value(val):
     if isinstance(val, functools.partial):
@@ -123,7 +123,7 @@ class DateField(Field):
         
     def get_value(self, obj):
         val=super().get_value(obj)
-        if isinstance(val, datetime.datetime):
+        if isinstance(val, datetime):
             return val.date()
         return val   
     

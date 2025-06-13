@@ -255,7 +255,7 @@ class EmployeeAdminResource(labResource, SkipErrorRessource):
      
     class Meta:
         """Metaclass"""
-        name = _('Employee Resource')
+        name = _('Employee Import')
         model = Employee
         skip_unchanged = True
         clean_model_instances = False

@@ -1,6 +1,11 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
+### 2025-06 :
+[FIX] update comparison and Field in expenseResource to ignore import on same amout with zero decimal.
+[FIX] bug introduce with resource modification above
+[ADD] : team filter for employee list
+
 ### 2025-02-20
 [FIX] bug of leave add or modification issue with employee
 

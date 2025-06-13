@@ -20,7 +20,7 @@ from staff.ressources import EmployeeAdminResource
 class FundItemImportView(LoginRequiredMixin, PermissionRequiredMixin, mixin.ImportViewMixin):
     permission_required='common.import'
     # resource_class = FundItemAdminResource
-    resource_classes =[FundItemAdminResource, ExpensePointResource,ExpenseResource,  EmployeeAdminResource]
+    resource_classes =[ExpenseResource, FundItemAdminResource, ExpensePointResource,  EmployeeAdminResource]
     model = Fund_Item
     
 class FundItemImportViewConfirmImportView(LoginRequiredMixin, PermissionRequiredMixin, mixin.ConfirmImportViewMixin):

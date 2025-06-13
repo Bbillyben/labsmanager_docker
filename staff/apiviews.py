@@ -63,6 +63,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             inS=Employee_Status.current.filter(type=current_status).values('employee')
             queryset = queryset.filter(pk__in=inS)
         
+        team = params.get('team', None) 
+        if team:
+            leader=Team.objects.filter(pk__in=team).values('leader')
+            mates = TeamMate.current.filter(team=team).values('employee')
+            queryset = queryset.filter(Q(pk__in=leader) | Q(pk__in=mates))
+            
         return queryset
     
     def get_queryset(self, *arg, **kwargs):
