@@ -17,6 +17,13 @@ from fund.resources import FundItemAdminResource
 from fund.models import Fund_Item
 from expense.resources import ExpensePointResource, ExpenseResource
 from staff.ressources import EmployeeAdminResource
+
+
+# ///////////////// IMPORTANT NOTE /////////////////////////////
+#  resources_classe in FundItemImportView and FundItemImportViewConfirmImportView
+# HAS TO BE THE EXACT SAME IN THE SAME ORDER !!!!!
+# otherwise it will skip row every time
+# /////////////////////////////////////////////////////////////
 class FundItemImportView(LoginRequiredMixin, PermissionRequiredMixin, mixin.ImportViewMixin):
     permission_required='common.import'
     # resource_class = FundItemAdminResource
@@ -26,5 +33,5 @@ class FundItemImportView(LoginRequiredMixin, PermissionRequiredMixin, mixin.Impo
 class FundItemImportViewConfirmImportView(LoginRequiredMixin, PermissionRequiredMixin, mixin.ConfirmImportViewMixin):
         permission_required='common.import'
         # resource_class = FundItemAdminResource
-        resource_classes =[FundItemAdminResource, ExpensePointResource,ExpenseResource,  EmployeeAdminResource]
+        resource_classes =[ExpenseResource, FundItemAdminResource, ExpensePointResource,  EmployeeAdminResource]
         model = Fund_Item

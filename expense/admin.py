@@ -93,14 +93,14 @@ class ExpenseTimePointAdmin(ImportExportModelAdmin):
     list_display_links = None
 
 class ExpenseAdmin(ImportExportModelAdmin):
-    list_display = ('get_desc', 'fund_item','type', 'amount', 'get_status_display')
+    list_display = ('get_desc', 'fund_item','type', 'amount','date', 'get_status_display')
     list_filter=('date', 'type', ExpenseFundListFitler)
     resource_classes = [ExpenseResource]
     def get_queryset(self, request):
         return Expense.object_inherit.all().select_subclasses()
     
     def get_desc(self, obj):
-        print(f"-----------> obj : {obj} is cont ins : {isinstance(obj, Contract_expense)}")
+        # print(f"-----------> obj : {obj} is cont ins : {isinstance(obj, Contract_expense)}")
         if isinstance(obj, Contract_expense):
             desc =  obj.contract.employee
             url = reverse('admin:expense_contract_expense_change', args=[obj.pk])
