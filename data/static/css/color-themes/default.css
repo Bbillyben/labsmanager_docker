@@ -64,10 +64,29 @@
     background-color: var(--primary-color-alpha-dark);
     color:white;
 }
+.org-chart-cont .title.greyed{
+    background-color: grey !important;
+}
+.org-chart-cont .title.greyed a{
+    color: lightgray !important;
+}
 .org-chart-cont .title.highlighted{
     font-style: italic;
     background-color: chartreuse !important;
 }
+.org-chart-cont .title.highlighted_hier{
+    background-color: var(--third-color-dark) !important;
+}
+.org-chart-cont .title.highlighted_hier a{
+    color: lightgray !important;
+}
+.org-chart-cont .title.highlighted_bos{
+    background-color: var(--primary-color) !important;
+}
+.org-chart-cont .title.highlighted_bos a{
+    color: lightgray !important;
+}
+
 
 .bstreeview .inactive, .bstreeview .inactive a{
     color:grey;
