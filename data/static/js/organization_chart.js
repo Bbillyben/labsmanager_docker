@@ -14,6 +14,7 @@ function update_organization_chart(){
             console.error(`Error in update_organization_chart at '${urlOC}'`);
         }
     });
+    $("#employee_highlight").on("input", highlight_employee)
 }
 //https://github.com/dabeng/OrgChart/tree/master
 
@@ -110,4 +111,22 @@ function comparteSubordinate(a, b){
     if(a.subordinate_count > b.subordinate_count)return -1;
     if(a.subordinate_count < b.subordinate_count)return 1;
     return 0;
+}
+
+function highlight_employee(e){
+    console.log("This is highlight");
+    $(".title").removeClass("highlighted");
+    var search = e.target.value.trim();
+    if (!search) return;
+    var re = new RegExp(search, "i");
+    
+
+    $(".title").each(function() {
+        // On prend le texte affiché (par exemple celui du <a> dans .title)
+        var txt = $(this).text();
+        if (re.test(txt)) {
+            $(this).addClass("highlighted");
+        }
+    });
+    
 }

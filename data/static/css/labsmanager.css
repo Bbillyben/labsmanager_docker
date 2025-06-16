@@ -1645,6 +1645,42 @@ li.list-spacer{
     .bstreeview .inactive, .bstreeview .inactive a{
         font-style: italic;
     }
+
+    /* for search in organigramme */
+    .search_tools[data-bs-toggle="collapse"]{
+        padding: 1em;
+    }
+    .search_tools[data-bs-toggle="collapse"][aria-expanded="false"]:after{
+        content: ' ';
+        display: inline-block;
+      
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 5px solid currentColor;
+      
+        vertical-align: middle;
+        margin-right: .7rem;
+        margin-left: 0.7em;
+        transform: translateY(-2px);
+      
+        transition: transform .2s ease-out;
+    }
+    .search_tools[data-bs-toggle="collapse"][aria-expanded="true"]:after{
+        content: ' ';
+        display: inline-block;
+      
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 5px solid currentColor;
+      
+        vertical-align: middle;
+        margin-right: .7rem;
+        margin-left: 0.7em;
+        transform: rotate(90deg) translateX(-1px);
+        transition: transform .2s ease-out;
+    }
+
+
     /* for inactive node */
    .node.inactive .title, .node.inactive .title a{
         font-style: italic;
@@ -1762,3 +1798,4 @@ li.list-spacer{
   div[role="tooltip"][data-show]{
     display: block;
   } */
+

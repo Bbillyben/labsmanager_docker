@@ -190,7 +190,7 @@ class ContractViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='contract_fund_modal/(?P<fund_id>[0-9]+)', url_name='contract_fund_modal')
     def get_contract_fund_modal(self, request, fund_id):
-        qset = Contract.objects.futur().select_related('employee', 'fund', 'contract_type').all()
+        qset = Contract.futur.select_related('employee', 'fund', 'contract_type').all()
         qset=self.filter_queryset(qset)
         qset=qset.filter(fund=fund_id)
         data = {'contracts': qset}

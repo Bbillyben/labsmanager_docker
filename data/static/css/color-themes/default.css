@@ -64,6 +64,11 @@
     background-color: var(--primary-color-alpha-dark);
     color:white;
 }
+.org-chart-cont .title.highlighted{
+    font-style: italic;
+    background-color: chartreuse !important;
+}
+
 .bstreeview .inactive, .bstreeview .inactive a{
     color:grey;
 }

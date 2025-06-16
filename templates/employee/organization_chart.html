@@ -35,6 +35,16 @@
 
         <div class="panel-content">
             <div class="col">
+                <div class="card  mb-2 ">
+                    <div class="search_tools" data-bs-toggle="collapse" data-bs-target="#search_container" aria-expanded="false">
+                        {% trans 'Search Tools' %} 
+                    </div>
+
+                    <div id="search_container" class="wrapper panel-content collapse hide">
+                        <label class="panel-content">{% trans 'Highlight Employee' %}  : </label>
+                        <input id="employee_highlight" type="search" class="form-control search-input" style="width:25%;">
+                    </div>
+                </div>
                 <div class="card  mb-2">
                     <div class ="col" id="chart-container">
                     </div>
