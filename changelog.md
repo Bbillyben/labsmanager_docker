@@ -5,6 +5,7 @@
 [FIX] update comparison and Field in expenseResource to ignore import on same amout with zero decimal.
 [FIX] bug introduce with resource modification above (II)
 [ADD] : team filter for employee list
+[ADD] : spinner for loading when import
 
 ### 2025-02-20
 [FIX] bug of leave add or modification issue with employee
