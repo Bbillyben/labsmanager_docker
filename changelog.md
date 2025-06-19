@@ -1,7 +1,11 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
-### 2025-06 :
+### latest :
+[ADD] : notification of user's subscribed employee and project on milestones and employee overload.
+
+
+### 0.9.2 2025-06 :
 [FIX] update comparison and Field in expenseResource to ignore import on same amout with zero decimal.
 [FIX] bug introduce with resource modification above (II)
 [ADD] : team filter for employee list
