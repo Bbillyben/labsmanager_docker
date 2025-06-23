@@ -735,10 +735,12 @@ class EmployeeOrganizationChartOrgSerialize(serializers.ModelSerializer):
 
 class IncommingEmployeeSerialize(serializers.ModelSerializer):
     superior=EmployeeSuperiorSerialize(many=True, read_only=True, source='get_superior')
+    status = EmployeeStatusSerialize(many=True, read_only=True, source='get_status')
     class Meta:
         model = Employee
         fields = ['pk','user_name', 'entry_date', 'exit_date',
                   'superior',
+                  'status',
                   ]
 class EmployeeSerialize(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)

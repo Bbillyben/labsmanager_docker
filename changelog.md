@@ -3,6 +3,7 @@
 
 ### latest :
 [ADD] : notification of user's subscribed employee and project on milestones and employee overload.
+[ADD] : status reported for incomming employee
 
 
 ### 0.9.2 2025-06 :
