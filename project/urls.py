@@ -45,3 +45,9 @@ urlpatterns += [
     path('genericinfotype/<pk>/update/', views_modal.GenericInfoTypeProjectUpdateView.as_view(), name='update_genericinfotypeproject'), 
 
 ]
+
+# for calendar print
+
+urlpatterns += [
+    path('print/', views.project_calendar_print, name='calendar_project_print'),
+]

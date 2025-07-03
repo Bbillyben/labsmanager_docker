@@ -51,14 +51,14 @@
                 locale:plugin.settingsCal.local,
                 initialView: plugin.settingsCal.initialView,
                 headerToolbar:plugin.settingsCal.headerToolbar,
-                resources:{
-                    url: Urls['api:employee-calendar-resource'](),
-                    method: 'GET',
-                    extraParams:plugin.getExtraSetting,
-                },
+                // resources:{
+                //     url: Urls['api:employee-calendar-resource'](),
+                //     method: 'GET',
+                //     extraParams:plugin.getExtraSetting,
+                // },
                 eventSources:eventSourceConstruct,
                 
-                resourceGroupField:"employee",
+                
                 resourceAreaWidth:"10%",
                 selectable: plugin.settingsCal.selectable,
                 editable: plugin.settingsCal.editable,
@@ -67,16 +67,8 @@
                 eventClick: plugin.settingsCal.eventClick,
                 select: plugin.settingsCal.select,
                 height: plugin.settingsCal.height,
-                resourceLabelContent : function(renderInfo) {
-                    htmlRes=renderInfo.fieldValue
-                    if(USER_PERMS.includes("staff.view_employee")){
-                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to employee'><i type = 'button' class='fa-regular fa-circle-right d-print-none text-info'></i></a></sup>"; 
-                    } 
-                    //htmlRes+="</span>"
-                    
-                    return { html: htmlRes}
-                    },
-                    resourceOrder: 'title',
+                
+                resourceOrder: 'title',
                 filterResourcesWithEvents:plugin.settingsCal.filterResourcesWithEvents,
                 // -------------------------------
                 slotDuration: {
@@ -101,6 +93,33 @@
                   eventContent:plugin.eventContentRender,  
                   eventDisplay:'block',
             }
+
+            // console.log("####################### event sources ###################### ")
+            // console.log(JSON.stringify(globals.eventSources))
+            // console.log("############################################# ")
+            //******** resources settings ******* */
+            if(plugin.settingsCal.resources){
+                globals.resources=plugin.settingsCal.resources;
+            }else{
+                globals.resources={
+                    url: Urls['api:employee-calendar-resource'](),
+                    method: 'GET',
+                    extraParams:plugin.getExtraSetting,
+                };
+            }
+
+            if(plugin.settingsCal.resourceLabelContent){
+                globals.resourceLabelContent = plugin.settingsCal.resourceLabelContent
+            }else{
+                globals.resourceLabelContent = function(renderInfo) {
+                    htmlRes=renderInfo.fieldValue
+                    return { html: htmlRes}
+                };
+            }
+            globals.resourceGroupField = plugin.settingsCal.resourceGroupField?plugin.settingsCal.resourceGroupField:"";
+            
+
+            /******  use of date picker */
             if (plugin.settingsCal.useDatePicker == true){
                 globals.customButtons={
                     datePickerButton: {
@@ -144,6 +163,7 @@
 
             // add customs views
             /* TODO : only add necessary views */
+            
             globals.views= {
                 timelineYearCustom: {
                     type: 'timeline',
@@ -287,6 +307,9 @@
                     }
                 }, 
 
+            }
+            if(plugin.settingsCal.views){
+                globals.views = $.extend(globals.views, plugin.settingsCal.views);
             }
 
             eltCal=document.getElementById(this.attr('id'))

@@ -1,4 +1,4 @@
-from django.forms import  DateInput, BooleanField, CharField, HiddenInput
+from django.forms import  DateInput, BooleanField, CharField, HiddenInput, DecimalField
 from django.forms.widgets import Input, TextInput
 from django.utils.translation import gettext_lazy as _
 
@@ -36,3 +36,16 @@ class ConfirmForm(BSModalForm):
         
         for f in self.fields:
             self.fields[f].disabled = True 
+            
+
+class PercentageField(DecimalField):
+    def prepare_value(self, value):
+        if value is None:
+            return value
+        return (value) * 100
+
+    def to_python(self, value):
+        value = super().to_python(value)
+        if value is None:
+            return value
+        return (value) / 100

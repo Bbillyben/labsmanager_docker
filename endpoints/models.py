@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
 from .manager import milestones_manager
@@ -25,7 +26,11 @@ class endpoint(models.Model):
     
     class Meta:
         abstract = True
-        
+    
+    def is_overdue(self):
+        # Vérifie si la date limite est dans le passé et si le statut est False
+        return self.deadline_date and self.deadline_date < timezone.now().date() and not self.status
+            
 class Milestones(endpoint):
     from project.models import Project 
     from staff.models import Employee
@@ -45,6 +50,9 @@ class Milestones(endpoint):
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.project.name} - {self.name}"
+    
+
+        
 
 
 

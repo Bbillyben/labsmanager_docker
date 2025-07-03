@@ -20,6 +20,7 @@ import json
 
 from labsmanager.pandas_utils import PDUtils
 from labsmanager.mixin import CrumbListMixin
+from settings.models import LMUserSetting
 
 from settings.models import LMProjectSetting
 
@@ -224,3 +225,23 @@ def get_project_info_table(request, pk):
     info=GenericInfoProject.objects.filter(project__pk=pk)
     project = Project.objects.filter(pk = pk).first() # required for perm rules
     return render(request, 'project/project_info_table.html', {'infoProject': info, 'project':project})
+
+
+
+####################### Project Calendar 
+def project_calendar_print(request):
+    print("AUIAUIAUAIUAIUAIUAIUIAUIUAIUIAZUIAUIAUIUIIUIUIIUIUIUS")
+    context={}
+    
+    options={}
+    options["initialView"]=request.POST["initialView"]
+    options["start"]=request.POST["start"]
+    options["end"]=request.POST["end"]
+    options["type"]=request.POST.get("type", '') #request.POST["type"]
+    options["project"]=request.POST.get("project", '') #request.POST["team"]
+    context["options"]=options
+    
+    # Printing settings
+    context["full_print"]=LMUserSetting.get_setting('PRINT_FULL_BOXES',backup_value="true", user=request.user)
+    
+    return render(request, 'calendar/project_calendar_print.html', context)

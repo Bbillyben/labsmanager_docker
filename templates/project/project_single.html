@@ -406,7 +406,7 @@
                 <div class="row" style=" padding-top: 5px;">
                     <div class="col">
                         <div class="card" id="project_leave_calendar">
-                            <div id="calendar-project-box">
+                            <div id="leave-calendar-project-box">
                                 <!-- where the calendar should be loaded -->
                             </div>
                             
@@ -548,6 +548,34 @@
     </div>
 </div>
 
+    <!-- ######################################    Calendar  ############################################### -->
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-project-calendar" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Project\'s Calendar' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>           
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-secondary" id="proj_cal_print" title="Print" aria-expanded="false">
+                        <i class='fa fa-print'></i>
+                    </button>
+
+                </div>                 
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div class="card" id="project_calendar">
+                            <div id="calendar-project-box">
+                                <!-- where the calendar should be loaded -->
+                            </div>
+                            
+                        </div>
+                    </div>
+        </div>
+    </div>
+</div>
 
 {{ request.user.id|json_script:"user_id" }}
 {{ project.pk|json_script:"project_id" }}
@@ -563,6 +591,7 @@
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/contribution_tables.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/project_single.js' %}"></script>
 
 
 <!-- For dashboard graph -->
@@ -570,7 +599,7 @@
 <script type='text/javascript' src="{% static 'chart/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
 
 <script type='text/javascript' src="{% static 'js/labsmanager/graph_utils.js' %}"></script>
-<script type='text/javascript' src="{% static 'js/project_graph.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/calendar-project.js' %}"></script>
 
 
 {% has_lab_perm 'project.change_project' user project as can_edit_project %}
@@ -594,11 +623,12 @@ $(document).ready(function () {
     onPanelLoad("project-fund", function(){initializeFundTable(null, update_project)}) 
     onPanelLoad("budget", function(){initializeBudgetTable();}) 
     onPanelLoad("contribution", function(){initializeContribTable(update_project);}) 
-    onPanelLoad("leave", function(){initProjectCalendar(); }) 
+    onPanelLoad("leave", function(){initProjectLeavesCalendar(); }) 
     onPanelLoad("project-dashboard", function(){loadProjectGraph(); })
     onPanelLoad("project-notes", function(){
         loadInTemplate(elt=$("#panel-project-notes"),Urls['generic_info_template']('project', 'project', project_id) )
         })
+    onPanelLoad("project-calendar", function(){initProjectCalendar(); })
     enableSidebar('project')
 
 })

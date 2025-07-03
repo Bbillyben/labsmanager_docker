@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from multiprocessing import context
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
@@ -231,6 +232,167 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'title', ]  
 
+class ProjectMilestonesSerializer_cal(serializers.ModelSerializer):
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    employee = EmployeeSerialize_Min(many=True, read_only=True)
+    resourceId= serializers.SerializerMethodField()
+    origin = serializers.CharField(default="lm")
+    meta_type = serializers.CharField(default="milestone")
+    overdue = serializers.BooleanField(source='is_overdue')
+    class Meta:
+        model = Milestones
+        fields = ['pk', 'name', 'desc',  'type', 'quotity', 'status',
+                  'overdue',
+                  'start', 'end',
+                  'employee',
+                  'resourceId',
+                  'origin','meta_type',
+                  ]  
+    def get_start(self,obj):
+        st= obj.deadline_date.isoformat()
+        return st
+    def get_end(self,obj):
+        ed=datetime.combine(obj.deadline_date ,datetime.min.time())
+        ed = ed +timedelta(days=1)
+        return ed
+    def get_resourceId(self,obj):
+        ed=f'milestones_{obj.pk}'
+        return ed
+class ProjectProjectSerializer_cal(serializers.ModelSerializer):
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    meta_type = serializers.CharField(default="project")
+    origin = serializers.CharField(default="lm")
+    resourceId= serializers.SerializerMethodField()
+    class Meta:
+        model = Project
+        fields = ['pk', 'name',
+                  'start', 'end',
+                  'resourceId',
+                  'origin','meta_type',
+                  ]  
+    def get_start(self,obj):
+        st= obj.start_date.isoformat()
+        return st
+    def get_end(self,obj):
+        ed=datetime.combine(obj.end_date ,datetime.min.time())
+        ed = ed +timedelta(days=1)
+        return ed
+    def get_resourceId(self,obj):
+        ed=f'project_{obj.pk}'
+        return ed
+class ProjectParticipantSerializer_cal(serializers.ModelSerializer):
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    meta_type = serializers.CharField(default="participant")
+    origin = serializers.CharField(default="lm")
+    resourceId= serializers.SerializerMethodField()
+    name= serializers.CharField(source='employee.user_name')
+    class Meta:
+        model = Participant
+        fields = ['pk', 'name',
+                  'start', 'end',
+                  'quotity','status',
+                  'resourceId',
+                  'origin','meta_type',
+                  ]  
+    def get_start(self,obj):
+        if not obj.start_date is None:
+            st= obj.start_date.isoformat()
+        else:
+            st= obj.project.start_date.isoformat()
+        return st
+    def get_end(self,obj):
+        if not obj.end_date is None:
+            ed=datetime.combine(obj.end_date ,datetime.min.time())
+        else:
+            ed=datetime.combine(obj.project.end_date ,datetime.min.time())
+        ed = ed +timedelta(days=1)
+        return ed
+    def get_resourceId(self,obj):
+        ed=f'participant_{obj.pk}'
+        return ed
+class ProjectFundSerializer_cal(serializers.ModelSerializer):
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    meta_type = serializers.CharField(default="fund")
+    origin = serializers.CharField(default="lm")
+    resourceId= serializers.SerializerMethodField()
+    name= serializers.CharField(source='getId')
+    class Meta:
+        model = Fund
+        fields = ['pk', 'name',
+                  'start', 'end',
+                  'resourceId',
+                  'origin','meta_type',
+                  ]  
+    def get_start(self,obj):
+        if not obj.start_date is None:
+            st= obj.start_date.isoformat()
+        else:
+            st= obj.project.start_date.isoformat()
+        return st
+    def get_end(self,obj):
+        if not obj.end_date is None:
+            ed=datetime.combine(obj.end_date ,datetime.min.time())
+        else:
+            ed=datetime.combine(obj.project.end_date ,datetime.min.time())
+        ed = ed +timedelta(days=1)
+        return ed
+    def get_resourceId(self,obj):
+        ed=f'fund_{obj.pk}'
+        return ed
+     
+class ProjectResourceSerializer_cal_project(serializers.ModelSerializer): 
+    # user = UserSerializer(many=False, read_only=True)
+    id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
+    title = serializers.CharField(source='name')
+    group = serializers.CharField(default=_('project'))
+    class Meta:
+        model = Project
+        fields = ['id', 'title', 'group']  
+
+    def get_id(self,obj):
+        st= f'project_{obj.pk}'
+        return st
+class ProjectResourceSerializer_cal_participant(serializers.ModelSerializer): 
+    # user = UserSerializer(many=False, read_only=True)
+    id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
+    title = serializers.CharField(source='employee.user_name')
+    group = serializers.CharField(default=_('participant'))
+    class Meta:
+        model = Participant
+        fields = ['id', 'title', 'group',]  
+
+    def get_id(self,obj):
+        st= f'participant_{obj.pk}'
+        return st
+    
+class ProjectResourceSerializer_cal_milestones(serializers.ModelSerializer): 
+    # user = UserSerializer(many=False, read_only=True)
+    id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
+    title = serializers.CharField(source='name')
+    group = serializers.CharField(default=_('milestones'))
+    class Meta:
+        model = Milestones
+        fields = ['id', 'title', 'group']  
+
+    def get_id(self,obj):
+        st= f'milestones_{obj.pk}'
+        return st
+class ProjectResourceSerializer_cal_fund(serializers.ModelSerializer): 
+    # user = UserSerializer(many=False, read_only=True)
+    id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
+    title = serializers.CharField(source='getId')
+    group = serializers.CharField(default=_('fund'))
+    class Meta:
+        model = Fund
+        fields = ['id', 'title', 'group']  
+
+    def get_id(self,obj):
+        st= f'fund_{obj.pk}'
+        return st
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Common
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse

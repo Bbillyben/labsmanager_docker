@@ -11,12 +11,20 @@ from fund.models import Cost_Type, Fund
 from project.models import Participant
 from datetime import date
 
-from labsmanager.forms import DateInput
+from labsmanager.forms import DateInput, PercentageField
 from labsmanager.mixin import SanitizeDataFormMixin
 from settings.models import LabsManagerSetting
 import logging
 logger = logging.getLogger("labsmanager")
 class ContractModelForm(BSModalModelForm):
+    quotity = PercentageField(
+        label=_("Quotity(%)"),
+        max_value=100,
+        min_value=0,
+        decimal_places=2,
+        required=True,
+        help_text=_("Involvment percentage")
+    )
     class Meta:
         model = models.Contract
         fields = ['employee', 'fund','start_date','end_date', 'contract_type', 'quotity','is_active','status']

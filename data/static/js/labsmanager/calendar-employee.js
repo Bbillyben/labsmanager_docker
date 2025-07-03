@@ -244,6 +244,21 @@
             // eventClick: eventClicked,
             // select: eventSelectHandler,
             // eventContentRender:eventContentRender,
+            resources:{
+                    url: Urls['api:employee-calendar-resource'](),
+                    method: 'GET',
+                    extraParams:$.fn.lab_calendar.prototype.getExtraSetting,
+                },
+            resourceLabelContent : function(renderInfo) {
+                    htmlRes=renderInfo.fieldValue
+                    if(USER_PERMS.includes("staff.view_employee")){
+                        htmlRes +=" <sup> <a href='"+Urls['employee'](renderInfo.resource._resource.id)+"' title='navigate to employee'><i type = 'button' class='fa-regular fa-circle-right d-print-none text-info'></i></a></sup>"; 
+                    } 
+                    //htmlRes+="</span>"
+                    
+                    return { html: htmlRes}
+                    },
+            resourceGroupField:"",
             eventsources:[
                 {
                     url:Urls['api:leave-search-calendar'](),

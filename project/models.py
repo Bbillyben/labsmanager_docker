@@ -203,9 +203,12 @@ class Institution_Participant(models.Model):
         verbose_name=_('Status'),        
     )
     history = AuditlogHistoryField()
-
+from labsmanager.manager import date_manager
 class Participant(ActiveDateMixin, RightsCheckerMixin):
-
+    objects = models.Manager()
+    time_object = date_manager()
+    
+    
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'), related_name='participant_project')
     employee =  models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
     type_part=(("l",_("Leader")), ("cl", _("Co Leader")), ("p", _("Participant")))

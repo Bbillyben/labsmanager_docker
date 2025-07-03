@@ -1370,6 +1370,41 @@ li.list-spacer{
         background-color: purple;
         border-color:  purple;
     }
+    /* for calendard Project view */
+    /* .fc-event .cal_label_resource{
+        padding-left: 2em;
+    } */
+    .fc-event:has(.project_cal){
+        background-color: var( --primary-color);
+        border-color:  var( --primary-color);
+    }
+    .fc-event:has(.project_fund_cal){
+        background-color: var( --third-color-dark);
+        border-color:  var( --third-color-dark);
+    }
+    .fc-event:has(.project_ms_cal.status_overdue){
+        background-color: orange;
+        border-color:  orange;
+    }
+    .fc-event:has(.project_ms_cal.status_done){
+        background-color: green;
+        border-color:  green;
+    }
+
+
+    /* for participant in project cal */ 
+    .fc-event:has(.project_part_cal.status_l){
+        background-color: rgb(172, 57, 7);
+        border-color:  rgb(172, 57, 7);
+    }
+    .fc-event:has(.project_part_cal.status_cl){
+        background-color: rgb(172, 106, 7);
+        border-color:  rgb(172, 106, 7);
+    }
+    /* .fc-event:has(.project_part_cal.status_p){
+        background-color: initial;
+        border-color:  initial;
+    } */
 
     /* for modal fund description in contract view */
     .popover-body .show_contract_fund, .card-title .show_contract_fund{
