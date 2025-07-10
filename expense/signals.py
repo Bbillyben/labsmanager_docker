@@ -1,5 +1,5 @@
 from expense.models import Expense_point, Expense
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from settings.models import LMProjectSetting
@@ -33,4 +33,21 @@ def save_expense_handler(sender, instance, **kwargs):
         return
     logger.debug(f" project {proj} settings {proj_set} START Compute, exp type : {instance.type}")
     instance.fund_item.calculate_expense(force=False, exp_type=instance.type)
-     
+    # check wether the type hav change => to calculate new sum in older type
+    old_type =instance.var_cache["type"]
+    if not old_type is None and not instance.type is None and old_type != instance.type:
+        instance.fund_item.calculate_expense(force=True, exp_type=old_type)
+
+@receiver(post_delete, sender=Expense)
+def delete_expense_handler(sender, instance, **kwargs):
+    logger.debug('[delete_expense_handler] called')
+    d_type = instance.type
+     # get project setting
+    proj = instance.fund_item.project
+    proj_set=LMProjectSetting.get_setting('EXPENSE_CALCULATION', project=proj)
+    if proj_set =="s":
+        logger.debug(f" project {proj} settings {proj_set} is not in expense computational")
+        return
+    logger.debug(f" project {proj} settings {proj_set} START Compute, exp type : {instance.type}")
+    
+    instance.fund_item.calculate_expense(force=True, exp_type=d_type)

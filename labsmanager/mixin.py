@@ -76,8 +76,12 @@ class CachedModelMixin(models.Model):
         super().__init__(*args, **kwargs)
         self.var_cache = {}
         for var in self.cached_vars:
-            self.var_cache[var] = copy.copy(getattr(self, var))
-    
+            self.var_cache[var] = copy.copy(getattr(self, var, None))
+    class Meta:
+        abstract = True
+                   
+            
+class CachedModelDispatchMixin(CachedModelMixin):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         cmm_postsave.send(sender=self.__class__, instance=self)

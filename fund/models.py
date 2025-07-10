@@ -7,7 +7,7 @@ from django.db.models import Sum, Q, F
 
 from project.models import Project, Institution, Participant
 
-from labsmanager.mixin import LabsManagerBudgetMixin, LabsManagerFocusBudgetMixin, LabsManagerFocusTypeMixin,  ActiveDateMixin, CachedModelMixin, RightsCheckerMixin
+from labsmanager.mixin import LabsManagerBudgetMixin, LabsManagerFocusBudgetMixin, LabsManagerFocusTypeMixin,  ActiveDateMixin, CachedModelDispatchMixin, RightsCheckerMixin
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -53,7 +53,7 @@ class Fund_Institution(models.Model):
     def __str__(self):
         return f'{self.short_name}'
     
-class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelMixin, RightsCheckerMixin):
+class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelDispatchMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund Line")

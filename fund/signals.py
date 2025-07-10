@@ -56,7 +56,7 @@ from fund.models import AmountHistory
 
 @receiver(cmm_postsave)
 def save_CachedModel_handler(sender, instance, **kwargs):
-    # if issubclass(sender, CachedModelMixin):
+    # if issubclass(sender, CachedModelDispatchMixin):
     logger.debug('[save_CachedModel_handler] called')
     # print(" - instance : "+str(instance))
     # print(" > cached_vars : "+str(instance.cached_vars))
