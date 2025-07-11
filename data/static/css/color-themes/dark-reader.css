@@ -3842,6 +3842,13 @@ embed[type="application/pdf"] { filter: invert(100%) contrast(90%); }
     background-color: var(--darkreader-bg--secondary-color) !important;
 }
 /*   for bstreeview   */
+.org-chart-cont .title.highlighted{
+    font-style: italic;
+    background-color: chartreuse !important;
+}
+.org-chart-cont .title.highlighted_hier{
+    background-color: var(--label-yellow) !important;
+}
 .bstreeview .inactive, .bstreeview .inactive a{
     color:grey;
 }

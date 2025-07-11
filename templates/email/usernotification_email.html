@@ -144,6 +144,7 @@ hr.light {
                     <tr class="column_title">
                         <th>{% trans "Project" %}</th>
                         <th>{% trans "Milestones" %}</th>
+                        <th>{% trans "Assignation" %}</th>
                         <th>{% trans "Due Date" %}</th>
                         <th>{% trans "Action" %}</th>
                         <th>{% trans "Message" %}</th>
@@ -154,6 +155,14 @@ hr.light {
                     <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
                         <td align="left" valign="top"> <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=n.source_object.project.pk %}">{{n.source_object.project.name}}</a></td>
                         <td align="center" valign="top">{{n.source_object.name}}</td>
+                        <td align="center" valign="top">
+                        {% for employee in n.source_object.employee.all %}
+                            {{ employee.first_name }} {{ employee.last_name }}
+                            {% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            {% trans "No assigned employees" %}
+                        {% endfor %}
+                        </td>
                         <td align="center" valign="top">{{n.source_object.deadline_date}}</td>
                         <td align="center" valign="top">{{n.get_action_type_display}}</td>
                         <td align="center" valign="top">{{n.message|default_if_none:"--"}}</td>

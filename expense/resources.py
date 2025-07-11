@@ -1,10 +1,11 @@
 from django.utils.translation import gettext as _
 from django.db.models import Q
 from django.core.exceptions import  ImproperlyConfigured, MultipleObjectsReturned
-from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, DateField, DecimalField
+from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, SkipSameValueRessource, DateField, DecimalField
 
 from import_export.fields import Field
 from labsmanager.utils import getDateFilter
+from labsmanager.ressources import NormalizedDecimalField
 import import_export.widgets as widgets
 from import_export import resources, results
 
@@ -42,7 +43,7 @@ class CheckProjectTypeResourceMixin():
                 raise ImproperlyConfigured(_("The project %(proj)s is not configured to accept '%(imp_class)s' import (setting value : '%(set_val)s')")%({'proj':project.name, 'imp_class':self._meta.model.__name__, 'set_val':proj_set.as_choice()}))
         return result
     
-class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorRessource):
+class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipSameValueRessource, SkipErrorRessource):
     expense_id=Field(
         column_name=_('Expense Id'),
         attribute='expense_id', 
@@ -50,9 +51,9 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
     type=Field(
         column_name=_('type'),
         attribute='type', 
-        widget=widgets.ForeignKeyWidget(Cost_Type, 'name'), readonly=False
+        widget=widgets.ForeignKeyWidget(Cost_Type, 'short_name'), readonly=False
     )
-    amount=DecimalField(
+    amount=NormalizedDecimalField(
         column_name=_('Amount'),
         attribute='amount', 
         widget=widgets.DecimalWidget(),
@@ -85,10 +86,11 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
     desc=Field(
         column_name=_('Description'),
         attribute='desc', 
-    )
+    )   
     
     class Meta:
         """Metaclass"""
+        name=_("Single Expense Import")
         model = Expense
         skip_unchanged = False
         clean_model_instances = False
@@ -105,14 +107,16 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipErrorResso
     def before_import_row(self, row, row_number=None, **kwargs):
         super().before_import_row(row, row_number, **kwargs)
         qset = Expense.objects.none()
-        if row["id"] != None:
+        if "id" in row and row["id"] != None:
             qset = Expense.objects.get(pk=row["id"])
-        elif row["Expense Id"] != None:
+        elif "Expense Id" in row and row["Expense Id"] != None:
             qset = Expense.objects.filter(expense_id=row["Expense Id"])
             if qset.count()==1:
                 row["id"] = qset.first().pk
             # else:
             #     raise MultipleObjectsReturned(_("Expense id : '%(eid)s' return %(count)s objects for fund ref '%(fund)s'")%({'eid':row["Expense Id"], 'count':qset.count(), 'fund': row["Ref"]}))
+        else:
+            row["id"]=None
         return qset
         
     
@@ -252,7 +256,7 @@ class ExpensePointResource(CheckProjectTypeResourceMixin, labResource, SkipError
     
     
     class Meta:
-        name=_("Expense Point Resource")
+        name=_("Global Expense by type Import")
         model = Expense_point
         skip_unchanged = True
         clean_model_instances = False

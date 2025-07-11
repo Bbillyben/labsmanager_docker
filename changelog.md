@@ -1,12 +1,37 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
-### 
+### latest :
+[UPDATE] : update signal handler for expense. FOr project based on expense parameter (hybrid or expense), now expense type modification impact global expense calculation on previous type. 
+[ADD] : delete expense now trigger overall expense on type 
+
+### 0.9.3 2025-07 :
+note : require static update
+[ADD] : notification of user's subscribed employee and project on milestones and employee overload.
+[ADD] : status reported for incomming employee
+[ADD] : project calendar with project timeline, fund, participant and milestone
+[ADD] : print ability for project calendar
+[ADD] : quotity field is now depicted as percentage (participant, contract, Budget, Contribution)
+
+
+### 0.9.2 2025-06 :
+note : require static update
+[FIX] update comparison and Field in expenseResource to ignore import on same amout with zero decimal.
+[FIX] bug introduce with resource modification above (II)
+[ADD] : team filter for employee list
+[ADD] : spinner for loading when import
+
+### 2025-02-20
+[FIX] bug of leave add or modification issue with employee
+
+### 2025-01-19
 [ADD] : add notification for project participant overload for employee's superior
 [ADD] : Employee can edit a milestones he is attributed
+[FIX] : Milestones display in user's employee page
 [ADD] : project parameter => wether an employee can edit a milestone he is attributed
 [UPDATE] : change first panel button layout in employee and project view, move from menu to table directly 
 [ADD] : Milestones notification for project leader about Milestones edition
+
 
 
 ### 20214-12-18 v0.9.6

@@ -134,7 +134,7 @@
                 {% endif %}
             </div>
             <div class="row"></div>
-            <div class="row"></div>
+
         </div>
 
     
@@ -143,8 +143,12 @@
     </div>
     <footer>
     <div class="footer-content fixed-bottom">
-        <span class="flex" style="flex-grow: 1;"></span>  
-        <div class="right"><i>{%trans "LabsManager version" %}: </i><b>{{LABSMANAGER_VERSION}}</b></div>
+        
+         
+        <div class="left"><i>{%trans "LabsManager version" %}: </i><b>{{LABSMANAGER_VERSION}}</b></div>
+        <span class="flex" style="flex-grow: 1;"></span> 
+        <div id="help_btn" class="right help">
+        </div>
     </div>
 </footer>
 </div>
@@ -169,6 +173,7 @@
 <script type='text/javascript'>
          $(document).ready(function () {
             loadInTemplate($('#favorites'), '{% url "nav_favorites_accordion" %}', null, null, "GET", true);
+            loadInTemplate($('#help_btn'), '{% url "help_btn" %}', null, null, "GET", false);
          })
 </script>
 </body>

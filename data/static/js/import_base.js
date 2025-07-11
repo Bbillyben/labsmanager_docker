@@ -66,6 +66,9 @@ function initFileSelectForm(){
 
     $("#file_select").submit(function (event) {
         event.preventDefault();
+        // $("#loading").show(); // Affiche le spinner
+        $("#loading-overlay").show();
+        $("#import-form-cont").find("button").prop("disabled", true);
         var formData = new FormData(this);
         
         var object = {};
@@ -93,10 +96,16 @@ function initFileSelectForm(){
                 // })
                 $("#file_selection").html(data);
                 ini_confirm();
+                // $("#loading").hide(); // Cache le spinner après succès
+                $("#loading-overlay").hide();
+                $("#import-form-cont").find("button").prop("disabled", false);
 
             },
             error:function( err )
             {
+                // $("#loading").hide(); // Cache le spinner après succès
+                $("#loading-overlay").hide();
+                $("#import-form-cont").find("button").prop("disabled", false);
                 showMessage("Fund Load Error", {
                     style: 'danger',
                     details: 'ajax call error',

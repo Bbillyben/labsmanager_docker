@@ -13,5 +13,13 @@ class milestones_manager(models.Manager):
         cdate = date.today() + timedelta(days=days)
         query = Q(deadline_date__lte=cdate) & Q(status=False)
         return self.get_queryset().filter(query)
+    
+    def timeframe(self, slots):
+        query=Q()
+        if 'from' in slots:
+            query= query & Q(deadline_date__gte=slots["from"])
+        if 'to' in slots:
+            query= query & Q(deadline_date__lte=slots["to"])
+        return self.get_queryset().filter(query)
         
         

@@ -394,6 +394,7 @@ hr.light {
                     <th>{% trans "Start Date" %}</th>
                     <th>{% trans "End Date" %}</th>
                     <th>{% trans "Superior" %}</th>
+                    <th>{% trans "Status" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -408,6 +409,12 @@ hr.light {
                         {% if forloop.last == False %} - {%endif%}
                         {% endfor %}
                     </td>
+                    <td align="center" valign="top">
+                     {% for st in c.status%}
+                        {{st.type.shortname}}
+                        {% if forloop.last == False %}, {%endif%}
+                        {% endfor %}
+                        </td>
                 </tr>
                 {% endfor %}
             </tbody>

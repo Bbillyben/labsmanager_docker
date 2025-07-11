@@ -69,7 +69,7 @@ class CalendarEventMixin:
                 * timezone
                 * settings : the setting object of the calendar, which contain :
                     * cal_type : depict what type of calendar the request coming from (main, team, employee)
-                * resources : the current resources !!! may not be up to date prefer __class__.get_current_resources(request) for more reliable data
+                    * resources : the current resources !!! may not be up to date prefer __class__.get_current_resources(request) for more reliable data
            
             event_list : the list of events that will be send to calendar. Has to be in full calendar format, eg :
                 {

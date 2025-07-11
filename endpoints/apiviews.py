@@ -35,7 +35,7 @@ class MilestonesViewSet(viewsets.ModelViewSet):
         #         t1 = t1.annotate(has_perm=Value(True))
         # except:
         #     pass
-        return JsonResponse(serializers.MilestonesSerializer(t1, many=True).data, safe=False)
+        return JsonResponse(serializers.MilestonesSerializer(t1, many=True, context={'request': request}).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='milestones_stale', url_name='milestones_stale')
     def milestones_stale(self, request, pj_pk=None, pk=None):
@@ -48,7 +48,7 @@ class MilestonesViewSet(viewsets.ModelViewSet):
             
         ms=self.queryset.filter(q_objects).order_by('deadline_date')
         
-        return JsonResponse(serializers.MilestonesSerializer(ms, many=True).data, safe=False)
+        return JsonResponse(serializers.MilestonesSerializer(ms, many=True, context={'request': request}).data, safe=False)
     
     
     

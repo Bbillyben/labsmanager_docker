@@ -117,3 +117,12 @@ def is_ajax(meta):
         return True
 
     return False
+
+
+def clean_iso_date(date_str):
+    # Prend une date ISO (avec ou sans heure) et retourne AAAA-MM-JJ
+    try:
+        return datetime.fromisoformat(date_str.replace('Z', '+00:00')).date().isoformat()
+    except Exception:
+        # Si déjà au bon format, on renvoie tel quel
+        return date_str

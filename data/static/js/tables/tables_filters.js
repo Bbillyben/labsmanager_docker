@@ -33,6 +33,11 @@ function getAvailableTableFilters(tableKey) {
                 description: 'Employee Status Code',
                 options:employee_status_codes,
             },
+            team:{
+                title : 'Team',
+                description: 'team involved',
+                options:teams_codes,
+            },
         };
     }
     if (tableKey.substring(0,8) == 'contract') {

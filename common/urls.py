@@ -10,6 +10,7 @@ urlpatterns = [
     
     path('sub-bell/', views.get_user_subscription_obj, name='subscription_bell'), 
     path('sub-toggle/', views.toggle_subscription, name='subscription_toggle'), 
+    path('help_btn/', views.get_help_btn, name='help_btn'), 
     
     path('subscription/<pk>/delete', views_modal.SubscriptionDeleteView.as_view(), name='delete_subscription'),
     path('favorite/<pk>/delete', views_modal.FavoriteDeleteView.as_view(), name='delete_favorite'),
@@ -21,4 +22,5 @@ urlpatterns = [
     path('user_maillist/', views.get_user_emaillist, name='user_emaillist'),
     
     path('changepassword/', views_modal.ChangePasswordBSView.as_view(), name='change_password_modal'),
+    
 ]

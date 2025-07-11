@@ -27,6 +27,10 @@ class LeaveItemModelForm(SanitizeDataFormMixin, BSModalModelForm):
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.filter((Q(pk__in=lead) | Q(pk__in=mateInTeam)) & Q(is_active=True)  ),
             )
+        elif("data" in kwargs):
+            self.base_fields['employee'] = forms.ModelChoiceField(
+                queryset=Employee.objects.all(),
+            )
         elif('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.filter(pk=kwargs['initial']['employee']),

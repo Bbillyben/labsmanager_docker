@@ -31,7 +31,17 @@ class ProjectModelForm(SanitizeDataFormMixin, BSModalModelForm):
             raise ValidationError(_('Exit Date (%(end)s) should be later than entry date (%(start)s) ') % ({'end':self.cleaned_data['end_date'], 'start': self.cleaned_data['start_date']}))
         return self.cleaned_data['end_date']
 
+from labsmanager.forms import PercentageField
 class ParticipantModelForm(BSModalModelForm):
+    quotity = PercentageField(
+        label=_("Quotity(%)"),
+        max_value=100,
+        min_value=0,
+        decimal_places=2,
+        required=True,
+        help_text=_("Involvment percentage")
+    )
+    
     class Meta:
         model = models.Participant
         fields = ['project', 'employee','status','start_date', 'end_date', 'quotity',]

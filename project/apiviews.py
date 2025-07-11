@@ -4,6 +4,7 @@ from django.db.models import Q, Value
 from project.models import Participant, Project, Institution_Participant
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from django_filters import rest_framework as filters
 from labsmanager import serializers  # UserSerializer, GroupSerializer, EmployeeSerialize, EmployeeStatusSerialize, ContractEmployeeSerializer, TeamSerializer, ParticipantSerializer, ProjectSerializer
 from expense.models import Contract
@@ -12,6 +13,8 @@ from labsmanager.utils import str2bool
 from .filters import ProjectFilter
 from .resources import ProjectResource
 from labsmanager.helpers import DownloadFile
+from labsmanager.utils import clean_iso_date
+from endpoints.models import Milestones
 
 from datetime import datetime
 
@@ -139,3 +142,51 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 
         # contract=Contract.objects.filter(fund__in=fund).order_by('end_date')
         return JsonResponse(serializers.ContractSerializer(contract, many=True).data, safe=False)
+
+    ######################
+    # for project calendar
+    ##################################################################
+    @action(methods=['get'], detail=True,url_path='calendar-get-event', url_name='calendar-get-event')
+    def calendar_get_event(self,request, pk=None):
+        print(request.GET)
+        slot={}
+        if 'start' in request.GET :#request.GET['start']:
+            slot['from']=clean_iso_date(request.GET['start'])
+        if 'end' in request.GET:#['end']:
+            slot['to']=clean_iso_date(request.GET['end'])
+        
+        proj = Project.objects.filter(pk = pk)
+        proj_evt = serializers.ProjectProjectSerializer_cal(proj, many=True).data
+        
+        mils = Milestones.expired.timeframe(slot).filter(project = pk)
+        evt_mil = serializers.ProjectMilestonesSerializer_cal(mils, many=True).data
+        
+        part = Participant.objects.filter(project = pk).order_by('status')
+        evt_part = serializers.ProjectParticipantSerializer_cal(part, many=True).data
+        
+        fu = Fund.objects.filter(project = pk)
+        evt_fu = serializers.ProjectFundSerializer_cal(fu, many=True).data
+        
+        evts = proj_evt + evt_mil + evt_part + evt_fu
+        return Response(evts)  
+    
+    @action(methods=['get'], detail=True,url_path='calendar-get-resources', url_name='calendar-get-resources')
+    def calendar_get_resources(self,request, pk=None):
+        
+        proj = Project.objects.filter(pk = pk)
+        res_proj = serializers.ProjectResourceSerializer_cal_project(proj, many=True).data
+        emp = Participant.objects.filter(project = pk).order_by('status')
+        res_part = serializers.ProjectResourceSerializer_cal_participant(emp, many=True).data
+        
+        mils = Milestones.objects.filter(project = pk)
+        res_mil = serializers.ProjectResourceSerializer_cal_milestones(mils, many=True).data
+        
+        
+        fund = Fund.objects.filter(project = pk)
+        res_fund = serializers.ProjectResourceSerializer_cal_fund(fund, many=True).data
+        
+        
+        resources = res_proj + res_fund + res_mil + res_part
+        
+        return Response(resources)  
+        

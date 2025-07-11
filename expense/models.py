@@ -13,13 +13,13 @@ from dashboard import utils
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
-from labsmanager.mixin import DateMixin, CachedModelMixin, LabsManagerFocusTypeMixin, RightsCheckerMixin
+from labsmanager.mixin import DateMixin, CachedModelMixin, CachedModelDispatchMixin, LabsManagerFocusTypeMixin, RightsCheckerMixin
 from model_utils.managers import InheritanceManager
 import django.dispatch
 
 ## signal to dispatch save
 exp_postsave = django.dispatch.Signal()
-class Expense(LabsManagerFocusTypeMixin):
+class Expense(LabsManagerFocusTypeMixin, CachedModelMixin):
     
     object_inherit = InheritanceManager()
     
@@ -43,6 +43,9 @@ class Expense(LabsManagerFocusTypeMixin):
         default='r', verbose_name=_('Status'),
     )
     fund_item = models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'), related_name='tot_expense')
+    
+    cached_vars=["amount", "type",]
+    
     history = AuditlogHistoryField()
     
     def save(self, *args, **kwargs):
@@ -59,7 +62,7 @@ class Contract_expense(Expense):
     contract= models.ForeignKey('Contract', on_delete=models.CASCADE, verbose_name=_('Related Contract'))
     
 
-class Expense_point(LabsManagerFocusTypeMixin, CachedModelMixin):
+class Expense_point(LabsManagerFocusTypeMixin, CachedModelDispatchMixin):
     class Meta:
         verbose_name = _("Total Expense Timepoint")
         unique_together = ('fund', 'type')

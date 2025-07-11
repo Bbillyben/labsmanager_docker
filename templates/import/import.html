@@ -38,23 +38,31 @@
       {{ confirm_form | crispy}}
     {% endblock %}
 {% else %}
-<div class="col">
-    <form id="file_select" action="" method="post" enctype="multipart/form-data" style="max-width: 50em;">
+<div id="import-form-cont">
+  <div class="col">
+      <form id="file_select" action="" method="post" enctype="multipart/form-data" style="max-width: 50em;">
 
 
-      {{ form | crispy }} 
+        {{ form | crispy }} 
 
-      <div class="submit-row">
-          <button class="btn-primary" type="">{% trans 'Import' %}</button>
-      </div>
-    </form>
+        <div class="submit-row">
+            <button class="btn-primary" type="">{% trans 'Import' %}</button>
+        </div>
+      </form>
+  </div>
+  <div class="row" style="margin-top:1em;">
+    <span id="btn_imp_cont">
+      <button id="get_import_template" class="btn btn-secondary" type="" title="{% trans 'Get Import Template' %}"><span class='fas fa-download'></span> </button>
+    </span>
+    
+  </div>
 </div>
-<div class="row" style="margin-top:1em;">
-  <span id="btn_imp_cont">
-    <button id="get_import_template" class="btn btn-secondary" type="" title="{% trans 'Get Import Template' %}"><span class='fas fa-download'></span> </button>
-  </span>
-  
-</div>
+<div id="loading-overlay">
+        <div>
+            <div class="spinner-border text-light" role="status"></div>
+            <span class="ms-2">Chargement en cours...</span>
+        </div>
+    </div>
 {% endif %}
 
 {% if result_all %}

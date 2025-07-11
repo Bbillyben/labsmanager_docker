@@ -4,7 +4,7 @@ from datetime import date
 from collections.abc import Iterable
 
 class date_manager(models.Manager):
-    def timeframe(self, slots):
+    def timeframe(self, slots): 
         query=Q()
         if 'from' in slots:
             query= query & Q(end_date__gte=slots["from"])

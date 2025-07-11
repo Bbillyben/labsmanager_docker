@@ -11,7 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import F
 
 
-from staff.models import Employee_Type
+from staff.models import Employee_Type, Team
 from fund.models import Cost_Type
 from expense.models import Contract_type, Contract
 from fund.models import Fund_Institution
@@ -111,6 +111,13 @@ def get_filters_lists(request, *args, **kwargs):
     data['codes'].append({
         'name':'leave_type',
         'data':l_type,
+    })
+    
+    # for team
+    team = Team.objects.all().values(key=F('pk'), value=F('name'))
+    data['codes'].append({
+        'name':'teams',
+        'data':team,
     })
     
     return render_to_string('status_codes.js', data)

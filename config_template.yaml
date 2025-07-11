@@ -64,3 +64,8 @@ session_cookie_age: 12800
 
 # allow sign up 
 allow_sign_up: 'false'
+
+# some display settings
+show_help: 'true' # to display the help icon with links to docs and github issues
+
+help_link: 'Documentation;https://labsmanager-doc.readthedocs.io/ Issues;https://github.com/Bbillyben/labsmanager/issues'

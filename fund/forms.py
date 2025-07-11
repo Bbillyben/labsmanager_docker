@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from django import forms
 from project.models import Project
 
-from labsmanager.forms import DateInput
+from labsmanager.forms import DateInput, PercentageField
 from datetime import date
 from labsmanager.mixin import SanitizeDataFormMixin
 
@@ -82,6 +82,14 @@ class FundModelForm(BSModalModelForm):
     
 from fund.models import Fund
 class BudgetModelForm(BSModalModelForm):
+    quotity = PercentageField(
+        label=_("Quotity(%)"),
+        max_value=100,
+        min_value=0,
+        decimal_places=2,
+        required=True,
+        help_text=_("Involvment percentage")
+    )
     class Meta:
         model = models.Budget
         fields = ['fund', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity', 'desc']
@@ -136,6 +144,14 @@ class BudgetModelForm(BSModalModelForm):
 
 class ContributionModelForm(SanitizeDataFormMixin, BudgetModelForm):
     allowed_tags= {""}     
+    quotity = PercentageField(
+        label=_("Quotity(%)"),
+        max_value=100,
+        min_value=0,
+        decimal_places=2,
+        required=True,
+        help_text=_("Involvment percentage")
+    )
     class Meta(BudgetModelForm.Meta):
         model = models.Contribution
         fields = ['fund', 'start_date', 'end_date', 'cost_type','amount','emp_type','contract_type', 'employee', 'quotity','desc']

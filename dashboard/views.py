@@ -209,6 +209,7 @@ class IncomminEmployeeCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':_('start date'),'item':'entry_date'},
                 {'name':_('end date'),'item':'exit_date'},
                 {'name':_('superior'),'item':'superior',  'formatter':'employeeSuperiorsFormatter'},
+                {'name':_('status'),'item':'status',  'formatter':'statusFormatter'},
                 
             ]  
         }

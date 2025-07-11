@@ -14,6 +14,7 @@ function update_organization_chart(){
             console.error(`Error in update_organization_chart at '${urlOC}'`);
         }
     });
+    $("#employee_highlight").on("input", highlight_employee)
 }
 //https://github.com/dabeng/OrgChart/tree/master
 
@@ -110,4 +111,41 @@ function comparteSubordinate(a, b){
     if(a.subordinate_count > b.subordinate_count)return -1;
     if(a.subordinate_count < b.subordinate_count)return 1;
     return 0;
+}
+
+function highlight_employee(e){
+    
+    $(".title").removeClass("highlighted");
+    $(".title").removeClass("highlighted_hier");
+    $(".title").removeClass("highlighted_bos");
+    $(".title").removeClass("greyed");
+    var search = e.target.value.trim();
+
+    console.log("Highlight "+ search );
+    if (!search) return;
+    $(".title").addClass("greyed");
+    var re = new RegExp(search, "i");
+    
+
+    $(".title").each(function() {
+        // On prend le texte affiché (par exemple celui du <a> dans .title)
+        var txt = $(this).text();
+        if (re.test(txt)) {
+            $(this).addClass("highlighted").removeClass("greyed");
+        }
+    });
+
+     $(".title.highlighted").each(function() {
+        console.log("find sub for : "+$(this).text());
+        $(this).parent().next(".nodes").find(".title:not(.highlighted)").each(function(sub){
+                    console.log("sub : "+$(this).text());
+                    if(!$(this).hasClass("highlighted_bos"))$(this).addClass("highlighted_hier").removeClass("greyed");
+            });
+         $(this).parent().parent().parent().parent().find(".node").first().find(".title").first().each(function(sub){
+                    console.log("super : "+$(this).text());
+                    if(!$(this).hasClass("highlighted"))$(this).addClass("highlighted_bos").removeClass("greyed");
+            });
+    });
+
+    
 }

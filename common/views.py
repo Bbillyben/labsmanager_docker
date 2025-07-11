@@ -4,6 +4,9 @@ from .models import favorite, subscription
 from labsmanager.serializers import FavoriteSerialize
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
+
+from settings.accessor import get_global_setting
+from labsmanager import settings
 # Create your views here.
 
 def get_user_fav_obj(request):
@@ -127,3 +130,16 @@ def get_test_email(request,*args, **kwargs):
     
     return HttpResponse(html_message) #{'status': 'success', 'message': _("Mail Generated"), 'content':html_message})
 
+#### For help button ####
+
+def get_help_btn(request,*args, **kwargs):
+    display_help =  getattr(settings, "LABSMANAGER_SHOW_HELP", True)
+    if not display_help:
+        return HttpResponse("")
+    
+    
+    data={
+        "links":getattr(settings, "HELP_LINKS", {})
+    }
+    
+    return render(request, 'help_menu.html', data)

@@ -2,6 +2,7 @@
 var user_id = 0;
 var project_id = 0;
 var calendar;
+var calendar_project;
 
 function initProjectSingleView(user_idA, project_idA){
         
@@ -95,7 +96,7 @@ function initProjectSingleView(user_idA, project_idA){
 
 }
 // for calendar
-function initProjectCalendar(){
+function initProjectLeavesCalendar(){
     var filterOption={
         download:true,
     }
@@ -114,19 +115,63 @@ function initProjectCalendar(){
         selectable:canMod,
         editable:canMod,
         extraParams:{project:project_id},
+        cal_type:'leave_project',
     }
-    calendar = $('#calendar-project-box').lab_calendar_employee(option);
+    cur_view_l = localStorage.getItem(`labsmanager-calendar-view_leave_project`);
+    if (cur_view_l){
+        option.initialView = cur_view_l;
+    }
+    calendar = $('#leave-calendar-project-box').lab_calendar_employee(option);
     
     
     
     
 
 }
-function updateProjectCalendar(){
+function initProjectCalendar(){
+    var canMod=USER_PERMS.includes("Project.change_project") || USER_PERMS.includes("is_staff");
+    option={
+        selectable:canMod,
+        editable:canMod,
+        extraParams:{project:project_id},
+        cal_type:'project',
+        
+    }
+    cur_view = localStorage.getItem(`labsmanager-calendar-view_project`);
+    if (cur_view){
+        option.initialView = cur_view
+    }
+    calendar_project = $('#calendar-project-box').lab_calendar_project(option);
+
+    $('#proj_cal_print').on("click", function(){
+        print_proj_calendar(Urls["calendar_project_print"](), project_id);
+    })
+
+}
+function print_proj_calendar(printUrl, projPk){
+    options = {};
+    options['initialView']=calendar_project.view.type;
+    var d = calendar_project.view.activeStart
+    options['start']=d.toISOString();
+    d = calendar_project.view.activeEnd
+    options['end']=d.toISOString();
+    options['project']=projPk;
+    options['filterResourcesWithEvents']=false;
+    var csrftoken = getCookie('csrftoken');
+    openWindowWithPost(printUrl, options, csrftoken)
+}
+function updateProjectLeaveCalendar(){
     $('#project_leave_item_table').bootstrapTable('refresh');
     if(undefined != calendar && calendar != null){
         calendar.refetchEvents();  
         calendar.refetchResources();  
+    }
+    
+}
+function updateProjectCalendar(){
+    if(undefined != calendar_project && calendar_project != null){
+        calendar_project.refetchEvents();  
+        calendar_project.refetchResources();  
     }
     
 }
@@ -211,7 +256,7 @@ function update_project_info(){
         },
         success: function( data )
         {
-            console.log(" Data : "+JSON.stringify(data))
+            // console.log(" Data : "+JSON.stringify(data))
             $('#project_info_table').html(data);
             update_info_btn();
         },
@@ -252,7 +297,7 @@ function update_info_btn(){
 
 function updateParticipant(){
     $('#project_participant_table').bootstrapTable('refresh');
-    updateProjectCalendar();
+    updateProjectLeaveCalendar();
 }
 function updateInstitution(){
     $('#project_institution_table').bootstrapTable('refresh');

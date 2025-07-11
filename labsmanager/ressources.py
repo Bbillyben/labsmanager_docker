@@ -1,7 +1,9 @@
 from import_export.resources import ModelResource
 from import_export import results, widgets
 from import_export.fields import Field
-import datetime
+import functools
+from decimal import Decimal
+from datetime import datetime, date
 
 from decimal import Decimal
 from django.utils.encoding import force_str, smart_str
@@ -16,7 +18,7 @@ class labResource(ModelResource):
     Ensures that exported data are escaped to prevent malicious formula injection.
     Ref: https://owasp.org/www-community/attacks/CSV_Injection
     """
-
+    
     def export_resource(self, obj):
         """Custom function to override default row export behaviour.
         Specifically, strip illegal leading characters to prevent formula injection
@@ -77,15 +79,51 @@ class SkipErrorRessource(ModelResource):
     
     class Meta:
         abstract = True
-        
-        
+
+
+
+def resolve_value(val):
+    if isinstance(val, functools.partial):
+        return val()
+    if callable(val) and not isinstance(val, type):
+        return val()
+    return val
+
+def normalize_date(val):
+    # Si datetime, ramène à date
+    if isinstance(val, datetime):
+        return val.date()
+    return val
+
+class SkipSameValueRessource(ModelResource):
+    def skip_row(self, instance, original, import_validation_errors=None, row=None, **kwargs):
+        for field_name in self.get_export_fields():
+            val_instance = resolve_value(getattr(instance, field_name.attribute, None))
+            val_original = resolve_value(getattr(original, field_name.attribute, None))
+
+            # Normalisation pour les décimaux
+            if isinstance(val_instance, Decimal) and isinstance(val_original, Decimal):
+                if val_instance.normalize() != val_original.normalize():
+                    return False
+
+            # Normalisation pour les dates/datetimes
+            elif (
+                (isinstance(val_instance, (date, datetime)) and isinstance(val_original, (date, datetime)))
+            ):
+                if normalize_date(val_instance) != normalize_date(val_original):
+                    return False
+
+            else:
+                if val_instance != val_original:
+                    return False
+        return True
 ################################ Field COMMON #################################    
 
 class DateField(Field):
         
     def get_value(self, obj):
         val=super().get_value(obj)
-        if isinstance(val, datetime.datetime):
+        if isinstance(val, datetime):
             return val.date()
         return val   
     
@@ -97,8 +135,23 @@ class DecimalField(Field):
             data[self.column_name]= 0
         
         return super().clean(data, **kwargs)
-    
-    
+
+class NormalizedDecimalField(DecimalField):
+    def clean(self, data, **kwargs):
+        value = super().clean(data, **kwargs)
+        
+        # Étape 2 : Normalisation (545.00 → 545, 545.50 → 545.5)
+        if isinstance(value, Decimal):
+            return value.normalize()
+        return value
+
+    def get_value(self, obj):
+        """Normalise aussi la valeur exportée"""
+        value = super().get_value(obj)
+        if isinstance(value, Decimal):
+            return format(value.normalize(), 'f')
+        return value
+      
 ################################ WIDGETS COMMON #################################
 from staff.models import Employee
 class EmployeeWidget(widgets.CharWidget):

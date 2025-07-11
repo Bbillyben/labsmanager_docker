@@ -86,6 +86,11 @@ class EmployeeStatusForm(BSModalModelForm):
             queryset=Employee.objects.all(),
             widget=forms.HiddenInput
         )
+        if ('initial' in kwargs and 'employee' in kwargs['initial']):
+            emp = Employee.objects.get(pk=kwargs['initial']['employee'])
+            if emp:
+                self.base_fields['start_date'].initial = emp.entry_date
+                self.base_fields['end_date'].initial = emp.exit_date
         super().__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
@@ -135,6 +140,10 @@ class EmployeeSuperiorForm(EmployeeSuperiorSubordinateFOrm):
             query =query & ~Q(pk__in=sub)
             sup = Employee_Superior.objects.filter(employee=kwargs['initial']['employee']).values("superior__pk")
             query =query & ~Q(pk__in=sup)
+            emp = Employee.objects.get(pk=kwargs['initial']['employee'])
+            if emp:
+                self.base_fields['start_date'].initial = emp.entry_date
+                self.base_fields['end_date'].initial = emp.exit_date
         
         self.base_fields['superior'] = forms.ModelChoiceField(
             queryset=Employee.objects.filter( query ),
@@ -159,6 +168,11 @@ class EmployeeSubordinateForm(EmployeeSuperiorSubordinateFOrm):
             query =query & ~Q(pk__in=sub)
             sup = Employee_Superior.objects.filter(employee=kwargs['initial']['superior']).values("superior__pk")
             query =query & ~Q(pk__in=sup)
+
+            emp = Employee.objects.get(pk=kwargs['initial']['superior'])
+            if emp:
+                self.base_fields['start_date'].initial = emp.entry_date
+                self.base_fields['end_date'].initial = emp.exit_date
         
         self.base_fields['superior'] = forms.ModelChoiceField(
             queryset=Employee.objects.all(),
