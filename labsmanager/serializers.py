@@ -243,6 +243,7 @@ class ProjectMilestonesSerializer_cal(serializers.ModelSerializer):
     class Meta:
         model = Milestones
         fields = ['pk', 'name', 'desc',  'type', 'quotity', 'status',
+                  'desc',
                   'overdue',
                   'start', 'end',
                   'employee',
@@ -360,7 +361,7 @@ class ProjectResourceSerializer_cal_participant(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)
     id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
     title = serializers.CharField(source='employee.user_name')
-    group = serializers.CharField(default=_('participant'))
+    group = serializers.CharField(default=_('participants'))
     class Meta:
         model = Participant
         fields = ['id', 'title', 'group',]  

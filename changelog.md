@@ -2,8 +2,11 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### latest :
+note : require static update
 [UPDATE] : update signal handler for expense. FOr project based on expense parameter (hybrid or expense), now expense type modification impact global expense calculation on previous type. 
 [ADD] : delete expense now trigger overall expense on type 
+[UPDATE] : milestone popover in project calendar now show description
+[UPDATE] : traduction
 
 ### 0.9.3 2025-07 :
 note : require static update

@@ -37,7 +37,7 @@
                         titleP += '</div>';
                         textP = '<i>'+info.event.start.toLocaleDateString()+"</i>"
                         textP += " - " + info.event.extendedProps.quotity*100 +"%"
-                        
+                        textP += '<div class="desc">' + info.event.extendedProps.desc + '</div>'
                         if (info.event.extendedProps.employee.length>0){
                             
                             textP += '<hr class="solid">';
