@@ -86,7 +86,7 @@ class BudgetModelForm(BSModalModelForm):
         label=_("Quotity(%)"),
         max_value=100,
         min_value=0,
-        decimal_places=2,
+        decimal_places=3,
         required=True,
         help_text=_("Involvment percentage")
     )
@@ -148,7 +148,7 @@ class ContributionModelForm(SanitizeDataFormMixin, BudgetModelForm):
         label=_("Quotity(%)"),
         max_value=100,
         min_value=0,
-        decimal_places=2,
+        decimal_places=3,
         required=True,
         help_text=_("Involvment percentage")
     )

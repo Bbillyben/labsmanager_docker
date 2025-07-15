@@ -95,6 +95,15 @@
             htmlEvt +=  "<span class='cal_label_resource' >"
             htmlEvt += props.name;
             htmlEvt += "</span>";
+            if(props.employee.length == 1)htmlEvt += '<i class="samll fa-solid fa-user" style="margin-left:0.3em;"></i>';
+            if(props.employee.length > 1)htmlEvt += '<i class="samll fa-solid fa-users" style="margin-left:0.3em;"></i>';
+            const percentage = Math.round(props.quotity * 100);
+            htmlEvt += `
+                <div class="completion_bar_container">
+                    <div class="completion_bar_fill" style="width: ${percentage}%;"></div>
+                </div>
+            `;
+            
             htmlEvt += "</span>";
         }else if(props.meta_type =='participant'){
             htmlEvt += "<span class='project_part_cal status_" + props.status + "' >";

@@ -3,11 +3,12 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR 
+from labsmanager.mixin import SanitizeDataFormMixin, CachedModelMixin
 from .manager import milestones_manager
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
-class endpoint(models.Model):
+class endpoint(CachedModelMixin, models.Model):
     name = models.CharField(max_length=100, verbose_name=_('endpoint Name'))
     desc =  models.TextField(null=True, blank=True, verbose_name=_('endpoint desc'))
     deadline_date = models.DateField(null=True, blank=True, verbose_name=_('Deadline Date'))
@@ -24,6 +25,7 @@ class endpoint(models.Model):
     
     status=models.BooleanField(default=False, verbose_name=_('Endpoints Status'))
     
+    cached_vars = ['status', 'quotity']
     class Meta:
         abstract = True
     
