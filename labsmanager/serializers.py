@@ -377,7 +377,7 @@ class ProjectResourceSerializer_cal_milestones(serializers.ModelSerializer):
     group = serializers.CharField(default=_('milestones'))
     class Meta:
         model = Milestones
-        fields = ['id', 'title', 'group']  
+        fields = ['id', 'title', 'desc', 'group']  
 
     def get_id(self,obj):
         st= f'milestones_{obj.pk}'

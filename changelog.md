@@ -5,10 +5,11 @@
 note : require static update
 [UPDATE] : update signal handler for expense. FOr project based on expense parameter (hybrid or expense), now expense type modification impact global expense calculation on previous type. 
 [ADD] : delete expense now trigger overall expense on type 
-[UPDATE] : milestone popover in project calendar now show description
+[UPDATE] : milestone popover in project calendar now show description and change layout
 [UPDATE] : align status and quotity for completed milestones
 [FIX] : Percentage field for qutotiy is now limiting digit to 1 and round number so no more issue with forms
 [UPDATE] : traduction
+[UPDATE] : Project Fund Layout (single fund table overview)
 
 ### 0.9.3 2025-07 :
 note : require static update

@@ -7,13 +7,35 @@
         }else{
             elts=$(this);
         }
-    
+    function truncateText(text, maxLength) {
+        if (text.length <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + '...';
+    }
+    function resourceRenderer(info){
+        text = "<span class='resource'>";
+        if(info.resource.extendedProps.group == "Jalons"){
+            console.log("---------------------------  resourceRenderer");
+            console.log(JSON.stringify(info));
+            text += "<b>"+info.resource.title+"</b> :";
+            text += "<span class='desc'>"+truncateText(info.resource.extendedProps.desc, 50)+"</span>";
+            return { html: text };
+        }else if (info.resource.extendedProps.group == "projet"){
+              text += "<b>" + info.resource.title + "</b>";
+        }else{
+            text +=  info.resource.title ;
+        }
+        text += "</span>";
+        return { html: text};
+        
+    }
 
     $.fn.lab_calendar.prototype.eventClicked = function (info){
         $('.popover').popover('dispose');
         // console.log(JSON.stringify(info.event.extendedProps))
         titleP = "";
-        textP = ""; 
+        textP = "<div class='project_event'>"; 
         if (info.event.display == "background" )return  { html: "" }
         if(info.event.extendedProps.origin != "lm"){// if event from plugin
                 if(!info.event.title || !info.event.extendedProps.desc)return  { html: "" }// no title or no description provided
@@ -28,16 +50,20 @@
             }else{ // if event labsmanager
                 switch(info.event.extendedProps.meta_type){
                     case 'milestone': 
-                         titleP ='<div class="d-flex flex-wrap">'
+                        titleP ='<div class="d-flex flex-wrap">'
                         titleP += "<b>"+info.event.extendedProps.name+"</b>";
                         titleP += '<span class="flex" style="flex-grow: 1;"></span>';
                         titleP += '<div class="btn-group" role="group">';
                         titleP += '<button type="button" id="popover_close" class="btn btn-close close" ></button>',
                         titleP += '</div>';
                         titleP += '</div>';
-                        textP = '<i>'+info.event.start.toLocaleDateString()+"</i>"
-                        textP += " - " + info.event.extendedProps.quotity*100 +"%"
+                        textP += '<div class="info d-flex flex-wrap"><span class="end_date">'+info.event.start.toLocaleDateString()+"</span>"
+                        textP += '<span class="flex median" style="flex-grow: 1;"></span>';
+                        textP += '<span class="quotity">' + info.event.extendedProps.quotity*100 +"%</span></div>"
+                        
                         textP += '<div class="desc">' + info.event.extendedProps.desc + '</div>'
+                        
+                        
                         if (info.event.extendedProps.employee.length>0){
                             
                             textP += '<hr class="solid">';
@@ -54,6 +80,8 @@
 
 
             }
+            textP += "</div>";
+
             $(info.el).popover({
                 title: titleP,
                 content: textP,
@@ -143,6 +171,7 @@
                     extraParams:$.fn.lab_calendar.prototype.getExtraSetting,
                 }
             ],
+            resourceLabelContent:resourceRenderer,
             headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',

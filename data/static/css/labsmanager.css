@@ -1314,6 +1314,12 @@ li.list-spacer{
     float: left;
   }
 
+  .resource .desc{
+    white-space: collapse;
+    font-style: italic;
+    font-size: small;
+  }
+
 
 
   .initial-circle{
@@ -1403,6 +1409,26 @@ li.list-spacer{
     .completion_bar_fill {
         height: 100%;
         background-color: #4caf50;
+    }
+    /* project camendar popover */
+    .project_event hr:not([size]) {
+        height: 1px;
+    }
+    .project_event hr.solid{
+        border-top: 1px solid var(--primary-color-alpha-dark);
+    }
+    .project_event .desc{
+        font-style: italic;
+        margin-top: 1em;
+
+    }
+    .project_event .median{
+        border-top: 1px dashed var(--primary-color-alpha-dark);
+        align-self: center;
+        margin:0.3em;
+    }
+    .project_event .end_date{
+        font-weight: bold;
     }
 
 
