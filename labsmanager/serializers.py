@@ -449,7 +449,7 @@ class InvitationSerializer(serializers.ModelSerializer):
     inviter = UserSerializer(many=False, read_only=True)
     class Meta:
         model = Invitation
-        fields = ['pk', 'email', 'created', 'sent', 'accepted', 'inviter' ]  
+        fields = ['pk', 'email', 'created', 'sent', 'accepted', 'sent', 'key_expired', 'inviter' ]  
         
         
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Notifivation

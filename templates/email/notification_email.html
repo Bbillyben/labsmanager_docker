@@ -36,6 +36,38 @@ tbody tr.odd {
     background-color: #dfece3;
 }
 
+.table_title.project_milestones{
+    color:white;
+    background-color: #207276ff;
+    
+}
+.project_milestone thead tr.column_title{
+    background-color: #207276ff;
+}
+.project_milestone tbody tr.odd {
+    background-color: #92adae;
+}
+.project_milestone tbody tr.even {
+    background-color: #639c9f;
+}
+.project_milestone tbody tr.delayed, .employee_milestone  tbody tr.delayed{
+    background-color: #eca184 !important;
+}
+
+.table_title.employee_milestones{
+    color:white;
+    background-color: #964f8b;
+    
+}
+.employee_milestone thead tr.column_title{
+    background-color: #bd82b4;
+}
+.employee_milestone tbody tr.odd {
+    background-color: #e3c1de;
+}
+.employee_milestone tbody tr.even {
+    background-color: #eee4ec;
+}
 
 .footer-para{
     font-style: italic;
@@ -132,10 +164,10 @@ hr.light {
     {% endblocktrans %}
 
 </p>
-
+<div class="main-container">
 {% if projects %}
 
-<div class="main-container">
+
     <div class="table_container">
         <div class="table_title project_overview">
             {% trans "Project overview" %}
@@ -187,6 +219,7 @@ hr.light {
                 </table>
                 {% with "fund_o_"|addstr:pname as funds_o %}
                     {% extractArgs funds_o  as fs%}
+                    
                     {% include 'fund/fund_overview_type.html' with fs=fs %}
                 {% endwith %}
             {% endif %}
@@ -248,6 +281,49 @@ hr.light {
 <hr class="">
 {% endif %}
 
+{% if project_milestones %}
+    <div class="table_container">
+        <div class="table_title project_milestones">
+            {% trans "Project Milestones" %}
+        </div>
+        <table class="table project_milestone">
+            <thead>
+                
+                <tr class="column_title">
+                    <th>{% trans "Project" %}</th>
+                    <th>{% trans "Milestone" %}</th>
+                    <th>{% trans "Deadline" %}</th>
+                    <th>{% trans "Quotity" %}</th>
+                    <th>{% trans "Assignation" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in project_milestones %}
+                <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}
+                 {% if p.is_overdue %}delayed{% endif %}
+                " >
+                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.pk %}">{{p.project.name}}</a></td>
+                    <td align="center" valign="top">{{p.name}}</td>
+                    <td align="center" valign="top">{{p.deadline_date}}</td>
+                    <td align="center" valign="top">{% quotityFormat p.quotity %}</td>
+                    <td align="center" valign="top">
+                        {% for e in p.employee.all%}
+                            {{e.user_name}}
+                            {% if forloop.last %}{% else %}, {%endif%} 
+                        {% empty %}
+                            {% trans "Not assigned" %}
+                        {% endfor %}
+                    </td>
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <hr class="">
+
+{%endif%}
 
 
 {% if teams %}
@@ -379,6 +455,53 @@ hr.light {
 </div>
 <hr class="">
 {% endif %}
+
+{% if employee_milestones %}
+    <div class="table_container">
+        <div class="table_title employee_milestones">
+            {% trans "Employees Milestones" %}
+        </div>
+        <table class="table employee_milestone">
+            <thead>
+                
+                <tr class="column_title">
+                    <th>{% trans "Assignation" %}</th>
+                    <th>{% trans "Project" %}</th>
+                    <th>{% trans "Milestone" %}</th>
+                    <th>{% trans "Deadline" %}</th>
+                    <th>{% trans "Quotity" %}</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in employee_milestones %}
+                <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}
+                 {% if p.is_overdue %}delayed{% endif %}
+                " >
+                    <td align="center" valign="top">
+                        {% for e in p.employee.all%}
+                            {% if e in employees%}
+                                {% if not forloop.first %}, {%endif%} 
+                                {{e.user_name}}
+                                
+                            {%endif%}
+                        {% endfor %}
+                    </td>
+                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.pk %}">{{p.project.name}}</a></td>
+                    <td align="center" valign="top">{{p.name}}</td>
+                    <td align="center" valign="top">{{p.deadline_date}}</td>
+                    <td align="center" valign="top">{% quotityFormat p.quotity %}</td>
+                    
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <hr class="">
+
+{%endif%}
 
 {% if inc_emp %}
 <div class="main-container">

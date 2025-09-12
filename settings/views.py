@@ -413,6 +413,7 @@ class InvitationUser_list(LoginRequiredMixin, TemplateView):
                 {'name':_('Date Created'),'item':'created','formatter':'baseDateTimeFormatter'},
                 {'name':_('Date Sent'),'item':'sent','formatter':'baseDateTimeFormatter'},
                 {'name':_('Accepted'),'item':'accepted','formatter':'basicBoolean'},
+                {'name':_('Key Expired'),'item':'key_expired','formatter':'basicBoolean'},
                 {'name':_('Inviter'),'item':'inviter', 'formatter':'userSimpleFormatter', },
                 
             ], 
@@ -422,10 +423,10 @@ class InvitationUser_list(LoginRequiredMixin, TemplateView):
             'options':{
             },         
         }
+        # if request.user.is_staff :
+        #     context["action"]["update"] = 'update_user_employee'
         if request.user.is_staff :
-            context["action"]["update"] = 'update_user_employee'
-        if request.user.is_staff :
-            context["action"]["admin"] = 'admin:auth_user_change'
+            context["action"]["admin"] = 'admin:invitations_invitation_change'
         
         return render(request=request,template_name=self.template_name,context=context)
     

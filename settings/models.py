@@ -1111,6 +1111,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': 'en',
             'choices':LANGUAGES,
         },
+        'NOTIFCATION_SUB_MILESTONES': {
+            'name': _('Milestones Reports'),
+            'description': _('Report Milestones of subscribed items'),
+            'default': True,
+            'validator': bool,
+        },
         ## for user notification sepcific (milestones etc...)
         'NOTIFICATION_ENDPOINTS_MILESTONES': {
             'name': _('Milestones notification'),

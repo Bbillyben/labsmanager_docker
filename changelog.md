@@ -10,6 +10,8 @@ note : require static update
 [FIX] : Percentage field for qutotiy is now limiting digit to 1 and round number so no more issue with forms
 [UPDATE] : traduction
 [UPDATE] : Project Fund Layout (single fund table overview)
+[ADD] : Add milestones report for subscribed project and employee in subscription mail.
+[ADD] : Add settings in subscription parameters to report milestones for subscribed project and employee in subscription mail.
 
 ### 0.9.3 2025-07 :
 note : require static update
