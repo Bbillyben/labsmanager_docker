@@ -12,6 +12,7 @@ note : require static update
 [UPDATE] : Project Fund Layout (single fund table overview)
 [ADD] : Add milestones report for subscribed project and employee in subscription mail.
 [ADD] : Add settings in subscription parameters to report milestones for subscribed project and employee in subscription mail.
+[UPDATE] : invitation list now show whether a  n invitation key has expired
 
 ### 0.9.3 2025-07 :
 note : require static update
