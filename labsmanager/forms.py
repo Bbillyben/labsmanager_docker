@@ -55,3 +55,13 @@ class PercentageField(DecimalField):
         if value is None:
             return value
         return (Decimal(value) / 100).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+
+
+from django import forms
+
+class ConfirmActionForm(forms.Form):
+    confirm = forms.BooleanField(
+        required=True,
+        initial=True,   # valeur par défaut
+        widget=forms.HiddenInput()  # champ caché
+    )

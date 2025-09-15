@@ -1,0 +1,37 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<form method="post" action="">
+  {% csrf_token %}
+
+  <div class='alert alert-block alert-danger form-validation-warning' id='form-validation-warning' style='display: none;'>
+    {% trans "Form errors exist" %}
+  </div>
+  <div class="modal-body">
+    <p>{% trans "Confirm Action" %}"{{ action }}"?</p>
+    {{ form | crispy }}   
+
+    
+  </div>
+
+  <div class="modal-footer">
+    <div id="modal-footer-buttons">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="modal-confirm">
+        <label class="form-check-label" for="modal-confirm">Confirm</label>
+      </div>
+    </div>
+      <span class="flex-item" style="flex-grow: 1;"></span>
+    
+      <button type='button' class='btn btn-outline-secondary' id='modal-form-close' data-bs-dismiss='modal'>{% trans "Close" %}</button>
+      <button type='submit' class='btn btn-primary' id='modal-form-submit' disabled="">{% trans "Validate" %}</button>
+  </div>
+</form>
+
+<script>
+  $('.form-check-input').change(function(){
+    var enabled = this.checked;
+    //$(this).parent().find(':submit').prop( "disabled", !enabled );
+    $('#modal-form-submit').prop( "disabled", !enabled );
+  })
+</script>

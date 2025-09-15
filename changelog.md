@@ -13,6 +13,29 @@ note : require static update
 [ADD] : Add milestones report for subscribed project and employee in subscription mail.
 [ADD] : Add settings in subscription parameters to report milestones for subscribed project and employee in subscription mail.
 [UPDATE] : invitation list now show whether a  n invitation key has expired
+[ADD] : for setting table, add ability to add a menu items in tables with the subitem 'menu' : 
+```python
+context={
+            'url':reverse_lazy("my url"),
+            'title':_('My Title'),
+            'columns':[
+                #{'name':_('User'),'item':'user.username',},
+                {'name':_('Column 1name '),'item':'email', 'class':'fit-content'},
+            ], 
+            'action':{
+                'add':reverse('url_to_add_item'),
+            },
+            'menu':{
+                'menu_item1':{
+                        'url': reverse('menu_item_1_form_or_action_url'),
+                        'title': _("Title Of Item"),
+                        'icon': 'fa fa-trash',
+                    }
+            },
+            'options':{
+            },         
+        }
+```
 
 ### 0.9.3 2025-07 :
 note : require static update

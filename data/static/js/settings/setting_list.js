@@ -54,6 +54,18 @@ function settingListActionFormatter(value, row, index, field){
                     }   
                 )
             })
+            // menu items
+            $(card).find('.setting-menu').each(function(){
+                $(this).labModalForm({
+                        formURL: $(this).data("form-url"),
+                        modal_title: $(this).data("form-title"),
+                        isDeleteForm: true,
+                        addModalFormFunction:function(){
+                            $(table).bootstrapTable('refresh');
+                        },
+                    }   
+                )
+            })
         };
 
         plugin.updateSettingCardBtn=function(){
