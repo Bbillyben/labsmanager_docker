@@ -12,6 +12,7 @@ note : require static update
 [UPDATE] : Project Fund Layout (single fund table overview)
 [ADD] : Add milestones report for subscribed project and employee in subscription mail.
 [ADD] : Add settings in subscription parameters to report milestones for subscribed project and employee in subscription mail.
+[ADD] : Add settings in subscription parameters to report validated milestones for a scope of time related to the frequecncy (nb of report it will be in not date).
 [UPDATE] : invitation list now show whether a  n invitation key has expired
 [FIX] : fix import js/project_graph.js in project single dashboard
 [ADD] : for setting table, add ability to add a menu items in tables with the subitem 'menu' : 

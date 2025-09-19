@@ -267,6 +267,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         leaves_timeframe=LMUserSetting.get_setting("NOTIFCATION_LEAVE_TIMEFRAME", user=user)
         inc_emp=LMUserSetting.get_setting("NOTIFCATION_EMP_INCOMMING", user=user)
         inc_ms = LMUserSetting.get_setting("NOTIFCATION_SUB_MILESTONES", user=user)
+        ms_rep = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_REPEAT", user=user)
         freq_name=get_choiceitem(choices, freq)
         
         if sub_enab == True:
@@ -326,11 +327,19 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         
         # milestones
         if inc_ms:
-            #peroject milestones
-            ms = Milestones.objects.filter(project__in = projects)
+            # Temporal scope calculation for completed milestones
+            from croniter import croniter
+            ms_now = datetime.datetime.now()
+            ms_cron = croniter(freq, ms_now)
+            for _ in range(ms_rep):
+                ms_notif = ms_cron.get_prev(datetime.datetime)
+            query = Q(status=False)|(Q(status=True) & Q(deadline_date__gte = ms_notif))
+            ms = Milestones.objects.filter(Q(project__in = projects) &  query)
+            ems = Milestones.objects.filter(Q(employee__id__in = emp_ids) & query).distinct()
+            #project milestones
+            #ms = Milestones.objects.filter(project__in = projects)
             self.context['project_milestones'] = ms
             # for employee milestones        
-            ems = Milestones.objects.filter(employee__id__in = emp_ids).distinct()
             self.context['employee_milestones']= ems
         
         # for team
