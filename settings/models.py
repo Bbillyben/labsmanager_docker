@@ -1143,6 +1143,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': 2,
             'validator': [int, MinValueValidator(1)]
         },
+        'NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_HORIZON': {
+            'name': _('Milestones Notfication horizon'),
+            'description': _('Number of days for incomming milestones'),
+            'default': 120,
+            'validator': [int, MinValueValidator(30)]
+        },
         'NOTIFICATION_PROJECT_PARTICIPANT': {
             'name': _('Project Participation notification'),
             'description': _('enable automatic mail notification on participation event'),

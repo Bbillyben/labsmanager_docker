@@ -268,6 +268,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         inc_emp=LMUserSetting.get_setting("NOTIFCATION_EMP_INCOMMING", user=user)
         inc_ms = LMUserSetting.get_setting("NOTIFCATION_SUB_MILESTONES", user=user)
         ms_rep = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_REPEAT", user=user)
+        ms_day = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_HORIZON", user=user)
         freq_name=get_choiceitem(choices, freq)
         
         if sub_enab == True:
@@ -330,10 +331,11 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
             # Temporal scope calculation for completed milestones
             from croniter import croniter
             ms_now = datetime.datetime.now()
+            ms_hor = ms_now + datetime.timedelta(days=ms_day)
             ms_cron = croniter(freq, ms_now)
             for _ in range(ms_rep):
                 ms_notif = ms_cron.get_prev(datetime.datetime)
-            query = Q(status=False)|(Q(status=True) & Q(deadline_date__gte = ms_notif))
+            query = (Q(status=False)|(Q(status=True) & Q(deadline_date__gte = ms_notif))) & Q(deadline_date__lte = ms_hor )
             ms = Milestones.objects.filter(Q(project__in = projects) &  query)
             ems = Milestones.objects.filter(Q(employee__id__in = emp_ids) & query).distinct()
             #project milestones
