@@ -19,6 +19,7 @@
                 filterResourcesWithEvents:false,
                 initialView: 'resourceTimelineMonth',
                 useDatePicker: true,
+                resourceOrder:'title',
                 headerToolbar: {
                     left: 'prev,next today datePickerButton',
                     center: 'title',
@@ -68,7 +69,7 @@
                 select: plugin.settingsCal.select,
                 height: plugin.settingsCal.height,
                 
-                resourceOrder: 'title',
+                resourceOrder: plugin.settingsCal.resourceOrder,
                 filterResourcesWithEvents:plugin.settingsCal.filterResourcesWithEvents,
                 // -------------------------------
                 slotDuration: {
@@ -315,8 +316,10 @@
             eltCal=document.getElementById(this.attr('id'))
             calendar = new FullCalendar.Calendar(eltCal, globals)
             calendar.render();
+            plugin.calendar_refresh();
             return calendar;
     };
+    
     var plugin = $.fn.lab_calendar.prototype;
     plugin.settingsCal={};
     plugin.calendar_refresh = function(){
@@ -366,6 +369,18 @@
 
         // to specify it's from calendar
         extraSetting["cal"]=1;
+
+        if(typeof calendar !== 'undefined') {
+            var view = calendar.view;
+            extraSetting["start"] = view.activeStart.toISOString();
+            extraSetting["end"] = view.activeEnd.toISOString();
+        } else {
+            // Valeurs par défaut pour l'initialisation
+            extraSetting["start"] = new Date().toISOString();
+            extraSetting["end"] = new Date(new Date().setDate(new Date().getDate() + 30)).toISOString();
+        }
+        
+        
         // extra params for 
         return  extraSetting
     }

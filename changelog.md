@@ -16,6 +16,7 @@ note : require static update
 [UPDATE] : invitation list now show whether a  n invitation key has expired
 [FIX] : fix import js/project_graph.js in project single dashboard
 [ADD] : for setting table, add ability to add a menu items in tables with the subitem 'menu' : 
+[ADD] : in calendar view, add project calendar with fund, participant and milestones, with some filters
 ```python
 context={
             'url':reverse_lazy("my url"),

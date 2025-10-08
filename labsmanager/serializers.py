@@ -254,6 +254,8 @@ class ProjectMilestonesSerializer_cal(serializers.ModelSerializer):
         st= obj.deadline_date.isoformat()
         return st
     def get_end(self,obj):
+        if obj.deadline_date is None:
+            return datetime(9999, 12, 31)
         ed=datetime.combine(obj.deadline_date ,datetime.min.time())
         ed = ed +timedelta(days=1)
         return ed
@@ -274,12 +276,17 @@ class ProjectProjectSerializer_cal(serializers.ModelSerializer):
                   'origin','meta_type',
                   ]  
     def get_start(self,obj):
+        if obj.start_date is None:
+            return datetime(1,1,1).isoformat()
         st= obj.start_date.isoformat()
         return st
     def get_end(self,obj):
+        if obj.end_date is None:
+            return datetime(9999, 12, 31)
         ed=datetime.combine(obj.end_date ,datetime.min.time())
         ed = ed +timedelta(days=1)
         return ed
+    
     def get_resourceId(self,obj):
         ed=f'project_{obj.pk}'
         return ed
@@ -301,14 +308,18 @@ class ProjectParticipantSerializer_cal(serializers.ModelSerializer):
     def get_start(self,obj):
         if not obj.start_date is None:
             st= obj.start_date.isoformat()
-        else:
+        elif not obj.project.start_date is None:
             st= obj.project.start_date.isoformat()
+        else:
+            st = datetime(1,1,1).isoformat()
         return st
     def get_end(self,obj):
         if not obj.end_date is None:
             ed=datetime.combine(obj.end_date ,datetime.min.time())
-        else:
+        elif not obj.project.end_date is None:
             ed=datetime.combine(obj.project.end_date ,datetime.min.time())
+        else:
+            ed = datetime(9999, 12, 30)
         ed = ed +timedelta(days=1)
         return ed
     def get_resourceId(self,obj):
@@ -331,14 +342,18 @@ class ProjectFundSerializer_cal(serializers.ModelSerializer):
     def get_start(self,obj):
         if not obj.start_date is None:
             st= obj.start_date.isoformat()
-        else:
+        elif not obj.project.start_date is None:
             st= obj.project.start_date.isoformat()
+        else:
+            st = datetime(1,1,1).isoformat()
         return st
     def get_end(self,obj):
         if not obj.end_date is None:
             ed=datetime.combine(obj.end_date ,datetime.min.time())
-        else:
+        elif not obj.project.end_date is None:
             ed=datetime.combine(obj.project.end_date ,datetime.min.time())
+        else:
+            ed = datetime(9999, 12, 30)
         ed = ed +timedelta(days=1)
         return ed
     def get_resourceId(self,obj):
@@ -350,50 +365,96 @@ class ProjectResourceSerializer_cal_project(serializers.ModelSerializer):
     id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
     title = serializers.CharField(source='name')
     group = serializers.CharField(default=_('project'))
+    group_type = serializers.CharField(default='project')
+    url = serializers.SerializerMethodField() #HyperlinkedIdentityField(view_name='project_single', read_only=True)
+
+    
     class Meta:
         model = Project
-        fields = ['id', 'title', 'group']  
+        fields = ['id', 'title', 'group', 'group_type',  'url']  
 
     def get_id(self,obj):
         st= f'project_{obj.pk}'
         return st
+    def get_url(self, obj):
+        print(f' ------------>   URL Project : {self.context["request"].user} / {self.context["request"].user.has_perm("project.view_project", obj.pk)}')
+        
+        if self.context["request"].user.has_perm("project.view_project") or self.context["request"].user.has_perm("project.view_project", obj.pk):
+            return reverse('project_single', kwargs={"pk": obj.pk})
+        else:
+            return None
+        
 class ProjectResourceSerializer_cal_participant(serializers.ModelSerializer): 
     # user = UserSerializer(many=False, read_only=True)
     id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
     title = serializers.CharField(source='employee.user_name')
     group = serializers.CharField(default=_('participants'))
+    group_type = serializers.CharField(default='participants')
+    url = serializers.SerializerMethodField()
     class Meta:
         model = Participant
-        fields = ['id', 'title', 'group',]  
+        fields = ['id', 'title', 'group', 'group_type', 'url']  
 
     def get_id(self,obj):
         st= f'participant_{obj.pk}'
         return st
+    
+    def get_url(self, obj):
+        if self.context["request"].user.has_perm("staff.view_employee"):
+            return reverse('employee', kwargs={"pk": obj.employee.pk})
+        else:
+            return None
     
 class ProjectResourceSerializer_cal_milestones(serializers.ModelSerializer): 
     # user = UserSerializer(many=False, read_only=True)
     id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
     title = serializers.CharField(source='name')
     group = serializers.CharField(default=_('milestones'))
+    group_type = serializers.CharField(default='milestones')
     class Meta:
         model = Milestones
-        fields = ['id', 'title', 'desc', 'group']  
+        fields = ['id', 'title', 'desc', 'group', 'group_type',]  
 
     def get_id(self,obj):
         st= f'milestones_{obj.pk}'
         return st
+    
 class ProjectResourceSerializer_cal_fund(serializers.ModelSerializer): 
     # user = UserSerializer(many=False, read_only=True)
     id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
     title = serializers.CharField(source='getId')
     group = serializers.CharField(default=_('fund'))
+    group_type = serializers.CharField(default='fund')
     class Meta:
         model = Fund
-        fields = ['id', 'title', 'group']  
+        fields = ['id', 'title', 'group', 'group_type',]  
 
     def get_id(self,obj):
         st= f'fund_{obj.pk}'
         return st
+
+# for general tab resources 
+class ProjectResourceSerializer_gencal_project(ProjectResourceSerializer_cal_project):
+    group = serializers.SerializerMethodField()
+    def get_group(self,obj):
+        ed=f'{obj.name}'
+        return ed
+class ProjectResourceSerializer_gencal_participant(ProjectResourceSerializer_cal_participant):
+    group = serializers.SerializerMethodField()
+    def get_group(self,obj):
+        ed=f'{obj.project.name}'
+        return ed
+class ProjectResourceSerializer_gencal_milestones(ProjectResourceSerializer_cal_milestones):
+    group = serializers.SerializerMethodField()
+    def get_group(self,obj):
+        ed=f'{obj.project.name}'
+        return ed    
+class ProjectResourceSerializer_cal_fund(ProjectResourceSerializer_cal_fund):
+    group = serializers.SerializerMethodField()
+    def get_group(self,obj):
+        ed=f'{obj.project.name}'
+        return ed 
+
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Common
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse

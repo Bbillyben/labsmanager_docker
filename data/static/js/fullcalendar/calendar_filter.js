@@ -1,36 +1,44 @@
 // require main_calendar.js and its initialisation (for calendar var definition), those method only for manageing filters 
+// function getCalenderParams(){
 
-function getCalenderParams(){
+function getCalenderParams(selector) {
+    return function getCalendarParamsSelector() {
+        // Initial filters object
+        let filters = { type_exact: true }; // Prevent descendant types when selecting type
 
-    //////  DEV
-    filters={type_exact:true,}// to not get descendant when selecting type
-    $('#calendar-filter').find(".calendar-filter").each(function(){
-        tmp={};
-        // console.log("Params :"+$(this).prop('nodeName'))
-        switch ($(this).prop('nodeName')) { 
-            case 'SELECT':
-            case "INPUT":// ensemble de check box
-                tmp[$(this).data("filter-id")]=$(this).val();
-                break;
-            case "FORM":// radio box
-                tmp[$(this).data("filter-id")]=$(this).find("input[type='radio']:checked").attr("value");
-                break;
-            case "DIV":// ensemble de check box
-                tmp[$(this).data("filter-id")]= $.map($(this).find(':checkbox:checked'), function(n, i){
-                                    return n.value;
-                            }).join(',');
-                break;
-                
-        }
-        // console.log("tmp : "+JSON.stringify(tmp))
-        filters= $.extend(filters, tmp); 
+        // Loop through each filter element inside the provided selector
+        $(selector).find(".calendar-filter").each(function() {
+            let tmp = {}; // Temporary object to store filter data
 
-    })
-    // console.log("getCalenderParams :"+JSON.stringify(filters))
-    return filters
+            // Identify the element type (SELECT, INPUT, FORM, DIV)
+            switch ($(this).prop('nodeName')) {
+                case 'SELECT':
+                case 'INPUT': // Input elements (e.g., checkboxes)
+                    tmp[$(this).data("filter-id")] = $(this).val();
+                    break;
+                case 'FORM': // Radio button form
+                    tmp[$(this).data("filter-id")] = $(this).find("input[type='radio']:checked").attr("value");
+                    break;
+                case 'DIV': // Checkbox group
+                    tmp[$(this).data("filter-id")] = $.map($(this).find(':checkbox:checked'), function(n) {
+                        return n.value;
+                    }).join(',');
+                    break;
+            }
+
+            // Merge the temporary filters with the main filters object
+            filters = $.extend(filters, tmp);
+        });
+
+        // Return the final filters object
+        return filters;
+    };
 }
-function initListener(){
-    $('#calendar-filter').find(".calendar-filter").each(function(){
+
+
+function initListener(filter_target){
+    // filter_target : the id of filter container
+    $('#'+filter_target).find(".calendar-filter").each(function(){
         switch ($(this).prop('nodeName')) { 
             case 'SELECT':
             case "FORM":// radio box
@@ -41,8 +49,8 @@ function initListener(){
                elt=$(this).find(":checkbox")
                 break;
         }
-        elt.change(function() {   
-            saveTableFilters("calendar-filter", getCalenderParams());
+        elt.change(function() {  
+            saveTableFilters(filter_target, getCalenderParams("#"+filter_target)());
             calendar_refresh();
         });
 
@@ -52,19 +60,24 @@ function initListener(){
         selected_value = $("input[name='ressource_event_radio']:checked").val();
         saveTableFilters("calendar-filter", getCalenderParams());
         calendar.setOption("filterResourcesWithEvents",selected_value!="false");
-        calendar_refresh();
+        if(filter_target=="calendar-filter"){
+            calendar_refresh();
+        }else{
+            calendar_project_refresh();
+        }
         
     });
 
 }
-function Calendar_loadFilters(){
-    // load filters values => see in js.labsmanager.filters.loadTableFilters
-    var filters=loadTableFilters("calendar-filter");
+function Calendar_loadFilters(filter_target){
+    // filter_target : the id of filter container
+    var filters=loadTableFilters(filter_target);
     // console.log(" -------------------- Calendar_loadFilters")
+    // console.log("filter_target :"+filter_target)
     // console.log(JSON.stringify(filters))
     // console.log(" --------------------")
     for( slug in filters){
-        elt = $('#calendar-filter').find(`.calendar-filter[data-filter-id="${slug}"]`)
+        elt = $('#'+filter_target).find(`.calendar-filter[data-filter-id="${slug}"]`)
         dom=elt.prop('nodeName')
         switch (dom) { 
             case 'SELECT':
@@ -97,4 +110,11 @@ function calendar_refresh(){
     $('#calendar-box').unbind('click');
     calendar.refetchEvents();  
     calendar.refetchResources();  
+}
+function calendar_project_refresh(){
+    //console.log("calendar_refresh")
+    
+    $('#calendar-project-box').unbind('click');
+    calendar_project.refetchEvents();  
+    calendar_project.refetchResources();  
 }

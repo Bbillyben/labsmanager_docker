@@ -325,96 +325,6 @@ hr.light {
 
 {%endif%}
 
-
-{% if teams %}
-       
-
-        {% if leave_format == "list" %}
-        {% for t in teams %}
-                <div class="table_container">          
-                    <table class="table team">
-                        <div class="table_title team_live">
-                            {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                        </div>
-                            <thead>
-                                
-                                <tr class="column_title">
-                                    <th>{% trans "Team Mate" %}</th>
-                                    <th>{% trans "Start Date" %}</th>
-                                    <th>{% trans "End Date" %}</th>
-                                    <th>{% trans "Type" %}</th>
-                                </tr>
-                            </thead>
-                        <tbody>
-
-                            {% with "leave_"|addstr:t.name as leaveM %}
-                                {% extractArgs leaveM  as leaves%}
-                                {% if leaves %}
-                                    {% for l in leaves %}
-                                    <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
-                                        <td align="center" valign="top">{{l.start_date}}</td>
-                                        <td align="center" valign="top">{{l.end_date}}</td>
-                                        <td align="center" valign="top">{{l.type.short_name}}</td>
-                                    </tr>
-                                    {% endfor %}        
-                                {% endif %}
-                            
-
-                            {% endwith %}
-
-                    </tbody>
-                </table> 
-                {% if not forloop.last %}
-                <hr class="light">
-                {% endif %}
-        {% endfor %}
-        {% endif %}
-        {% if leave_format == "calendar" %}
-        {% for t in teams %}
-                <div class="table_container">    
-                    <div class="table_title team_live">
-                        {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                    </div>      
-                    <table class="table team">
-                            <thead>
-                                <tr class="column_title">
-                                    <th>{% trans "Team Mate" %}</th>
-                                    {% for d in days %}
-                                    <th>{{ d|date:"d M" }}</th>
-                                    {%endfor%}
-                                </tr>
-                            </thead>
-                        <tbody>
-
-                            {% with "leave_emp_"|addstr:t.name as leaveM %}
-                                {% extractArgs leaveM  as leaves%}
-                                {% if leaves %}
-                                {% for l, li in leaves.items %}
-                                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
-                                    {% for d in days %}
-                                        {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}
-                                    {%endfor%}
-            
-                                </tr>
-                                {% endfor %}    
-                                {% endif %}
-                            
-
-                            {% endwith %}
-
-                    </tbody>
-                </table> 
-                {% if not forloop.last %}
-                <hr class="light">
-                {% endif %}
-        {% endfor %}
-        {% endif %}
-
-{% endif %}
-
-
 {% if contracts %}
 <hr class="">
 <div class="main-container">
@@ -502,6 +412,96 @@ hr.light {
     <hr class="">
 
 {%endif%}
+
+{% if teams %}
+       
+
+        {% if leave_format == "list" %}
+        {% for t in teams %}
+
+                <div class="table_container">   
+                    {% with "leave_"|addstr:t.name as leaveM %}
+                    {% extractArgs leaveM  as leaves%}
+                    {% if leaves|length %}
+                    
+                    <table class="table team">
+                            <div class="table_title team_live">
+                                {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
+                            </div>
+                                <thead>
+                                    
+                                    <tr class="column_title">
+                                        <th>{% trans "Team Mate" %}</th>
+                                        <th>{% trans "Start Date" %}</th>
+                                        <th>{% trans "End Date" %}</th>
+                                        <th>{% trans "Type" %}</th>
+                                    </tr>
+                                </thead>
+                            <tbody>
+                                        {% for l in leaves %}
+                                        <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                                            <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
+                                            <td align="center" valign="top">{{l.start_date}}</td>
+                                            <td align="center" valign="top">{{l.end_date}}</td>
+                                            <td align="center" valign="top">{{l.type.short_name}}</td>
+                                        </tr>
+                                        {% endfor %}        
+                        </tbody>
+                    </table> 
+                    {%else%}
+                        <div> {% trans "No leaves planned for team :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
+                        </div>
+                    {% endif %}
+                    {% endwith %}
+                {% if not forloop.last %}
+                <hr class="light">
+                {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% if leave_format == "calendar" %}
+        {% for t in teams %}
+                <div class="table_container">    
+                    {% with "leave_"|addstr:t.name as leaveM %}
+                    {% extractArgs leaveM  as leaves%}
+                    {% if leaves  %}
+                    <p> ITEMS :  {{leaves}}</p>
+                    <div class="table_title team_live">
+                        {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
+                    </div>      
+                    
+                    <table class="table team">
+                            <thead>
+                                <tr class="column_title">
+                                    <th>{% trans "Team Mate" %}</th>
+                                    {% for d in days %}
+                                    <th>{{ d|date:"d M" }}</th>
+                                    {%endfor%}
+                                </tr>
+                            </thead>
+                        <tbody>
+                                {% for l, li in leaves.items %}
+                                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
+                                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
+                                    {% for d in days %}
+                                        {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}
+                                    {%endfor%}
+            
+                                </tr>
+                                {% endfor %}    
+                    </tbody>
+                </table> 
+                {%else%}
+                    <div> {% trans "No leaves planned for team :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
+                    </div>
+                {% endif %}
+                {% endwith %}
+                {% if not forloop.last %}
+                <hr class="light">
+                {% endif %}
+        {% endfor %}
+        {% endif %}
+<hr class="">
+{% endif %}
 
 {% if inc_emp %}
 <div class="main-container">

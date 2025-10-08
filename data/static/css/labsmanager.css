@@ -1447,6 +1447,22 @@ li.list-spacer{
         border-color:  initial;
     } */
 
+
+    /* for general calendar project (the huge with every project */
+
+    .fc-datagrid-cell-cushion:has(.resource.project){
+        background-color: var(--primary-color-alpha-dark);
+    }
+    .fc-datagrid-cell-cushion:has(.resource.participants){
+        background-color: var(--third-color-alpha-dark);
+    }
+    .fc-datagrid-cell-cushion:has(.resource.fund){
+        background-color: #0080ff1e;
+    }
+    .fc-datagrid-cell-cushion:has(.resource.milestones){
+        background-color: var(--subheading-color);
+    }
+
     /* for modal fund description in contract view */
     .popover-body .show_contract_fund, .card-title .show_contract_fund{
         color: #0dcaf0 !important;
