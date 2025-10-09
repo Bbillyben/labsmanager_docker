@@ -1,11 +1,19 @@
 {% load i18n %}
 {% load static %}
+{% load lab_rules %}
 
+{% has_lab_perm 'user_view_contract' user employee as can_view_contract %}
+{% has_lab_perm 'user_view_budget' user employee as can_view_budget %}
+
+{%if can_view_contract %}
 {% trans "Contract" as text %}
 {% include "sidebar_item.html" with label="employee-contract" text=text icon="fa-file-signature" %}
+{% endif %}
 
+{%if can_view_budget %}
 {% trans "Budgets" as text %}
 {% include "sidebar_item.html" with label="employee-budget" text=text icon="fa-sack-dollar" %}
+{% endif %}
 
 {% trans "Contribution" as text %}
 {% include "sidebar_item.html" with label="contribution" text=text icon="fa-wallet" %}

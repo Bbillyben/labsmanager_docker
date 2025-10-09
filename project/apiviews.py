@@ -222,7 +222,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if 'end' in request.GET:#['end']:
             slot['to']=clean_iso_date(request.GET['end'])
         
-        proj = Project.time_object.timeframe(slot)
+        projects_slots  = Project.time_object.timeframe(slot)
+        proj = Project.get_instances_for_user('view', self.request.user, projects_slots)
         self.request = request
         proj = self.filter_queryset(proj)
        
@@ -257,8 +258,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False,url_path='calendar-all-get-resources', url_name='calendar-all-get-resources')
     def calendar_all_get_resources(self,request):
-        print("########################## ALL PROJECT CALENDAR RESSOURCES ##########################")
-        print(request.GET)
+        # print("########################## ALL PROJECT CALENDAR RESSOURCES ##########################")
+        # print(request.GET)
         slot={}
         if 'start' in request.GET :#request.GET['start']:
             slot['from']=clean_iso_date(request.GET['start'])
@@ -266,7 +267,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
             slot['to']=clean_iso_date(request.GET['end'])
             
         
-        projects  = Project.time_object.timeframe(slot)
+        projects_slots  = Project.time_object.timeframe(slot)
+        projects = Project.get_instances_for_user('view', self.request.user, projects_slots)
         self.request = request
         projects = self.filter_queryset(projects)
             

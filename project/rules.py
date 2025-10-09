@@ -50,8 +50,11 @@ def is_participant_superior(user, participant = None):
 
 #    Rules ======================
 
+
 rules.add_perm('project.change_project', is_project_leader |  is_project_coleader)
 rules.add_perm('project.view_project', is_project_participant)
 
 
 rules.add_perm('project.view_participant', is_participant_superior)
+
+rules.add_perm('project.view_fund', is_project_leader |  is_project_coleader)

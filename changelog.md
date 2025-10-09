@@ -2,6 +2,8 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### latest :
+
+### 0.9.4 2025-10 :
 note : require static update
 [UPDATE] : update signal handler for expense. FOr project based on expense parameter (hybrid or expense), now expense type modification impact global expense calculation on previous type. 
 [ADD] : delete expense now trigger overall expense on type 
@@ -16,7 +18,6 @@ note : require static update
 [UPDATE] : invitation list now show whether a  n invitation key has expired
 [FIX] : fix import js/project_graph.js in project single dashboard
 [ADD] : for setting table, add ability to add a menu items in tables with the subitem 'menu' : 
-[ADD] : in calendar view, add project calendar with fund, participant and milestones, with some filters
 ```python
 context={
             'url':reverse_lazy("my url"),
@@ -39,6 +40,10 @@ context={
             },         
         }
 ```
+[ADD] : in calendar view, add project calendar with fund, participant and milestones, with some filters
+[UPDATE] : change fund, budget and contract visualisation in project and employee panel according to user right
+[UPDATE] : in global project calendar, projects listed are ones user has view right on (according to project list in project list panel
+
 
 ### 0.9.3 2025-07 :
 note : require static update

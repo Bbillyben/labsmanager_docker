@@ -5,6 +5,8 @@ register = template.Library()
     
 @register.simple_tag
 def has_lab_perm(perm, user, obj=None):
+    print(f' ------------ test rules :{perm} for user : {user} for object : {obj}')
+    print(f'   - hasattr(user, "has_perm") : {hasattr(user, "has_perm")} / {user.has_perm(perm)}')
     if not hasattr(user, "has_perm"):
         return user.has_perm(perm)
     elif user.has_perm(perm, obj):

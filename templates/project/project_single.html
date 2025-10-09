@@ -4,6 +4,8 @@
 {% load customs_tags %}
 {% load lab_rules %}
 
+
+
 {% block page_title %}
 {% trans "LabManager Project" %} - {{ project }}
 {% endblock %}
@@ -19,6 +21,10 @@
 {% include 'modals.html' with modal_id='create-modal' modal_title='Project' %}
 
 {% has_lab_perm 'project.change_project' user project as can_edit_project %}
+{% has_lab_perm 'fund.view_fund' user project as can_view_fund%}
+{% has_lab_perm 'user_view_budget' user project as can_view_budget%}
+{% has_lab_perm 'user_view_contract' user project as can_view_contract %}
+
 <div id='detail-panels'>
     <div class="panel" id="panel-project" style="display: block;">
 
@@ -227,6 +233,7 @@
 </div>
 
 <!-- ######################################    FUND PANEL ############################################### -->
+{%if can_view_fund %}
 <div class="panel-hidden panel-visible" id="panel-project-fund" style="display: block;">
     <div id='detail-panels'> 
         <div class="panel" id="panel-project-fund1" style="display: block;">
@@ -318,8 +325,9 @@
     </div>
    
 </div>
+{%endif%}
 <!-- ######################################    Budget PANEL ############################################### -->
-
+{% if can_view_budget %}
 <div class="panel-hidden panel-visible" id="panel-budget" style="display: block;">
     <div id='detail-panels'> 
         <div class="panel" id="panel-project-budget1" style="display: block;">
@@ -353,6 +361,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 <!-- ######################################    Conbtribution PANEL ############################################### -->
 
 <div class="panel-hidden panel-visible" id="panel-contribution" style="display: block;">
@@ -499,6 +508,7 @@
                 
             </div>
     <!-- ######################################    Contract ############################################### -->
+{% if can_view_contract %}
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-project-contract" style="display: block;">
 
@@ -547,7 +557,7 @@
 
     </div>
 </div>
-
+{%endif%}
     <!-- ######################################    Calendar  ############################################### -->
 <div id='detail-panels'>
     <div class="panel panel-hidden panel-visible" id="panel-project-calendar" style="display: block;">
