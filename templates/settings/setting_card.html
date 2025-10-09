@@ -17,6 +17,22 @@
         {% endif%}
       </div>
       {% endif%}
+      {% if menu %}
+      
+          <button id="{{idT}}-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Actions" aria-expanded="false">
+              <i class="fas fa-flask"></i>
+          </button>
+          <ul class="dropdown-menu" style="">
+              {% for key, me in menu.items %}
+                 <li>
+                  <span class="setting-menu dropdown-item" data-form-url="{{ me.url }}" id="{{ key }}" data-form-title="{{ me.title }}">
+                      {% if me.icon %}<i class="{{ me.icon }}"></i>{% endif %}
+                      {{ me.title }}
+                  </span>
+                </li>
+              {%endfor%}
+          </ul>
+      {% endif%}
     </div>
 
 

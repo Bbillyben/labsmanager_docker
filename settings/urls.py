@@ -26,6 +26,7 @@ urlpatterns = [
     
     path('project_settings/<proj>/', views.get_project_setting_modal, name='project_setting'),
     path('invitation/add', views.labInvitationCreateView.as_view(), name='lab_send_invite'),
+    path('invitation/remove_expired', views.labInvitationRemoveExpired.as_view(), name='lab_remove_expired_invite'),
     
 ]
 

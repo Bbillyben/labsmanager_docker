@@ -32,11 +32,17 @@ class Institution(models.Model):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.short_name}"
     
+from labsmanager.manager import date_manager
 class Project(ActiveDateMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("project")
         ordering = ['name']
+        
+    objects = models.Manager()
+    time_object = date_manager()
+    
+    
     name = models.CharField(max_length=50, verbose_name=_('Project Name'), unique=True)
     status=models.BooleanField(default=True, verbose_name=_('Project Status'))
     history = AuditlogHistoryField()

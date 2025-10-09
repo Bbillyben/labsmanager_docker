@@ -1,6 +1,11 @@
 import rules    
 from settings.models import LMProjectSetting
 from fund.rules import is_user_fund_project_leader
+from project.rules import is_project_leader, is_project_coleader
+from staff.rules import is_employee_superior, is_user_employee
+
+from project.models import Project
+from staff.models import Employee
 #    Predicates ======================
 @rules.predicate
 def is_user_contract_project_leader(user, cont = None):
@@ -33,6 +38,21 @@ def can_user_add_expense_timepoint(user, fund=None):
         return False
     
     return user.has_perm("project.change_project", fund.project)
+
+@rules.predicate
+def can_user_view_contract(user, item):
+    """ test if a user has right to see contract (general), contract_list (common rights) or either 
+    is project leader or coleader
+    is employee or employee's superior
+    """
+    if user.has_perm("common.contract_list") or user.has_perm("expense.view_contract"):
+        return True
+    if isinstance(item, Project):
+        return is_project_leader(user, item) | is_project_coleader(user, item)
+    elif isinstance(item, Employee):
+        return (item.user == user) | is_employee_superior(user, item)    
+    
+    return False
         
 #    Rules ======================
 
@@ -46,3 +66,7 @@ rules.add_perm('expense.change_contract', is_user_contract_manager)
 rules.add_perm('expense.add_expense_point', can_user_add_expense_timepoint)
 
 rules.add_perm('expense.change_expense_point', can_user_add_expense_timepoint)
+
+
+rules.add_perm('common.contract_list', is_project_leader | is_project_coleader)
+rules.add_perm('user_view_contract', can_user_view_contract)

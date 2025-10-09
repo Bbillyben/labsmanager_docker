@@ -1,5 +1,10 @@
 {% load i18n %}
 {% load customs_tags %}
+{% load lab_rules %}
+
+{%  has_lab_perm 'fund.view_fund' user project as can_view_fund%}
+
+
 <table class="table table-striped table-condensed table-desc" id="employee_single_table">
     <colgroup>
         <col width="2">
@@ -21,6 +26,8 @@
             <td  class="desc_title">{% trans 'End Date' %}</td>
             <td>{% firstof project.end_date "-"  %}</td>
         </tr>
+        
+        {%if can_view_fund %}
         <tr>
             <td><i class="fa-solid fa-money-bills"></i></td>
             <td colspan="2">
@@ -50,6 +57,7 @@
                 </table>
             </td>
         </tr>
+        {%endif%}
         <tr>
             <td><i class="fas fa-wallet"></i></td>
             <td  class="desc_title">{% trans 'Total Contribution Amount' %}</td>

@@ -64,7 +64,16 @@ def is_teammate_superior(user, teammate= None):
         return Employee_Superior.is_in_superior_hierarchy(user_emp, teammate.employee)
     except:
         return False
-    
+
+@rules.predicate
+def is_employee_superior(user, employee= None):
+    if not employee:
+        return False
+    try:
+        user_emp = Employee.objects.get(user=user)
+        return Employee_Superior.is_in_superior_hierarchy(user_emp, employee)
+    except:
+        return False
 
 #    Rules ======================
 rules.add_perm('staff.change_employee', is_user_employee |  is_user_subordinate)

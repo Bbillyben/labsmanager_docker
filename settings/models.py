@@ -1111,6 +1111,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': 'en',
             'choices':LANGUAGES,
         },
+        'NOTIFCATION_SUB_MILESTONES': {
+            'name': _('Milestones Reports'),
+            'description': _('Report Milestones of subscribed items'),
+            'default': True,
+            'validator': bool,
+        },
         ## for user notification sepcific (milestones etc...)
         'NOTIFICATION_ENDPOINTS_MILESTONES': {
             'name': _('Milestones notification'),
@@ -1130,6 +1136,18 @@ class LMUserSetting(BaseLabsManagerSetting):
             'description': _('Frequency in days to repeat Milestones notification (0 to disable repeat)'),
             'default': 7,
             'validator': [int, MinValueValidator(0)]
+        },
+        'NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_REPEAT': {
+            'name': _('Milestones Notfication repeat repeat'),
+            'description': _('Number of validated milestones will be repeated in report'),
+            'default': 2,
+            'validator': [int, MinValueValidator(1)]
+        },
+        'NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_HORIZON': {
+            'name': _('Milestones Notfication horizon'),
+            'description': _('Number of days for incomming milestones'),
+            'default': 120,
+            'validator': [int, MinValueValidator(30)]
         },
         'NOTIFICATION_PROJECT_PARTICIPANT': {
             'name': _('Project Participation notification'),

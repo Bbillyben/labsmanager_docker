@@ -3,8 +3,8 @@ var calendar;
 function initCalendar(userId){
     user_id=userId;
     
-    Calendar_loadFilters();
-    initListener();
+    Calendar_loadFilters("calendar-filter");
+    initListener("calendar-filter");
     initFullCalendar();
 }
 
@@ -16,7 +16,7 @@ function initFullCalendar(){
     option={
         selectable:canMod,
         editable:canMod,
-        extraParams:getCalenderParams,
+        extraParams:getCalenderParams('#calendar-filter'),
         filterResourcesWithEvents:$("#ressource_event_radio_box input[name='ressource_event_radio']:checked").val()!='false',
         cal_type:'main',
     }
@@ -70,7 +70,7 @@ function print_main_calendar(printUrl){
     d = calendar.view.activeEnd
     options['end']=d.toISOString();
     options['filterResourcesWithEvents']=calendar.getOption("filterResourcesWithEvents");
-    var extraP = getCalenderParams();
+    var extraP = getCalenderParams('#calendar-filter')();
     options['type']=extraP.type;
     options['emp_status']=extraP.emp_status;
     options['team']=extraP.team;
@@ -78,4 +78,44 @@ function print_main_calendar(printUrl){
     // console.log("Print Cal option :"+JSON.stringify(options));
     var csrftoken = getCookie('csrftoken');
     openWindowWithPost(printUrl, options, csrftoken)
+}
+
+
+
+// For Project Calendar
+function initProjectFullCalendar(){
+    Calendar_loadFilters("calendar-project-filter");
+    initListener("calendar-project-filter");
+    initProjectCalendar();
+
+}
+
+function initProjectCalendar(){
+
+    option={
+        selectable:false,
+        editable:false,
+        extraParams:getCalenderParams('#calendar-project-filter'),
+        cal_type:'project',
+
+        eventsources:[
+                {
+                    url:Urls['api:project-calendar-all-get-event'](),
+                    method: 'GET',
+                    extraParams:$.fn.lab_calendar.prototype.getExtraSetting,
+                }
+            ],
+        resources:{
+                    url: Urls['api:project-calendar-all-get-resources'](),
+                    method: 'GET',
+                    extraParams:$.fn.lab_calendar.prototype.getExtraSetting,
+            },
+        
+    }
+    cur_view = localStorage.getItem(`labsmanager-calendar-view_project`);
+    if (cur_view){
+        option.initialView = cur_view
+    }
+    calendar_project = $('#calendar-project-box').lab_calendar_project(option);
+
 }

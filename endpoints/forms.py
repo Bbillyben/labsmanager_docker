@@ -1,15 +1,23 @@
-
+from django.utils.translation import gettext_lazy as _
 from .models import Milestones
 from django import forms
 from bootstrap_modal_forms.forms import BSModalModelForm
 
 from project.models import Project, Participant
 from staff.models import Employee
-from labsmanager.forms import DateInput
+from labsmanager.forms import DateInput, PercentageField
 
 from labsmanager.mixin import SanitizeDataFormMixin
 
 class MilestonesModelForm(SanitizeDataFormMixin, BSModalModelForm):
+    quotity = PercentageField(
+        label=_("Quotity(%)"),
+        max_value=100,
+        min_value=0,
+        decimal_places=3,
+        required=True,
+        help_text=_("Involvment percentage")
+    )
     class Meta:
         model = Milestones
         fields = ['project', 'name','desc','deadline_date', 'type', 'quotity', 'status',
@@ -41,3 +49,16 @@ class MilestonesModelForm(SanitizeDataFormMixin, BSModalModelForm):
             self.fields['project'].widget = forms.HiddenInput()
             project_part = Participant.objects.filter(project__pk=instance.project.pk).values('employee')
             self.fields['employee'].queryset = Employee.objects.filter(pk__in=project_part, is_active=True)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        status  = cleaned_data.get('status')
+        quotity = cleaned_data.get('quotity') 
+        if status == True : 
+            cleaned_data["quotity"]=1.000
+        elif quotity == 1.000:
+            cleaned_data["status"]=True
+        
+        return cleaned_data
+            
+        

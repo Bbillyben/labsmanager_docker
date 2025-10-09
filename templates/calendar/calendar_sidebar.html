@@ -1,0 +1,11 @@
+{% load i18n %}
+{% load static %}
+
+{% trans "Leaves" as text %}
+{% include "sidebar_item.html" with label="leave" text=text icon="fa-person-through-window" %}
+
+{% trans "Projects" as text %}
+{% include "sidebar_item.html" with label="project" text=text icon="fa-flask" %}
+
+
+{% include "sidebar_toggle.html" with text="" target='sidebar' %}

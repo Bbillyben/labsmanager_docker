@@ -299,6 +299,7 @@ ACCOUNT_ADAPTER = "invitations.models.InvitationsAdapter" # for django-invitatio
 INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
 INVITATIONS_ACCEPT_INVITE_AFTER_SIGNUP = True
 INVITATIONS_INVITATION_ONLY = True
+INVITATIONS_INVITATION_EXPIRY = 3
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

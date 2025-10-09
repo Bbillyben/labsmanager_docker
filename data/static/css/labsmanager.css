@@ -1314,6 +1314,12 @@ li.list-spacer{
     float: left;
   }
 
+  .resource .desc{
+    white-space: collapse;
+    font-style: italic;
+    font-size: small;
+  }
+
 
 
   .initial-circle{
@@ -1391,6 +1397,41 @@ li.list-spacer{
         border-color:  green;
     }
 
+    .completion_bar_container {
+        width: 100%;
+        height: 4px;
+        background-color: #e0e0e0;
+        margin-top: 4px;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .completion_bar_fill {
+        height: 100%;
+        background-color: #4caf50;
+    }
+    /* project camendar popover */
+    .project_event hr:not([size]) {
+        height: 1px;
+    }
+    .project_event hr.solid{
+        border-top: 1px solid var(--primary-color-alpha-dark);
+    }
+    .project_event .desc{
+        font-style: italic;
+        margin-top: 1em;
+
+    }
+    .project_event .median{
+        border-top: 1px dashed var(--primary-color-alpha-dark);
+        align-self: center;
+        margin:0.3em;
+    }
+    .project_event .end_date{
+        font-weight: bold;
+    }
+
+
 
     /* for participant in project cal */ 
     .fc-event:has(.project_part_cal.status_l){
@@ -1405,6 +1446,22 @@ li.list-spacer{
         background-color: initial;
         border-color:  initial;
     } */
+
+
+    /* for general calendar project (the huge with every project */
+
+    .fc-datagrid-cell-cushion:has(.resource.project){
+        background-color: var(--primary-color-alpha-dark);
+    }
+    .fc-datagrid-cell-cushion:has(.resource.participants){
+        background-color: var(--third-color-alpha-dark);
+    }
+    .fc-datagrid-cell-cushion:has(.resource.fund){
+        background-color: #0080ff1e;
+    }
+    .fc-datagrid-cell-cushion:has(.resource.milestones){
+        background-color: var(--subheading-color);
+    }
 
     /* for modal fund description in contract view */
     .popover-body .show_contract_fund, .card-title .show_contract_fund{

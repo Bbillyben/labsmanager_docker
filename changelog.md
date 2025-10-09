@@ -2,8 +2,48 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### latest :
+
+### 0.9.4 2025-10 :
+note : require static update
 [UPDATE] : update signal handler for expense. FOr project based on expense parameter (hybrid or expense), now expense type modification impact global expense calculation on previous type. 
 [ADD] : delete expense now trigger overall expense on type 
+[UPDATE] : milestone popover in project calendar now show description and change layout
+[UPDATE] : align status and quotity for completed milestones
+[FIX] : Percentage field for qutotiy is now limiting digit to 1 and round number so no more issue with forms
+[UPDATE] : traduction
+[UPDATE] : Project Fund Layout (single fund table overview)
+[ADD] : Add milestones report for subscribed project and employee in subscription mail.
+[ADD] : Add settings in subscription parameters to report milestones for subscribed project and employee in subscription mail.
+[ADD] : Add settings in subscription parameters to report validated milestones for a scope of time related to the frequecncy (nb of report it will be in not date), and a scope of time (in days) to report incomming milestones
+[UPDATE] : invitation list now show whether a  n invitation key has expired
+[FIX] : fix import js/project_graph.js in project single dashboard
+[ADD] : for setting table, add ability to add a menu items in tables with the subitem 'menu' : 
+```python
+context={
+            'url':reverse_lazy("my url"),
+            'title':_('My Title'),
+            'columns':[
+                #{'name':_('User'),'item':'user.username',},
+                {'name':_('Column 1name '),'item':'email', 'class':'fit-content'},
+            ], 
+            'action':{
+                'add':reverse('url_to_add_item'),
+            },
+            'menu':{
+                'menu_item1':{
+                        'url': reverse('menu_item_1_form_or_action_url'),
+                        'title': _("Title Of Item"),
+                        'icon': 'fa fa-trash',
+                    }
+            },
+            'options':{
+            },         
+        }
+```
+[ADD] : in calendar view, add project calendar with fund, participant and milestones, with some filters
+[UPDATE] : change fund, budget and contract visualisation in project and employee panel according to user right
+[UPDATE] : in global project calendar, projects listed are ones user has view right on (according to project list in project list panel
+
 
 ### 0.9.3 2025-07 :
 note : require static update

@@ -413,19 +413,27 @@ class InvitationUser_list(LoginRequiredMixin, TemplateView):
                 {'name':_('Date Created'),'item':'created','formatter':'baseDateTimeFormatter'},
                 {'name':_('Date Sent'),'item':'sent','formatter':'baseDateTimeFormatter'},
                 {'name':_('Accepted'),'item':'accepted','formatter':'basicBoolean'},
+                {'name':_('Key Expired'),'item':'key_expired','formatter':'basicBoolean'},
                 {'name':_('Inviter'),'item':'inviter', 'formatter':'userSimpleFormatter', },
                 
             ], 
             'action':{
                 'add':reverse('lab_send_invite'),
             },
+            'menu':{
+                'remove_expired':{
+                        'url': reverse('lab_remove_expired_invite'),
+                        'title': _("Remove Expired"),
+                        'icon': 'fa fa-trash',
+                    }
+            },
             'options':{
             },         
         }
+        # if request.user.is_staff :
+        #     context["action"]["update"] = 'update_user_employee'
         if request.user.is_staff :
-            context["action"]["update"] = 'update_user_employee'
-        if request.user.is_staff :
-            context["action"]["admin"] = 'admin:auth_user_change'
+            context["action"]["admin"] = 'admin:invitations_invitation_change'
         
         return render(request=request,template_name=self.template_name,context=context)
     
@@ -469,7 +477,7 @@ class UserNotification_list(LoginRequiredMixin, TemplateView):
 
 
 ## for invitation process
-from bootstrap_modal_forms.generic import BSModalCreateView, BSModalFormView
+from bootstrap_modal_forms.generic import BSModalCreateView, BSModalFormView, BSModalDeleteView
 from labsmanager.utils import is_ajax
 from invitations.models import Invitation
 from invitations.views import SendInvite
@@ -478,6 +486,35 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 
+from django.contrib import messages
+from django.views.generic import FormView
+from django.shortcuts import get_object_or_404, redirect
+from labsmanager.forms import ConfirmActionForm
+
+from invitations.utils import get_invitation_model
+
+class labInvitationRemoveExpired(LoginRequiredMixin, FormView):
+    template_name = 'form_confirm_action_base.html'
+    form_class = ConfirmActionForm
+    success_url = reverse_lazy('settings')
+    action_label = _("Remove Expired Invitations")
+
+    def form_valid(self, form):
+        """If the form is valid, perform the action."""
+        self.perform_action()
+        # messages.success(self.request, f"Successfully performed: {self.action_label}")
+        return super().form_valid(form)
+
+    def perform_action(self):
+        invitation_model = get_invitation_model()
+        invitation_model.objects.delete_expired_confirmations()
+        
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['action'] = self.action_label
+        return context
+    
 class labInvitationCreateView(LoginRequiredMixin, BSModalFormView, SendInvite):
     model = Invitation
     form_class= labInviteForm

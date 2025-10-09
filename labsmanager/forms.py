@@ -1,7 +1,7 @@
 from django.forms import  DateInput, BooleanField, CharField, HiddenInput, DecimalField
 from django.forms.widgets import Input, TextInput
 from django.utils.translation import gettext_lazy as _
-
+from decimal import Decimal, ROUND_HALF_UP
 class DateInput(DateInput):
     input_type = 'date'
     
@@ -39,13 +39,29 @@ class ConfirmForm(BSModalForm):
             
 
 class PercentageField(DecimalField):
+    def __init__(self, *args, **kwargs):
+           
+        kwargs.setdefault('decimal_places', 1) # as a qutotity field from 0.000 to 1.000 forces digit
+        kwargs.setdefault('max_digits', 4) # as a qutotity field from 0.000 to 1.000 forces digit
+        
+        return super().__init__(*args, **kwargs)
     def prepare_value(self, value):
         if value is None:
             return value
-        return (value) * 100
-
+        return (Decimal(value) * 100).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    
     def to_python(self, value):
         value = super().to_python(value)
         if value is None:
             return value
-        return (value) / 100
+        return (Decimal(value) / 100).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+
+
+from django import forms
+
+class ConfirmActionForm(forms.Form):
+    confirm = forms.BooleanField(
+        required=True,
+        initial=True,   # valeur par défaut
+        widget=forms.HiddenInput()  # champ caché
+    )

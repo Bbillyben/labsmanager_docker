@@ -237,6 +237,7 @@ from fund.models import Fund
 from staff.models import Employee, Team, TeamMate
 from expense.models import Contract
 from leave.models import Leave
+from endpoints.models import Milestones
 from django.contrib.contenttypes.models import ContentType
 from dashboard import utils
 from project.views import get_project_fund_overviewReport_bytType
@@ -265,6 +266,9 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         leaves_report=LMUserSetting.get_setting("NOTIFCATION_INC_LEAVE", user=user)
         leaves_timeframe=LMUserSetting.get_setting("NOTIFCATION_LEAVE_TIMEFRAME", user=user)
         inc_emp=LMUserSetting.get_setting("NOTIFCATION_EMP_INCOMMING", user=user)
+        inc_ms = LMUserSetting.get_setting("NOTIFCATION_SUB_MILESTONES", user=user)
+        ms_rep = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_REPEAT", user=user)
+        ms_day = LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_HORIZON", user=user)
         freq_name=get_choiceitem(choices, freq)
         
         if sub_enab == True:
@@ -298,9 +302,13 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         self.context['projects']=projects
         self.context['funds']=fund_lines
         
+        
+        
         for pj in projects:
+            # Fund overview by project
             fo = get_project_fund_overviewReport_bytType(pj.pk)
             self.context['fund_o_'+str(pj.name)] = fo
+            
         
         
         # for employees
@@ -313,8 +321,28 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         # contracts = Contract.objects.filter(employee__in=emp_ids, is_active=True)
         contracts = Contract.get_instances_for_user('view', user).filter(employee__in=emp_ids, is_active=True)
         
+        
+        
         self.context['employees']=employees 
         self.context['contracts']= contracts
+        
+        # milestones
+        if inc_ms:
+            # Temporal scope calculation for completed milestones
+            from croniter import croniter
+            ms_now = datetime.datetime.now()
+            ms_hor = ms_now + datetime.timedelta(days=ms_day)
+            ms_cron = croniter(freq, ms_now)
+            for _ in range(ms_rep):
+                ms_notif = ms_cron.get_prev(datetime.datetime)
+            query = (Q(status=False)|(Q(status=True) & Q(deadline_date__gte = ms_notif))) & Q(deadline_date__lte = ms_hor )
+            ms = Milestones.objects.filter(Q(project__in = projects) &  query)
+            ems = Milestones.objects.filter(Q(employee__id__in = emp_ids) & query).distinct()
+            #project milestones
+            #ms = Milestones.objects.filter(project__in = projects)
+            self.context['project_milestones'] = ms
+            # for employee milestones        
+            self.context['employee_milestones']= ems
         
         # for team
         
