@@ -377,7 +377,7 @@ class ProjectResourceSerializer_cal_project(serializers.ModelSerializer):
         st= f'project_{obj.pk}'
         return st
     def get_url(self, obj):
-        print(f' ------------>   URL Project : {self.context["request"].user} / {self.context["request"].user.has_perm("project.view_project", obj.pk)}')
+        # print(f' ------------>   URL Project : {self.context["request"].user} / {self.context["request"].user.has_perm("project.view_project", obj.pk)}')
         
         if self.context["request"].user.has_perm("project.view_project") or self.context["request"].user.has_perm("project.view_project", obj.pk):
             return reverse('project_single', kwargs={"pk": obj.pk})

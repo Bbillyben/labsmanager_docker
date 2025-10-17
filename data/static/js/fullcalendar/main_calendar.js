@@ -96,7 +96,7 @@ function initProjectCalendar(){
         selectable:false,
         editable:false,
         extraParams:getCalenderParams('#calendar-project-filter'),
-        cal_type:'project',
+        cal_type:'project_all',
 
         eventsources:[
                 {

@@ -3,6 +3,7 @@
 {% load static %}
 {% load customs_tags %}
 {% load plugin_tags %}
+{% load lab_rules %}
 
 {% block css %}
 .main-container{
@@ -193,10 +194,19 @@ hr.light {
                     <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.pk %}">{{p.name}}</a></td>
                     <td align="center" valign="top">{{p.start_date}}</td>
                     <td align="center" valign="top">{{p.end_date}}</td>
+                    {% has_lab_perm 'fund.view_fund' user p as can_view_fund %}
+                    {%if can_view_fund %} 
                     <td align="center" valign="top">{% moneyFormat p.get_funds_amount %}</td>
                     <td align="center" valign="top">{% moneyFormat p.get_funds_expense %}</td>
                     <td align="center" valign="top">{% moneyFormat p.get_funds_available %}</td>
                     <td align="center" valign="top">{% moneyFormat p.get_funds_available_f %}</td>
+                    {%else%}
+                    <td align="center" valign="top">-</td>
+                    <td align="center" valign="top">-</td>
+                    <td align="center" valign="top">-</td>
+                    <td align="center" valign="top">-</td>
+                    {%endif%}
+
                     <td align="center" valign="top">{% quotityFormat p.get_consumption_ratio %}</td>
                     <td align="center" valign="top">{% quotityFormat p.get_advancement_ratio %}</td>
                 </tr>

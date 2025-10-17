@@ -2,6 +2,8 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### latest :
+[UPDATE] : crumblist for not authorized user for full list.
+[UPDATE] :  refine subscription email display regarding rights to see fund/budget/...
 
 ### 0.9.4 2025-10 :
 note : require static update

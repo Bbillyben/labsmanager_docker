@@ -74,7 +74,7 @@ class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelDi
             return qset
         if not queryset:
             queryset = cls.objects.all()
-        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
         proj=Participant.objects.filter(query).values('project')
         queryset = queryset.filter(fund__project__in=proj)  
         return queryset
@@ -233,9 +233,11 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
             return qset
         if not queryset:
             queryset = cls.objects.all()
-        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
-        proj=Participant.objects.filter(query).values('project')
-        queryset = queryset.filter(project__in=proj)
+        if not user.has_perm('fund.view_fund'):         
+            query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
+            print(f"===============>>>>>>>>>>>> query : {query}  / proj modd : {cls.get_project_modder(perm)}")
+            proj=Participant.objects.filter(query).values('project')
+            queryset = queryset.filter(project__in=proj)
         return queryset
         
         
@@ -288,7 +290,7 @@ class BudgetAbstract(models.Model, RightsCheckerMixin):
             return qset
         if not queryset:
             queryset = cls.objects.all()
-        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
         proj=Participant.objects.filter(query).values('project')
         queryset = queryset.filter(fund__project__in=proj)
         return queryset

@@ -4,6 +4,7 @@ from django.conf import settings
 from settings.accessor import get_global_setting
 import copy
 import logging
+import json
 logger = logging.getLogger('labsmanager')
 
 class CalendarEventMixin:
@@ -68,7 +69,7 @@ class CalendarEventMixin:
                 * end : the end date of the time frame
                 * timezone
                 * settings : the setting object of the calendar, which contain :
-                    * cal_type : depict what type of calendar the request coming from (main, team, employee)
+                    * cal_type : depict what type of calendar the request coming from (main, team, employee, project, project_all)
                     * resources : the current resources !!! may not be up to date prefer __class__.get_current_resources(request) for more reliable data
            
             event_list : the list of events that will be send to calendar. Has to be in full calendar format, eg :
@@ -192,5 +193,19 @@ class CalendarEventMixin:
         for key in key_to_pop: # remove key with unwanted format
             build_filters.pop(key)
         return build_filters
+    
+    @classmethod
+    def get_calendar_type(cls, request):
+        """ get the calendar type from settings included in the request
+        """
+        source = request.GET if request.GET else request.POST
+        if not source:
+            return None
+        setting_str = request.POST.get('settings', '{}') 
+        try:
+            setting = json.loads(setting_str)
+        except json.JSONDecodeError as e:
+            return None
+        return setting.get('cal_type', None)
                 
                 

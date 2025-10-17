@@ -47,7 +47,8 @@ class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, Templ
     reverseURL="project_single"
     crumbListQuerySet=Project.objects.filter(status=True)
     names_val=['name']
-    crumbListPerm=['project.view_project']
+    crumbListPerm=[]
+    
     
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -58,6 +59,7 @@ class ProjectView(LoginRequiredMixin, CrumbListMixin, BaseBreadcrumbMixin, Templ
         
         proj = Project.objects.get(pk=kwargs['pk'])
         if request.user.has_perm("project.view_project", proj):
+            self.crumbListQuerySet = Project.get_instances_for_user('view', self.request.user, self.crumbListQuerySet)
             return super().dispatch(request, *args, **kwargs)
         else:
             return HttpResponseRedirect(reverse('project_index'))
@@ -230,7 +232,6 @@ def get_project_info_table(request, pk):
 
 ####################### Project Calendar 
 def project_calendar_print(request):
-    print("AUIAUIAUAIUAIUAIUAIUIAUIUAIUIAZUIAUIAUIUIIUIUIIUIUIUS")
     context={}
     
     options={}

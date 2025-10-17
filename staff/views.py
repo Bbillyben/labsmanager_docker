@@ -44,7 +44,7 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
     crumbListQuerySet=Employee.objects.filter(is_active=True)
     crumbListPerm=(
         #'common.employee_list',
-        'staff.view_employee',
+        # 'staff.view_employee',
     )
     names_val=['first_name', 'last_name']
     # crumbs = [("Employee","./",),("employees",reverse("employee"))]
@@ -55,10 +55,12 @@ class EmployeeView(LoginRequiredMixin, AccessMixin, CrumbListMixin,  BaseBreadcr
             return self.handle_no_permission()
         
         if request.user.is_staff or request.user.has_perm('staff.view_employee'):
+            self.crumbListQuerySet= Employee.get_instances_for_user("view", request.user, self.crumbListQuerySet)
             return super().dispatch(request, *args, **kwargs)
         
         emp = Employee.objects.get(pk=kwargs['pk'])
         if request.user == emp.user or request.user.has_perm("staff.change_employee", emp):
+            self.crumbListQuerySet= Employee.get_instances_for_user("view", request.user, self.crumbListQuerySet)
             return super().dispatch(request, *args, **kwargs)
         else:
             return HttpResponseRedirect(reverse('employee_index'))

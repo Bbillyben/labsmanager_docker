@@ -213,8 +213,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
             
     @action(methods=['get'], detail=False, url_path='calendar-all-get-event', url_name='calendar-all-get-event')
     def calendar_all_get_event(self,request):
-        print("########################## ALL PROJECT CALENDAR CALL ##########################")
-        print(request.GET)
+        # print("########################## ALL PROJECT CALENDAR CALL ##########################")
+        # print(request.GET)
         
         slot={}
         if 'start' in request.GET :#request.GET['start']:
@@ -252,8 +252,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
             fu = Fund.objects.filter(project__in = proj)
             evt_fu = serializers.ProjectFundSerializer_cal(fu, many=True).data
             evts.extend(evt_fu)
-        
-        print("____________________________________________________________________________________")
         return Response(evts) 
     
     @action(methods=['get'], detail=False,url_path='calendar-all-get-resources', url_name='calendar-all-get-resources')
@@ -314,5 +312,4 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 item['group_order'] = f"b_{i}"
             resources.extend(res_fund)
 
-        print("____________________________________________________________________________________")
         return Response(resources) 

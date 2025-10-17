@@ -21,6 +21,7 @@ logger=logging.getLogger("labsmanager")
 
 from django_tables2 import Column, SingleTableMixin, Table
 
+
 class TableViewMixin(SingleTableMixin):
     # disable pagination to retrieve all data
     # https://mattsch.com/2021/05/28/django-django_tables2-and-bootstrap-table/
@@ -243,6 +244,9 @@ class CrumbListMixin():
     class Meta:
         abstract = True
     
+    def get_crumbListQuerySet(self):
+        return self.crumbListQuerySet
+    
     def has_crumb_permission(self):
         if not self.request.user.is_authenticated:
             return False
@@ -370,8 +374,8 @@ class RightsCheckerMixin():
         if perm.lower() not in cls.perms_auth:
             logger.error(f"'{perm}' permission is not valid")
             return None
-        if perm == 'view':
-            return None 
+        # if perm == 'view':
+        #     return None 
         setting = LabsManagerSetting.get_setting("CO_LEADER_CAN_EDIT_PROJECT")
         emp_stat = {"l", "cl"} if setting else {"l"}
         return emp_stat

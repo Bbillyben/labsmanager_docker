@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load customs_tags %}
+{% load lab_rules %}
 
 
 {% block page_title %}
@@ -15,6 +16,11 @@
 {% include 'organization/orga_single_sidebar.html' %}
 {% endblock %}
 {% block content %}
+
+{% has_lab_perm 'project.view_project' user as can_view_project %}
+{% has_lab_perm 'user_view_contract' user as can_view_contract %}
+
+
 {% include 'modals.html' with modal_id='create-modal' modal_title='Organization' %}
 <div id='detail-panels'>
     <!-- #########################  GENERAL PANEL ###########################" "-->
@@ -116,6 +122,7 @@
         </div>
     </div><!-- end panel general-->
     <!-- #########################  PROJECT PANEL ###########################" "-->
+{% if can_view_project %}
     <div class="panel panel-hidden panel-visible" id="panel-project" style="display: block;">
             <div class="panel-heading">
                 <div class="d-flex flex-wrap" >
@@ -176,8 +183,9 @@
                 </div>
             </div>  
     </div><!-- end panel general-->
-
+{%endif%}
     <!-- #########################  CONTRACT PANEL ###########################" "-->
+{% if can_view_contract %}
     <div class="panel panel-hidden panel-visible" id="panel-contract" style="display: block;">
         <div class="panel-heading">
             <div class="d-flex flex-wrap" >
@@ -196,6 +204,7 @@
                 </div>
         </div>
     </div><!-- end panel general-->
+{%endif%}
     <!-- ######################################    Notes PANEL ############################################### -->
 
             <div class="panel-hidden panel-visible" id="panel-orga-notes" style="display: block;">

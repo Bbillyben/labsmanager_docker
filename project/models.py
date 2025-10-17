@@ -174,7 +174,9 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
         
         if not queryset:
             queryset = cls.objects.all()
-        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        query = Q(employee__user=user) 
+        if not perm == 'view':
+            query = query& Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
         proj=Participant.objects.filter(query).values('project')
         queryset = queryset.filter(pk__in=proj)
         return queryset

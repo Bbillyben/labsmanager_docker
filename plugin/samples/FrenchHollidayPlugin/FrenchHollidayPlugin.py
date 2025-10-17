@@ -115,9 +115,18 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         logger.debug("[FrenchHollidayPlugin / pull_vacation_file] END ~~~~~~~~~~~~~~~ ")
         
     @classmethod
-    def get_event(cls, request, event_list):        
+    def get_event(cls, request, event_list):  
+        if cls.get_calendar_type(request) == "project_all":
+            return
+
         nex_evt = cls.get_vacation_events(request)
         event_list.extend(nex_evt)
+    
+    @classmethod
+    def get_filters(cls):
+        # if cls.get_calendar_type(request) == "project_all":
+        #     return
+        return super().get_filters()
         
     @classmethod   
     def get_vacation_events(cls, request):

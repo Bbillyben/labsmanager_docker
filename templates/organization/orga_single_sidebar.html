@@ -1,17 +1,26 @@
 {% load i18n %}
 {% load static %}
 
+{% load lab_rules %}
+
+{% has_lab_perm 'project.view_project' user as can_view_project %}
+{% has_lab_perm 'user_view_contract' user as can_view_contract %}
+
 {% trans "Information" as text %}
 {% include "sidebar_item.html" with label="info" text=text icon="fa-circle-info" %}
 
 {% trans "Contact" as text %}
 {% include "sidebar_item.html" with label="contact" text=text icon="fa-address-book" %}
 
+{% if can_view_project %}
 {% trans "Projects" as text %}
 {% include "sidebar_item.html" with label="project" text=text icon="fa-flask" %}
+{%endif%}
 
+{% if can_view_contract %}
 {% trans "Contract" as text %}
 {% include "sidebar_item.html" with label="contract" text=text icon="fa-file-signature" %}
+{%endif%}
 
 {% trans "Notes" as text %}
 {% include "sidebar_item.html" with label="orga-notes" text=text icon="fa-square-pen" %}

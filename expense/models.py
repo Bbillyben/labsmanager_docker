@@ -201,7 +201,7 @@ class Contract(DateMixin, RightsCheckerMixin):
         except:
             pass
         
-        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) if cls.get_project_modder(perm) else Q(employee__user=user)
+        query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
         proj=Participant.objects.filter(query).values_list("project", flat=True)  
         
         queryset = queryset.filter(Q(employee__in=user_team)|Q(fund__project__in=proj))
