@@ -4,7 +4,8 @@
 ### latest :
 [UPDATE] : crumblist for not authorized user for full list.
 [UPDATE] :  refine subscription email display regarding rights to see fund/budget/...
-
+[UPDATE] : CalendarEventMixin, implemented CLASS.get_calendar_type(request) to extract calendar type from request (for event and ressources), add 'request' and 'calendar_type' parameters to get filters (! calendar_type should be literally added in filter template loop ) 
+ 
 ### 0.9.4 2025-10 :
 note : require static update
 [UPDATE] : update signal handler for expense. FOr project based on expense parameter (hybrid or expense), now expense type modification impact global expense calculation on previous type. 

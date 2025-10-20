@@ -153,9 +153,11 @@ class CalendarEventMixin:
         return res
     
     @classmethod
-    def get_filters(cls):
+    def get_filters(cls, request, calendar_type, *args, **kwargs):
         '''
         method called by filter template to get filter definition should return the FILTERS copy with all choices in good shape and remove not allowed type
+        request: the main request from the pages, comming from the template file
+        calendar_type : a string related to calendar_type, pass literally in filter template
         '''
         return cls.build_filters()
     

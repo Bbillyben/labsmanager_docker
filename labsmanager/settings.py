@@ -559,3 +559,22 @@ else:
                 "url":"https://github.com/Bbillyben/labsmanager/issues",
             },
         ]
+
+
+# GEstion du loggin
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'loggers': {
+        'rules': {
+            'handlers': ['null'],
+            'level': 'WARNING',  # ou 'ERROR' pour encore moins de logs
+            'propagate': False,
+        },
+    },
+    'handlers': {
+        'null': {
+            'class': 'logging.NullHandler',
+        },
+    },
+}
