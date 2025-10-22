@@ -42,7 +42,6 @@ class IndexView(LoginRequiredMixin, TemplateView):
         return context
     # def get(self, request, *args, **kwargs): ## Redirect to dash board for the moment
     #     return redirect('dashboard')
-    
 
 
 def is_admin(user):

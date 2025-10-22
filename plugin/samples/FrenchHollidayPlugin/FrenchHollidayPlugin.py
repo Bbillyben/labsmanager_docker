@@ -13,7 +13,7 @@ import urllib.request
 import logging
 logger = logging.getLogger("labsmanager.plugin")
 
-def FHP_get_vac_z():
+def FHP_get_vac_z(*args, **kwargs):
     ''' function to load inderctly the list of choices from files '''
     return FrenchHollidayPlugin.get_vacation_zones_choices()
 

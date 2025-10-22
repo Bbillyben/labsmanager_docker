@@ -292,14 +292,19 @@ ACCOUNT_SESSION_REMEMBER = False
 
 ACCOUNT_ALLOW_SINGUP = get_boolean_setting('ACCOUNT_ALLOW_SINGUP', 'allow_sign_up', False)
 
-# ACCOUNT_ADAPTER = 'labsmanager.labs_account_adaptater.LabsManagerAccountAdapter'
-ACCOUNT_ADAPTER = "invitations.models.InvitationsAdapter" # for django-invitations
+ACCOUNT_ADAPTER = 'labsmanager.labs_account_adaptater.LabsManagerAccountAdapter'
+# ACCOUNT_ADAPTER = "invitations.models.InvitationsAdapter" # for django-invitations
 
 ### Specific conf for django-invitations
 INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
 INVITATIONS_ACCEPT_INVITE_AFTER_SIGNUP = True
 INVITATIONS_INVITATION_ONLY = True
 INVITATIONS_INVITATION_EXPIRY = 3
+
+
+# LOGIN_REDIRECT_URL = '/redirect-after-login/' # "/"
+# LOGOUT_REDIRECT_URL = "/" 
+# HOME_URL = "/"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -386,9 +391,6 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 SITE_ID=get_setting('LAB_SITE_ID', 'site_id', 1, int)
 logger.debug('SITE_ID :'+str(SITE_ID))
 
-
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/" 
 
 # rest framework
 REST_FRAMEWORK = {

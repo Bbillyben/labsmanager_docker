@@ -32,6 +32,8 @@ from decimal import Decimal
 
 from typing import Any, Callable, TypedDict, Union
 
+
+
 import logging
 logger = logging.getLogger("labsmanager")
 def reload_plugin_registry(setting):
@@ -374,7 +376,7 @@ class BaseLabsManagerSetting(models.Model):
         choices = setting.get('choices', None)
         if callable(choices):
             # Evaluate the function (we expect it will return a list of tuples...)
-            return choices()
+            return choices(**kwargs)
         
         return choices
 
@@ -977,9 +979,27 @@ class LabsManagerSetting(BaseLabsManagerSetting):
         """Return the "pythonic" value, e.g. convert "True" to True, and "1" to 1."""
         return self.__class__.get_setting(self.key)
 
+
 def checkNotif(lmu):   
     from common.tasks import checkuser_notification_tasks 
     checkuser_notification_tasks(lmu.user)
+
+def destination_choices_after_loggin(*args, **kwargs):
+       
+    choices = [('hub', _('Hub')),]
+    
+    if 'user' in kwargs:
+        user = kwargs.get('user')
+        if user.has_perm("common.display_dashboard"):
+            choices.append(('dashboard', _('Dashboard')))
+        if user.has_perm("common.display_calendar"):
+            choices.append(('calendar', _('Calendar')))
+            
+        from staff.models import Employee
+        if Employee.objects.filter(user = user).count()>0:
+            choices.append(('employee', _('My Employee')))
+    
+    return choices
     
 class LMUserSetting(BaseLabsManagerSetting):
     extra_unique_fields = ['user']
@@ -1138,8 +1158,8 @@ class LMUserSetting(BaseLabsManagerSetting):
             'validator': [int, MinValueValidator(0)]
         },
         'NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_REPEAT': {
-            'name': _('Milestones Notfication repeat repeat'),
-            'description': _('Number of validated milestones will be repeated in report'),
+            'name': _('Validated Milestones repeat'),
+            'description': _('Number of reports where validated milestones will be repeated'),
             'default': 2,
             'validator': [int, MinValueValidator(1)]
         },
@@ -1170,6 +1190,12 @@ class LMUserSetting(BaseLabsManagerSetting):
             'description': _('navbar position fixed to the top of the screen'),
             'default': False,
             'validator': bool,
+        },
+        'REDIRECT_LOGGING':{
+            'name': _('Logging Page'),
+            'description': _('choose where you will be redirected after logging'),
+            'default': 'hub',
+            'choices': destination_choices_after_loggin, 
         },
         'PRINT_FULL_BOXES': {
             'name': _('Print Full Background colors'),
