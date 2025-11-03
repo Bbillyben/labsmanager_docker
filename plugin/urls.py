@@ -17,6 +17,8 @@ def get_plugin_urls():
     if get_global_setting('ENABLE_PLUGINS_URL', False) or settings.PLUGIN_TESTING_SETUP:
         for plugin in registry.plugins.values():
             if plugin.mixin_enabled('urls'):
-                urls.append(plugin.urlpatterns)
+                urls.extend(plugin.urlpatterns)
+    pg_path = re_path(f'^{PLUGIN_BASE}/', include((urls, 'plugin')))
+    return pg_path
 
-    return re_path(f'^{PLUGIN_BASE}/', include((urls, 'plugin')))
+

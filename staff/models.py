@@ -207,7 +207,7 @@ class Employee_Superior(ActiveDateMixin):
         
         
     
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'), related_name="employee")
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'), related_name="employee_hierarchy")
     superior = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Superior'), related_name="superior_employee")
     history = AuditlogHistoryField()
         

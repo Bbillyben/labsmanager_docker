@@ -183,28 +183,28 @@
             });
         }
 
-        $.fn.lab_calendar.prototype.eventContentRender =function (event, createElement){
-            // console.log('[eventContentRender] called')
-            // console.log(JSON.stringify(event))
-            // console.log(event.view.type)
-            htmlEvt = ""
-            
-            if (event.event.display == "background" && event.event.extendedProps.origin == "lm")return  { html: "" }
+            $.fn.lab_calendar.prototype.eventContentRender =function (event, createElement){
+                // console.log('[eventContentRender] called')
+                // console.log(JSON.stringify(event))
+                // console.log(event.view.type)
+                htmlEvt = ""
+                
+                if (event.event.display == "background" && event.event.extendedProps.origin == "lm")return  { html: "" }
 
 
-            if(event.view.type.toUpperCase().includes("YEAR")){
-                start=event.event.start;
-                end = event.event.end;
-                if(!end)end = start   ;   
-                if (end.getUTCHours() != 12 )end.setDate(end.getDate()-1);  
-                const day1 = start.getDate();
-                const month1 = start.getMonth()+1;
-                const day2 = end.getDate();
-                const month2 = end.getMonth()+1;
+                if(event.view.type.toUpperCase().includes("YEAR")){
+                    start=event.event.start;
+                    end = event.event.end;
+                    if(!end)end = start   ;   
+                    if (end.getUTCHours() != 12 )end.setDate(end.getDate()-1);  
+                    const day1 = start.getDate();
+                    const month1 = start.getMonth()+1;
+                    const day2 = end.getDate();
+                    const month2 = end.getMonth()+1;
 
-                dateField=day1 + (month1 != month2 ? "/" + month1:"") + ( day1 != day2 || month1 != month2 ? ' → ' + day2 + (month1 != month2 ? "/" + month2:""):"")
-                htmlEvt = ' <span style="font-size:0.7em;font-weight:italic;">'+ dateField +' ⦿ </span>'+" "+htmlEvt;
-            }
+                    dateField=day1 + (month1 != month2 ? "/" + month1:"") + ( day1 != day2 || month1 != month2 ? ' → ' + day2 + (month1 != month2 ? "/" + month2:""):"")
+                    htmlEvt = ' <span style="font-size:0.7em;font-weight:italic;">'+ dateField +' ⦿ </span>'+" "+htmlEvt;
+                }
 
 
 

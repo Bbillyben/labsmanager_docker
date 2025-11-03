@@ -47,15 +47,16 @@ logger = logging.getLogger('labsmanager')
 
 class PluginsRegistry:
     """The PluginsRegistry class."""
-    from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin
+    from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin, UrlsMixin
 
-    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin] 
+    DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin, UrlsMixin] 
 
     MIXIN_SETTING_ENABLE = {
         # 'settings':'ENABLE_PLUGINS_SETTINGS', 
         'schedule':'ENABLE_PLUGINS_SCHEDULE', 
         'calendarevent':'ENABLE_PLUGINS_CALENDAR', 
         'mailsubscription':'ENABLE_PLUGINS_SUBSCRIPTION', 
+        # 'urls':'ENABLE_PLUGINS_URL',
     }
     def __init__(self) -> None:
         """Initialize registry.
@@ -693,8 +694,8 @@ class PluginsRegistry:
         This function updates the patterns in urls.py to ensure that the correct patterns are loaded,
         and then refreshes the django url cache.
 
-        Note that we also have to refresh the admin site URLS,
-        as any custom AppMixin plugins require admin integration
+        # Note that we also have to refresh the admin site URLS,
+        # as any custom AppMixin plugins require admin integration
         """
         from labsmanager.urls import urlpatterns
         from plugin.urls import get_plugin_urls
@@ -702,16 +703,16 @@ class PluginsRegistry:
         for index, url in enumerate(urlpatterns):
             app_name = getattr(url, 'app_name', None)
 
-            admin_url = settings.labsmanager_ADMIN_URL
+            # admin_url = settings.labsmanager_ADMIN_URL
 
-            if app_name == 'admin':
-                urlpatterns[index] = path(
-                    f'{admin_url}/', admin.site.urls, name='labsmanager-admin'
-                )
+            # if app_name == 'admin':
+            #     urlpatterns[index] = path(
+            #         f'{admin_url}/', admin.site.urls, name='labsmanager-admin'
+            #     )
 
             if app_name == 'plugin':
                 urlpatterns[index] = get_plugin_urls()
-
+                
         # Refresh the URL cache
         clear_url_caches()
 

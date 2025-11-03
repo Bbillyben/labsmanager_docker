@@ -5,6 +5,7 @@ from plugin.base.ScheduleMixin import ScheduleMixin
 from plugin.base.CalendarEventMixin import CalendarEventMixin
 from plugin.base.MailSubscriptionMixin  import MailSubscriptionMixin
 from plugin.base.ReportMixin  import ReportMixin
+from plugin.base.UrlsMixin import UrlsMixin
 
 __all__ = [
     'SettingsMixin',
@@ -12,4 +13,5 @@ __all__ = [
     'MailSubscriptionMixin',
     'CalendarEventMixin',
     'ReportMixin',
+    'UrlsMixin', 
 ]
