@@ -5,7 +5,17 @@ from django.core.validators import validate_email
 from settings.models import LMUserSetting
 import urllib.parse
 
+from datetime import timedelta
+
 register = template.Library()
+
+
+@register.filter
+def add_days(value, days):
+    """Ajoute un nombre de jours à une date"""
+    if value:
+        return value + timedelta(days=int(days))
+    return value
 
 @register.simple_tag()
 def contact_info(info, user):

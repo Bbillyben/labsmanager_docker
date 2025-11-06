@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 from labsmanager.mixin import ActiveDateMixin
 from mptt.models import MPTTModel, TreeForeignKey
+from datetime import timedelta
 from staff.models import Employee
 # Create your models here.
 
@@ -73,7 +74,12 @@ class Leave(ActiveDateMixin):
         if self.end_period == "MI":
             e=0.5
         return num_open-s-e
-        
+    @property
+    def return_date(self):
+        if self.end_date:
+            return self.end_date + timedelta(days=1)
+        return None
+    
     def clean(self):
         super().clean()
         if self.start_date == self.end_date and self.start_period == self.end_period:
