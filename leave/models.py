@@ -77,7 +77,10 @@ class Leave(ActiveDateMixin):
     @property
     def return_date(self):
         if self.end_date:
-            return self.end_date + timedelta(days=1)
+            if self.end_period == "MI":
+                return self.end_date + timedelta(hours=12)
+            else:
+                return self.end_date + timedelta(days=1)
         return None
     
     def clean(self):
