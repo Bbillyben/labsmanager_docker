@@ -9,9 +9,18 @@ from staff.models import Employee
 from project.models import Project, Participant
 from labsmanager.forms import DateInput
 from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
+from labsmanager.widgets import CustomCheckBox
+from fund.models import Fund
+import datetime
 
 class ProjectModelForm(SanitizeDataFormMixin, BSModalModelForm):
     allowed_tags= {""}
+    update_funds_end = forms.BooleanField(
+        required=False,
+        label=_("Update active fund end date"),
+        initial=False,
+         widget=CustomCheckBox(),
+    )
     class Meta:
         model = models.Project
         fields = ['name', 'start_date', 'end_date','status',]
@@ -25,6 +34,22 @@ class ProjectModelForm(SanitizeDataFormMixin, BSModalModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:
             self.fields['name'].disabled = True
+        else:
+            self.fields['update_funds_end'].widget = forms.HiddenInput()
+            
+    def save(self, commit=True):
+        project_instance = super().save(commit=False)
+        
+        if self.cleaned_data.get('update_funds_end'):
+            end_date = self.cleaned_data.get('end_date')
+            funds = Fund.current.filter(project = project_instance.pk)
+            if commit : 
+                funds.update(end_date=end_date)
+               
+        if commit:
+            project_instance.save()
+        return project_instance
+        
             
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):

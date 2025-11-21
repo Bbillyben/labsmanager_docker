@@ -10,6 +10,8 @@ from project.models import Project
 from labsmanager.forms import DateInput, PercentageField
 from datetime import date
 from labsmanager.mixin import SanitizeDataFormMixin
+from labsmanager.widgets import CustomCheckBox
+
 
 class FundItemModelForm(BSModalModelForm):
     class Meta:
@@ -41,6 +43,12 @@ class FundItemModelForm(BSModalModelForm):
             
             
 class FundModelForm(BSModalModelForm):
+    update_project_end = forms.BooleanField(
+        required=False,
+        label=_("Update project end date"),
+        initial=False,
+         widget=CustomCheckBox(),
+    )
     class Meta:
         model = models.Fund
         fields = ['project', 'funder','institution','start_date', 'end_date', 'ref',]
@@ -69,6 +77,23 @@ class FundModelForm(BSModalModelForm):
             self.fields['project'].widget = forms.HiddenInput()
             self.fields['funder'].widget = forms.HiddenInput()
             self.fields['institution'].widget = forms.HiddenInput()
+    
+    def save(self, commit=True):
+        fund_instance = super().save(commit=False)
+        project = self.cleaned_data.get('project')
+
+        if self.cleaned_data.get('update_project_end'):
+            project.end_date = self.cleaned_data.get('end_date')
+            
+            #fund_instance.end_date = some_new_date  # Remplace `some_new_date` par la logique que tu veux
+
+        # Enregistre l'instance dans la base de données si commit est True
+        if commit:
+            fund_instance.save()
+            if self.cleaned_data.get('update_project_end'):
+                project.save()
+
+        return fund_instance
             
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):

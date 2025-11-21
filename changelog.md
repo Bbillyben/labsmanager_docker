@@ -6,6 +6,7 @@
 [UPDATE] :  refine subscription email display regarding rights to see fund/budget/...
 [UPDATE] : CalendarEventMixin, implemented CLASS.get_calendar_type(request) to extract calendar type from request (for event and ressources), add 'request' and 'calendar_type' parameters to get filters (! calendar_type should be literally added in filter template loop ) 
 [ADD] : landing page after login setting and background process (adapters), can be Hub, Dashboard, Calendar, My EMployee, regarding rights
+[ADD] : add checkbox in project and Fund form to bulk update end_dates when updating an instance 
  
 ### 0.9.4 2025-10 :
 note : require static update

@@ -8,7 +8,7 @@ from django.template.loaders.cached import Loader as CachedLoader
 class LabsManagerTemplateLoader(CachedLoader):
     """Custom template loader which bypasses cache for PDF export."""
 
-    def get_template(self, template_name, skip=None):
+    def get_template(self, template_name, skip=None):  
         """Return a template object for the given template name.
 
         Any custom report or label templates will be forced to reload (without cache).
