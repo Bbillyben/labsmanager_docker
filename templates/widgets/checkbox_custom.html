@@ -1,0 +1,12 @@
+{% load i18n %}
+
+<div class="collapsed custom" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{widget.name}}" aria-expanded="false" aria-controls="collapseExample">
+       {% trans 'Options'%} 
+        <span></span>
+</div>
+<div id="collapse-{{widget.name}}" class="custom-acc collapse ">
+    <input class='custom-checkbox-LM' type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
+    <label for="id_{{widget.name}}" class="form-check-label">
+                   {{widget.attrs.label}}                    
+    </label>
+</div>

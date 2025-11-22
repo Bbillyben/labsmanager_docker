@@ -1,3 +1,32 @@
-.form-check > .custom-checkbox-LM {
-    width: 1em;
+.form-check > .custom-checkbox-LM,  .custom-checkbox-LM{
+    width: 1em !important;
+}
+.form-check:has(div[data-bs-toggle="collapse"]) {
+    padding-left: 0;
+}
+.modal .custom-acc{
+    padding-left:1.5em;
+}
+.modal div[data-bs-toggle="collapse"][aria-expanded="false"]::after {
+	content: ' ';
+	display: inline-block;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	border-left: 5px solid currentColor;
+	vertical-align: middle;
+	margin-right: .7rem;
+	transform: translateY(-2px);
+	transition: transform .2s ease-out;
+}
+
+.modal div[data-bs-toggle="collapse"][aria-expanded="true"]::after {
+	content: ' ';
+	display: inline-block;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	border-left: 5px solid currentColor;
+	vertical-align: middle;
+	margin-right: .7rem;
+	transform: rotate(90deg) translateX(-1px);
+	transition: transform .2s ease-out;
 }

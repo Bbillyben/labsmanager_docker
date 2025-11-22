@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django_q',
+    'django.forms',
     
     
     'django_extensions',
@@ -247,6 +248,7 @@ TEMPLATES = [
         },
     },
 ]
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'  # to allow django find widget template
 
 FIXTURE_DIRS =[
     os.path.join(BASE_DIR, 'labsmanager', 'fixtures'), 

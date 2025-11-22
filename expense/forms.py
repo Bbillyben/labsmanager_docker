@@ -14,6 +14,8 @@ from datetime import date
 from labsmanager.forms import DateInput, PercentageField
 from labsmanager.mixin import SanitizeDataFormMixin
 from settings.models import LabsManagerSetting
+from labsmanager.widgets import CustomCheckBox
+
 import logging
 logger = logging.getLogger("labsmanager")
 class ContractModelForm(BSModalModelForm):
@@ -24,6 +26,12 @@ class ContractModelForm(BSModalModelForm):
         decimal_places=3,
         required=True,
         help_text=_("Involvment percentage")
+    )
+    update_employee_end = forms.BooleanField(
+        required=False,
+        label="",
+        initial=False,
+        widget=CustomCheckBox({'label':_("Update Employee end date")}),
     )
     class Meta:
         model = models.Contract
@@ -81,7 +89,21 @@ class ContractModelForm(BSModalModelForm):
             else:
                 self.fields['status'].widget = forms.HiddenInput()
                 self.fields['contract_type'].required = True
+                
+    def save(self, commit=True):
+        contract_instance = super().save(commit=False)
+        employee = self.cleaned_data.get('employee')
 
+        if self.cleaned_data.get('update_employee_end'):
+            employee.exit_date = self.cleaned_data.get('end_date')
+           
+        if commit:
+            contract_instance.save()
+            if self.cleaned_data.get('update_employee_end'):
+                employee.save()
+
+        return contract_instance
+    
     def clean_end_date(self):
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
             raise ValidationError(_('Exit Date (%s) should be later than entry date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))

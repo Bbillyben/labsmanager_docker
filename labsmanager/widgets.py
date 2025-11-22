@@ -2,7 +2,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 class CustomCheckBox(forms.CheckboxInput):
-    template_name = 'django/forms/widgets/checkbox.html'
+    template_name = 'widgets/checkbox_custom.html' #'django/forms/widgets/checkbox.html'
     def __init__(self, attrs=None):
         super().__init__(attrs)
         # On ajoute un attribut de classe par défaut dans le dictionnaire attrs

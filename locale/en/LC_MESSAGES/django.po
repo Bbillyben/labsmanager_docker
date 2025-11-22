@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-22 14:44+0200\n"
+"POT-Creation-Date: 2025-11-22 13:42+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -140,7 +140,7 @@ msgstr ""
 #: data/media/report/report_template/project/project_pdf_report.html:412
 #: data/media/report/report_template/project/project_pdf_report.html:465
 #: expense/admin.py:127 expense/models.py:138 expense/resources.py:132
-#: fund/resources.py:275 leave/models.py:48 leave/resources.py:85
+#: fund/resources.py:275 leave/models.py:49 leave/resources.py:85
 #: project/models.py:221 settings/views.py:385 staff/models.py:29
 #: staff/models.py:30 staff/models.py:159 staff/models.py:210
 #: staff/models.py:260 staff/models.py:299 staff/views.py:35 staff/views.py:73
@@ -253,7 +253,7 @@ msgstr ""
 #: data/media/report/report_template/project/project_pdf_report.html:597
 #: data/media/report/report_template/project/project_pdf_report.html:626
 #: endpoints/models.py:22 fund/admin.py:247 fund/models.py:264
-#: infos/models.py:29 labsmanager/mixin.py:148 leave/models.py:47
+#: infos/models.py:29 labsmanager/mixin.py:148 leave/models.py:48
 #: settings/views.py:254 settings/views.py:281 settings/views.py:331
 #: settings/views.py:355 staff/models.py:158
 #: templates/email/notification_email.html:447
@@ -330,12 +330,12 @@ msgid "Last Name"
 msgstr ""
 
 #: data/media/report/report_template/employee/employee_pdf_leave_report.html:185
-#: leave/models.py:51
+#: leave/models.py:52
 msgid "Start Period"
 msgstr ""
 
 #: data/media/report/report_template/employee/employee_pdf_leave_report.html:191
-#: leave/models.py:57
+#: leave/models.py:58
 msgid "End Period"
 msgstr ""
 
@@ -758,13 +758,13 @@ msgstr ""
 msgid "Contract"
 msgstr ""
 
-#: endpoints/forms.py:14 expense/forms.py:21 fund/forms.py:86 fund/forms.py:148
-#: project/forms.py:37
+#: endpoints/forms.py:14 expense/forms.py:23 fund/forms.py:111
+#: fund/forms.py:173 project/forms.py:62
 msgid "Quotity(%)"
 msgstr ""
 
-#: endpoints/forms.py:19 expense/forms.py:26 fund/forms.py:91 fund/forms.py:153
-#: project/forms.py:42
+#: endpoints/forms.py:19 expense/forms.py:28 fund/forms.py:116
+#: fund/forms.py:178 project/forms.py:67
 msgid "Involvment percentage"
 msgstr ""
 
@@ -802,16 +802,20 @@ msgstr ""
 msgid "Milestone"
 msgstr ""
 
-#: expense/forms.py:87
+#: expense/forms.py:34
+msgid "Update Employee end date"
+msgstr ""
+
+#: expense/forms.py:109
 #, python-format
 msgid "Exit Date (%s) should be later than entry date (%s) "
 msgstr ""
 
-#: expense/forms.py:92
+#: expense/forms.py:114
 msgid "If A Contract is turn inactive, it should have a end Date"
 msgstr ""
 
-#: expense/forms.py:227
+#: expense/forms.py:249
 msgid "Expense linked to a contract should be of type in human resources type"
 msgstr ""
 
@@ -857,7 +861,7 @@ msgstr ""
 msgid "value Date"
 msgstr ""
 
-#: expense/models.py:121 fund/models.py:37 leave/models.py:27
+#: expense/models.py:121 fund/models.py:37 leave/models.py:28
 msgid "Type name"
 msgstr ""
 
@@ -957,16 +961,20 @@ msgstr ""
 msgid "Cost Type"
 msgstr ""
 
-#: fund/forms.py:75
+#: fund/forms.py:50
+msgid "Update project end date"
+msgstr ""
+
+#: fund/forms.py:100
 #, python-format
 msgid "Exit Date (%s) should be later than entry date (%s)"
 msgstr ""
 
-#: fund/forms.py:80
+#: fund/forms.py:105
 msgid "If A Contract is turn inactive, it should have a end Dat "
 msgstr ""
 
-#: fund/models.py:36 leave/models.py:26 staff/models.py:221
+#: fund/models.py:36 leave/models.py:27 staff/models.py:221
 #: templates/organization/orga_base.html:48
 #: templates/organization/orga_base.html:95
 msgid "Abbreviation"
@@ -1017,7 +1025,7 @@ msgstr ""
 msgid "Reference"
 msgstr ""
 
-#: fund/models.py:200 project/forms.py:31 project/forms.py:104
+#: fund/models.py:200 project/forms.py:56 project/forms.py:129
 #: staff/forms.py:55
 #, python-format
 msgid "Exit Date (%(end)s) should be later than entry date (%(start)s) "
@@ -1274,11 +1282,11 @@ msgstr ""
 msgid "milestones"
 msgstr ""
 
-#: labsmanager/settings.py:556
+#: labsmanager/settings.py:558
 msgid "Documentation"
 msgstr ""
 
-#: labsmanager/settings.py:560
+#: labsmanager/settings.py:562
 msgid "Issues"
 msgstr ""
 
@@ -1290,28 +1298,28 @@ msgstr ""
 msgid "The color provided is invalid. Use #RRGGBB or #AARRGGBB."
 msgstr ""
 
-#: leave/models.py:19 settings/views.py:113
+#: leave/models.py:20 settings/views.py:113
 msgid "Leave Type"
 msgstr ""
 
-#: leave/models.py:35 templates/employee/employee_sidebar.html:27
+#: leave/models.py:36 templates/employee/employee_sidebar.html:27
 #: templates/team/team_sidebar.html:5
 msgid "Leave"
 msgstr ""
 
-#: leave/models.py:38
+#: leave/models.py:39
 msgid "start"
 msgstr ""
 
-#: leave/models.py:39 leave/models.py:42
+#: leave/models.py:40 leave/models.py:43
 msgid "midday"
 msgstr ""
 
-#: leave/models.py:43
+#: leave/models.py:44
 msgid "end"
 msgstr ""
 
-#: leave/models.py:80
+#: leave/models.py:89
 msgid "On the same day leave can not start and end at the same period"
 msgstr ""
 
@@ -1443,17 +1451,17 @@ msgstr ""
 msgid "No author found"
 msgstr ""
 
-#: plugin/registry.py:539
+#: plugin/registry.py:540
 #, python-brace-format
 msgid "Plugin '{p}' is not compatible with the current labsmanager version {v}"
 msgstr ""
 
-#: plugin/registry.py:542
+#: plugin/registry.py:543
 #, python-brace-format
 msgid "Plugin requires at least version {v}"
 msgstr ""
 
-#: plugin/registry.py:544
+#: plugin/registry.py:545
 #, python-brace-format
 msgid "Plugin requires at most version {v}"
 msgstr ""
@@ -1528,6 +1536,10 @@ msgstr ""
 
 #: plugin/serializers.py:102
 msgid "Activate this plugin"
+msgstr ""
+
+#: project/forms.py:22
+msgid "Update active fund end date"
 msgstr ""
 
 #: project/models.py:23
@@ -1979,7 +1991,7 @@ msgid ""
 msgstr ""
 
 #: settings/models.py:1161
-msgid "Milestones Notfication repeat repeat"
+msgid "Validated Milestones repeat"
 msgstr ""
 
 #: settings/models.py:1162
@@ -3734,4 +3746,8 @@ msgstr ""
 
 #: templates/team/team_single.html:159
 msgid "TeamMate Projects"
+msgstr ""
+
+#: templates/widgets/checkbox_custom.html:4
+msgid "Options"
 msgstr ""

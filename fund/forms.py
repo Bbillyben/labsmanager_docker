@@ -45,9 +45,9 @@ class FundItemModelForm(BSModalModelForm):
 class FundModelForm(BSModalModelForm):
     update_project_end = forms.BooleanField(
         required=False,
-        label=_("Update project end date"),
+        label="",
         initial=False,
-         widget=CustomCheckBox(),
+        widget=CustomCheckBox({'label':_("Update project end date")}),
     )
     class Meta:
         model = models.Fund

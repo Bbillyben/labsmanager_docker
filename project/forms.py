@@ -17,9 +17,9 @@ class ProjectModelForm(SanitizeDataFormMixin, BSModalModelForm):
     allowed_tags= {""}
     update_funds_end = forms.BooleanField(
         required=False,
-        label=_("Update active fund end date"),
+        label="",
         initial=False,
-         widget=CustomCheckBox(),
+         widget=CustomCheckBox({'label':_("Update active fund end date")}),
     )
     class Meta:
         model = models.Project
