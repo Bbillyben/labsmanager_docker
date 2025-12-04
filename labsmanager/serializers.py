@@ -88,7 +88,7 @@ class EmployeeSerialize_Min(serializers.ModelSerializer):
     
     class Meta:
         model = Employee
-        fields = ['pk', 'user_name', 'is_active']    
+        fields = ['pk', 'user_name', 'first_name', 'last_name', 'is_active']    
  
  
 class UserEmployeeSerializer(serializers.ModelSerializer):
@@ -1178,7 +1178,7 @@ class BudgetSerializer(serializers.ModelSerializer):
     has_perm = serializers.BooleanField(read_only=True)
     class Meta:
         model = Budget
-        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type', 'desc',
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','expense','contract_type', 'desc',
                   'has_perm',
                   ]  
     

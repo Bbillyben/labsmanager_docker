@@ -155,6 +155,7 @@ class GenericNote(TimeStampMixin):
                         "typographic": True,  # Highlight typographic characters
                     }, 
                     blank=True,
+                    null=True,
                     verbose_name=_('note')                    
             )
     

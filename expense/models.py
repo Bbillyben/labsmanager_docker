@@ -2,7 +2,7 @@ from pyexpat import model
 from statistics import mode
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from fund.models import Fund, Cost_Type, Fund_Item
+from fund.models import Fund, Cost_Type, Fund_Item, Budget
 from staff.models import Employee
 from django.db.models import Q, Sum
 
@@ -15,6 +15,7 @@ from auditlog.registry import auditlog
 
 from labsmanager.mixin import DateMixin, CachedModelMixin, CachedModelDispatchMixin, LabsManagerFocusTypeMixin, RightsCheckerMixin
 from model_utils.managers import InheritanceManager
+
 import django.dispatch
 
 ## signal to dispatch save
@@ -43,6 +44,8 @@ class Expense(LabsManagerFocusTypeMixin, CachedModelMixin):
         default='r', verbose_name=_('Status'),
     )
     fund_item = models.ForeignKey(Fund, on_delete=models.CASCADE, verbose_name=_('Related Fund'), related_name='tot_expense')
+    budget_item = models.ForeignKey(Budget, on_delete=models.CASCADE, verbose_name=_('Related Budget'), related_name='exp_budget', null=True, blank=True)
+    
     
     cached_vars=["amount", "type",]
     

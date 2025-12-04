@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'django_password_validators.password_history',
 
     # Installed Package
+    'corsheaders',                  # to allow REACT interact with backend
     'crispy_forms',                 # https://django-crispy-forms.readthedocs.io/en/latest/install.html
     'crispy_bootstrap4',            # https://pypi.org/project/crispy-bootstrap4/
     'view_breadcrumbs',             # https://pypi.org/project/django-view-breadcrumbs/#add-view_breadcrumbs-to-your-installed_apps
@@ -126,15 +127,32 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    
 ]
 MIDDLEWARE_CLASSES = (
     'labsmanager.UserEmployeeMiddleware',
 )
+
+
+### CORS authorisation to allow React API calls
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # React Dev Server
+    "http://192.168.1.145:5173",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://192.168.1.145:5173",
+]
+
+
 
 MEDIA_ROOT = get_media_dir()
 MEDIA_URL = 'media/'

@@ -98,6 +98,10 @@ router.register(r'organization', infoApiViews.organisationViewSet, basename='org
 router.register(r'note', infoApiViews.genericnoteViewSet, basename='genericnote')
 # router.register(r'settings', UserSettingsDetail.as_view(), basename='settings')
 
+# for rest API to REACT
+urlpatterns +=[
+    path("api/hub_data/",apiviews.HubDataView.as_view(), name="api-hub-data"),
+]
 # router.register(r'plugin', pluginApiViews.PluginConfigViewSet, basename='plugin')
 
 urlpatterns += [

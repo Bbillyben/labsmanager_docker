@@ -255,14 +255,14 @@ def calculate_fund(*arg):
         pj.calculate()
         
 
-class BudgetAbstract(models.Model, RightsCheckerMixin):
+class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("BudgetAbstract")
         abstract = True
         
     cost_type=models.ForeignKey(Cost_Type, on_delete=models.SET_NULL, verbose_name=_('Type'), null=True)
-    amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'), default=0)
+    # amount=models.DecimalField(max_digits=12, decimal_places=2, verbose_name=_('Amount'), default=0)
     fund=models.ForeignKey('Fund', on_delete=models.CASCADE, verbose_name=_('fund'))
     emp_type=models.ForeignKey('staff.Employee_Type', on_delete=models.SET_NULL, verbose_name=_('employee type'), null=True,blank=True)
     contract_type=models.ManyToManyField('expense.Contract_type', blank=True)
@@ -279,9 +279,24 @@ class BudgetAbstract(models.Model, RightsCheckerMixin):
         # str =  ",  ".join([p.name for p in self.contract_type.all()])
         if isIn.count()==0 and (not self.emp_type is None or not self.employee is None): # or self.contract_type != None):
             raise ValidationError(_('Employee Type, Contract Type and employee can not be defined if Cost Type is not of RH or descendant '))
+        
+    def calculate_expense(self):
+        from expense.models import Expense
+        logger.debug(f'[Budget]-calculate_expense :{str(self)}')
+        total = (
+            Expense.objects
+            .filter(budget_item=self.pk)
+            .aggregate(total=Sum('amount'))
+            ['total']
+        ) or 0
+
+        self.expense = total
+        self.save(update_fields=['expense'])
+        return total
             
     def __str__(self):
         return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
+    
     
     @classmethod
     def get_instances_for_user(cls,perm, user, queryset=None):

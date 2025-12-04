@@ -26,11 +26,10 @@
 </form>
 {{ form.media }}
 <script>
-  $('#modal-confirm.form-check-input').change(function(){
-    var enabled = this.checked;
-    //$(this).parent().find(':submit').prop( "disabled", !enabled );
-    $('#modal-form-submit').prop( "disabled", !enabled );
-  })
+  
+  $(document).on('change', '#modal-confirm', function () {
+    $('#modal-form-submit').prop("disabled", !this.checked);
+  });
   $('form').submit(function(){
     $("form :disabled").removeAttr('disabled');
   });

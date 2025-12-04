@@ -7,7 +7,8 @@ from . import models
 from staff.models import Employee
 from django.utils.translation import gettext_lazy as _
 from django import forms
-from fund.models import Cost_Type, Fund
+from fund.models import Cost_Type, Fund, Budget
+from expense.models import Contract
 from project.models import Participant
 from datetime import date
 
@@ -117,17 +118,53 @@ class ContractModelForm(BSModalModelForm):
 class ExpenseModelForm(BSModalModelForm):
     class Meta:
         model = models.Contract_expense
-        fields = ['expense_id', 'date', 'desc', 'type','status','amount',]
+        fields = ['expense_id', 'date', 'desc', 'type','budget_item', 'status','amount',]
         widgets = {
             'date': DateInput(),
         }
         
     def __init__(self, *args, **kwargs):        
         super().__init__(*args, **kwargs)
+        print(f"initial :{kwargs['initial']}")
+        if ('initial' in kwargs and 'fund' in kwargs['initial']):
+            self.base_fields['fund_item'].queryset=Fund.objects.filter(pk=kwargs['initial']['fund'])
+            self.base_fields['fund_item'].initial = kwargs['initial']['fund']
+            self.base_fields['budget_item'].queryset=Budget.objects.filter(fund__pk=kwargs['initial']['fund'])
+        else:
+            #self.base_fields['fund_item'].queryset=Fund.objects.all()
+            self.base_fields['budget_item'].queryset=Budget.objects.all()
+        self.base_fields['date'].initial = date.today()
         instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['budget_item'].queryset=Budget.objects.filter(fund=instance.fund_item)
+    
+    def clean(self, *arg, **kwargs):
+        cleaned_data = super().clean()
+        # check if budget  is 1/ same project aka fund and type matches
+        budget = cleaned_data['budget_item']
         
+        obj = self.instance
+        fund = cleaned_data.get('fund_item')
+        if not fund and obj:
+            fund = obj.fund_item
+        exp_type = cleaned_data.get('type')
+        
+        if budget:
+            if not budget.fund.pk == fund.pk:
+                raise ValidationError(_('Expense on budget has to match the fund'))
+            
+            budget_type = budget.cost_type
+            if not (
+                budget_type == exp_type
+                or budget_type.is_ancestor_of(exp_type)
+                or budget_type.is_descendant_of(exp_type)
+            ):
+                raise ValidationError(_('Expense type must match budget type or be in its hierarchy tree'))
+        
+        return cleaned_data
     
     def save(self, commit=True):
+        
         if not is_ajax(self.request.META) or self.request.POST.get('asyncUpdate') == 'True':
             instance = super(ExpenseModelForm, self).save(commit=False)
             if commit:
@@ -138,10 +175,10 @@ class ExpenseModelForm(BSModalModelForm):
     
     
      
-class ContractExpenseModelForm(BSModalModelForm):
+class ContractExpenseModelForm(ExpenseModelForm):
     class Meta:
         model = models.Contract_expense
-        fields = ['expense_id', 'contract', 'desc', 'date', 'type','status','amount',]
+        fields = ['expense_id', 'contract', 'budget_item', 'desc', 'date', 'type','status','amount',]
         widgets = {
             'date': DateInput(),
         }
@@ -153,6 +190,9 @@ class ContractExpenseModelForm(BSModalModelForm):
                 queryset=models.Contract.objects.all(),
                 widget=forms.HiddenInput
             )
+            cont = Contract.objects.get(pk = kwargs['initial']['contract'] )
+            self.base_fields['budget_item'].queryset=Budget.objects.filter(fund__pk=cont.fund.pk)
+            
         else:
             self.base_fields['contract'] = forms.ModelChoiceField(
                 queryset=models.Contract.objects.all(),
@@ -208,7 +248,7 @@ class ExpenseTimepointModelForm(BSModalModelForm):
 from fund.models import Fund
 from django.forms.models import construct_instance
 from datetime import date
-class GenericExpenseModelForm(SanitizeDataFormMixin, BSModalModelForm):
+class GenericExpenseModelForm(SanitizeDataFormMixin, ExpenseModelForm):
     contract = forms.ModelChoiceField(
                 queryset=models.Contract.objects.all(),
                 blank=True,
@@ -216,7 +256,7 @@ class GenericExpenseModelForm(SanitizeDataFormMixin, BSModalModelForm):
             )
     class Meta:
         model = models.Expense
-        fields = ['expense_id', 'fund_item', 'desc', 'contract', 'date', 'type','status','amount',]
+        fields = ['expense_id', 'fund_item', 'desc', 'contract', 'budget_item', 'date', 'type','status','amount',]
         widgets = {
             'date': DateInput(),
         }
@@ -229,12 +269,13 @@ class GenericExpenseModelForm(SanitizeDataFormMixin, BSModalModelForm):
                 initial = kwargs['initial']['fund']
                 # widget=forms.HiddenInput
             )
+            self.base_fields['budget_item'].queryset=Budget.objects.filter(fund__pk=kwargs['initial']['fund'])
             self.base_fields['contract'].queryset=models.Contract.objects.filter(fund=kwargs['initial']['fund'])
-        else:
-            self.base_fields['fund_item'] = forms.ModelChoiceField(
-                queryset=Fund.objects.all(),
-            )
-            self.base_fields['contract'].queryset=models.Contract.objects.all()
+        # else:
+            # self.base_fields['fund_item'] = forms.ModelChoiceField(
+            #     queryset=Fund.objects.all(),
+            # )
+            # self.base_fields['contract'].queryset=models.Contract.objects.all()
         self.base_fields['date'].initial = date.today() 
         
         super().__init__(*args, **kwargs)

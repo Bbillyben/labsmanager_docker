@@ -2,12 +2,14 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### latest :
+note : require migration and static update
 [UPDATE] : crumblist for not authorized user for full list.
 [UPDATE] :  refine subscription email display regarding rights to see fund/budget/...
 [UPDATE] : CalendarEventMixin, implemented CLASS.get_calendar_type(request) to extract calendar type from request (for event and ressources), add 'request' and 'calendar_type' parameters to get filters (! calendar_type should be literally added in filter template loop ) 
 [ADD] : landing page after login setting and background process (adapters), can be Hub, Dashboard, Calendar, My EMployee, regarding rights
 [ADD] : add checkbox in project and Fund form to bulk update end_dates when updating an instance 
 [ADD] : add checkbox in contract to update exit date of the employee with contract end date when updating an instance 
+[ADD] : add expense imputation on budget lines - no autmation nor import
 
 ### 0.9.4 2025-10 :
 note : require static update

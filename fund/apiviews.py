@@ -380,8 +380,17 @@ class BudgetViewSet(BudgetAbstractViewSet):
         model=Budget
         ressourceClass=BudgetResource
         filenameSuffix="Budget"
-    
-       
+        
+    def filter_queryset(self, queryset):
+        params=self.get_params(self.request)                
+        queryset = super().filter_queryset(self.get_queryset())
+        
+        available = params.get('available', None)
+        if available is not None:
+            queryset=queryset.annotate(availableT=F('amount')+F('expense'))
+            queryset = queryset.filter(Q(availableT__gte=int(available)))   
+        return queryset
+           
 class ContributionViewSet(BudgetAbstractViewSet):
     class Meta:
         model=Contribution

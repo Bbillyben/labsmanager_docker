@@ -55,6 +55,9 @@ data-toolbar='#tracking-table-toolbar_{{filterName}}'
         <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
             {% trans 'Amount' %}
         </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="expense" data-formatter="moneyFormatter">
+            {% trans 'Expense' %}
+        </th>
         <th data-sortable="true" class="th-inner sortable both" data-field="fund.is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
             {% trans 'Is Active' %}
         </th>

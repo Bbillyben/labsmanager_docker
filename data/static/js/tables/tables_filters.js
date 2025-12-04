@@ -238,6 +238,10 @@ function getAvailableTableFilters(tableKey) {
                 description: 'Institution Name',
                 options: institution_codes,
             },
+            available:{
+                title:'Available Amount',
+                description: 'minimum amount available',
+            },
         };
     }
     if (tableKey.substring(0,7) == 'contrib') {
