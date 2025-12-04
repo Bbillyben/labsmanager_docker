@@ -55,6 +55,9 @@
                 <th data-sortable="true" class="th-inner sortable both" data-field="contract" data-formatter="expense_list_contractItem">
                     {% trans 'Contract' %}
                 </th>
+                <th data-sortable="true" class="th-inner sortable both" data-field="budget_item" data-formatter="budgetFormatter">
+                    {% trans 'Budget' %}
+                </th>
                 {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense or has_perm  %}
                 <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpenseItem"
                 data-can-change="{% if perms.expense.change_expense or has_perm %}True{%endif%}"

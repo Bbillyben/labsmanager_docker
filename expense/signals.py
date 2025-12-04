@@ -26,6 +26,10 @@ def save_expense_handler(sender, instance, **kwargs):
     logger.debug('[save_expense_handler] called')
     
     # check if there is a budget in save and recalculate total budget expense
+    # cached budhed
+    old_budget =instance.var_cache["budget_item"]
+    if old_budget:
+        old_budget.calculate_expense()
     budget = instance.budget_item
     if budget:
         budget.calculate_expense()

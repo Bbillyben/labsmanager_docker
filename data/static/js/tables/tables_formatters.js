@@ -536,6 +536,37 @@ function TeamFormatter(value, row, index, field){
     
     return response;
 }
+// ------------------------------------------------------------ Budget  Formatter
+function budgetFormatter(value) {
+    if (!value) return "-";
+
+    const parts = [];
+
+    // Cost type
+    if (value.cost_type?.short_name) {
+        parts.push(`<em>${value.cost_type.short_name}</em>`);
+    }
+
+    // Employee type
+    if (value.emp_type?.shortname) {
+        parts.push(value.emp_type.shortname);
+    }
+
+    // Contract type (array)
+    if (Array.isArray(value.contract_type) && value.contract_type.length > 0) {
+        const contractNames = value.contract_type
+            .map(ct => ct.name)
+            .join(", ");
+        parts.push(`(${contractNames})`);
+    }
+
+    // Description
+    if (value.desc) {
+        parts.push(`<strong>${value.desc}</strong>`);
+    }
+
+    return parts.join(" - ");
+}
 
 // ------------------------------------------------------------ Contract  Formatter
 function ContractProjectFormatter(value, row, index, field){

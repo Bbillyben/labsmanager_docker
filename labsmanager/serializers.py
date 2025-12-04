@@ -756,6 +756,38 @@ class FundProjectSerialize(serializers.ModelSerializer):
     # def get_amount(self,obj):
     #     return Fund_Item.objects.filter(fund=obj.pk).aggregate(Sum('amount'))["amount__sum"]
 
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
+class BudgetSerializer(serializers.ModelSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    cost_type=CostTypeSerialize(many=False, read_only=False)
+    fund=FundSerialize(many=False, read_only=False)
+    emp_type=EmployeeTypeSerialize(many=False, read_only=False)
+    employee=EmployeeSerialize_Min(many=False, read_only=False)
+    contract_type=ContractTypeSerializer(many=True, read_only=True)
+    has_perm = serializers.BooleanField(read_only=True)
+    class Meta:
+        model = Budget
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','expense','contract_type', 'desc',
+                  'has_perm',
+                  ]  
+    
+class ContribSerializer(BudgetSerializer):
+    # user = UserSerializer(many=False, read_only=True)
+    cost_type=CostTypeSerialize(many=False, read_only=False)
+    fund=FundSerialize(many=False, read_only=False)
+    emp_type=EmployeeTypeSerialize(many=False, read_only=False)
+    employee=EmployeeSerialize_Min(many=False, read_only=False)
+    contract_type=ContractTypeSerializer(many=True, read_only=True)
+    has_perm = serializers.BooleanField(read_only=True)
+    class Meta:
+        model = Contribution
+        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type','desc',
+                  'start_date', 'end_date', 'is_active',
+                  'has_perm'] 
+        
+        
+        
+        
 class ExpensePOintSerializer(serializers.ModelSerializer):
     fund=FundSerialize(many=False, read_only=True)
     type=CostTypeSerialize(many=False, read_only=True)
@@ -766,6 +798,7 @@ class ExpensePOintSerializer(serializers.ModelSerializer):
 class ExpenseSerializer(serializers.ModelSerializer):
     fund_item=FundSerialize(many=False, read_only=True)
     type=CostTypeSerialize(many=False, read_only=True)
+    budget_item=BudgetSerializer(many=False, read_only=True)
     status = serializers.SerializerMethodField()
     contract = serializers.SerializerMethodField() 
     class_type = serializers.SerializerMethodField() 
@@ -774,6 +807,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         fields = ['pk', 'expense_id', 'date', 'fund_item', 'type', 'status',  'amount',
                   'desc',
                   'contract',
+                  'budget_item',
                   'class_type',
                   ]   
     
@@ -1167,36 +1201,6 @@ class GenericInfoSerialiszer(serializers.ModelSerializer):
                   'note',
                   'created_at', 'updated_at', 
                   ]
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Budget
-class BudgetSerializer(serializers.ModelSerializer):
-    # user = UserSerializer(many=False, read_only=True)
-    cost_type=CostTypeSerialize(many=False, read_only=False)
-    fund=FundSerialize(many=False, read_only=False)
-    emp_type=EmployeeTypeSerialize(many=False, read_only=False)
-    employee=EmployeeSerialize_Min(many=False, read_only=False)
-    contract_type=ContractTypeSerializer(many=True, read_only=True)
-    has_perm = serializers.BooleanField(read_only=True)
-    class Meta:
-        model = Budget
-        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','expense','contract_type', 'desc',
-                  'has_perm',
-                  ]  
-    
-class ContribSerializer(BudgetSerializer):
-    # user = UserSerializer(many=False, read_only=True)
-    cost_type=CostTypeSerialize(many=False, read_only=False)
-    fund=FundSerialize(many=False, read_only=False)
-    emp_type=EmployeeTypeSerialize(many=False, read_only=False)
-    employee=EmployeeSerialize_Min(many=False, read_only=False)
-    contract_type=ContractTypeSerializer(many=True, read_only=True)
-    has_perm = serializers.BooleanField(read_only=True)
-    class Meta:
-        model = Contribution
-        fields = ['pk', 'cost_type', 'fund', 'emp_type', 'employee', 'quotity', 'amount','contract_type','desc',
-                  'start_date', 'end_date', 'is_active',
-                  'has_perm'] 
-        
-        
         
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> For COntract Prospective
 class EmployeeContractProsp(serializers.ModelSerializer):

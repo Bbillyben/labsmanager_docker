@@ -47,7 +47,7 @@ class Expense(LabsManagerFocusTypeMixin, CachedModelMixin):
     budget_item = models.ForeignKey(Budget, on_delete=models.CASCADE, verbose_name=_('Related Budget'), related_name='exp_budget', null=True, blank=True)
     
     
-    cached_vars=["amount", "type",]
+    cached_vars=["amount", "type","budget_item",]
     
     history = AuditlogHistoryField()
     
