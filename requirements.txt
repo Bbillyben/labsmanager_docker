@@ -100,6 +100,7 @@ crispy-bootstrap4==2024.1
     # via -r requirements.in
 django-csp==3.8
     # via -r requirements.in
+django-cors-headers==4.9.0
 django-dbbackup==4.1.0
     # via -r requirements.in
 django-extensions==3.2.3
