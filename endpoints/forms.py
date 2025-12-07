@@ -69,7 +69,18 @@ class checkMilestonesForm(forms.Form):
         self.request = kwargs.pop('request', None)
         milestones = kwargs.pop('milestones', None)
         super().__init__(*args, **kwargs)
+        ## Add milestones checkboxes
         if milestones:
+            # delete other instanciated milesrtones only when there is ms defined, so it means we are un the plugin process, not in between (F* that process)
+            ## delete former instanciated milestone_XX
+            to_delete = [
+                name for name in list(self.fields.keys())
+                if name.startswith("milestone_")
+            ]
+            for name in to_delete:
+                self.fields.pop(name, None)
+                self.base_fields.pop(name, None)
+            # nexw ones
             for category, mss in milestones.items():
                 for ms in mss:
                     field_name = f"milestone_{ms.id}"
