@@ -10,6 +10,8 @@ note : require migration and static update
 [ADD] : add checkbox in project and Fund form to bulk update end_dates when updating an instance 
 [ADD] : add checkbox in contract to update exit date of the employee with contract end date when updating an instance 
 [ADD] : add expense imputation on budget lines - no autmation nor import
+[ADD] : action in project milestones project to delay (add a quantity of days, could be negatives) or validate milestones
+[ADD] : filter to milestones tabs and export
 
 ### 0.9.4 2025-10 :
 note : require static update

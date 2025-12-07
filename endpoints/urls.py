@@ -9,3 +9,10 @@ urlpatterns = [
     path('<pk>/update/',views_modal.MilestonesUpdateView.as_view(), name='update_milestones'),  
     path('<pk>/delete/', views_modal.MilestonesDeleteView.as_view(), name='delete_milestones'),  
 ]
+
+
+ ### Action form view URL
+urlpatterns += [
+    path('<project>/delay/',views_modal.delayMilestonesView.as_view(), name='delay_milestones'),  
+    path('<project>/validate/',views_modal.validateMilestonesView.as_view(), name='validate_milestones'),  
+]

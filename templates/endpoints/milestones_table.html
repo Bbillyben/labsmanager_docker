@@ -1,22 +1,17 @@
 {% load i18n %}
 {% load customs_tags %}
-{% if datatype == 'all' %}
 <div id='tracking-table-toolbar_milestones'>
     <div class='btn-group'>
         {% include "filter_list.html" with id="milestones" %}
     </div>
 </div>
-{% endif %}
 
 <table
     class='table table-striped table-condensed'
     id="milestones_table"
     data-id-table="milestonesTable"
     data-typeTable='{{ datatype }}'
-    {% if datatype == 'all' %}
-
-        data-toolbar='#tracking-table-toolbar_milestones'
-    {% endif %}
+        data-toolbar='#tracking-table-toolbar_milestones'   
 
     >
     <thead class="">

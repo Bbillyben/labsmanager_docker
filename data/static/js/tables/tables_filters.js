@@ -252,6 +252,25 @@ function getAvailableTableFilters(tableKey) {
             },
         }
     };
+    if (tableKey.substring(0,10) == 'milestones') {
+        return {
+            status:{
+                type: 'bool',
+                description: 'status',
+            },
+            delayed:{
+                type: 'bool',
+                description: 'Delayed',
+            },
+            incomming:{
+                type: 'bool',
+                description: 'incomming',
+            },
+
+            
+        };
+        
+    }
 
     // Finally, no matching key
     return {};

@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-<form method="post" action="">
+<form method="post" action="" class="bootstrap-modal-form form-ajax">
   {% csrf_token %}
 
   <div class='alert alert-block alert-danger form-validation-warning' id='form-validation-warning' style='display: none;'>
@@ -20,7 +20,12 @@
 </form>
 {{ form.media }}
 <script>
-  $('form').submit(function(){
-    $("form :disabled").removeAttr('disabled');
-  });
+$(document).on('submit', 'form.form-ajax', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const form = $(this);
+    sendAjaxForm(form);
+});
+
 </script>

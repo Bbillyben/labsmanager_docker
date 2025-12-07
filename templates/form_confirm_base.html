@@ -23,7 +23,8 @@
 </form>
 {{ form.media }}
 <script>
-  $('form').submit(function(){
+  $('form').submit(function(event){
+    event.preventDefault()
     $("form :disabled").removeAttr('disabled');
   });
 </script>

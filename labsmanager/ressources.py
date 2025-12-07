@@ -159,7 +159,17 @@ class EmployeeWidget(widgets.CharWidget):
     def render(self, value, obj=None):
         #emp=Employee.objects.get(pk=value)
         return value.__str__()
-
+class EmployeeListWidget(widgets.CharWidget):
+    def render(self, value, obj=None):
+        """
+        value : queryset of Employee objects (many-to-many)
+        """
+        if not value:
+            return ""
+        # value est un RelatedManager -> on récupère les objets
+        employees = value.all()
+        return ", ".join([e.user_name for e in employees])
+    
 class FundWidget(widgets.CharWidget):
     
     def render(self, value, obj=None):

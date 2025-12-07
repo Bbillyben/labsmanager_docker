@@ -1,5 +1,9 @@
 $.fn.labModalForm = function(options) {
     if(!$(this).length)return;
+    if ($(this).data("modalFormInitialized")) {
+        return this;
+    }
+    $(this).data("modalFormInitialized", true);
     var defaults = {
         modalID:"#create-modal",
         modalContent:".modal-body",
@@ -18,6 +22,10 @@ $.fn.labModalForm = function(options) {
             dataKey: 'table',
         },
         direct_show:false,
+        formSubmit: false,
+        beforeSubmit: function() {
+            $("form :disabled").removeAttr('disabled');
+        }
     };
     settings = $.extend(defaults, options);
 
@@ -43,6 +51,10 @@ $.fn.labModalForm = function(options) {
             addModalFormFunction: settings.addModalFormFunction,
             forceExitFunction: settings.forceExitFunction,
             addModalPreFormFunction: settings.addModalPreFormFunction,
+        },
+        formSubmit: false,
+        beforeSubmit: function() {
+            $("form :disabled").removeAttr('disabled');
         }
     });
 }

@@ -212,6 +212,17 @@
                     <div class="btn-group" role="group">
     
                         {% if perms.endpoints.add_milestones or can_edit_project %}
+                        <button id="milestones-actions" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Milestones Actions" aria-expanded="false">
+                            <i class="fas fa-gear"></i>
+                        </button>
+                        <ul class="dropdown-menu" style="">
+                            <li><span class="dropdown-item" href="#" id="delay_milestones" title="Delay Milestones"  title="Delay" data-pjPk="{{ project.pk }}" data-form-url="{% url 'delay_milestones' project=project.pk %}">
+                                <i class='fa fa-calendar'></i> {% trans 'Delay Milestones' %}
+                            </span></li>
+                            <li><span class="dropdown-item" href="#" id="validate_milestones" title="Validate Milestones"  title="Validate" data-pjPk="{{ project.pk }}" data-form-url="{% url 'validate_milestones' project=project.pk %}">
+                                <i class='fa fa-check'></i> {% trans 'Validate Milestones' %}
+                            </span></li>
+                        </ul>
                         <button type="button" class="btn btn-secondary" id="add_milestones" title="Add Item" data-pjPk="{{ project.pk }}" data-form-url="{% url 'create_project_milestones' project=project.pk %}" >
                             <span class='fa fas fa-plus'></span>
                         </button>

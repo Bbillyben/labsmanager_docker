@@ -61,4 +61,37 @@ class MilestonesModelForm(SanitizeDataFormMixin, BSModalModelForm):
         
         return cleaned_data
             
+### Action form
+from django.utils.safestring import mark_safe
+class checkMilestonesForm(forms.Form):
+    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        milestones = kwargs.pop('milestones', None)
+        super().__init__(*args, **kwargs)
+        if milestones:
+            for category, mss in milestones.items():
+                for ms in mss:
+                    field_name = f"milestone_{ms.id}"
+                    initial_value = category == "preselect"  # True si "preselect", False si autre
+                    self.base_fields[field_name] = forms.BooleanField(
+                        label=mark_safe(f"<strong>{ms.name}</strong> - {ms.deadline_date}"),
+                        required=False,
+                        initial=initial_value,
+                        widget=forms.CheckboxInput(attrs={
+                            'class': 'small-cb'
+                        })
+                    )
+                    self.fields[field_name] = self.base_fields[field_name]
+
+class delayMilestonesForm(checkMilestonesForm):
+    quantity = forms.IntegerField(
+        label=_('Quantity'),
+        required=False,
+        help_text=_("number of day to add to current date")
         
+    )
+
+class ValidateMilestonesForm(checkMilestonesForm):
+    pass
+                    

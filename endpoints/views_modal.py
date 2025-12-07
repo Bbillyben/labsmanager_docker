@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
-from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
+from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView, BSModalFormView
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse
 
@@ -52,3 +52,102 @@ class MilestonesCreateView(LoginRequiredMixin, BSModalCreateView):
         
         context = {'form': form}
         return render(request, self.template_name , context)
+
+
+from endpoints.models import Milestones
+from django.utils import timezone
+from datetime import timedelta
+from labsmanager.views_modal import BSModalViewCheckAjax
+### Action view
+class multiMilestonesView(BSModalFormView):
+    """
+        View that adds milestones to the form kwargs in two separate lists:
+        
+            milestones["preselect"]      - Milestones that should be preselected
+            milestones["notpreselect"]   - Milestones that should not be preselected
+
+        The assignment of milestones depends on the attribute `preselect_before`:
+
+            - If `preselect_before` is True, milestones with a deadline date 
+            earlier than today are added to "preselect", others to "notpreselect".
+            - If `preselect_before` is False, milestones with a deadline date 
+            earlier than today are added to "notpreselect", others to "preselect".
+        
+        This allows forms to distinguish between milestones that should be preselected
+        or not based on their deadline relative to the current date.
+    """
+    preselect_before=False
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # Passer request au formulaire
+        return kwargs
+    
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get("project", None)
+
+        milestones = {
+            "notpreselect": [],
+            "preselect": [],
+        }
+
+        mss = Milestones.objects.filter(project__pk=pk, status=False)
+        curr_date = timezone.now().date()
+
+        for ms in mss:
+            key = "preselect" if (ms.deadline_date < curr_date) == self.preselect_before else "notpreselect"
+            milestones[key].append(ms)
+
+        form = self.form_class(milestones=milestones)
+        context = {
+            'form': form,
+        }
+        return render(request, self.template_name, context)
+
+class delayMilestonesView(BSModalViewCheckAjax, multiMilestonesView):
+    template_name = 'form_base.html'
+    form_class = forms.delayMilestonesForm
+    success_message = 'ttk'
+    success_url = reverse_lazy('index')
+    
+    def form_valid(self, form):
+
+        if not self.is_post_plugin():
+            return super().form_valid(form)
+        
+        cleaned_data = form.cleaned_data
+        quantity = cleaned_data.get('quantity', 0)
+        # get the selected milestones named : milestones_PK
+        selected_milestones = []
+        for key, value in cleaned_data.items():
+            if key.startswith('milestone_') and value:
+                milestone_id = key.split('_')[1]
+                selected_milestones.append(milestone_id)
+        # add quantity day to milestones deadline date
+        for milestone in Milestones.objects.filter(pk__in=selected_milestones):
+            milestone.deadline_date += timedelta(days=quantity)
+            milestone.save()
+        return super().form_valid(form)
+    
+    
+class validateMilestonesView(BSModalViewCheckAjax, multiMilestonesView):
+    template_name = 'form_base.html'
+    form_class = forms.ValidateMilestonesForm
+    success_message = 'ttk'
+    success_url = reverse_lazy('index')
+    
+    preselect_before=True
+    def form_valid(self, form):
+
+        if not self.is_post_plugin():
+            return super().form_valid(form)
+        
+        cleaned_data = form.cleaned_data
+        # get the selected milestones named : milestones_PK
+        selected_milestones = []
+        for key, value in cleaned_data.items():
+            if key.startswith('milestone_') and value:
+                milestone_id = key.split('_')[1]
+                selected_milestones.append(milestone_id)
+        # update status to True
+        Milestones.objects.filter(pk__in=selected_milestones).update(status=True, quotity=1)
+        return super().form_valid(form)

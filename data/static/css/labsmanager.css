@@ -689,6 +689,10 @@ main {
 .modal input {
     width: 100%;
 }
+.modal input.small-cb {
+    width: 1em !important;
+}
+
 
 input[type="submit"] {
     color: #333;

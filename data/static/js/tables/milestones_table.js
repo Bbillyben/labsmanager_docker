@@ -4,6 +4,7 @@ var callbackMs;
 
 function initializeMilestoneTable(tableurl, type=null, callback_ms=null){
     callbackMs=callback_ms;
+    
 
     var options={
         // callback: updateMilestonesBtnHandler,
@@ -12,19 +13,29 @@ function initializeMilestoneTable(tableurl, type=null, callback_ms=null){
         onClickRow:milestoneRowclick, 
         
     }
-    if(type!='project' &&  type!='employee'){
+    // if(type!='project' &&  type!='employee'){
         var filters = loadTableFilters('milestones');
         var filterOption={
             download:true,
         }
         options["queryParams"]=filters;
         setupFilterList('milestones', $('#milestones_table'), '#filter-list-milestones', filterOption );
-    }
+    // }
     $('#milestones_table').labTable(options);
     $('#add_milestones').labModalForm({
         formURL: $('#add_milestones').attr("data-form-url"),
         addModalFormFunction: updateMilestones,
         modal_title:"Add",
+    });
+    $('#delay_milestones').labModalForm({
+        formURL: $('#delay_milestones').attr("data-form-url"),
+        addModalFormFunction: updateMilestones,
+        modal_title:"Delay",
+    });
+    $('#validate_milestones').labModalForm({
+        formURL: $('#validate_milestones').attr("data-form-url"),
+        addModalFormFunction: updateMilestones,
+        modal_title:"Vadidate",
     });
 
 

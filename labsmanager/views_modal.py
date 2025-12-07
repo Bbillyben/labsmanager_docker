@@ -51,3 +51,27 @@ class BSmodalConfirmViewMixin(BSModalFormView):
     
     def action(self, *args, **kwargs):
         raise Exception("action method has to be overriden")
+    
+    
+class BSModalViewCheckAjax:
+    """
+    Mixin providing a helper to check whether a POST request
+    comes from the django-bootstrap-modal-forms plugin.
+
+    Usage:
+        if self.is_post_plugin():
+            # request came from the plugin
+    """
+    def is_post_plugin(self, request=None):
+        """
+        Returns True if the POST request contains 'asyncUpdate',
+        indicating it comes from the BSModal plugin.
+        
+        :param request: optional Django request, defaults to self.request
+        """
+        req = request or getattr(self, 'request', None)
+        if req and hasattr(req, 'POST'):
+            return 'asyncUpdate' in req.POST
+        return False
+
+            
