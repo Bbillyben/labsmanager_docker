@@ -9,7 +9,8 @@ from . import forms
 
 from django.shortcuts import render
 
-   
+import logging
+logger = logging.getLogger('labsmanager')
 #### Participant
 class MilestonesUpdateView(LoginRequiredMixin, BSModalUpdateView):
     model = models.Milestones
@@ -110,27 +111,27 @@ class delayMilestonesView(BSModalViewCheckAjax, multiMilestonesView):
     success_url = reverse_lazy('index')
     
     def form_valid(self, form):
-        print("##############################   delayMilestonesView [form_valid]  ###########################################" )
-        print(f" -> is post plugin : {self.is_post_plugin()}")
+        logger.debug("##############################   delayMilestonesView [form_valid]  ###########################################" )
+        logger.debug(f" -> is post plugin : {self.is_post_plugin()}")
         if not self.is_post_plugin():
             return super().form_valid(form)
         
         cleaned_data = form.cleaned_data
         quantity = cleaned_data.get('quantity', 0)
-        print(f" - add quantity : {quantity}")
-        print(f" cleaned data : {cleaned_data}")
+        logger.debug(f" - add quantity : {quantity}")
+        logger.debug(f" cleaned data : {cleaned_data}")
         # get the selected milestones named : milestones_PK
         selected_milestones = []
         for key, value in cleaned_data.items():
             if key.startswith('milestone_') and value:
                 milestone_id = key.split('_')[1]
                 selected_milestones.append(milestone_id)
-        print(f" - selected milestones : {selected_milestones}")
+        logger.debug(f" - selected milestones : {selected_milestones}")
         # add quantity day to milestones deadline date
         for milestone in Milestones.objects.filter(pk__in=selected_milestones):
-            print(f" - initial date : {milestone.deadline_date}")
+            logger.debug(f" - initial date : {milestone.deadline_date}")
             milestone.deadline_date += timedelta(days=quantity)
-            print(f" ->> new date : {milestone.deadline_date}")
+            logger.debug(f" ->> new date : {milestone.deadline_date}")
             milestone.save()
         return super().form_valid(form)
     
