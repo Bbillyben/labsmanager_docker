@@ -10,12 +10,11 @@
 <form class="login" method="POST" action="{% url 'account_login' %}">
   {% csrf_token %}
   {{ form|crispy }}
-  
+    <input type="hidden" name="next_redir" value="{{ request.GET.next }}" />
     <div class="btn-group float-right" role="group">
         <button class="btn btn-success" type="submit">
             <span class='fas fa-sign-in-alt'></span> {% trans "Connexion" %}
         </button>
     </div>
-    {% comment %} <a class="" href="{% url 'account_reset_password' %}"><small>{% trans "Forgot Password?" %}</small></a> {% endcomment %}
 </form>
 {% endblock %}

@@ -1,5 +1,6 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from django.conf import settings
+from django.utils.http import url_has_allowed_host_and_scheme
 from allauth.account.signals import user_signed_up
 from settings.models import LMUserSetting
 from django.urls import reverse
@@ -26,23 +27,33 @@ class LabsManagerAccountAdapter(DefaultAccountAdapter):
             return False
         
     def get_logged_redirect_url(self, request):
+                
         user = request.user
+        ## check wether there is a next_redir param in the login form,if so, redirect to that one
+        next_url = request.GET.get("next_redir") or request.POST.get("next_redir")
+        
+        if next_url and len(next_url) > 1 and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+        ):
+            return next_url
+        
+        ## redirect to the user param   
         redir_set = LMUserSetting.get_setting("REDIRECT_LOGGING", user = user)
-        url_redir = reverse('index')
         if redir_set == 'hub':
-            url_redir = reverse('index')
+            return reverse('index')
         
         if redir_set== 'dashboard' and user.has_perm("common.display_dashboard"):
-            url_redir = reverse('dashboard')
+            return reverse('dashboard')
         
         if redir_set== 'calendar' and user.has_perm("common.display_calendar"):
-            url_redir = reverse('calendar_main')
+            return reverse('calendar_main')
         
         if redir_set== 'employee':
             emp = Employee.objects.filter(user = user).first()
             if emp:
-                url_redir = reverse('employee',kwargs={'pk': emp.pk})
-        return url_redir
+                return reverse('employee',kwargs={'pk': emp.pk})
+        return reverse('index')
     
     def get_user_signed_up_signal(self):
         return user_signed_up
