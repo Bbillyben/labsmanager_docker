@@ -23,7 +23,7 @@
 $(document).on('submit', 'form.form-ajax', function (e) {
     e.preventDefault();
     e.stopPropagation();
-    
+    $("form :disabled").removeAttr('disabled');
     const form = $(this);
     sendAjaxForm(form);
 });

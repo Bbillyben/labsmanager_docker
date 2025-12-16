@@ -1,4 +1,5 @@
 from bootstrap_modal_forms.forms import BSModalModelForm
+from bootstrap_modal_forms.mixins import is_ajax
 from django.core.exceptions import ValidationError
 from . import models
 from django import forms
@@ -16,7 +17,13 @@ class LeaveItemModelForm(SanitizeDataFormMixin, BSModalModelForm):
             'end_date': DateInput(),
         }
     def __init__(self, *args, **kwargs):
-
+        print("===============>>>>> THIS IS INIT OF LeaveItemModelForm <<<<<<<<<<<<<<<<<===================")
+        for a in args:
+            print(f" - {a}")
+        for k,v in kwargs.items():
+            print(f"  -{k}:{v}")
+        
+        
         if('request' in kwargs and kwargs['request'].method =='POST'):
             return super().__init__(*args, **kwargs)
         
@@ -34,6 +41,7 @@ class LeaveItemModelForm(SanitizeDataFormMixin, BSModalModelForm):
         elif('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.filter(pk=kwargs['initial']['employee']),
+                    widget=forms.HiddenInput
             )
         elif('instance' in kwargs):
             self.base_fields['employee'] = forms.ModelChoiceField(
@@ -49,8 +57,18 @@ class LeaveItemModelForm(SanitizeDataFormMixin, BSModalModelForm):
         if instance and instance.pk:
             self.fields['employee'].widget.attrs['disabled'] = True
             self.fields['type'].widget.attrs['disabled'] = True
-        if ('initial' in kwargs and 'employee' in kwargs['initial']):
-            self.fields['employee'].widget.attrs['disabled'] = True
+        # if ('initial' in kwargs and 'employee' in kwargs['initial']):
+        #     self.fields['employee'].widget.attrs['disabled'] = True
+            
+    def save(self, commit=True):
+        print("===============>>>>> THIS IS SAVE OF LeaveItemModelForm <<<<<<<<<<<<<<<<<===================")
+        if not is_ajax(self.request.META) or self.request.POST.get('asyncUpdate') == 'True':
+            instance = super(LeaveItemModelForm, self).save(commit=False)
+            if commit:
+                instance.save()
+        else:
+            instance = super(LeaveItemModelForm, self).save(commit=False)
+        return instance 
     
 class LeaveTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
     class Meta:

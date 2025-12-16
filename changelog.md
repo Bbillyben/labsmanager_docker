@@ -13,6 +13,7 @@ note : require migration and static update
 [ADD] : action in project milestones project to delay (add a quantity of days, could be negatives) or validate milestones
 [ADD] : filter to milestones tabs and export
 [UPDATE] : login field to allow the "next" parameter to be used, and then use the user parameter to redirect.
+[FIX] : issue with leave on employee page to add a newx one
 
 ### 0.9.4 2025-10 :
 note : require static update

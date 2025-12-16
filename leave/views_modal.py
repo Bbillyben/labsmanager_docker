@@ -55,6 +55,18 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
         return render(request, self.template_name , context)
     
     
+    def post(self, request, *args, **kwargs):
+        print("------------------ POST LeaveItemCreateView ---------------------")
+        for a in args:
+            print(f" - {a}")
+        for k,v in kwargs.items():
+            print(f"  -{k}:{v}")
+        for k,v in request.POST.items():
+            print(f"post  -{k}:{v}")
+        
+        return super().post(request, *args, **kwargs)
+    
+    
 class LeaveItemUpdateView(LoginRequiredMixin, BSModalUpdateView):
     model = models.Leave
     template_name = 'form_validate_base.html'
