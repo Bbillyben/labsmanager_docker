@@ -14,16 +14,17 @@
             return text.substring(0, maxLength) + '...';
         }
         function resourceRenderer(info){
+            
             text = ""; //"<span>"+info.resource.extendedProps.group_type+"</span>"
             text += "<span class='resource "+info.resource.extendedProps.group_type+"'>";
             if (info.resource.extendedProps.url){
                 text += '<a href="'+info.resource.extendedProps.url+'" >';
             }
             if(info.resource.extendedProps.group_type == "milestones"){
-                
-                text += "<b>"+info.resource.title+"</b> :";
-                text += "<span class='desc'>"+truncateText(info.resource.extendedProps.desc, 50)+"</span>";
-                return { html: text };
+                text +='<span class="icon small '+(info.resource.extendedProps.is_milestone?"milestone":"task")+'" style="margin-right:0.5em">'+(info.resource.extendedProps.is_milestone?'<i class="fa-solid fa-thumbtack"></i>':'<i class="fa-solid fa-bars-progress"></i>')+'</span>';
+                text += "<b>"+info.resource.title+"</b>";
+                if(info.resource.extendedProps.desc)text += "<sup><span class='desc' title='"+truncateText(info.resource.extendedProps.desc, 50)+"'><i class='fa-solid fa-circle-info'></i></span></sup>";
+                //return { html: text };
             }else if (info.resource.extendedProps.group_type == "project"){
                 text += "<b>" + info.resource.title + "</b>";
             }else{
@@ -64,6 +65,7 @@
                             titleP += '</div>';
                             titleP += '</div>';
                             textP += '<div class="info d-flex flex-wrap"><span class="end_date">'+info.event.start.toLocaleDateString()+"</span>"
+                            if(!info.event.extendedProps.is_milestone)textP += ' - <span class="end_date">'+info.event.end.toLocaleDateString()+"</span>"
                             textP += '<span class="flex median" style="flex-grow: 1;"></span>';
                             textP += '<span class="quotity">' + info.event.extendedProps.quotity*100 +"%</span></div>"
                             

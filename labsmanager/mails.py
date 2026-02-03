@@ -335,7 +335,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
             ms_cron = croniter(freq, ms_now)
             for _ in range(ms_rep):
                 ms_notif = ms_cron.get_prev(datetime.datetime)
-            query = (Q(status=False)|(Q(status=True) & Q(deadline_date__gte = ms_notif))) & Q(deadline_date__lte = ms_hor )
+            query = (Q(status=False)|(Q(status=True) & Q(end_date__gte = ms_notif))) & Q(end_date__lte = ms_hor )
             ms = Milestones.objects.filter(Q(project__in = projects) &  query)
             ems = Milestones.objects.filter(Q(employee__id__in = emp_ids) & query).distinct()
             #project milestones

@@ -16,6 +16,9 @@
     >
     <thead class="">
         <tr>
+            <th data-sortable="true" class="th-inner sortable both" data-field="is_milestone" data-formatter="milestoneTypeFormatter">
+                {% trans 'Type' %}
+            </th>
             {% if datatype == 'all' or datatype == 'employee' %}
             <th data-sortable="true" class="th-inner sortable both" data-field="project" data-formatter="ProjectFormatter">
                 {% trans 'Project' %}
@@ -24,8 +27,10 @@
             <th data-sortable="true" class="th-inner sortable both" data-field="name" data-formatter="hasnoteformatter">
                 {% trans 'Name' %}
             </th>
-            
-            <th data-sortable="true" class="th-inner sortable both" data-field="deadline_date" data-formatter="colorDateFormatter">
+            <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
+                {% trans 'Start Date' %}
+            </th>
+            <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="colorDateFormatter">
                 {% trans 'End Date' %}
             </th>
             <th data-sortable="true" class="th-inner sortable both" data-field="quotity" data-formatter="quotityFormatter">

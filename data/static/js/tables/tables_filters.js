@@ -266,6 +266,21 @@ function getAvailableTableFilters(tableKey) {
                 type: 'bool',
                 description: 'incomming',
             },
+            type_endpoint:{
+                title: 'Type',
+                description: 'Task or Mileston',
+                options: [
+                    {
+                        'value':'Tasks',
+                        'key':"task"
+                    },
+                    {
+                        'value':'Milestones',
+                        'key':"milestone"
+                    },
+                    
+                ],
+            }
 
             
         };

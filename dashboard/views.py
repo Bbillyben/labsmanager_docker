@@ -184,7 +184,7 @@ class MilestonesCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
                 {'name':_('Description'),'item':'desc'},
                 {'name':_('Type'),'item':'get_type_display'},
                 {'name':_('Quotity'),'item':'quotity', 'formatter':'quotityFormatter'},
-                {'name':_('Deadline'),'item':'deadline_date', 'formatter':'dueDatePassed'},
+                {'name':_('Deadline'),'item':'end_date', 'formatter':'dueDatePassed'},
                 {'name':_('Attribution'),'item':'employee', 'formatter':'milestoneEmployeeFormatter'},
                 
             ], 

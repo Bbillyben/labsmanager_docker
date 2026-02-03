@@ -323,6 +323,15 @@ function milestoneEmployeeFormatter(value, row, index, field){
       }
       return response;
 }
+function milestoneTypeFormatter(value, row, index, field){
+    response = "";
+    if(value){
+        response += '<i class="fa-solid fa-thumbtack"></i>';
+    }else{
+        response += '<i class="fa-solid fa-bars-progress"></i>';
+    }
+      return response;
+} 
 // ------------------------------------------------------------ Generic  Formatter 
 function ParticipantStatusFormatter(value, row, index, field){
     response = "<span>"

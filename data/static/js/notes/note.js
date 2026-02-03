@@ -9,9 +9,8 @@
     var originalHash;
     var onSaveFlag = false;
     function update_notebtn_listener(){
-        var addNew = $(panel).find('.add').first();
-        
-        addNew.unbind().labModalForm({
+        var addNew = $(panel).find('.add').first();        
+        addNew.labModalForm({
             formURL:  Urls['add_genericnote'](settings.app,settings.model,settings.pk),
             addModalFormFunction: load_note_data,
             modal_title:"Add Note",
@@ -235,7 +234,6 @@
 
 
     function load_note_data(){
-
         // ajax call
         var csrftoken = getCookie('csrftoken');
         $.ajax({
@@ -343,7 +341,7 @@
         settings=$.extend(defaults, options);
         panel =this;
         load_note_data();
-        update_notebtn_listener();
+        //update_notebtn_listener();
         
     }
 }(jQuery));

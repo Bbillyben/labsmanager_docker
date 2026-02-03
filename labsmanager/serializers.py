@@ -124,8 +124,9 @@ class MilestonesSerializer(serializers.ModelSerializer):
     can_edit = serializers.SerializerMethodField()
     class Meta:
         model = Milestones
-        fields = ['pk', 'name', 'deadline_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project', 
+        fields = ['pk', 'name','start_date', 'end_date', 'quotity', 'status', 'desc', 'type', 'get_type_display', 'project', 
                   'employee',
+                  'is_milestone',
                   'has_perm', 
                   'notes',
                   'can_edit',
@@ -244,19 +245,21 @@ class ProjectMilestonesSerializer_cal(serializers.ModelSerializer):
         model = Milestones
         fields = ['pk', 'name', 'desc',  'type', 'quotity', 'status',
                   'desc',
-                  'overdue',
+                  'overdue','is_milestone',
                   'start', 'end',
                   'employee',
                   'resourceId',
                   'origin','meta_type',
                   ]  
     def get_start(self,obj):
-        st= obj.deadline_date.isoformat()
-        return st
+        if not obj.start_date is None:
+            return obj.start_date.isoformat()
+        return obj.end_date.isoformat()
+        
     def get_end(self,obj):
-        if obj.deadline_date is None:
+        if obj.end_date is None:
             return datetime(9999, 12, 31)
-        ed=datetime.combine(obj.deadline_date ,datetime.min.time())
+        ed=datetime.combine(obj.end_date ,datetime.min.time())
         ed = ed +timedelta(days=1)
         return ed
     def get_resourceId(self,obj):
@@ -409,11 +412,11 @@ class ProjectResourceSerializer_cal_milestones(serializers.ModelSerializer):
     # user = UserSerializer(many=False, read_only=True)
     id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
     title = serializers.CharField(source='name')
-    group = serializers.CharField(default=_('milestones'))
+    group = serializers.CharField(default=_('Tasks & Milestones'))
     group_type = serializers.CharField(default='milestones')
     class Meta:
         model = Milestones
-        fields = ['id', 'title', 'desc', 'group', 'group_type',]  
+        fields = ['id', 'title', 'desc', 'group', 'group_type','is_milestone',]  
 
     def get_id(self,obj):
         st= f'milestones_{obj.pk}'

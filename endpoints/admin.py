@@ -41,8 +41,8 @@ class MilestoneProjectFundListFitler(admin.SimpleListFilter):
         return queryset.filter(project = self.value()) 
 
 class MilestonesAdmin(admin.ModelAdmin):
-    list_display = ('get_proj_name', 'name', 'desc', 'deadline_date', 'type', 'quotity', 'status', 'get_employee_list')
-    list_filter=('status' ,'deadline_date', EmployeeProjectFundListFitler, MilestoneProjectFundListFitler)
+    list_display = ('get_proj_name', 'name', 'desc', 'end_date', 'type', 'quotity', 'status', 'get_employee_list')
+    list_filter=('status' ,'end_date', EmployeeProjectFundListFitler, MilestoneProjectFundListFitler)
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)

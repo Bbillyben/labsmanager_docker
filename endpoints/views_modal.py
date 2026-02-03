@@ -95,7 +95,7 @@ class multiMilestonesView(BSModalFormView):
         curr_date = timezone.now().date()
 
         for ms in mss:
-            key = "preselect" if (ms.deadline_date < curr_date) == self.preselect_before else "notpreselect"
+            key = "preselect" if (ms.end_date < curr_date) == self.preselect_before else "notpreselect"
             milestones[key].append(ms)
 
         form = self.form_class(milestones=milestones)
@@ -129,9 +129,9 @@ class delayMilestonesView(BSModalViewCheckAjax, multiMilestonesView):
         logger.debug(f" - selected milestones : {selected_milestones}")
         # add quantity day to milestones deadline date
         for milestone in Milestones.objects.filter(pk__in=selected_milestones):
-            logger.debug(f" - initial date : {milestone.deadline_date}")
-            milestone.deadline_date += timedelta(days=quantity)
-            logger.debug(f" ->> new date : {milestone.deadline_date}")
+            logger.debug(f" - initial date : {milestone.end_date}")
+            milestone.end_date += timedelta(days=quantity)
+            logger.debug(f" ->> new date : {milestone.end_date}")
             milestone.save()
         return super().form_valid(form)
     

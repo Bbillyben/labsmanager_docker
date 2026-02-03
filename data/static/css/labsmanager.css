@@ -1451,9 +1451,18 @@ li.list-spacer{
         border-color:  initial;
     } */
 
-
+    /* for Milestones resoure in project cal */ 
+   .fc-resource .resource.milestones sup{
+        color:var(--primary-color);
+    }
+    .fc-resource .resource.milestones .icon.task{
+        color:#1c5087;
+    }
+    .fc-resource .resource.milestones .icon.milestone{
+        color:#5cae7c;
+    }
     /* for general calendar project (the huge with every project */
-
+ 
     .fc-datagrid-cell-cushion:has(.resource.project){
         background-color: var(--primary-color-alpha-dark);
     }

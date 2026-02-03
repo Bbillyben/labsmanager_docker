@@ -62,14 +62,14 @@ def check_stale_milestones():
         subs_empl = subscription.objects.filter(user = user.user, content_type=content_type).values_list('object_id', flat=True)
         stale=LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=user.user, backup_value=0)
         deadline = cdate + relativedelta(days=stale)
-        milestonesE = Milestones.objects.filter(deadline_date__gte=cdate, deadline_date__lte=deadline, status= False).filter(Q(employee=emp) | Q(employee__id__in=subs_empl))
+        milestonesE = Milestones.objects.filter(end_date__gte=cdate, end_date__lte=deadline, status= False).filter(Q(employee=emp) | Q(employee__id__in=subs_empl))
         
         # for project side
         projects = Participant.objects.filter(Q(employee = emp) & (Q(status = "l") | Q(status="cl") )).values_list("project", flat=True)
         # subscribed project
         content_type = ContentType.objects.get(app_label='project', model='project')
         subs_proj = subscription.objects.filter(user = user.user, content_type=content_type).values_list('object_id', flat=True)
-        milestonesP = Milestones.objects.filter(deadline_date__gte=cdate, deadline_date__lte=deadline, status= False).filter(Q(project__in = projects) | Q(project__id__in=subs_proj))
+        milestonesP = Milestones.objects.filter(end_date__gte=cdate, end_date__lte=deadline, status= False).filter(Q(project__in = projects) | Q(project__id__in=subs_proj))
         
         milestones = milestonesE.union(milestonesP)
         

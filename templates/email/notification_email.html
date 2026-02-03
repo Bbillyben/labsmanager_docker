@@ -314,7 +314,7 @@ hr.light {
                 " >
                     <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.project.pk %}">{{p.project.name}}</a></td>
                     <td align="center" valign="top">{{p.name}}</td>
-                    <td align="center" valign="top">{{p.deadline_date}}</td>
+                    <td align="center" valign="top">{{p.end_date}}</td>
                     <td align="center" valign="top">{% quotityFormat p.quotity %}</td>
                     <td align="center" valign="top">
                         {% for e in p.employee.all%}
@@ -409,7 +409,7 @@ hr.light {
                     </td>
                     <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.project.pk %}">{{p.project.name}}</a></td>
                     <td align="center" valign="top">{{p.name}}</td>
-                    <td align="center" valign="top">{{p.deadline_date}}</td>
+                    <td align="center" valign="top">{{p.end_date}}</td>
                     <td align="center" valign="top">{% quotityFormat p.quotity %}</td>
                     
                     

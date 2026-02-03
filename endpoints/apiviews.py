@@ -44,12 +44,18 @@ class MilestonesViewSet(viewsets.ModelViewSet):
         
         delayed = params.get('delayed', None)
         if delayed and delayed=="1":
-            queryset = queryset.filter(status=False, deadline_date__lte=curr_date)
+            queryset = queryset.filter(status=False, end_date__lte=curr_date)
         
         incomming = params.get('incomming', None)
         if incomming and incomming=="1":
-            queryset = queryset.filter(status=False, deadline_date__gte=curr_date)
-        
+            queryset = queryset.filter(status=False, end_date__gte=curr_date)
+            
+        type_endpoint = params.get('type_endpoint', None)
+        if type_endpoint:
+            if type_endpoint=="task":
+                queryset = queryset.filter(start_date__isnull=False)
+            else:
+                queryset = queryset.filter(start_date__isnull=True)
         return queryset
     
     @action(methods=['get'], detail=False, url_path='project/(?P<pj_pk>[^/.]+)', url_name='project')
@@ -79,11 +85,11 @@ class MilestonesViewSet(viewsets.ModelViewSet):
         q_objects = Q(status=False) & Q(project__status=True) # base Q objkect
         slot = utils.getDashboardMilestonesTimeSlot(request)
         if 'from' in slot:
-            q_objects = q_objects & Q(deadline_date__gte=slot["from"])
+            q_objects = q_objects & Q(end_date__gte=slot["from"])
         if 'to' in slot:
-            q_objects = q_objects & Q(deadline_date__lte=slot["to"])
+            q_objects = q_objects & Q(end_date__lte=slot["to"])
             
-        ms=self.queryset.filter(q_objects).order_by('deadline_date')
+        ms=self.queryset.filter(q_objects).order_by('end_date')
         
         return JsonResponse(serializers.MilestonesSerializer(ms, many=True, context={'request': request}).data, safe=False)
     

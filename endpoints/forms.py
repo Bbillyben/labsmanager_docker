@@ -20,11 +20,12 @@ class MilestonesModelForm(SanitizeDataFormMixin, BSModalModelForm):
     )
     class Meta:
         model = Milestones
-        fields = ['project', 'name','desc','deadline_date', 'type', 'quotity', 'status',
+        fields = ['project', 'name','desc','start_date', 'end_date', 'type', 'quotity', 'status',
                   'employee',
                   ]
         widgets = {
-            'deadline_date': DateInput(),
+            'start_date': DateInput(),
+            'end_date': DateInput(),
         }
     
     def __init__(self, *args, **kwargs):        
@@ -86,7 +87,7 @@ class checkMilestonesForm(forms.Form):
                     field_name = f"milestone_{ms.id}"
                     initial_value = category == "preselect"  # True si "preselect", False si autre
                     self.base_fields[field_name] = forms.BooleanField(
-                        label=mark_safe(f"<strong>{ms.name}</strong> - {ms.deadline_date}"),
+                        label=mark_safe(f"<strong>{ms.name}</strong> - {ms.end_date}"),
                         required=False,
                         initial=initial_value,
                         widget=forms.CheckboxInput(attrs={

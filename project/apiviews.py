@@ -244,7 +244,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             evts.extend(evt_part)
 
         if 'milestone' in items:
-            mils = Milestones.expired.timeframe(slot).filter(project__in = proj)
+            mils = Milestones.expired.timeframe(slot).filter(project__in = proj).order_by("end_date")
             evt_mil = serializers.ProjectMilestonesSerializer_cal(mils, many=True).data
             evts.extend(evt_mil)
 
@@ -292,13 +292,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
             ms_status = request.GET.get('milestone', '')
             match ms_status:
                 case 'ongoing':
-                    milestones = Milestones.objects.filter(project__in=projects, status = False)
+                    milestones = Milestones.objects.filter(project__in=projects, status = False).order_by("end_date")
                 case 'comp':
-                    milestones = Milestones.objects.filter(project__in=projects, status = True)
+                    milestones = Milestones.objects.filter(project__in=projects, status = True).order_by("end_date")
                 case 'delayed':
-                    milestones = Milestones.expired.overdue().filter(project__in=projects)
+                    milestones = Milestones.expired.overdue().filter(project__in=projects).order_by("end_date")
                 case _: # group also empty an 'all'
-                    milestones = Milestones.objects.filter(project__in=projects)
+                    milestones = Milestones.objects.filter(project__in=projects).order_by("end_date")
 
             res_mil = serializers.ProjectResourceSerializer_gencal_milestones(milestones, many=True, context={'request': request}).data
             for i, item in enumerate(res_mil):

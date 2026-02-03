@@ -41,9 +41,9 @@ def track_status_change(sender, instance, **kwargs):
                 UserNotification.add_notification(user=emp.user, instance=instance, action=action)
             for lead in leader: 
                 UserNotification.add_notification(user=lead.employee.user, instance=instance, action=action)
-        if old_instance.deadline_date != instance.deadline_date:
-            # print(f"============== >>>>> Deadline Date of milestone '{instance.name}' changed from {old_instance.deadline_date} to {instance.deadline_date}")
-            message = _("Reschedule from %(old)s to %(new)s")%({'old':old_instance.deadline_date, 'new':instance.deadline_date})
+        if old_instance.end_date != instance.end_date:
+            # print(f"============== >>>>> Deadline Date of milestone '{instance.name}' changed from {old_instance.end_date} to {instance.end_date}")
+            message = _("Reschedule from %(old)s to %(new)s")%({'old':old_instance.end_date, 'new':instance.end_date})
             for emp in instance.employee.filter(~Q(user=None)): 
                 UserNotification.add_notification(user=emp.user, instance=instance, action="res", message=message, force=True)
             for lead in leader: 
