@@ -162,6 +162,7 @@ class DateMixin(models.Model):
     current = Current_date_Manager()
     past = outof_date_Manager()
     futur = futur_date_Manager()
+    time_object = date_manager()
     
     
     @property

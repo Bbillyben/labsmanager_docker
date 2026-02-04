@@ -7,6 +7,7 @@
             var language = window.navigator.userLanguage || window.navigator.language;
             //console.log(language.split("-")[0])
             var defaults = {
+                datesSet:'',
                 selectable:false,
                 editable:false,
                 extraParams:{},
@@ -46,6 +47,7 @@
                 extraParams:plugin.getExtraSetting_plugin,
             })
             var globals={
+                datesSet: plugin.settingsCal.datesSet,
                 schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
                 
                 timeZone: 'UTC',

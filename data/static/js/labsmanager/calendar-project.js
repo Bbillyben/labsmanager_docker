@@ -164,7 +164,9 @@
 
         };
         var defaults = {
-
+            datesSet: function(info) {/// to update resoures on time frame change
+                info.view.calendar.refetchResources();
+                },
             resourceGroupField:"group",
             resourceOrder: 'group,group_order',
             resources:{

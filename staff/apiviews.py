@@ -348,13 +348,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         ms_status = request.GET.get('milestone', '')
         match ms_status:
             case 'ongoing':
-                milestones = Milestones.objects.filter(employee__pk=pk, status = False).order_by("end_date")
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=proj, status = False).order_by("end_date")
             case 'comp':
-                milestones = Milestones.objects.filter(employee__pk=pk, status = True).order_by("end_date")
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=proj, status = True).order_by("end_date")
             case 'delayed':
-                milestones = Milestones.expired.overdue().filter(employee__pk=pk).order_by("end_date")
+                milestones = Milestones.expired.overdue().filter(employee__pk=pk, project__in=proj).order_by("end_date")
             case _: # group also empty an 'all'
-                milestones = Milestones.objects.filter(employee__pk=pk).order_by("end_date")
+                milestones = Milestones.objects.filter(employee__pk=pk,project__in=proj).order_by("end_date")
                 
         evt_mil = serializers.ProjectMilestonesSerializer_cal(milestones, many=True).data
         evts.extend(evt_mil)
@@ -371,13 +371,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             
         part = Participant.objects.filter(employee__pk = pk)
         projects = Project.time_object.timeframe(slot).filter(pk__in = part.values("project"))
-            
-            
-        raw_items= request.GET.get('proj_items', '')
-        items = raw_items.split(',') if raw_items else []
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>     Employee calendar_get_resources for projects <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print(request.GET)
-        print("---------------------------------------")
         
         resources = []
         res_proj = serializers.ProjectResourceSerializer_gencal_project(projects, many=True, context={'request': request}).data
@@ -388,13 +381,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         ms_status = request.GET.get('milestone', '')
         match ms_status:
             case 'ongoing':
-                milestones = Milestones.objects.filter(employee__pk=pk, status = False).order_by("end_date")
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=projects, status = False).order_by("end_date")
             case 'comp':
-                milestones = Milestones.objects.filter(employee__pk=pk, status = True).order_by("end_date")
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=projects, status = True).order_by("end_date")
             case 'delayed':
-                milestones = Milestones.expired.overdue().filter(employee__pk=pk).order_by("end_date")
+                milestones = Milestones.expired.overdue().filter(employee__pk=pk, project__in=projects).order_by("end_date")
             case _: # group also empty an 'all'
-                milestones = Milestones.objects.filter(employee__pk=pk).order_by("end_date")
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=projects).order_by("end_date")
 
         res_mil = serializers.ProjectResourceSerializer_gencal_milestones(milestones, many=True, context={'request': request}).data
         for i, item in enumerate(res_mil):

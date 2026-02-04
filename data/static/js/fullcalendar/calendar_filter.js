@@ -110,8 +110,8 @@ function calendar_refresh(calendar_target){
     calendarEl = document.getElementById(calendar_target);
     if (calendarEl?.fullCalendarInstance) {
         $('#'+calendar_target).unbind('click');
-        calendarEl.fullCalendarInstance.refetchEvents();
         calendarEl.fullCalendarInstance.refetchResources();
+        calendarEl.fullCalendarInstance.refetchEvents();
     }else{
         console.error("NO fullCalendarInstance SAVED in DOM id="+calendar_target);
     }
