@@ -2,6 +2,8 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### latest :
+
+### 0.9.5 :
 note : require migration and static update
 [UPDATE] : crumblist for not authorized user for full list.
 [UPDATE] :  refine subscription email display regarding rights to see fund/budget/...
@@ -14,6 +16,9 @@ note : require migration and static update
 [ADD] : filter to milestones tabs and export
 [UPDATE] : login field to allow the "next" parameter to be used, and then use the user parameter to redirect.
 [FIX] : issue with leave on employee page to add a newx one
+[UPDATE] : milestones can be tasks (add a start date), so a milestone is a task without start date.
+[ADD] : calendar for project, tasks and milestones to employee panel
+[update] :printing for project's calendar
 
 ### 0.9.4 2025-10 :
 note : require static update
