@@ -234,12 +234,13 @@ def get_project_info_table(request, pk):
 def project_calendar_print(request):
     context={}
     
-    options={}
-    options["initialView"]=request.POST["initialView"]
-    options["start"]=request.POST["start"]
-    options["end"]=request.POST["end"]
-    options["type"]=request.POST.get("type", '') #request.POST["type"]
-    options["project"]=request.POST.get("project", '') #request.POST["team"]
+    # options={}
+    # options["initialView"]=request.POST["initialView"]
+    # options["start"]=request.POST["start"]
+    # options["end"]=request.POST["end"]
+    # options["type"]=request.POST.get("type", '') #request.POST["type"]
+    # options["project"]=request.POST.get("project", '') #request.POST["team"]
+    options = request.POST.dict() 
     context["options"]=options
     
     # Printing settings

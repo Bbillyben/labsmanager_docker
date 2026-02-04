@@ -149,6 +149,39 @@ function initEmployeeCalendar(){
     
 
 }
+function initProjectCalendar(){
+    var canMod=USER_PERMS.includes("Project.change_project") || USER_PERMS.includes("is_staff");
+    option={
+        selectable:canMod,
+        editable:canMod,
+        extraParams:getCalenderParams('#milestones_employee_calendar'),
+        cal_type:'employee_project',
+        resources:{
+                    url: Urls['api:employee-calendar-get-resources'](employee_id),
+                    method: 'GET',
+                    extraParams:$.fn.lab_calendar.prototype.getExtraSetting,
+                },
+        eventsources:[
+            {
+                url:Urls['api:employee-calendar-get-event'](employee_id),
+                method: 'GET',
+                extraParams:$.fn.lab_calendar.prototype.getExtraSetting,
+            }
+        ],
+        
+    }
+    cur_view = localStorage.getItem(`labsmanager-calendar-view_project`);
+    if (cur_view){
+        option.initialView = cur_view
+    }
+    calendar_project = $('#calendar-project-box').lab_calendar_project(option);
+    Calendar_loadFilters("calendar-milestones_employee_calendar");
+    initListener("milestones_employee_calendar", "calendar-project-box");
+    $('#proj_cal_print').on("click", function(){
+        print_calendar('milestones_employee_calendar', 'calendar-project-box', option={'employee':employee_id} );
+    })
+
+}
 
 // ----------------------  Employee  ------------------- //
 function update_employee(){

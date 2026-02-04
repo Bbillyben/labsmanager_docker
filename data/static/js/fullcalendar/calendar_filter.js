@@ -36,7 +36,7 @@ function getCalenderParams(selector) {
 }
 
 
-function initListener(filter_target){
+function initListener(filter_target, calendar_target="calendar-box"){
     // filter_target : the id of filter container
     $('#'+filter_target).find(".calendar-filter").each(function(){
         switch ($(this).prop('nodeName')) { 
@@ -49,9 +49,10 @@ function initListener(filter_target){
                elt=$(this).find(":checkbox")
                 break;
         }
+
         elt.change(function() {  
             saveTableFilters(filter_target, getCalenderParams("#"+filter_target)());
-            calendar_refresh();
+            calendar_refresh(calendar_target);
         });
 
     })
@@ -104,12 +105,19 @@ function Calendar_loadFilters(filter_target){
 
 }
 // utils
-function calendar_refresh(){
-    //console.log("calendar_refresh")
+function calendar_refresh(calendar_target){
+    // console.log("calendar_refresh for", calendar_target)
+    calendarEl = document.getElementById(calendar_target);
+    if (calendarEl?.fullCalendarInstance) {
+        $('#'+calendar_target).unbind('click');
+        calendarEl.fullCalendarInstance.refetchEvents();
+        calendarEl.fullCalendarInstance.refetchResources();
+    }else{
+        console.error("NO fullCalendarInstance SAVED in DOM id="+calendar_target);
+    }
     
-    $('#calendar-box').unbind('click');
-    calendar.refetchEvents();  
-    calendar.refetchResources();  
+    // calendar.refetchEvents();  
+    // calendar.refetchResources();  
 }
 function calendar_project_refresh(){
     //console.log("calendar_refresh")

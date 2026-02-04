@@ -313,18 +313,19 @@
                 globals.views = $.extend(globals.views, plugin.settingsCal.views);
             }
 
-            eltCal=document.getElementById(this.attr('id'))
+            const eltCal=document.getElementById(this.attr('id'))
             calendar = new FullCalendar.Calendar(eltCal, globals)
             calendar.render();
-            plugin.calendar_refresh();
+            plugin.calendar_refresh(this.attr('id'));
+            eltCal.fullCalendarInstance = calendar;
             return calendar;
     };
     
     var plugin = $.fn.lab_calendar.prototype;
     plugin.settingsCal={};
-    plugin.calendar_refresh = function(){
+    plugin.calendar_refresh = function(id="calendar-box"){
         //console.log("calendar_refresh")
-        $('#calendar-box').unbind('click');
+        $('#'+id).unbind('click');
         calendar.refetchEvents(); 
         calendar.refetchResources();
         plugin.callEventCallback(plugin.settingsCal);

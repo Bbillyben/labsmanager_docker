@@ -60,8 +60,27 @@ function initPrintCalendar(options){
             right: ''
         },
     }
+    option['extraParams']=$.extend(option['extraParams'], options);
     if(options["project"]!='')option['extraParams']['project']=options["project"];
-
+    console.log("Employee : ",options["employee"])
+    if(options["employee"]!=undefined){
+        option['extraParams']['employee']=options["employee"];
+        option["cal_type"]='employee_project';
+        option["resources"]={
+                        url: Urls['api:employee-calendar-get-resources'](options["employee"]),
+                        method: 'GET',
+                        extraParams:option['extraParams'],
+                    };
+        option["eventsources"]=[
+                {
+                    url:Urls['api:employee-calendar-get-event'](options["employee"]),
+                    method: 'GET',
+                    extraParams:option['extraParams'],
+                }
+            ];
+            
+    }   
+    
     calendar = $('#calendar-box').lab_calendar_project(option);
     calendar.gotoDate(options["start"]);
 

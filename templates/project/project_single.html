@@ -588,6 +588,9 @@
             <div class="row" style=" padding-top: 5px;">
                     <div class="col">
                         <div class="card" id="project_calendar">
+                            <div id="calendar-project-filter">
+                                <!-- futur filter for calendar here -->
+                            </div>
                             <div id="calendar-project-box">
                                 <!-- where the calendar should be loaded -->
                             </div>
@@ -621,6 +624,8 @@
 <script type='text/javascript' src="{% static 'chart/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
 
 <script type='text/javascript' src="{% static 'js/labsmanager/graph_utils.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/calendar_filter.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/calendar-print.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/labsmanager/calendar-project.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/project_graph.js' %}"></script>
 

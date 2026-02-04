@@ -85,7 +85,7 @@ function print_main_calendar(printUrl){
 // For Project Calendar
 function initProjectFullCalendar(){
     Calendar_loadFilters("calendar-project-filter");
-    initListener("calendar-project-filter");
+    initListener("calendar-project-filter", "calendar-project-box");
     initProjectCalendar();
 
 }

@@ -144,21 +144,10 @@ function initProjectCalendar(){
     calendar_project = $('#calendar-project-box').lab_calendar_project(option);
 
     $('#proj_cal_print').on("click", function(){
-        print_proj_calendar(Urls["calendar_project_print"](), project_id);
+        //print_proj_calendar(Urls["calendar_project_print"](), project_id);
+         print_calendar('calendar-project-filter', 'calendar-project-box', option={'project':project_id} );
     })
 
-}
-function print_proj_calendar(printUrl, projPk){
-    options = {};
-    options['initialView']=calendar_project.view.type;
-    var d = calendar_project.view.activeStart
-    options['start']=d.toISOString();
-    d = calendar_project.view.activeEnd
-    options['end']=d.toISOString();
-    options['project']=projPk;
-    options['filterResourcesWithEvents']=false;
-    var csrftoken = getCookie('csrftoken');
-    openWindowWithPost(printUrl, options, csrftoken)
 }
 function updateProjectLeaveCalendar(){
     $('#project_leave_item_table').bootstrapTable('refresh');

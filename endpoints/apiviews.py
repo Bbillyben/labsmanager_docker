@@ -74,7 +74,7 @@ class MilestonesViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='employee/(?P<emp_pk>[^/.]+)', url_name='employee')
     def employee(self, request, emp_pk=None, pk=None):
-        t1=self.queryset.filter(employee=emp_pk)
+        t1=self.filter_queryset(request, self.queryset.filter(employee=emp_pk))
         export = request.GET.get('export', None)
         if export:
             return self.download_queryset(t1, export)

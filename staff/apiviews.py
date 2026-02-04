@@ -17,9 +17,16 @@ from labsmanager.utils import str2bool
 from labsmanager.helpers import DownloadFile
 
 
+
+
 from staff.filters import EmployeeFilter
 
 from .ressources import EmployeeResource, TeamResource
+
+from labsmanager.utils import clean_iso_date
+from endpoints.models import Milestones
+from fund.models import Fund
+from rest_framework.response import Response
 
 from datetime import datetime
 from django.db.models import BooleanField, Case, When, Value
@@ -316,6 +323,85 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 return node.copy()
         else:
             return child_tree
+        
+    ######################
+    # for project calendar
+    ##################################################################
+    ### For single Employee
+    #### see project > apiview > calendar_all_get_event & calendar_all_get_resources
+    @action(methods=['get'], detail=True,url_path='calendar-get-event', url_name='calendar-get-event')
+    def calendar_get_event(self,request, pk=None):
+        
+        slot={}
+        if 'start' in request.GET :#request.GET['start']:
+            slot['from']=clean_iso_date(request.GET['start'])
+        if 'end' in request.GET:#['end']:
+            slot['to']=clean_iso_date(request.GET['end'])
+        
+        part = Participant.objects.filter(employee__pk = pk)
+        proj = Project.time_object.timeframe(slot).filter(pk__in = part.values("project"))
+        
+        evts = []
+        res_proj =  serializers.ProjectProjectSerializer_cal(proj, many=True).data
+        evts.extend(res_proj)
+        
+        ms_status = request.GET.get('milestone', '')
+        match ms_status:
+            case 'ongoing':
+                milestones = Milestones.objects.filter(employee__pk=pk, status = False).order_by("end_date")
+            case 'comp':
+                milestones = Milestones.objects.filter(employee__pk=pk, status = True).order_by("end_date")
+            case 'delayed':
+                milestones = Milestones.expired.overdue().filter(employee__pk=pk).order_by("end_date")
+            case _: # group also empty an 'all'
+                milestones = Milestones.objects.filter(employee__pk=pk).order_by("end_date")
+                
+        evt_mil = serializers.ProjectMilestonesSerializer_cal(milestones, many=True).data
+        evts.extend(evt_mil)
+
+        return Response(evts) 
+    
+    @action(methods=['get'], detail=True,url_path='calendar-get-resources', url_name='calendar-get-resources')
+    def calendar_get_resources(self,request, pk=None):
+        slot={}
+        if 'start' in request.GET :#request.GET['start']:
+            slot['from']=clean_iso_date(request.GET['start'])
+        if 'end' in request.GET:#['end']:
+            slot['to']=clean_iso_date(request.GET['end'])
+            
+        part = Participant.objects.filter(employee__pk = pk)
+        projects = Project.time_object.timeframe(slot).filter(pk__in = part.values("project"))
+            
+            
+        raw_items= request.GET.get('proj_items', '')
+        items = raw_items.split(',') if raw_items else []
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>     Employee calendar_get_resources for projects <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        print(request.GET)
+        print("---------------------------------------")
+        
+        resources = []
+        res_proj = serializers.ProjectResourceSerializer_gencal_project(projects, many=True, context={'request': request}).data
+        for i, item in enumerate(res_proj):
+            item['group_order'] = f"a_{i}"
+        resources.extend(res_proj)
+        
+        ms_status = request.GET.get('milestone', '')
+        match ms_status:
+            case 'ongoing':
+                milestones = Milestones.objects.filter(employee__pk=pk, status = False).order_by("end_date")
+            case 'comp':
+                milestones = Milestones.objects.filter(employee__pk=pk, status = True).order_by("end_date")
+            case 'delayed':
+                milestones = Milestones.expired.overdue().filter(employee__pk=pk).order_by("end_date")
+            case _: # group also empty an 'all'
+                milestones = Milestones.objects.filter(employee__pk=pk).order_by("end_date")
+
+        res_mil = serializers.ProjectResourceSerializer_gencal_milestones(milestones, many=True, context={'request': request}).data
+        for i, item in enumerate(res_mil):
+            item['group_order'] = f"e_{i}"
+        resources.extend(res_mil)
+                
+        return Response(resources)  
         
     
 class TeamViewSet(viewsets.ModelViewSet):
