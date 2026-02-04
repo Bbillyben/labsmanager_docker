@@ -18,6 +18,7 @@ note : require migration and static update
 [FIX] : issue with leave on employee page to add a newx one
 [UPDATE] : milestones can be tasks (add a start date), so a milestone is a task without start date.
 [ADD] : calendar for project, tasks and milestones to employee panel
+[ADD] : filter for tasks and milestones
 [update] :printing for project's calendar
 
 ### 0.9.4 2025-10 :
