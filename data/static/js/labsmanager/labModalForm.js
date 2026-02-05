@@ -1,6 +1,6 @@
-$.fn.labModalForm = function(options) {
+$.fn.labModalForm = function(options, force_through= false) {
     if(!$(this).length)return;
-    if ($(this).data("modalFormInitialized")) {
+    if ($(this).data("modalFormInitialized") && !force_through) {
         return this;
     }
     $(this).data("modalFormInitialized", true);

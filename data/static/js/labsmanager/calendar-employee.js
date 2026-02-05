@@ -113,13 +113,14 @@
             }
             modURL = encodeURI(modURL);
             $(elts).labModalForm({
-                formURL: modURL,
-                addModalFormFunction: $.fn.lab_calendar.prototype.calendar_refresh,
-                forceExitFunction: true,
-                modal_title:"Leave",
-                direct_show:true,
-            })
-            
+                    formURL: modURL,
+                    addModalFormFunction: $.fn.lab_calendar.prototype.calendar_refresh,
+                    forceExitFunction: true,
+                    modal_title:"Leave",
+                    direct_show:true,
+                }, 
+                true
+            )            
         }
 
         // -------------------------  Update Event Functions --------------- //
