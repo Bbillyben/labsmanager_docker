@@ -146,9 +146,6 @@ function initEmployeeCalendar(){
         option.initialView = view
     }
     calendar = $('#calendar-employee-box').lab_calendar_employee(option);
-    calendar.on('datesSet', function(info) {
-            console.log('datesSet via .on');
-            });
     
 
 }

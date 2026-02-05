@@ -23,7 +23,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
     TITLE = _('French Hollyday Agenda')
     AUTHOR = _('LabsManager contributors/Bbillyben')
     DESCRIPTION = _('Display french vacation in agenda view')
-    VERSION = '1.0.0'
+    VERSION = '1.0.2'
     SETTINGS = {
         'FHP_COLOR': {
             'name': _('Background Color'),
@@ -116,7 +116,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         
     @classmethod
     def get_event(cls, request, event_list):  
-        if cls.get_calendar_type(request) in ("project_all", "project"):
+        if cls.get_calendar_type(request) in ("project_all", "project", "employee_project"):
             return
 
         nex_evt = cls.get_vacation_events(request)
