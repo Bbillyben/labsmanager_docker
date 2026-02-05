@@ -1,7 +1,7 @@
 // require main_calendar.js and its initialisation (for calendar var definition), those method only for manageing filters 
 // function getCalenderParams(){
 
-function getCalenderParams(selector) {
+function getCalenderParams(selector, extra_params={}) {
     return function getCalendarParamsSelector() {
         // Initial filters object
         let filters = { type_exact: true }; // Prevent descendant types when selecting type
@@ -29,7 +29,7 @@ function getCalenderParams(selector) {
             // Merge the temporary filters with the main filters object
             filters = $.extend(filters, tmp);
         });
-
+        Object.assign(filters, extra_params);
         // Return the final filters object
         return filters;
     };
