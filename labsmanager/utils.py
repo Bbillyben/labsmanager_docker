@@ -126,3 +126,25 @@ def clean_iso_date(date_str):
     except Exception:
         # Si déjà au bon format, on renvoie tel quel
         return date_str
+    
+
+def get_data_from_request(request):
+    '''
+    Docstring for get_data_from_request
+    Help finding data in request.
+    look into key data, queryparams, GET and POST
+    
+    :param request: the request where to find datas
+    '''
+    data={}
+    if request.POST:
+            data.update(request.POST)
+    if request.GET:
+            data.update(request.GET)
+    if request.data:
+        data.update(request.data)
+    if request.query_params:
+        for k, v in request.query_params.lists():
+            data[k] = v[0] if len(v) == 1 else v
+    
+    return data

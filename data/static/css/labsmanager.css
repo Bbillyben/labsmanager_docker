@@ -1305,11 +1305,11 @@ li.list-spacer{
   }
 
   /* for calendard view */
-  div.calendar-filter {
+div.calendar-filter.filter-cont {
     margin:1em;
 
   }
-  div.calendar-filter li{
+div.calendar-filter.filter-cont li{
     list-style:none;
     margin: 0em;
 
@@ -1349,7 +1349,10 @@ li.list-spacer{
     overflow: hidden;
     
 }
-
+  /* for Employee Leave calendar view */
+  .no-border .card{
+    border:none !important;
+  }
   /* for calendard Contract view */
   .ressource-cont-pros{
     align-items: center;

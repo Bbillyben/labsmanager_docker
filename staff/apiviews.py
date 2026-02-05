@@ -32,6 +32,7 @@ from datetime import datetime
 from django.db.models import BooleanField, Case, When, Value
 
 from settings.models import LMUserSetting
+from leave.models import Leave
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
@@ -342,6 +343,15 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         proj = Project.time_object.timeframe(slot).filter(pk__in = part.values("project"))
         
         evts = []
+        
+        empl_leave = request.GET.get('leave', '')
+        if empl_leave == "on":
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SHOW EMP LEAVE")
+            leaves = Leave.time_object.timeframe(slot).filter(employee__pk=pk)
+            res_leave=serializers.ProjectLeaveSerializer_cal(leaves, many=True, context={'request': request}).data
+            evts.extend(res_leave)
+            
+            
         res_proj =  serializers.ProjectProjectSerializer_cal(proj, many=True).data
         evts.extend(res_proj)
         
@@ -373,6 +383,14 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         projects = Project.time_object.timeframe(slot).filter(pk__in = part.values("project"))
         
         resources = []
+        #show employee leaves
+        empl_leave = request.GET.get('leave', '')
+        if empl_leave == "on":
+            employee = Employee.objects.filter(pk=pk)
+            res_employee=serializers.ProjectResourceSerializer_gencal_Employee(employee, many=True, context={'request': request}).data
+            resources.extend(res_employee)
+        
+        # projects
         res_proj = serializers.ProjectResourceSerializer_gencal_project(projects, many=True, context={'request': request}).data
         for i, item in enumerate(res_proj):
             item['group_order'] = f"a_{i}"

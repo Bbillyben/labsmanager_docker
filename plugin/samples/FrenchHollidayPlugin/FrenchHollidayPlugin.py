@@ -124,9 +124,9 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
     
     @classmethod
     def get_filters(cls, request, calendar_type, *args, **kwargs):
-        if calendar_type == "project_all":
-            return {}
-        return super().get_filters(request, args, kwargs)
+        if calendar_type in ["main", "employee"]:
+            return super().get_filters(request, args, kwargs)
+        return {}
         
     @classmethod   
     def get_vacation_events(cls, request):

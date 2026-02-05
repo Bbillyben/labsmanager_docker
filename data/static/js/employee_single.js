@@ -132,7 +132,7 @@ function initEmployeeCalendar(){
         selectable:canMod,
         editable:canMod,
         initialView:"dayGridMonth",
-        extraParams:{employee:employee_id},
+        extraParams:getCalenderParams('#calendar-employee-leave-filter-box'),
         eventCallback: function(){ $('#employee_leave_table').bootstrapTable('refresh')},
         cal_type:'employee',
         headerToolbar:{
@@ -146,7 +146,7 @@ function initEmployeeCalendar(){
         option.initialView = view
     }
     calendar = $('#calendar-employee-box').lab_calendar_employee(option);
-    
+    initListener("calendar-employee-leave-filter-box","calendar-employee-box" );
 
 }
 function initProjectCalendar(){

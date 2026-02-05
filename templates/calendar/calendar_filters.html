@@ -31,7 +31,7 @@
                     <div id="resource_event_filters" class="collapse">
                         <div id="resource_event" class="in-card d-flex flex-wrap" style="margin-left:1em;">
                             <div class="col-auto" >
-                                <form id = "ressource_event_radio_box" class="calendar-filter" data-filter-id="showResEventRadio">
+                                <form id = "ressource_event_radio_box" class="filter-cont calendar-filter" data-filter-id="showResEventRadio">
                                     <div>
                                         <input class="form-check-input" type="radio" id="ress_evt_all" name="ressource_event_radio" value="false">
                                         <label class="form-check-label" for="All">{% trans 'All' %}</label>
@@ -53,14 +53,5 @@
             </div>
         </div>
     </div><!-- END col -->
-    {% plugin_list_mixin 'calendarevent' as plugins%}
-    {% for plugin in plugins %}
-        {% plugin_calevt_getfilters plugin 'main' as filters %}
-            {% for filter, opt in filters.items%}
-                {% plugin_filter_choice_clug plugin.slug filter as pslug%}
-                {% with "plugin/filter_"|add:opt.type|add:".html" as template %}
-                    {% include template with title=opt.title slug=pslug options=opt.choices default=opt.default%}
-                {% endwith %}
-            {% endfor %}    
-    {%endfor%}
+    {% include "calendar/calendar_plugin_filter.html" with cal_type='main' %}
 </div>

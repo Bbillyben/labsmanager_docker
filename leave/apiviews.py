@@ -19,24 +19,21 @@ from collections.abc import Iterable
 
 from .resources import LeaveItemResources
 from labsmanager.helpers import DownloadFile
+from plugin.viewset_mixins import CalendarPlulginMixin
+from labsmanager.utils import get_data_from_request
+
 import logging
 logger=logging.getLogger("labsmanager")
-class LeaveViewSet(viewsets.ModelViewSet):
+class LeaveViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
     queryset = Leave.objects.select_related('employee', 'type').all()
     serializer_class = serializers.LeaveSerializerBasic
     permission_classes = [permissions.IsAuthenticated]
     
     def filter_queryset(self, queryset):
         
-        data={}
-        if self.request.data:
-            data.update(self.request.data)
-        if self.request.query_params:
-            for key in self.request.query_params:
-                data[key]=self.request.query_params.get(key)
-                
+        data=get_data_from_request(self.request)                
         if not data:
-            return self.plugin_filter_queryset(queryset, self.request.user, data)
+            return super().filter_queryset(queryset) 
         
         qset=queryset
         types= data.get('type', None)
@@ -104,16 +101,7 @@ class LeaveViewSet(viewsets.ModelViewSet):
             query=Q(end_date__gte=today) & (Q(start_date__lte=today) )
             qset= qset.filter(query)
         
-        return self.plugin_filter_queryset(qset, self.request.user, data)
-        
-    def plugin_filter_queryset(self, qset, user,  filters_data):
-        from plugin import registry
-        for plugin in registry.with_mixin("calendarevent", active=True):
-           try:
-               qset = plugin.filter_queryset(qset, user,  filters_data)
-           except Exception as e:
-               logger.warning(f"Error Filtering Leaves by plugin {plugin.name} : {e}")
-        return qset
+        return super().filter_queryset(qset) 
     
     def data(self, request, format=None):
         return Response("ok")

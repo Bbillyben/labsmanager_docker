@@ -19,7 +19,10 @@ from staff.models import Team, TeamMate
 
 from datetime import datetime
 
-class ProjectViewSet(viewsets.ModelViewSet):
+from plugin.viewset_mixins import CalendarPlulginMixin
+from labsmanager.utils import get_data_from_request
+
+class ProjectViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related('participant_project').all()
     serializer_class = serializers.ProjectFullSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -35,9 +38,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return qset
     
     def filter_queryset(self, queryset):
-        params = self.request.query_params
-        queryset = super().filter_queryset(queryset)
-        
+        params = get_data_from_request(self.request)
         status = params.get('status', None)
         if status:
             queryset = queryset.filter(status=status)
@@ -83,7 +84,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(pk__in = proj_part)
             
         
-        return queryset
+        return super().filter_queryset(queryset)
     
     
     def list(self, request, *args, **kwargs):
@@ -176,6 +177,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         evt_fu = serializers.ProjectFundSerializer_cal(fu, many=True).data
         
         evts = proj_evt + evt_mil + evt_part + evt_fu
+        
         return Response(evts)  
     
     @action(methods=['get'], detail=True,url_path='calendar-get-resources', url_name='calendar-get-resources')

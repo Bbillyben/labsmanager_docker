@@ -32,14 +32,5 @@
     <div class="col-auto" id="lase">
        
     </div><!-- END col -->
-    {% plugin_list_mixin 'calendarevent' as plugins%}
-    {% for plugin in plugins %}
-        {% plugin_calevt_getfilters plugin 'project_all' as filters %} <!-- get filters from templatetag DO NOT OMIT type of calendar -->
-            {% for filter, opt in filters.items%}
-                {% plugin_filter_choice_clug plugin.slug filter as pslug%}
-                {% with "plugin/filter_"|add:opt.type|add:".html" as template %}
-                    {% include template with title=opt.title slug=pslug options=opt.choices default=opt.default%}
-                {% endwith %}
-            {% endfor %}    
-    {%endfor%}
+    {% include "calendar/calendar_plugin_filter.html" with cal_type='project_all' %}
 </div>

@@ -233,6 +233,38 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'title', ]  
 
+class ProjectLeaveSerializer_cal(serializers.ModelSerializer):
+    start=serializers.SerializerMethodField()
+    end=serializers.SerializerMethodField()
+    employee = EmployeeSerialize_Min(many=False, read_only=True)
+    resourceId= serializers.SerializerMethodField()
+    origin = serializers.CharField(default="lm")
+    meta_type = serializers.CharField(default="leave")
+    class Meta:
+        model = Milestones
+        fields = ['pk','employee',
+                  'start', 'end',
+                  'employee',
+                  'resourceId',
+                  'origin','meta_type',
+                  ]  
+
+    def get_start(self,obj):
+        st= obj.start_date.isoformat()
+        if obj.start_period == "MI":
+            st = st +" 12:00"
+        return st
+        
+    def get_end(self,obj):
+        ed=datetime.combine(obj.end_date ,datetime.min.time())
+        ed = ed +timedelta(days=1)
+        if obj.end_period == "MI":
+            ed = ed + timedelta(hours=-12)
+        return ed
+    def get_resourceId(self,obj):
+        ed=f'employee_{obj.employee.pk}'
+        return ed
+    
 class ProjectMilestonesSerializer_cal(serializers.ModelSerializer):
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
@@ -422,6 +454,19 @@ class ProjectResourceSerializer_cal_milestones(serializers.ModelSerializer):
         st= f'milestones_{obj.pk}'
         return st
     
+class ProjectResourceSerializer_cal_employee(serializers.ModelSerializer): 
+    # user = UserSerializer(many=False, read_only=True)
+    id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
+    title = serializers.CharField(source='user_name')
+    group = serializers.CharField(default=_('Employee'))
+    group_type = serializers.CharField(default='employee')
+    class Meta:
+        model = Milestones
+        fields = ['id', 'title', 'desc', 'group', 'group_type','is_milestone',]  
+
+    def get_id(self,obj):
+        st= f'employee_{obj.pk}'
+        return st
 class ProjectResourceSerializer_cal_fund(serializers.ModelSerializer): 
     # user = UserSerializer(many=False, read_only=True)
     id = serializers.SerializerMethodField() #serializers.CharField(source='pk')
@@ -441,6 +486,11 @@ class ProjectResourceSerializer_gencal_project(ProjectResourceSerializer_cal_pro
     group = serializers.SerializerMethodField()
     def get_group(self,obj):
         ed=f'{obj.name}'
+        return ed
+class ProjectResourceSerializer_gencal_Employee(ProjectResourceSerializer_cal_employee):
+    group = serializers.SerializerMethodField()
+    def get_group(self,obj):
+        ed=f" {_('Leaves')}"#f' {obj.user_name}'
         return ed
 class ProjectResourceSerializer_gencal_participant(ProjectResourceSerializer_cal_participant):
     group = serializers.SerializerMethodField()

@@ -19,7 +19,7 @@ add_all_option : add a "All" option at the top
                 <div id="{{slug}}_filters" class="collapse">
                     <div class="in-card d-flex flex-wrap collapse" style="margin-left:1em;">
                         <div class="col-auto" >
-                            <select class="form-select form-select-sm calendar-filter" aria-label=".form-select-sm example" data-filter-id="{{slug}}">
+                            <select class="form-select form-select-sm filter-cont calendar-filter" aria-label=".form-select-sm example" data-filter-id="{{slug}}">
                                 {%if add_all_option %}<option value="all">{% trans 'All' %}</option>{% endif %}
                                 {% for status in options %}
                                     <option value="{{status.id}}">{{ status.name }}</option>
