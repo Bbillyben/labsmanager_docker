@@ -183,16 +183,17 @@
                         ],
                     visibleRange: function (currentDate) {
                         const start = new Date(currentDate);
-                        start.setMonth(0);
-                        start.setDate(1);
-                        const end = new Date(currentDate);
-                        end.setMonth(11);
-                        end.setDate(31);
+                        start.setMonth(0, 1); // 1er janvier
+
+                        const end = new Date(start);
+                        end.setFullYear(start.getFullYear() + 1); // 1er janvier année suivante
+
                         return {
                             start: start.toISOString(),
                             end: end.toISOString()
                         };
-                    }
+                    },
+
                 }, 
                 resourceYearCustom: {
                     type: 'resourceTimeline',
@@ -209,16 +210,16 @@
                         ],
                     visibleRange: function (currentDate) {
                         const start = new Date(currentDate);
-                        start.setMonth(0);
-                        start.setDate(1);
-                        const end = new Date(currentDate);
-                        end.setMonth(11);
-                        end.setDate(31);
+                        start.setMonth(0, 1); // 1er janvier
+
+                        const end = new Date(start);
+                        end.setFullYear(start.getFullYear() + 1); // 1er janvier année suivante
+
                         return {
                             start: start.toISOString(),
                             end: end.toISOString()
                         };
-                    }
+                    },
                 }, 
                 resourcefortnightCustom: {
                     type: 'resourceTimeline',
@@ -240,15 +241,31 @@
                         "hours": 24
                         },
                     visibleRange: function (currentDate) {
-                        const start = new Date(currentDate);
-                        start.setDate(start.getDate() - (start.getDay() + 6) % 7); // previous monday
-                        const end = new Date(start);
-                        end.setDate(start.getDate()+13);
+                        const d = new Date(currentDate);
+
+                        // monday current week
+                        const monday = new Date(d);
+                        const day = (d.getDay() + 6) % 7; // note lundi = 0
+                        monday.setDate(d.getDate() - day);
+
+                        const startYear = monday.getFullYear();
+                        const startMonth = monday.getMonth() + 1;
+                        const startDay = monday.getDate();
+
+                        // end = monday + 14 days (exclus)
+                        const end = new Date(monday);
+                        end.setDate(monday.getDate() + 14);
+
+                        const endYear = end.getFullYear();
+                        const endMonth = end.getMonth() + 1;
+                        const endDay = end.getDate();
+
                         return {
-                            start: start.toISOString(),
-                            end: end.toISOString()
+                            start: `${startYear}-${String(startMonth).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`,
+                            end: `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`
                         };
                     }
+
                 }, 
                 resourceMensualWeekSlide: {
                     type: 'resourceTimeline',
@@ -298,16 +315,20 @@
                     }, // lower level of text
                     ],
                     visibleRange: function (currentDate) {
-                        const start = new Date(currentDate);
-                        start.setDate(1);
-                        const end = new Date(currentDate);
-                        end.setMonth(end.getMonth() + 2); // Ajoute 2 mois à la date de fin
-                        end.setDate(-1);
-                        return {
-                            start: start.toISOString(),
-                            end: end.toISOString()
-                        };
-                    }
+                            const year = currentDate.getFullYear();
+                            const month = currentDate.getMonth(); // 0-based
+
+                            const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+
+                            const endMonth = month + 2;
+                            const endYear = year + Math.floor(endMonth / 12);
+                            const endMonthNorm = (endMonth % 12) + 1;
+
+                            const end = `${endYear}-${String(endMonthNorm).padStart(2, '0')}-01`;
+
+                            return { start, end };
+                        }
+
                 }, 
 
             }
