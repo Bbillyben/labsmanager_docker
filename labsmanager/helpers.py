@@ -45,3 +45,20 @@ def WrapWithQuotes(text, quote='"'):
         text = text + quote
 
     return text
+
+
+def get_params( request):
+    """Utiliti to get params from differents locations in request objects
+    looks into .data, .query_params
+    Args:
+        request: a query request
+    Returns:
+        object with all params found in queryset
+    """
+    params={}
+    if request.data:
+        params.update(request.data)
+    if request.query_params:
+        for key in request.query_params:
+            params[key]=request.query_params.get(key)
+    return params

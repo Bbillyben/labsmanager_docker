@@ -1,4 +1,5 @@
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import escape
 
 from plugin import LabManagerPlugin
 from plugin.mixins import SettingsMixin, ScheduleMixin, CalendarEventMixin
@@ -66,60 +67,103 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
     def activate(self):
         """Activate plugin calendarevent.
         """
-        logger.debug('Activating plugin FrenchHollidayPlugin')
+        logger.debug('[FHP] Activating plugin FrenchHollidayPlugin')
         folder = self.__class__.get_static_folder()
-        path = folder+"/vac.json"
-        if not Path(path).is_file():
+        path = folder / "vac.json"
+        if not path.is_file():
             self.__class__.FHP_pull()
         
     def deactivate(self):
-        logger.debug(f"Start {self.__class__} deactivation .....")
-        folder = self.__class__.get_static_folder()
-        if not Path(folder).is_dir():
+        logger.debug(f"[FHP] Start {self.__class__.__name__} deactivation .....")
+
+        folder = Path(self.__class__.get_static_folder())
+
+        if not folder.is_dir():
             return
+
         delete_count = 0
-        if os.path.exists( folder+"/vac.json"):
-            os.remove( folder+"/vac.json")
-            delete_count+=1
-        if os.path.exists( folder+"/dayoff.json"):
-            os.remove( folder+"/dayoff.json")
-            delete_count+=1
-        logger.info("Delete %s file from %s", delete_count, folder)
+
+        vac_file = folder / "vac.json"
+        dayoff_file = folder / "dayoff.json"
+
+        for file_path in (vac_file, dayoff_file):
+            try:
+                if file_path.exists():
+                    file_path.unlink()
+                    delete_count += 1
+            except Exception as exc:
+                logger.warning("[FHP] Unable to delete %s: %s", file_path, exc)
+
+        logger.info("[FHP] Deleted %s file(s) from %s", delete_count, folder)
         
     @classmethod
     def get_static_folder(cls):
-        return str(settings.MEDIA_ROOT) +"/frenchholliday"
+        return Path(str(settings.MEDIA_ROOT)) / "frenchholliday"
     
     @classmethod
     def FHP_pull(cls):
-        logger.debug("[FrenchHollidayPlugin / pull_vacation_file] starting ...")
+        logger.debug("[FrenchHollidayPlugin / FHP_pull] starting ...")
+
         vac_url = "https://data.education.gouv.fr/api/v2/catalog/datasets/fr-en-calendrier-scolaire/exports/json"
         fer_url = "https://calendrier.api.gouv.fr/jours-feries/metropole.json"
-        
-        folder = cls.get_static_folder()
 
-        if not os.path.exists(folder):
-            logger.debug(f"create folder {folder}")
-            os.makedirs(folder)
-        
-        try:
-            local_filename, headers = urllib.request.urlretrieve(vac_url, folder+"/vac.json")
-        except:
-            logger.error("ERROR in [pull_vacation_file] / vacation ")
-        
-        try:
-            local_filename, headers = urllib.request.urlretrieve(fer_url, folder+"/dayoff.json")
-        except:
-            logger.error("ERROR in [pull_vacation_file] / day off ")
-        
-        logger.debug("[FrenchHollidayPlugin / pull_vacation_file] END ~~~~~~~~~~~~~~~ ")
-        
+        folder = Path(cls.get_static_folder())
+
+        if not folder.exists():
+            logger.debug(f"[FHP] create folder {folder}")
+            folder.mkdir(parents=True, exist_ok=True)
+
+        def download_and_save_json(url, destination):
+            tmp_destination = destination.with_suffix(destination.suffix + ".tmp")
+
+            try:
+                req = urllib.request.Request(
+                    url,
+                    headers={
+                        "User-Agent": "LabsManager-FrenchHollidayPlugin/1.0"
+                    }
+                )
+
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    raw_data = response.read()
+
+                text_data = raw_data.decode("utf-8")
+
+                parsed_json = json.loads(text_data)
+                with tmp_destination.open("w", encoding="utf-8") as f:
+                    json.dump(parsed_json, f, ensure_ascii=False, indent=2)
+
+                tmp_destination.replace(destination)
+
+                logger.info("[FHP] JSON successfully downloaded and saved: %s", destination)
+                return True
+
+            except Exception as exc:
+                logger.exception("[FHP] ERROR while downloading %s : %s", url, exc)
+
+                if tmp_destination.exists():
+                    try:
+                        tmp_destination.unlink()
+                    except Exception:
+                        logger.warning("[FHP] Unable to remove temporary file: %s", tmp_destination)
+
+                return False
+
+        vac_ok = download_and_save_json(vac_url, folder / "vac.json")
+        fer_ok = download_and_save_json(fer_url, folder /  "dayoff.json")
+
+        logger.debug(
+            "[FrenchHollidayPlugin / FHP_pull] END - vac_ok=%s / fer_ok=%s",
+            vac_ok,
+            fer_ok
+        )
+    
     @classmethod
     def get_event(cls, request, event_list):  
         if cls.get_calendar_type(request) in ("project_all", "project", "employee_project"):
             return
 
-        nex_evt = cls.get_vacation_events(request)
+        nex_evt = cls.get_vacation_events(request) or []
         event_list.extend(nex_evt)
     
     @classmethod
@@ -130,41 +174,52 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         
     @classmethod   
     def get_vacation_events(cls, request):
-        folder = cls.get_static_folder()
-        path = folder+"/vac.json"
-        if not Path(path).is_file():
-            return None
-            
-        with open(path) as json_file:
-            file_contents = json_file.read()
-        vac_json = json.loads(file_contents)
+        folder = Path(cls.get_static_folder())        
         
-        path = folder+"/dayoff.json"
-        if not Path(path).is_file():
-            return None
-        with open(path) as json_file:
-            file_contents = json_file.read()
-        dayoff_json = json.loads(file_contents)
+        vac_json = cls.load_json_file(folder / "vac.json", default=[])
+        dayoff_json = cls.load_json_file(folder / "dayoff.json", default={})
+        
+        if not isinstance(vac_json, list):
+            logger.warning("[FHP] Unexpected format for vac.json: expected list")
+            vac_json = []
+
+        if not isinstance(dayoff_json, dict):
+            logger.warning("[FHP] Unexpected format for dayoff.json: expected dict")
+            dayoff_json = {}    
         
         if "frenchholliday-zone" in request.POST:
             zone = request.POST["frenchholliday-zone"]
         else:
-            zone = __class__.get_setting(__class__(), key="FHP_VACATION_ZONE")
+            zone = cls.get_setting(cls(), key="FHP_VACATION_ZONE")
         
-        color = __class__.get_setting(__class__(), key="FHP_COLOR")
-        title = __class__.get_setting(__class__(), key="FHP_TITLE")
-        logger.debug(f" vacation event parameters : zone :{zone} / color {color} / title :{title}")
+        color = cls.get_setting(cls(), key="FHP_COLOR")
+        title = cls.get_setting(cls(), key="FHP_TITLE")
+        logger.debug(f"[FHP]  vacation event parameters : zone :{zone} / color {color} / title :{title}")
         
+        start = datetime.datetime(datetime.MINYEAR, 1, 1)
+        end = datetime.datetime(datetime.MAXYEAR, 12, 31)
+
         if "start" in request.POST:
-            start= request.POST["start"]
-            start= datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ")
-        else:
-            start = datetime.datetime(datetime.MINYEAR, 1, 1)
+            raw_start = request.POST.get("start")
+            try:
+                start = datetime.datetime.strptime(raw_start, "%Y-%m-%dT%H:%M:%SZ")
+            except Exception as exc:
+                logger.warning(
+                    "[FHP] Invalid start date from request skipped: value=%s error=%s",
+                    raw_start,
+                    exc
+                )
+
         if "end" in request.POST:
-            end = request.POST["end"]
-            end= datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%SZ")
-        else:
-            end = datetime.datetime(datetime.MAXYEAR, 12, 31)
+            raw_end = request.POST.get("end")
+            try:
+                end = datetime.datetime.strptime(raw_end, "%Y-%m-%dT%H:%M:%SZ")
+            except Exception as exc:
+                logger.warning(
+                    "[FHP] Invalid end date from request skipped: value=%s error=%s",
+                    raw_end,
+                    exc
+                )
             
         bg_color_vac=color
         bg_color_off=color
@@ -175,73 +230,125 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         end = end.replace(tzinfo=None)
         
         data=[]
-        unik=[]
+        unik = set()
         for v in vac_json:
-            if v['zones'] != zone:
+            zone_value = v.get("zones")
+            start_value = v.get("start_date")
+            end_value = v.get("end_date")
+            description = v.get("description")  
+            if zone_value  != zone:
                 continue
-            if v['start_date'] in unik:
-                continue
-            unik.append(v['start_date'])
+            if not start_value or not end_value or not description:
+                logger.warning("[FHP] Incomplete vacation entry skipped: %s", v)
+                continue    
+            key = (start_value, end_value, zone_value, description)
             
-            s=datetime.datetime.strptime(v['start_date'], "%Y-%m-%dT%H:%M:%S%z")
-            e=datetime.datetime.strptime(v['end_date'], "%Y-%m-%dT%H:%M:%S%z")
-            s = s.replace(tzinfo=None)
-            e = e.replace(tzinfo=None)
+            if key in unik:
+                continue
+            unik.add(key)
+            
+            try:
+                s = datetime.datetime.strptime(v['start_date'], "%Y-%m-%dT%H:%M:%S%z")
+                e = datetime.datetime.strptime(v['end_date'], "%Y-%m-%dT%H:%M:%S%z")
+
+                s = s.replace(tzinfo=None)
+                e = e.replace(tzinfo=None)
+
+            except Exception as exc:
+                logger.warning(
+                    "[FHP] Invalid vacation date format skipped: start=%s end=%s error=%s",
+                    v.get('start_date'),
+                    v.get('end_date'),
+                    exc
+                )
+                continue
             if (start<=e and s<=end):
                 tmp={
                     'start': s.strftime('%Y-%m-%d'),
                     'end': e.strftime('%Y-%m-%d'),
-                    'zone': v['zones'],
-                    'desc': v['description'],
+                    'zone': escape(v['zones']),
+                    'desc': escape(v['description']),
                     'display': 'background',
                     'color': bg_color_vac,
                     # 'className': classname_color_vac,
                 }
                 if title:
-                    tmp['title'] ="<span style='color:black;margin-left:0.5em;'>"+ v['description']+"</span>"
+                    tmp['title'] = (
+                        "<span style='color:black;margin-left:0.5em;'>"
+                        + escape(v['description'])
+                        + "</span>"
+                    )
                 data.append(tmp)
                 
         for item in dayoff_json:
-            d=datetime.datetime.strptime(item, "%Y-%m-%d")
-            d = d.replace(tzinfo=None)
+            try:
+                d = datetime.datetime.strptime(item, "%Y-%m-%d")
+                d = d.replace(tzinfo=None)
+
+            except Exception as exc:
+                logger.warning(
+                    "[FHP] Invalid dayoff date format skipped: date=%s error=%s",
+                    item,
+                    exc
+                )
+                continue
             if (start<=d and d<=end):
                 tmp={
                     'start': item,
                     #'end': e.strftime('%Y-%m-%d'),
-                    'desc': dayoff_json[item],
+                    'desc': escape(dayoff_json[item]),
                     'display': 'background',
                     'color': bg_color_off,
                     # 'className': classname_color_off,
                 }
                 if title:
-                    tmp['title'] ="<span style='color:black;'>"+ dayoff_json[item]+"</span>"
+                    tmp['title'] = (
+                        "<span style='color:black;'>"
+                        + escape(dayoff_json[item])
+                        + "</span>"
+                    )
                 data.append(tmp)
             
         return  data  
     @classmethod
     def get_vacation_zones_choices(cls):
-            folder = cls.get_static_folder()
-            path = folder+"/vac.json"
-            if not Path(path).is_file():
-                return None
-            with open(path) as json_file:
-                file_contents = json_file.read()
-            vac_json = json.loads(file_contents)
+            folder = Path(cls.get_static_folder())
+            path = folder / "vac.json"
+            if not path.is_file():
+                return []
+            vac_json = cls.load_json_file(folder / "vac.json", default=[])
+            if not isinstance(vac_json, list):
+                logger.warning("[FHP] Unexpected format for vac.json in zone choices")
+                return []
             listZone = []
-            unik = []
+            unik = set()
             for item in vac_json:
-                if not item["zones"] in unik:
-                    listZone.append((item["zones"], item["zones"]))
-                    unik.append(item["zones"])
+                zone = item.get("zones")
+                if not zone or zone in unik:
+                    continue
+                listZone.append((zone, zone))
+                unik.add(zone)
             listZone.sort(key=lambda x: x[1])
             return listZone 
     @classmethod
     def get_vacation_zones_object(cls):
-        zones = cls.get_vacation_zones_choices()
-        listZone = {key: value for key, value in zones}
-        return listZone
+        zones = cls.get_vacation_zones_choices() or []
+        return {key: value for key, value in zones}
     @classmethod
     def get_default_zone(cls):
         setZone = cls().get_setting("FHP_VACATION_ZONE", backup_value=None)
         return setZone
+    @classmethod
+    def load_json_file(cls, path, default):
+        try:
+            with path.open("r", encoding="utf-8") as json_file:
+                return json.load(json_file)
+        except FileNotFoundError:
+            logger.warning("[FHP] JSON file not found: %s", path)
+        except json.JSONDecodeError as exc:
+            logger.warning("[FHP] Invalid JSON in %s: %s", path, exc)
+        except Exception as exc:
+            logger.warning("[FHP] Unable to read JSON file %s: %s", path, exc)
+
+        return default
     

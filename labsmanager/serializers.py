@@ -847,7 +847,20 @@ class ExpensePOintSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense_point
         fields = ['pk', 'entry_date', 'value_date', 'fund', 'type', 'amount']
+
+class ExpenseSerializer_Min(serializers.ModelSerializer):
+    fund_item=FundSerialize(many=False, read_only=True)
+    type=CostTypeSerialize(many=False, read_only=True)
+    # budget_item=BudgetSerializer(many=False, read_only=True)
+    class Meta:
+        model = Expense
+        fields = ['pk', 'expense_id', 'date', 'fund_item', 'type', 'status',  'amount',
+                    'desc',
+                    'budget_item',
+                    ]   
         
+    
+    
 class ExpenseSerializer(serializers.ModelSerializer):
     fund_item=FundSerialize(many=False, read_only=True)
     type=CostTypeSerialize(many=False, read_only=True)

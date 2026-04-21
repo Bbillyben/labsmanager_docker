@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load customs_tags %}
 {% filter_name "budget" datatype as filterName %}
+FILTER NAME : "{{filterName}}"
 <div id='tracking-table-toolbar_{{filterName}}'>
     <div class='btn-group'>
         {% include "filter_list.html" with id=filterName %}

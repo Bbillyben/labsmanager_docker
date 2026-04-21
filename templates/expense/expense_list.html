@@ -25,51 +25,8 @@
     </div>
 </div>
 <div class="row">
-
-    <table
-        class='table table-striped table-condensed'
-        id="project_expense_table"
-        data-id-table="expenseTable"
-        data-url="/api/fund/{{ fund.pk }}/expense/"
-        >
-        <thead class="">
-            <tr>
-                <th data-sortable="true" class="th-inner sortable both" data-field="expense_id" data-formatter="">
-                    {% trans 'Expense Id' %}
-                </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="date" data-formatter="baseDateFormatter">
-                    {% trans 'Date' %}
-                </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="desc" data-formatter="">
-                    {% trans 'Description' %}
-                </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="type.name" data-formatter="FocusItemFormatter">
-                    {% trans 'Type' %}
-                </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="status" data-formatter="">
-                    {% trans 'Status' %}
-                </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
-                    {% trans 'Amount' %}
-                </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="contract" data-formatter="expense_list_contractItem">
-                    {% trans 'Contract' %}
-                </th>
-                <th data-sortable="true" class="th-inner sortable both" data-field="budget_item" data-formatter="budgetFormatter">
-                    {% trans 'Budget' %}
-                </th>
-                {% if perms.expense.change_contract_expense or perms.expense.delete_contract_expense or has_perm  %}
-                <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionExpenseItem"
-                data-can-change="{% if perms.expense.change_expense or has_perm %}True{%endif%}"
-                data-can-delete="{{ perms.expense.delete_expense }}"
-                >
-                    {% trans 'Action' %}
-                </th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-
-        </tbody>
-    </table>
+    {% url 'api:fund-fund_expense_list' fund.pk as ExpenseDataURL %}
+    {% include "expense/expense_table.html" with idTable="project_expense_table" dataURL=ExpenseDataURL tabletype="project"%}
+                            
+    
 </div>

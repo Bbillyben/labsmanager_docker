@@ -25,7 +25,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 
 from project.views import get_fund_overviewReport_bytType
+from .models import Expense
 
+from labsmanager.helpers import get_params
 import logging
 logger = logging.getLogger('labsmanager')
 
@@ -33,6 +35,31 @@ class ExpensePOintViewSet(viewsets.ModelViewSet):
     queryset = Expense_point.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ExpensePOintSerializer
+    
+    
+    def filter_queryset(self, request, queryset):
+      params = get_params(self.request)
+      qset = queryset
+      query = Q()
+      
+      cost_type = params.get('type', None)
+      if cost_type:
+        query = query & Q(type = cost_type)
+      
+      before = params.get('before', None)
+      if before:
+        query = query & Q(date__lte = before) 
+      
+      after = params.get('after', None)
+      if after:
+        query = query & Q(date__gte = after) 
+      
+      desc = params.get('desc', None)
+      if desc:
+        query = query & Q(desc__icontains = desc) 
+      
+      
+      return qset.filter(query)
     
     @action(methods=['get'], detail=False, url_path='current', url_name='current_expense')
     def lasts(self, request, pk=None):
@@ -48,6 +75,12 @@ class ExpensePOintViewSet(viewsets.ModelViewSet):
       
       queryset=Expense_point.objects.filter(query)
       return JsonResponse(self.serializer_class(queryset, many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='all', url_name='all_expense')
+    def all_expense(self, request):
+      expGen = self.filter_queryset(request, Expense.objects.filter(pk__lte=500))
+      exp = Expense.object_inherit.filter(pk__in = expGen).select_subclasses()
+      return JsonResponse(serializers.ExpenseSerializer_Min(exp, many=True).data, safe=False) 
  
 from project.models import Participant 
 from staff.models import Employee_Superior  
@@ -267,3 +300,5 @@ class ContractViewSet(viewsets.ModelViewSet):
           cont.end_date = request.data['end_date']  
         result = cont.save()
         return HttpResponse(f"Ok :{result}")
+
+    

@@ -285,6 +285,26 @@ function getAvailableTableFilters(tableKey) {
             
         };
         
+    };
+    if (tableKey.substring(0,7) == 'expense') {
+        return {
+            type: {
+                    title: 'Cost Type',
+                    options:cost_type_codes,
+                },
+            after:{
+                    title: 'After',
+                    type:'date'
+            }
+            ,
+            before:{
+                    title: 'Before',
+                    type:'date'
+            },
+            desc:{
+                title: 'Description',
+            },
+        }
     }
 
     // Finally, no matching key

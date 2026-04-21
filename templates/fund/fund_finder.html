@@ -133,6 +133,33 @@
         </div>
     </div>
 </div>
+
+<!-- ######################################    Expense PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-expense" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-expense" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Expense Explorer' %}</h4>
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content collapse show" id="expense-details">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div class="card" id="project_budget_table">
+                            {% url 'api:expense-all_expense' as ExpenseDataURL %}
+                            {% include "expense/expense_table.html" with idTable="expense_table" dataURL=ExpenseDataURL tabletype="general"%}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </div><!-- detail panel-->
         
 
@@ -145,12 +172,14 @@
 <script type='text/javascript' src="{% static 'js/fund_finder.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
 <script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/expense_table.js' %}"></script>
 
 <script>
 $(document).ready(function () {
     user_id = JSON.parse(document.getElementById('user_id').textContent);
     onPanelLoad("fund", function(){initFundFinder(user_id);}) 
     onPanelLoad("budget", function(){initializeBudgetTable();}) 
+    onPanelLoad("expense", function(){initialiseExpenseList("#expense_table", "expense");}) 
     enableSidebar('fund_finder')
 })
 </script>
