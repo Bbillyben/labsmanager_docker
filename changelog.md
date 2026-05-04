@@ -2,6 +2,8 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### latest :
+note : require static update
+[FIX] : User in setting panel back to full panel display to avoid sliders and action hiding.
 
 ### 0.9.5 :
 note : require migration and static update
