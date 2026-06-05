@@ -26,7 +26,7 @@
 </div>
 <div class="row">
     {% url 'api:fund-fund_expense_list' fund.pk as ExpenseDataURL %}
-    {% include "expense/expense_table.html" with idTable="project_expense_table" dataURL=ExpenseDataURL tabletype="project"%}
+    {% include "expense/expense_table.html" with idTable="project_expense_table" dataURL=ExpenseDataURL tabletype="project" filter_name="Expense" %}
                             
     
 </div>

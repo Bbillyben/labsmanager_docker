@@ -22,9 +22,12 @@ from labsmanager.helpers import DownloadFile
 from plugin.viewset_mixins import CalendarPlulginMixin
 from labsmanager.utils import get_data_from_request
 
+from labsmanager.mixin import LabPaginationMixin
+from labsmanager.pagination import LabPagination
+
 import logging
 logger=logging.getLogger("labsmanager")
-class LeaveViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
+class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewSet):
     queryset = Leave.objects.select_related('employee', 'type').all()
     serializer_class = serializers.LeaveSerializerBasic
     permission_classes = [permissions.IsAuthenticated]
@@ -108,10 +111,10 @@ class LeaveViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
         if export is not None:
-            qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
-        return super().list( request, *args, **kwargs)
+        return self.paginated_response(qs)
     
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
@@ -130,8 +133,10 @@ class LeaveViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
         if export is not None:
             qs = self.filter_queryset(qset)
             return self.download_queryset(qs, export)
-        
-        return Response(serializers.LeaveSerializer1D(qset, many=True).data)
+        return self.paginated_response(
+            qset,
+            serializer_class=serializers.LeaveSerializer1D
+        )
     
     
     @action(methods=['get'], detail=False, url_path='calendar', url_name='search-calendar')

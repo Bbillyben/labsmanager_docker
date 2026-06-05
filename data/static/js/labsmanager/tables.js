@@ -258,14 +258,26 @@ $.fn.labTable = function(options) {
     var varName = tableName + '-pagesize';
 
     // Pagingation options (can be server-side or client-side as specified by the caller)
+    // if (!options.disablePagination) {
+    //     options.pagination = true;
+    //     options.paginationVAlign = options.paginationVAlign || 'both';
+    //     options.pageSize = options.pageSize || labLoad(varName, 25);
+    //     options.pageList = [10, 25, 50, 100, 250, 'all'];
+    //     options.totalField = 'count';
+    //     options.dataField = 'results';
+
+    // }
     if (!options.disablePagination) {
         options.pagination = true;
+        options.sidePagination = options.sidePagination || 'server';
+        options.queryParamsType = options.queryParamsType || 'limit';
+
         options.paginationVAlign = options.paginationVAlign || 'both';
         options.pageSize = options.pageSize || labLoad(varName, 25);
-        options.pageList = [10, 25, 50, 100, 250, 'all'];
+        options.pageList = [10, 25, 50, 100, 250];
+
         options.totalField = 'count';
         options.dataField = 'results';
-
     } else {
         options.pagination = false;
     }

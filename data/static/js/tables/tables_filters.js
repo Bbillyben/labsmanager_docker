@@ -304,6 +304,18 @@ function getAvailableTableFilters(tableKey) {
             desc:{
                 title: 'Description',
             },
+            proj:{
+                title: 'Project Name',
+            },
+            funder: {
+                title: 'Funder',
+                options: fund_institution_codes,
+            },
+            institution: {
+                title: 'Institution',
+                description: 'Institution Name',
+                options: institution_codes,
+            }
         }
     }
 

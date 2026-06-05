@@ -27,10 +27,27 @@ from settings.models import LMUserSetting, LabsManagerSetting
 
 from datetime import datetime
 
-class FundViewSet(viewsets.ModelViewSet):
+from labsmanager.mixin import LabPaginationMixin
+from labsmanager.pagination import LabPagination
+
+class FundViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     queryset = Fund.objects.select_related('funder', 'institution').all()
     serializer_class = serializers.FundSerialize
     permission_classes = [permissions.IsAuthenticated]
+    
+    extra_search_fields = [
+        "funder__name",
+        "funder__short_name",
+        "institution__name",
+        "institution__short_name",
+        "project__name",
+        "ref",
+        "fund_item__type__short_name",
+        "fund_item__type__name",
+        "fund_item__type__parent__short_name",
+        "fund_item__type__parent__name",
+       
+    ]
         
     
     @action(methods=['get'], detail=True, url_path='items', url_name='items')
@@ -110,7 +127,8 @@ class FundViewSet(viewsets.ModelViewSet):
              exp = Expense.objects.none()
         else:
             exp = Expense.object_inherit.filter(fund_item=pk).select_subclasses()
-        return JsonResponse(serializers.ExpenseSerializer(exp, many=True).data, safe=False) 
+        return self.paginated_response(exp, serializers.ExpenseSerializer)
+        #return JsonResponse(serializers.ExpenseSerializer(exp, many=True).data, safe=False) 
         
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
@@ -120,18 +138,32 @@ class FundViewSet(viewsets.ModelViewSet):
         filename = f"FundItemsConsumption_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
     
-class FundItemViewSet(viewsets.ModelViewSet):
+class FundItemViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     queryset = Fund_Item.objects.select_related('fund').all()
     serializer_class = serializers.FundItemSerializePlus #serializers.FundItemSerialize
     permission_classes = [permissions.IsAuthenticated]        
     filter_backends = (filters.DjangoFilterBackend,)
     
+    extra_search_fields = [
+        "fund__funder__name",
+        "fund__funder__short_name",
+        "fund__institution__name",
+        "fund__institution__short_name",
+        "fund__project__name",
+        "fund__ref",
+        "type__short_name",
+        "type__name",
+        "type__parent__short_name",
+        "type__parent__name",
+       
+    ]
+    
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
         if export is not None:
-            qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
-        return super().list( request, *args, **kwargs)
+        return self.paginated_response(qs)
     
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
@@ -213,11 +245,12 @@ class FundItemViewSet(viewsets.ModelViewSet):
     def contract_card(self, request, proj_pk=None):
         self.request = request
         qset=self.filter_queryset(self.queryset) 
-        return JsonResponse(serializers.FundItemSerializeContract(qset, many=True).data, safe=False)
+        return self.paginated_response(qset, serializers.FundItemSerializeContract)
+        #return JsonResponse(serializers.FundItemSerializeContract(qset, many=True).data, safe=False)
     
     
     
-class BudgetAbstractViewSet(viewsets.ModelViewSet):
+class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     class Meta:
         model = Budget
         ressourceClass = BudgetResource
@@ -228,6 +261,25 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.BudgetSerializer
     permission_classes = [permissions.IsAuthenticated]        
     filter_backends = (filters.DjangoFilterBackend,)
+    extra_search_fields = [
+        "cost_type__name",
+        "cost_type__short_name",
+        "cost_type__parent__name",
+        "cost_type__parent__short_name",
+        "fund__funder__name",
+        "fund__funder__short_name",
+        "fund__institution__name",
+        "fund__institution__short_name",
+        "fund__project__name",
+        "fund__ref",
+        "employee__last_name",
+        "employee__first_name",
+        "contract_type__name",
+        "emp_type__shortname",
+        "emp_type__name",
+        "desc",
+       
+    ]
     
     def get_params(self, request):
         params={}
@@ -243,10 +295,10 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
         
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
         if export is not None:
-            qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
-        return super().list( request, *args, **kwargs)
+        return self.paginated_response(qs)
 
         
     def download_queryset(self, queryset, export_format):
@@ -329,8 +381,7 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
                 qset = qset.annotate(has_perm=Value(True))
         except:
             pass
-
-        return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
+        return self.paginated_response(qset, self.serializer_class)
     
     @action(methods=['get'], detail=False, url_path='employee/(?P<emp_pk>[0-9]+)', url_name='employee')
     def employee(self, request, emp_pk=None):
@@ -351,8 +402,8 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
                         )
                     )
         # =======================
-        
-        return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
+        return self.paginated_response(qset, self.serializer_class)
+       
     
     @action(methods=['get'], detail=False, url_path='team/(?P<team_pk>[0-9]+)', url_name='team')
     def team(self, request, team_pk=None):
@@ -361,7 +412,8 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
         export = request.GET.get('export', None)
         if export is not None:
             return self.download_queryset(qset, export)
-        return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
+        return self.paginated_response(qset, self.serializer_class)
+        
     
     @action(methods=['get'], detail=False, url_path='search', url_name='search')
     def search(self, request):
@@ -373,7 +425,7 @@ class BudgetAbstractViewSet(viewsets.ModelViewSet):
         if not request.user.has_perm('fund.change_budget'):
             qset= self.__class__.Meta.model.get_instances_for_user('change', self.request.user, qset)
         #=============================
-        return JsonResponse(self.serializer_class(qset, many=True).data, safe=False) 
+        return self.paginated_response(qset, self.serializer_class)
 
 class BudgetViewSet(BudgetAbstractViewSet):
     class Meta:

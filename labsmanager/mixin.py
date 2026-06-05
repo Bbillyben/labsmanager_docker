@@ -422,3 +422,108 @@ class RightsCheckerMixin():
                     )
         return queryset
         # =======================
+        
+        
+from labsmanager.pagination import LabPagination
+from rest_framework.response import Response
+from django.core.exceptions import FieldDoesNotExist
+from rest_framework.response import Response
+
+
+from django.db.models import Q
+from rest_framework.response import Response
+
+from rest_framework import serializers
+
+class LabPaginationMixin:
+    pagination_class = LabPagination
+    search_fields = None
+    extra_search_fields = []
+    ordering_fields = None
+    ordering_field_map = {}
+    
+    
+    def get_search_fields(self, queryset):
+        fields = []
+
+        serializer = self.get_serializer()
+
+        for name, field in serializer.fields.items():
+            if isinstance(field, (
+                serializers.CharField,
+                serializers.EmailField,
+                serializers.SlugField,
+                serializers.DateField,
+                serializers.DateTimeField,
+                serializers.IntegerField,
+                serializers.FloatField,
+                serializers.DecimalField,
+            )):
+                source = field.source or name
+
+                if source != "*" and "." not in source:
+                    fields.append(source)
+
+        fields += getattr(self, "extra_search_fields", [])
+
+        return fields
+
+    def apply_search(self, queryset):
+        search = self.request.query_params.get("search")
+
+        if not search:
+            return queryset
+
+        query = Q()
+
+        for field in self.get_search_fields(queryset):
+            query |= Q(**{f"{field}__icontains": search})
+
+        if not query.children:
+            return queryset
+
+        return queryset.filter(query).distinct()
+
+    def apply_ordering(self, queryset):
+        ordering = self.request.query_params.get("ordering")
+
+        if not ordering:
+            return queryset
+
+        fields = []
+
+        for field in ordering.split(","):
+            field = field.strip()
+            desc = field.startswith("-")
+            clean_field = field.lstrip("-")
+
+            mapped_field = self.ordering_field_map.get(clean_field, clean_field)
+
+            valid_fields = self.ordering_fields or []
+            if mapped_field in valid_fields:
+                fields.append(f"-{mapped_field}" if desc else mapped_field)
+
+        if fields:
+            return queryset.order_by(*fields)
+
+        return queryset
+
+    def prepare_queryset(self, queryset):
+        queryset = self.apply_search(queryset)
+        queryset = self.apply_ordering(queryset)
+        return queryset
+
+    def paginated_response(self, queryset, serializer_class=None, many=True):
+        queryset = self.prepare_queryset(queryset)
+
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, self.request, view=self)
+
+        serializer_class = serializer_class or self.get_serializer_class()
+
+        if page is not None:
+            serializer = serializer_class(page, many=many)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = serializer_class(queryset, many=many)
+        return Response(serializer.data)

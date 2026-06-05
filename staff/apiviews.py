@@ -34,7 +34,10 @@ from django.db.models import BooleanField, Case, When, Value
 from settings.models import LMUserSetting
 from leave.models import Leave
 
-class EmployeeViewSet(viewsets.ModelViewSet):
+from labsmanager.mixin import LabPaginationMixin
+from labsmanager.pagination import LabPagination
+
+class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows Employee to be viewed or edited.
     """
@@ -43,6 +46,15 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EmployeeFilter
+    pagination_class = LabPagination
+    
+    extra_search_fields = [
+        "employee_hierarchy__employee__last_name",
+        "employee_hierarchy__superior__last_name",
+        "employee_hierarchy__employee__first_name",
+        "employee_hierarchy__superior__first_name",
+        "genericinfo__value",
+    ]
     
     def filter_queryset(self, queryset):
         params = self.request.query_params
@@ -89,10 +101,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
         if export is not None:
-            qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
-        return super().list( request, *args, **kwargs)
+        return self.paginated_response(qs)
     
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
@@ -415,11 +427,19 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         return Response(resources)  
         
     
-class TeamViewSet(viewsets.ModelViewSet):
+class TeamViewSet(LabPaginationMixin,viewsets.ModelViewSet):
     queryset = Team.objects.select_related('leader').all()
     serializer_class = serializers.TeamSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
+    
+    extra_search_fields = [
+        "name",
+        "leader__last_name",
+        "leader__first_name",
+        "teammate__employee__last_name",
+        "teammate__employee__first_name",
+    ]
     
     def get_queryset(self, *arg, **kwargs):
 
@@ -448,10 +468,10 @@ class TeamViewSet(viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
         if export is not None:
-            qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
-        return super().list( request, *args, **kwargs)
+        return self.paginated_response(qs)
     
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""

@@ -218,7 +218,7 @@ class Participant(ActiveDateMixin, RightsCheckerMixin):
     
     
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'), related_name='participant_project')
-    employee =  models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'))
+    employee =  models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name=_('Employee'), related_name='participant_employee')
     type_part=(("l",_("Leader")), ("cl", _("Co Leader")), ("p", _("Participant")))
     status = models.CharField(
         max_length=2,

@@ -28,10 +28,11 @@ from project.views import get_fund_overviewReport_bytType
 from .models import Expense
 
 from labsmanager.helpers import get_params
+from labsmanager.mixin import LabPaginationMixin
 import logging
 logger = logging.getLogger('labsmanager')
 
-class ExpensePOintViewSet(viewsets.ModelViewSet):
+class ExpensePOintViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     queryset = Expense_point.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ExpensePOintSerializer
@@ -57,8 +58,19 @@ class ExpensePOintViewSet(viewsets.ModelViewSet):
       desc = params.get('desc', None)
       if desc:
         query = query & Q(desc__icontains = desc) 
+        
+      project = params.get('proj', None)
+      if project:
+        query = query & (Q(fund_item__project__name__icontains = project))
       
+      funder = params.get('funder', None)
+      if funder:
+        query = query & (Q(fund_item__funder = funder))
       
+      institution = params.get('institution', None)
+      if institution:
+        query = query & (Q(fund_item__institution = institution))
+        
       return qset.filter(query)
     
     @action(methods=['get'], detail=False, url_path='current', url_name='current_expense')
@@ -78,19 +90,35 @@ class ExpensePOintViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='all', url_name='all_expense')
     def all_expense(self, request):
-      expGen = self.filter_queryset(request, Expense.objects.filter(pk__lte=500))
+      expGen = self.filter_queryset(request, Expense.objects.all())
       exp = Expense.object_inherit.filter(pk__in = expGen).select_subclasses()
-      return JsonResponse(serializers.ExpenseSerializer_Min(exp, many=True).data, safe=False) 
+      return self.paginated_response(
+            exp,
+            serializer_class=serializers.ExpenseSerializer_Min
+        )
+      #return JsonResponse(serializers.ExpenseSerializer_Min(exp, many=True).data, safe=False) 
  
 from project.models import Participant 
 from staff.models import Employee_Superior  
 from settings.models import LabsManagerSetting
-class ContractViewSet(viewsets.ModelViewSet):
+class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     queryset = Contract.objects.select_related('employee', 'fund', 'contract_type').all()
     serializer_class = serializers.ContractSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ContractFilter
+    
+    extra_search_fields = [
+        "employee__last_name",
+        "employee__first_name",
+        "fund__funder__name",
+        "fund__funder__short_name",
+        "fund__institution__name",
+        "fund__institution__short_name",
+        "fund__project__name",
+        "fund__ref",
+        "contract_type__name",
+    ]
     
     def get_queryset(self):
       # print("======================= [ContractViewSet] get_queryset ")
@@ -189,10 +217,10 @@ class ContractViewSet(viewsets.ModelViewSet):
         # print("======================= [ContractViewSet] list ")
         self.request = request
         export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
         if export is not None:
-            qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
-        return super().list( request, *args, **kwargs)
+        return self.paginated_response(qs)
       
     
     

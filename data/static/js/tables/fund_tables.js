@@ -139,7 +139,7 @@ function updateExpenseList(){
     var options={
         url:$('#project_expense_table').data("url"),
         name:'expense_list',
-        disablePagination:true,
+        disablePagination:false,
         search:false,
         showColumns:false,
         callback:updateSubTables,

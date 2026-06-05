@@ -1,6 +1,6 @@
 function initialiseExpenseList(target_id = "#project_expense_table", filter_id=null, option = {}){
-    // console.log("[initialiseExpenseList]",target_id, filter_id, JSON.stringify(option))
-    var filters = loadTableFilters('filter_id');
+    console.log("[initialiseExpenseList]",target_id, filter_id, JSON.stringify(option))
+    var filters = loadTableFilters(filter_id);
     var default_options={
         url:$(target_id).data("url"),
         name:'expense_list',

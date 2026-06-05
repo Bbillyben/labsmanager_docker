@@ -27,6 +27,15 @@
                 <th data-sortable="true" class="th-inner sortable both" data-field="type.name" data-formatter="FocusItemFormatter">
                     {% trans 'Type' %}
                 </th>
+                <th data-sortable="true" class="th-inner sortable both" data-field="fund_item.project.name" data-formatter="FocusItemFormatter">
+                    {% trans 'Project' %}
+                </th>
+                <th data-sortable="true" class="th-inner sortable both" data-field="fund_item.institution.short_name" data-formatter="FocusItemFormatter">
+                    {% trans 'Institution' %}
+                </th>
+                <th data-sortable="true" class="th-inner sortable both" data-field="fund_item.funder.short_name" data-formatter="FocusItemFormatter">
+                    {% trans 'Funder' %}
+                </th>
                 <th data-sortable="true" class="th-inner sortable both" data-field="status" data-formatter="">
                     {% trans 'Status' %}
                 </th>

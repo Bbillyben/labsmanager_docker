@@ -22,13 +22,23 @@ from datetime import datetime
 from plugin.viewset_mixins import CalendarPlulginMixin
 from labsmanager.utils import get_data_from_request
 
-class ProjectViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
+from labsmanager.mixin import LabPaginationMixin
+from labsmanager.pagination import LabPagination
+
+class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related('participant_project').all()
     serializer_class = serializers.ProjectFullSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProjectFilter
-    
+    pagination_class = LabPagination
+    extra_search_fields = [
+        "participant_project__employee__last_name",
+        "participant_project__employee__first_name",
+        "institution_participant__institution__name",
+        "fund__ref",
+    ]
+        
     def get_queryset(self, *arg, **kwargs):
 
         qset = super().get_queryset( *arg, **kwargs)
@@ -89,10 +99,10 @@ class ProjectViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
         if export is not None:
-            qs = self.filter_queryset(self.get_queryset())
             return self.download_queryset(qs, export)
-        return super().list( request, *args, **kwargs)
+        return self.paginated_response(qs)
     
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
@@ -101,7 +111,6 @@ class ProjectViewSet(CalendarPlulginMixin, viewsets.ModelViewSet):
         dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
         filename = f"Projects_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
-        # return JsonResponse('not a test', safe=False)
             
     @action(methods=['get'], detail=True, url_path='participant', url_name='participant')
     def participant(self, request, pk=None):
