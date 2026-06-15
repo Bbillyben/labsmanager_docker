@@ -4,6 +4,7 @@ from django.core.exceptions import  ImproperlyConfigured, MultipleObjectsReturne
 from labsmanager.ressources import labResource,  SimpleError, SkipErrorRessource, SkipSameValueRessource, DateField, DecimalField
 
 from import_export.fields import Field
+
 from labsmanager.utils import getDateFilter
 from labsmanager.ressources import NormalizedDecimalField
 import import_export.widgets as widgets
@@ -11,7 +12,7 @@ from import_export import resources, results
 
 from fund.resources import FundField
 
-from .models import Contract, Expense
+from .models import Contract, Expense, Contract_expense
 from expense.models import Expense_point
 from fund.models import Fund, Cost_Type
 from project.models import Project
@@ -262,3 +263,91 @@ class ExpensePointResource(CheckProjectTypeResourceMixin, labResource, SkipError
         clean_model_instances = False
         export_order  = ['project','institiution', 'fund','type', 'entry_date', 'value_date',  'amount', ]
         valid_import=['s', 'h']
+        
+        
+
+
+
+class ConsolidatedExpenseResource(ExpenseResource):
+    #class_type = Field(column_name=_("Class type"))
+    
+    contract_employee = Field(column_name=_("Contract employee"))
+    contract_type = Field(column_name=_("Contract type"))
+    contract_start_date = Field(column_name=_("Contract start date"))
+    contract_end_date = Field(column_name=_("Contract end date"))
+    # contract_status = Field(column_name=_("Contract status"))
+
+    budget = Field(column_name=_("Budget"))
+    # budget_name = Field(column_name=_("Budget name"))
+
+    class Meta(ExpenseResource.Meta):
+        model = Expense
+        fields = (
+            "date",
+            "expense_id",
+            "desc",
+            "type",
+            "amount",
+            "status",
+            "project",
+            "fund",
+            "funder",
+            "institution",
+            "budget",
+            # "budget_name",
+            #"class_type",
+            "contract_employee",
+            "contract_type",
+            "contract_start_date",
+            "contract_end_date",
+            # "contract_status",
+        )
+        export_order = fields
+
+    # def dehydrate_class_type(self, obj):
+    #     return type(obj).__name__
+
+    def dehydrate_budget(self, obj):
+        if obj.budget_item:
+            return str(obj.budget_item)
+        return ""
+
+    # def dehydrate_budget_name(self, obj):
+    #     if obj.budget_item:
+    #         return getattr(obj.budget_item, "name", str(obj.budget_item))
+    #     return ""
+
+    def get_contract(self, obj):
+        if isinstance(obj, Contract_expense):
+            return obj.contract
+        return None
+
+    def dehydrate_contract_employee(self, obj):
+        contract = self.get_contract(obj)
+        if contract:
+            return str(contract.employee)
+        return ""
+
+    def dehydrate_contract_type(self, obj):
+        contract = self.get_contract(obj)
+        if contract:
+            return str(contract.contract_type or "")
+        return ""
+
+    def dehydrate_contract_start_date(self, obj):
+        contract = self.get_contract(obj)
+        if contract:
+            return contract.start_date
+        return ""
+
+    def dehydrate_contract_end_date(self, obj):
+        contract = self.get_contract(obj)
+        if contract:
+            return contract.end_date
+        return ""
+
+    # def dehydrate_contract_status(self, obj):
+    #     contract = self.get_contract(obj)
+    #     if contract:
+    #         return contract.get_status_display()
+    #     return ""

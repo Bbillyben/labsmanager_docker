@@ -12,7 +12,7 @@ function initialiseExpenseList(target_id = "#project_expense_table", filter_id=n
         
     };
     var filterOption={
-            // download:true,
+            download:true,
         }
     if(filter_id != null)setupFilterList(filter_id, $(target_id), '#filter-list-'+filter_id,filterOption);
 

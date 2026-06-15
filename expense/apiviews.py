@@ -92,11 +92,23 @@ class ExpensePOintViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     def all_expense(self, request):
       expGen = self.filter_queryset(request, Expense.objects.all())
       exp = Expense.object_inherit.filter(pk__in = expGen).select_subclasses()
+      export = request.GET.get('export', None)
+      if export is not None:
+            return self.download_expense_queryset(exp, export)
       return self.paginated_response(
             exp,
-            serializer_class=serializers.ExpenseSerializer_Min
+            serializer_class=serializers.ExpenseSerializer
         )
       #return JsonResponse(serializers.ExpenseSerializer_Min(exp, many=True).data, safe=False) 
+    
+    def download_expense_queryset(self, queryset, export_format):
+        """Download the filtered queryset as a data file"""
+        from expense.resources import ConsolidatedExpenseResource 
+        dataset = ConsolidatedExpenseResource().export(queryset=queryset)
+        filedata = dataset.export(export_format)
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Expenses_{dateSuffix}.{export_format}"
+        return DownloadFile(filedata, filename)
  
 from project.models import Participant 
 from staff.models import Employee_Superior  
