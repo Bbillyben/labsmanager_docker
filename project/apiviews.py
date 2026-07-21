@@ -38,7 +38,22 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
         "institution_participant__institution__name",
         "fund__ref",
     ]
-        
+    
+    ordering_fields = {
+        "institution": "institution_participant__institution__name",
+        # "fund.funder.name":"fund__funder__name",
+        #"fund.institution.short_name":"fund__institution__short_name",
+        "status_name":"status", # for participant
+    }
+    extra_search_fields_by_action = {
+        "contracts": [
+            "employee__last_name",
+            "employee__first_name",
+            "fund__institution__short_name",
+            "fund__institution__name",
+        ],
+    }
+  
     def get_queryset(self, *arg, **kwargs):
 
         qset = super().get_queryset( *arg, **kwargs)
@@ -111,13 +126,17 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
         dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
         filename = f"Projects_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
-            
+    
     @action(methods=['get'], detail=True, url_path='participant', url_name='participant')
     def participant(self, request, pk=None):
         proj = self.get_object()
         t1=Participant.objects.filter(project=proj.pk)
         t1 = Participant.annotate_queryset(t1, request.user, "view")
-        return JsonResponse(serializers.ParticipantProjectSerializer(t1, many=True).data, safe=False)
+        return self.paginated_response(
+            t1,
+            serializer_class=serializers.ParticipantProjectSerializer,
+        )
+        #return JsonResponse(serializers.ParticipantProjectSerializer(t1, many=True).data, safe=False)
 
     @action(methods=['get'], detail=True, url_path='institution', url_name='institution')
     def institution(self, request, pk=None):
@@ -157,7 +176,10 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
         if request.user.has_perm("project.change_project", proj):
                 contract = contract.annotate(has_perm=Value(True))
                 
-                
+        return self.paginated_response(
+            contract,
+            serializer_class=serializers.ContractSerializer,
+        )
         # contract=Contract.objects.filter(fund__in=fund).order_by('end_date')
         return JsonResponse(serializers.ContractSerializer(contract, many=True).data, safe=False)
 

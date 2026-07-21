@@ -10,7 +10,7 @@ from django.db.models import Q, F, Value, Case, When, BooleanField
 import django.dispatch
 from django.contrib import messages
 from dateutil.rrule import *
-
+from django.core.exceptions import FieldError
 
 from .manager import Current_date_Manager, outof_date_Manager, date_manager, focus_manager,futur_date_Manager
 
@@ -429,7 +429,6 @@ from rest_framework.response import Response
 from django.core.exceptions import FieldDoesNotExist
 from rest_framework.response import Response
 
-
 from django.db.models import Q
 from rest_framework.response import Response
 
@@ -439,36 +438,89 @@ class LabPaginationMixin:
     pagination_class = LabPagination
     search_fields = None
     extra_search_fields = []
+    extra_search_fields_by_action = {}
     ordering_fields = None
-    ordering_field_map = {}
+    ordering_fields_by_action = {}
     
+    def get_serializer_instance(self, serializer_class=None, *args, **kwargs):
+        kwargs.setdefault("context", self.get_serializer_context())
+
+        if serializer_class is None:
+            return self.get_serializer(*args, **kwargs)
+
+        if isinstance(serializer_class, type):
+            return serializer_class(*args, **kwargs)
+
+        return serializer_class
+    def is_valid_search_field(self, queryset, field_path):
+        """
+        Vérifie qu'un chemin comme :
+        employee__last_name
+        correspond bien à un champ ou une relation du modèle.
+        """
+
+        model = queryset.model
+
+        for part in field_path.split("__"):
+            try:
+                model_field = model._meta.get_field(part)
+            except FieldDoesNotExist:
+                return False
+
+            if model_field.is_relation:
+                model = model_field.related_model
+            else:
+                model = None
+
+        return True
     
-    def get_search_fields(self, queryset):
+    def get_extra_search_fields(self):
+        action = getattr(self, "action", None)
+
+        fields_by_action = (
+            getattr(self, "extra_search_fields_by_action", {})
+            or {}
+        )
+
+        # Si l'action possède une configuration spécifique,
+        # elle remplace les champs généraux.
+        if action in fields_by_action:
+            return list(fields_by_action[action])
+
+        return list(
+            getattr(self, "extra_search_fields", ())
+            or ()
+        )
+    
+    def get_search_fields(self, queryset, serializer_class=None):
         fields = []
 
-        serializer = self.get_serializer()
+        serializer = self.get_serializer_instance(
+            serializer_class
+        )
 
         for name, field in serializer.fields.items():
             if isinstance(field, (
                 serializers.CharField,
                 serializers.EmailField,
                 serializers.SlugField,
-                serializers.DateField,
-                serializers.DateTimeField,
-                serializers.IntegerField,
-                serializers.FloatField,
-                serializers.DecimalField,
             )):
                 source = field.source or name
 
-                if source != "*" and "." not in source:
+                if (
+                    source != "*"
+                    and "." not in source
+                    and self.is_valid_search_field(queryset, source)
+                ):
                     fields.append(source)
 
-        fields += getattr(self, "extra_search_fields", [])
+        for field in self.get_extra_search_fields():
+            if self.is_valid_search_field(queryset, field):
+                fields.append(field)
 
-        return fields
+        return list(dict.fromkeys(fields))
 
-    def apply_search(self, queryset):
+    def apply_search(self, queryset, serializer_class=None):
         search = self.request.query_params.get("search")
 
         if not search:
@@ -476,13 +528,59 @@ class LabPaginationMixin:
 
         query = Q()
 
-        for field in self.get_search_fields(queryset):
+        for field in self.get_search_fields(queryset, serializer_class):
             query |= Q(**{f"{field}__icontains": search})
 
         if not query.children:
             return queryset
 
         return queryset.filter(query).distinct()
+    
+    def get_ordering_fields(self, queryset):
+        """
+        Retourne un mapping :
+        champ reçu dans la requête -> chemin ORM réel.
+        """
+
+        fields = {
+            field.name: field.name
+            for field in queryset.model._meta.concrete_fields
+        }
+
+        # Mapping général du ViewSet
+        fields.update(
+            getattr(self, "ordering_fields", {}) or {}
+        )
+
+        # Mapping spécifique à l'action
+        fields_by_action = getattr(
+            self,
+            "ordering_fields_by_action",
+            {},
+        ) or {}
+
+        fields.update(
+            fields_by_action.get(
+                getattr(self, "action", None),
+                {},
+            )
+        )
+
+        return fields
+    
+    def resolve_ordering_field(self, queryset, request_name):
+        mapping = self.get_ordering_fields(queryset)
+
+        orm_field = mapping.get(
+            request_name,
+            request_name.replace(".", "__")
+        )
+
+        try:
+            queryset.order_by(orm_field)
+            return orm_field
+        except FieldError:
+            return None
 
     def apply_ordering(self, queryset):
         ordering = self.request.query_params.get("ordering")
@@ -492,38 +590,57 @@ class LabPaginationMixin:
 
         fields = []
 
-        for field in ordering.split(","):
-            field = field.strip()
-            desc = field.startswith("-")
-            clean_field = field.lstrip("-")
+        for requested_field in ordering.split(","):
+            requested_field = requested_field.strip()
 
-            mapped_field = self.ordering_field_map.get(clean_field, clean_field)
+            if not requested_field:
+                continue
 
-            valid_fields = self.ordering_fields or []
-            if mapped_field in valid_fields:
-                fields.append(f"-{mapped_field}" if desc else mapped_field)
+            descending = requested_field.startswith("-")
+            request_name = requested_field.lstrip("-")
+
+            # Mapping explicite prioritaire
+            orm_field = self.resolve_ordering_field(queryset, request_name)
+
+            if orm_field is None:
+                continue
+
+            fields.append(
+                f"-{orm_field}" if descending else orm_field
+            )
 
         if fields:
             return queryset.order_by(*fields)
 
         return queryset
 
-    def prepare_queryset(self, queryset):
-        queryset = self.apply_search(queryset)
+    def prepare_queryset(self, queryset, serializer_class=None):
+        queryset = self.apply_search(queryset, serializer_class)
         queryset = self.apply_ordering(queryset)
         return queryset
 
     def paginated_response(self, queryset, serializer_class=None, many=True):
-        queryset = self.prepare_queryset(queryset)
+        queryset = self.prepare_queryset(
+            queryset,
+            serializer_class=serializer_class,
+        )
 
         paginator = self.pagination_class()
-        page = paginator.paginate_queryset(queryset, self.request, view=self)
+        page = paginator.paginate_queryset(
+            queryset,
+            self.request,
+            view=self,
+        )
 
-        serializer_class = serializer_class or self.get_serializer_class()
+        objects = page if page is not None else queryset
+
+        serializer = self.get_serializer_instance(
+            serializer_class,
+            objects,
+            many=many,
+        )
 
         if page is not None:
-            serializer = serializer_class(page, many=many)
             return paginator.get_paginated_response(serializer.data)
 
-        serializer = serializer_class(queryset, many=many)
         return Response(serializer.data)

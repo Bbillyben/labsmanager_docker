@@ -137,72 +137,260 @@ from staff import models as staff_model
 from django.contrib.auth import get_user_model   
 from invitations.models import Invitation
 from notification.models import UserNotification
+from labsmanager.mixin import LabPaginationMixin
+from labsmanager.pagination import LabPagination
+from django.core.exceptions import FieldError
 
-class SettingListViewSet(viewsets.ModelViewSet):
-    queryset = None
-    serializer_class = None
+class SettingListViewSet(LabPaginationMixin, viewsets.GenericViewSet):
+    # queryset = None
+    # serializer_class = None
     permission_classes = [permissions.IsAuthenticated]        
-    filter_backends = (filters.DjangoFilterBackend,)
+    # filter_backends = (filters.DjangoFilterBackend,)
+    pagination_class = LabPagination
+    
+    queryset_by_action = {
+        "costtype": fund_model.Cost_Type.objects.all(),
+        "fundinstitution": fund_model.Fund_Institution.objects.all(),
+        "contracttype": expense_model.Contract_type.objects.all(),
+        "leavetype": leave_model.Leave_Type.objects.all(),
+        "projectinstitution": Institution.objects.all(),
+        "employeetype": staff_model.Employee_Type.objects.all(),
+        "genericinfotype": staff_model.GenericInfoType.objects.all(),
+        "genericinfotypeproject": GenericInfoTypeProject.objects.all(),
+        "organizationinfostype": OrganizationInfosType.objects.all(),
+        "contactinfostype": ContactInfoType.objects.all(),
+        "contacttype": ContactType.objects.all(),
+        "userinvitation": Invitation.objects.all(),
+        "pendingnotification": UserNotification.objects.filter(send=None),
+    }
+
+    serializer_by_action = {
+        "costtype": labserializers.CostTypeSerialize_tree,
+        "fundinstitution": labserializers.Fund_InstitutionSerializer,
+        "contracttype": labserializers.ContractTypeSerializer,
+        "leavetype": labserializers.LeaveTypeSerializer_tree,
+        "projectinstitution": labserializers.InstitutionSerializer,
+        "employeetype": labserializers.EmployeeTypeSerialize,
+        "genericinfotype": labserializers.EmployeeInfoTypeIconSerialize,
+        "genericinfotypeproject": labserializers.ProjectInfoTypeIconSerialize,
+        "organizationinfostype": labserializers.OrgaInfoTypeSerializer,
+        "contactinfostype": labserializers.OrgaInfoTypeSerializer,
+        "contacttype": labserializers.ContactTypeSerializer,
+        "userinvitation": labserializers.InvitationSerializer,
+        "pendingnotification": labserializers.UserNotificationSerializer,
+    }
+    ordering_fields_by_action = {
+        "costtype": {
+            "name": ("tree_id", "lft"),
+            "short_name": ("tree_id", "lft"),
+        },
+        "leavetype": {
+            "name": ("tree_id", "lft"),
+            "short_name": ("tree_id", "lft"),
+        },
+    }
+    def get_queryset(self):
+        queryset = self.queryset_by_action.get(self.action)
+
+        if queryset is None:
+            return expense_model.Contract_type.objects.none()
+
+        return queryset.all()
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_by_action.get(self.action)
+
+        if serializer_class is None:
+            raise AssertionError(
+                f"No serializer configured for action '{self.action}'"
+            )
+
+        return serializer_class
+    
+    def get_ordering_fields(self, queryset):
+        """
+        Retourne un mapping :
+        champ reçu dans la requête -> champ(s) ORM réel(s).
+        """
+
+        fields = {
+            field.name: field.name
+            for field in queryset.model._meta.concrete_fields
+        }
+
+        # Mapping générique éventuel du ViewSet
+        fields.update(
+            getattr(self, "ordering_fields", {}) or {}
+        )
+
+        # Mapping propre à l'action courante
+        ordering_by_action = getattr(
+            self,
+            "ordering_fields_by_action",
+            {},
+        )
+
+        fields.update(
+            ordering_by_action.get(
+                getattr(self, "action", None),
+                {},
+            )
+        )
+
+        return fields
+    def resolve_ordering_field(self, queryset, request_name):
+        mapping = self.get_ordering_fields(queryset)
+
+        orm_fields = mapping.get(
+            request_name,
+            request_name.replace(".", "__"),
+        )
+
+        if isinstance(orm_fields, str):
+            orm_fields = (orm_fields,)
+
+        try:
+            queryset.order_by(*orm_fields)
+            return orm_fields
+        except FieldError:
+            return None
+    def apply_ordering(self, queryset):
+        ordering = self.request.query_params.get("ordering")
+
+        if not ordering:
+            return queryset
+
+        fields = []
+
+        for requested_field in ordering.split(","):
+            requested_field = requested_field.strip()
+
+            if not requested_field:
+                continue
+
+            descending = requested_field.startswith("-")
+            request_name = requested_field.lstrip("-")
+
+            orm_fields = self.resolve_ordering_field(
+                queryset,
+                request_name,
+            )
+
+            if orm_fields is None:
+                continue
+
+            for orm_field in orm_fields:
+                # Pour MPTT, on conserve toujours parent avant enfant.
+                if tuple(orm_fields) == ("tree_id", "lft"):
+                    fields.extend([
+                        "-tree_id" if descending else "tree_id",
+                        "lft",
+                    ])
+                else:
+                    fields.append(
+                        f"-{orm_field}"
+                        if descending
+                        else orm_field
+                    )
+
+        if fields:
+            return queryset.order_by(*fields)
+
+        return queryset
     
     @action(methods=['get'], detail=False, url_path='costtype', url_name='costtype')
     def costtype(self, request):
-        return JsonResponse(labserializers.CostTypeSerialize_tree(fund_model.Cost_Type.objects.all(), many=True).data, safe=False)
-    
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
     
     @action(methods=['get'], detail=False, url_path='fundinstitution', url_name='fundinstitution')
     def fundinstitution(self, request):
-        return JsonResponse(labserializers.Fund_InstitutionSerializer(fund_model.Fund_Institution.objects.all(), many=True).data, safe=False)
-    
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
     
     @action(methods=['get'], detail=False, url_path='contracttype', url_name='contracttype')
     def contracttype(self, request):
-        return JsonResponse(labserializers.ContractTypeSerializer(expense_model.Contract_type.objects.all(), many=True).data, safe=False)
-    
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
+        
     @action(methods=['get'], detail=False, url_path='leavetype', url_name='leavetype')
     def leavetype(self, request):
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
         return JsonResponse(labserializers.LeaveTypeSerializer_tree(leave_model.Leave_Type.objects.all(), many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='projectinstitution', url_name='projectinstitution')
     def projectinstitution(self, request):
-        return JsonResponse(labserializers.InstitutionSerializer(Institution.objects.all(), many=True).data, safe=False)
-    
+        return self.paginated_response(
+            Institution.objects.all(), 
+            serializer_class=labserializers.InstitutionSerializer,
+        )
     @action(methods=['get'], detail=False, url_path='employeetype', url_name='employeetype')
     def employeetype(self, request):
-        return JsonResponse(labserializers.EmployeeTypeSerialize(staff_model.Employee_Type.objects.all(), many=True).data, safe=False)
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
 
     @action(methods=['get'], detail=False, url_path='genericinfotype', url_name='genericinfotype')
     def genericinfotype(self, request):
-        return JsonResponse(labserializers.EmployeeInfoTypeIconSerialize(staff_model.GenericInfoType.objects.all(), many=True).data, safe=False)
-    
+       return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
     @action(methods=['get'], detail=False, url_path='genericinfotypeproject', url_name='genericinfotypeproject')
     def genericinfotypeproject(self, request):
-        return JsonResponse(labserializers.ProjectInfoTypeIconSerialize(GenericInfoTypeProject.objects.all(), many=True).data, safe=False)
-
+       return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
     @action(methods=['get'], detail=False, url_path='organizationinfostype', url_name='organizationinfostype')
     def organizationinfostype(self, request):
-        return JsonResponse(labserializers.OrgaInfoTypeSerializer(OrganizationInfosType.objects.all(), many=True).data, safe=False)
-    
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
+        
     @action(methods=['get'], detail=False, url_path='contactinfostype', url_name='contactinfostype')
     def contactinfostype(self, request):
-        return JsonResponse(labserializers.OrgaInfoTypeSerializer(ContactInfoType.objects.all(), many=True).data, safe=False)
-    
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
+        
     @action(methods=['get'], detail=False, url_path='contacttype', url_name='contacttype')
     def contacttype(self, request):
-        return JsonResponse(labserializers.ContactTypeSerializer(ContactType.objects.all(), many=True).data, safe=False)
-    
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
+        
     
     @action(methods=['get'], detail=False, url_path='employeeuser', url_name='employeeuser')
     def employeeuser(self, request):
         User = get_user_model()
         usermodels = User.objects.order_by('-is_active', 'username')
+        return self.paginated_response(
+            usermodels,
+            serializer_class=labserializers.UserEmployeeSerializer,
+        )
         return JsonResponse(labserializers.UserEmployeeSerializer(usermodels, many=True).data, safe=False)
     
     @action(methods=['get'], detail=False, url_path='userinvitation', url_name='userinvitation')
     def invitationsuser(self, request):
-        invi = Invitation.objects.all()
-        return JsonResponse(labserializers.InvitationSerializer(invi, many=True).data, safe=False)
-    
-    
+        return self.paginated_response(
+            self.get_queryset(),
+            serializer_class=self.get_serializer_class(),
+        )
+
     @action(methods=['get'], detail=False, url_path='pendingnotification', url_name='pendingnotification')
     def pendingnotificationuser(self, request):
         invi = UserNotification.objects.filter(send=None)

@@ -37,6 +37,8 @@ from leave.models import Leave
 from labsmanager.mixin import LabPaginationMixin
 from labsmanager.pagination import LabPagination
 
+from django.db.models import Min, Subquery
+
 class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows Employee to be viewed or edited.
@@ -49,12 +51,17 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     pagination_class = LabPagination
     
     extra_search_fields = [
+        "first_name",
         "employee_hierarchy__employee__last_name",
         "employee_hierarchy__superior__last_name",
         "employee_hierarchy__employee__first_name",
         "employee_hierarchy__superior__first_name",
         "genericinfo__value",
     ]
+    
+    ordering_fields = {
+        "get_status":"employee_status__type__name",
+    }
     
     def filter_queryset(self, queryset):
         params = self.request.query_params
@@ -173,7 +180,10 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
                     )
         #================
         # Contract.objects.filter(employee=emp.pk).order_by('end_date')
-        return JsonResponse(serializers.ContractSerializer(contract, many=True).data, safe=False)
+        return self.paginated_response(
+            contract, 
+            serializers.ContractSerializer
+        )
     
     
     @action(methods=['get'], detail=True, url_path='teams', url_name='teams')
@@ -440,6 +450,20 @@ class TeamViewSet(LabPaginationMixin,viewsets.ModelViewSet):
         "teammate__employee__last_name",
         "teammate__employee__first_name",
     ]
+
+    extra_search_fields_by_action = {
+        "team_projects": [
+            "project__name",
+            "employee__last_name",
+            "employee__first_name",
+        ],
+    }
+
+    ordering_fields_by_action = {
+        "team_projects": {
+            "project": "project__name",
+        },
+    }
     
     def get_queryset(self, *arg, **kwargs):
 
@@ -481,17 +505,61 @@ class TeamViewSet(LabPaginationMixin,viewsets.ModelViewSet):
         filename = f"Team_{dateSuffix}.{export_format}"
         return DownloadFile(filedata, filename)
     
-    
-    @action(methods=['get'], detail=True, url_path='projects', url_name='projects')
+    @action(methods=["get"], detail=True, url_path="projects", url_name="projects",    )
     def team_projects(self, request, pk=None):
         if pk is None:
-            raise Exception("/api/team/<pk>/projects/ => No team Pk Found")
-        team=self.queryset.filter(pk=pk).first()
-        mate=TeamMate.objects.filter(team=team).values("employee")      
-        parti=Participant.objects.filter((Q(employee__in=mate) | Q(employee=team.leader)) & Q(status__in=["l", "cl"])).distinct('project') #.values("project")
-        #pjset=Project.objects.filter(pk__in=parti)
-        
-        return JsonResponse(serializers.TeamParticipantSerializer(parti, many=True).data, safe=False)
+            raise Exception(
+                "/api/team/<pk>/projects/ => No team Pk Found"
+            )
+
+        team = self.get_queryset().filter(pk=pk).first()
+
+        if team is None:
+            return Response(
+                {"detail": "Team not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        employee_ids = TeamMate.objects.filter(
+            team=team
+        ).values("employee_id")
+
+        participant_filter = (
+            Q(employee_id__in=employee_ids)
+            | Q(employee_id=team.leader_id)
+        ) & Q(status__in=["l", "cl"])
+
+        # Un seul Participant par projet
+        participant_ids = (
+            Participant.objects
+            .filter(participant_filter)
+            .values("project_id")
+            .annotate(participant_id=Min("pk"))
+            .values("participant_id")
+        )
+
+        participants = (
+            Participant.objects
+            .filter(pk__in=Subquery(participant_ids))
+            .select_related("project", "employee")
+        )
+
+        return self.paginated_response(
+            participants,
+            serializer_class=serializers.TeamParticipantSerializer,
+        )
+    # @action(methods=['get'], detail=True, url_path='projects', url_name='projects')
+    # def team_projects(self, request, pk=None):
+    #     if pk is None:
+    #         raise Exception("/api/team/<pk>/projects/ => No team Pk Found")
+    #     team=self.queryset.filter(pk=pk).first()
+    #     mate=TeamMate.objects.filter(team=team).values("employee")      
+    #     parti=Participant.objects.filter((Q(employee__in=mate) | Q(employee=team.leader)) & Q(status__in=["l", "cl"])).distinct('project') #.values("project")
+    #     return self.paginated_response(
+    #         parti, 
+    #         serializer_class=serializers.TeamParticipantSerializer
+    #     )
+    #     return JsonResponse(serializers.TeamParticipantSerializer(parti, many=True).data, safe=False)
         #return JsonResponse(serializers.TeamProjectSerializer(pjset, many=True).data, safe=False) 
         
         

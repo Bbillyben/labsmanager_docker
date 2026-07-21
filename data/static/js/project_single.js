@@ -21,7 +21,7 @@ function initProjectSingleView(user_idA, project_idA){
     var options={
         url:$('#project_participant_table').data("url"),
         name:'participant',
-        disablePagination:true,
+        disablePagination:false,
         search:false,
         showColumns:false,
         
@@ -104,7 +104,7 @@ function initProjectLeavesCalendar(){
     var options={
         name:'leave',
         //callback:updateParticipant,
-        search:false,
+        search:true,
         showColumns:false,
         filters:projectleavequeryParams(),
         

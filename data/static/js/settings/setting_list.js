@@ -20,9 +20,9 @@ function settingListActionFormatter(value, row, index, field){
 
         var defaults = {
             table:{
-                search: false,
+                search: true,
                 showColumns: false,
-                disablePagination: true,
+                disablePagination: false,
                 playCallbackOnLoad:true,
             },
         };

@@ -31,7 +31,16 @@ class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewS
     queryset = Leave.objects.select_related('employee', 'type').all()
     serializer_class = serializers.LeaveSerializerBasic
     permission_classes = [permissions.IsAuthenticated]
-    
+    extra_search_fields = [
+        "employee__last_name",
+        "employee__first_name",
+    ]
+    extra_search_fields_by_action = {
+        "search_calendar": [
+            "employee__last_name",
+            "employee__first_name",
+        ],
+    }
     def filter_queryset(self, queryset):
         
         data=get_data_from_request(self.request)                
@@ -151,10 +160,14 @@ class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewS
         
         is_cal=request.data.get('cal',  request.query_params.get('cal', None))
         
-        if request.data.get('cal', None) or request.query_params.get('cal', None):
-            return Response(serializers.LeaveSerializer1DCal(qset, many=True).data)
+        if is_cal:
+            serializer_cal = serializers.LeaveSerializer1DCal
         else:
-            return Response(serializers.LeaveSerializer1D(qset, many=True).data)
+            serializer_cal = serializers.LeaveSerializer1D
+        return self.paginated_response(
+            qset,
+            serializer_class=serializer_cal
+        )
     
     @action(methods=['post'], detail=False, url_path='search', url_name='search')
     def search(self, request):

@@ -1,9 +1,18 @@
 ## Changelog LabsManager
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
-### latest :
+### Latest : 
+
+### 0.9.7 :
+note : require static update
+[UPDATE] : all viewset impacted by pagination and search with the new mixin "LabPaginationMixin
+
+### 0.9.6 :
 note : require static update
 [FIX] : User in setting panel back to full panel display to avoid sliders and action hiding.
+[ADD] : Pagination for bootstrap table, server side
+[ADD] : expense finder in fund explorer tools
+
 
 ### 0.9.5 :
 note : require migration and static update
