@@ -2,6 +2,9 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### Latest : 
+[UPDATE] : add the description to budget default string to be dispayed in dropdown list
+[FIX] : issue when saving contract_expense on creation
+[FIX] : calendar issue (from pagination implementation)
 
 ### 0.9.7 :
 note : require static update

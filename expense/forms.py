@@ -130,6 +130,11 @@ class ExpenseModelForm(BSModalModelForm):
             self.base_fields['fund_item'].queryset=Fund.objects.filter(pk=kwargs['initial']['fund'])
             self.base_fields['fund_item'].initial = kwargs['initial']['fund']
             self.base_fields['budget_item'].queryset=Budget.objects.filter(fund__pk=kwargs['initial']['fund'])
+        elif ('initial' in kwargs and 'contract' in kwargs['initial']):
+            contracts = Contract.objects.filter(pk=kwargs['initial']['contract'])
+            self.base_fields['contract'].queryset=Contract.objects.filter(pk=kwargs['initial']['contract'])
+            self.base_fields['budget_item'].queryset=Budget.objects.filter(fund__pk__in=contracts.values("fund"))
+            
         else:
             #self.base_fields['fund_item'].queryset=Fund.objects.all()
             self.base_fields['budget_item'].queryset=Budget.objects.all()
@@ -145,7 +150,10 @@ class ExpenseModelForm(BSModalModelForm):
         
         obj = self.instance
         fund = cleaned_data.get('fund_item')
-        if not fund and obj:
+        contract = cleaned_data.get('contract')
+        if not fund and contract:
+            fund = contract.fund
+        elif not fund and not contract and obj:
             fund = obj.fund_item
         exp_type = cleaned_data.get('type')
         

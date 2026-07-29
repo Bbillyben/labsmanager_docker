@@ -294,8 +294,21 @@ class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
         self.save(update_fields=['expense'])
         return total
             
+    # def __str__(self):
+    #     return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
     def __str__(self):
-        return f'{self.fund} | {self.cost_type.short_name} -> {self.amount}'
+        parts = [str(self.fund)]
+
+        if self.cost_type:
+            parts.append(self.cost_type.short_name)
+
+        if self.desc:
+            description = self.desc[:20]
+            if len(self.desc) > 20:
+                description += "…"
+            parts.append(description)
+
+        return f"{' | '.join(parts)} → {self.amount}"
     
     
     @classmethod

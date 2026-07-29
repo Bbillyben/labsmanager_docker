@@ -161,7 +161,7 @@ class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewS
         is_cal=request.data.get('cal',  request.query_params.get('cal', None))
         
         if is_cal:
-            serializer_cal = serializers.LeaveSerializer1DCal
+            return Response(serializers.LeaveSerializer1DCal(qset, many=True).data)
         else:
             serializer_cal = serializers.LeaveSerializer1D
         return self.paginated_response(
