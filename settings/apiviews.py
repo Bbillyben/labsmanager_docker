@@ -161,6 +161,7 @@ class SettingListViewSet(LabPaginationMixin, viewsets.GenericViewSet):
         "contactinfostype": ContactInfoType.objects.all(),
         "contacttype": ContactType.objects.all(),
         "userinvitation": Invitation.objects.all(),
+        "invitationsuser": Invitation.objects.all(),
         "pendingnotification": UserNotification.objects.filter(send=None),
     }
 
@@ -177,6 +178,7 @@ class SettingListViewSet(LabPaginationMixin, viewsets.GenericViewSet):
         "contactinfostype": labserializers.OrgaInfoTypeSerializer,
         "contacttype": labserializers.ContactTypeSerializer,
         "userinvitation": labserializers.InvitationSerializer,
+        "invitationsuser": labserializers.InvitationSerializer,
         "pendingnotification": labserializers.UserNotificationSerializer,
     }
     ordering_fields_by_action = {

@@ -5,6 +5,7 @@
 [UPDATE] : add the description to budget default string to be dispayed in dropdown list
 [FIX] : issue when saving contract_expense on creation
 [FIX] : calendar issue (from pagination implementation)
+[FIX] : bug in parameter ->user-> invitation solved
 
 ### 0.9.7 :
 note : require static update
@@ -16,7 +17,7 @@ note : require static update
 [ADD] : Pagination for bootstrap table, server side
 [ADD] : expense finder in fund explorer tools
 
-
+s
 ### 0.9.5 :
 note : require migration and static update
 [UPDATE] : crumblist for not authorized user for full list.
