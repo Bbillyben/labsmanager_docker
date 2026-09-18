@@ -45,7 +45,7 @@ RUN pip install --disable-pip-version-check -U -r base_requirements.txt
 
 # Copy source code
 COPY backend ${LAB_HOME}/labsmanager
-#COPY labsmanager/data/static ${LAB_DATA_DIR}/static
+#COPY backend/data/static ${LAB_DATA_DIR}/static
 COPY requirements.txt ${LAB_HOME}/requirements.txt
 COPY gunicorn.conf.py ${LAB_HOME}/gunicorn.conf.py
 COPY init.sh ${LAB_MNG_DIR}/init.sh
