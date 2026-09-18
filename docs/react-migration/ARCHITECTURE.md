@@ -2,13 +2,14 @@
 
 ## Organisation reelle
 
-La copie de travail `labsmanager/` contient deux depots Git imbriques :
+La copie de travail `labsmanager/` est organisee autour du depot Git de distribution a la racine et de son sous-module Django officiel :
 
 - le depot de distribution `labsmanager_docker` a la racine, avec Docker, Compose, Nginx, les requirements et les scripts Invoke ;
-- le depot applicatif Django `backend/` (`labsmanager`), sur la branche `dev` lors de l'inspection ;
-- `frontend/` est un repertoire non versionne separe dans cette copie de travail. Il contient un scaffold Vite/React et son propre `package-lock.json`, mais pas de depot Git.
+- `backend/` est le sous-module Django officiel, lie a `git@github.com:Bbillyben/labsmanager.git` et suivant la branche `dev` ;
+- `frontend/` est versionne directement dans le depot racine. Il contient le scaffold Vite/React et son propre `package-lock.json` ;
+- `docs/react-migration/` est egalement versionne dans le depot racine.
 
-Le depot Docker suivait historiquement un gitlink nomme `labsmanager`. Dans l'etat local inspecte, ce gitlink est supprime et le clone Django se trouve sous `backend/`, alors que le `Dockerfile` et `tasks.py` referencent encore `labsmanager/`. Le contexte de build local doit donc etre clarifie avant toute modification Docker.
+L'ancien gitlink `labsmanager/` a ete supprime au profit du sous-module canonique `backend/`. La chaine Docker/distribution copie maintenant ce sous-module dans l'image. Le chemin interne historique `${LAB_HOME}/labsmanager` est conserve : il reste coherent avec `WORKDIR`, Gunicorn, Django-Q, collectstatic et les taches Invoke, sans imposer le nom du repertoire source.
 
 ## Backend Django actuel
 
@@ -30,7 +31,7 @@ Django est lance depuis `backend/` avec `python manage.py runserver` et rejoint 
 
 ## Build et distribution Docker actuels
 
-Le `Dockerfile` Python 3.11 installe les paquets systeme puis le `requirements.txt` racine avec `pip install -U -r base_requirements.txt`. Il copie ensuite le code Django attendu sous `labsmanager/`. Gunicorn sert `labsmanager.wsgi` sur le port 8000. Compose lance PostgreSQL 13, Gunicorn, un worker Django-Q et Nginx.
+Le `Dockerfile` Python 3.11 installe les paquets systeme puis le `requirements.txt` racine avec `pip install -U -r base_requirements.txt`. Il copie le sous-module source `backend/` vers `${LAB_HOME}/labsmanager` dans l'image. Gunicorn sert `labsmanager.wsgi` sur le port 8000. Compose lance PostgreSQL 13, Gunicorn, un worker Django-Q et Nginx.
 
 Le volume persistant partage contient PostgreSQL, les medias et les statiques. `init.sh` initialise les repertoires et copie les assets fournis quand ils sont vides. La collecte Django est explicite : `invoke update` execute actuellement `makemigrations`, `migrate`, `check` et `collectstatic`. Nginx sert `/static/` depuis le volume et reverse-proxy les autres routes vers Gunicorn. Vite n'entre pas dans ce build.
 

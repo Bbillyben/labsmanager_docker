@@ -1,6 +1,8 @@
 # Decisions durables
 
 - Django reste le backend et porte la logique metier.
+- `backend/` est le sous-module Django canonique du depot de distribution ; il pointe vers `git@github.com:Bbillyben/labsmanager.git` et suit la branche `dev`.
+- `frontend/` et `docs/react-migration/` sont versionnes directement dans le depot racine de distribution.
 - PostgreSQL et les donnees existantes sont conserves.
 - La migration est progressive, par lots fonctionnels ; aucun Big Bang.
 - L'interface Django existante reste fonctionnelle pendant la transition.
@@ -16,4 +18,4 @@
 - Toute action manuelle est documentee chronologiquement dans `COMMANDES.md`, en distinguant bare-metal et Docker.
 - Les routes Django historiques sont conservees et `/app/` est reserve au shell React.
 - Le build React de production ne sera integre a Nginx/Docker qu'apres validation du shell.
-- L'ecart local entre le gitlink historique `labsmanager` et `backend/` doit etre resolu ou documente avant de modifier la distribution.
+- La chaine Docker/distribution est adaptee pour utiliser le sous-module canonique `backend/` comme source, tout en conservant les chemins internes historiques dans l'image.

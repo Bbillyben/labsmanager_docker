@@ -1,5 +1,4 @@
 # config yaml file
-labsmanager/config.yaml
-labsmanager/*.bck
-labsmanager/*.json
-
+backend/config.yaml
+backend/*.bck
+backend/*.json
