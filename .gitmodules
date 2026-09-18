@@ -1,0 +1,4 @@
+[submodule "backend"]
+    path = backend
+    url = git@github.com:Bbillyben/labsmanager.git
+    branch = dev
