@@ -1,0 +1,9 @@
+.topbar { grid-column: 2; min-width: 0; height: var(--topbar-height); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: 0 var(--space-4); background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.leading, .account { min-width: 0; display: flex; align-items: center; gap: var(--space-3); }
+.context { color: var(--color-text-muted); font-size: 0.8125rem; font-weight: 650; }
+.identity { max-width: 16rem; overflow: hidden; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.logoutError { color: var(--color-danger); font-size: 0.8125rem; }
+.historicalLink { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text-muted); text-decoration: none; }
+.historicalLink:hover { color: var(--color-accent-strong); }
+@media (max-width: 63.999rem) { .topbar { grid-column: 1; } }
+@media (max-width: 40rem) { .topbar { padding-inline: var(--space-2); } .context, .historicalLink span, .logoutError { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .account { gap: var(--space-2); } .identity { max-width: 9rem; } .historicalLink { min-width: 2.375rem; min-height: 2.375rem; justify-content: center; } }

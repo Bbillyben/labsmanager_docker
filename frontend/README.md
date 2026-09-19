@@ -1,16 +1,13 @@
-# React + Vite
+# LabsManager React
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Socle React/Vite servi sous `/app/`. Le backend Django reste l’autorité pour la session, le CSRF et les autorisations.
 
-Currently, two official plugins are available:
+Le serveur Vite relaie uniquement `/api` vers Django. La cible par défaut est `http://192.168.1.145:7000` et peut être remplacée avec `VITE_DJANGO_PROXY_TARGET`. Pour les POST CSRF de ce proxy de developpement, l'en-tete `Origin` transmis a Django est aligne sur cette cible.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Les liens vers l'interface Django historique utilisent `VITE_DJANGO_PUBLIC_URL`. En développement sur la VM, lancer par exemple :
 
-## React Compiler
+```bash
+VITE_DJANGO_PROXY_TARGET=http://127.0.0.1:7000 VITE_DJANGO_PUBLIC_URL=http://192.168.1.145:7000 npm run dev -- --host 0.0.0.0
+```
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Les commandes d’installation et de validation Debian sont maintenues dans `docs/react-migration/COMMANDES.md`.

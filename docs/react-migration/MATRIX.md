@@ -4,14 +4,20 @@ Legende risque : faible, moyen, eleve. `BDD : non` signifie qu'aucune modificati
 
 | Fonction | Priorite | Etat actuel | Cible React | Travail backend necessaire | BDD | Risque |
 |---|---:|---|---|---|---|---|
-| Authentication / current user | P0 | Allauth, sessions et API users existantes | Session/CSRF et utilisateur courant | Contrat `/api/v1/` et tests auth | Non | Eleve |
-| Permissions | P0 | Django, rules, mixins et DRF heterogenes | UI guidee, backend autoritaire | Matrice de droits et tests par role | Non | Eleve |
-| Employee list | P1 | Vue Django et ViewSet | Liste en lecture seule | Serializer v1 minimal, filtres, pagination | Non | Moyen |
-| Employee detail | P1 | Fiche Django et actions DRF | Fiche en lecture seule | Endpoint v1 explicite et droits | Non | Moyen |
+| Authentication / current user | AUTH1 | Valide sur Debian et dans le navigateur | Session/CSRF, connexion React, utilisateur courant et deconnexion | Termine : Allauth, CSRF, non-enumeration, connexion, liens historiques et deconnexion valides | Non | Eleve |
+| React shell / session bootstrap | R0 | Socle TypeScript valide sur Debian | Shell protege sous `/app/`, etats de session, client session/CSRF et 404 | Termine : installation, 13 tests, typecheck, lint et build Vite valides | Non | Moyen |
+| UX/UI foundations | UX1 | Valide automatiquement et visuellement sur Debian | Sidebar/topbar accessibles, tokens, CSS Modules, responsive et primitives minimales | Termine : shell, navigation et coexistence avec les pages Django verifies | Non | Moyen |
+| Permissions | P0 | Capacites globales du shell calculees par `/api/v1/me/` depuis les permissions existantes ; regles objet conservees | UI guidee, backend autoritaire | Valider le contrat de capacites, puis appliquer les controles et filtres sur chaque endpoint v1 | Non | Eleve |
+| Employee list | P1 / R1 / R1.1 | API validée, retour R1 positif ; R1.1 validé fonctionnellement par retour utilisateur | Liste + galerie commune, Activité et Supérieur, URL, sélection au clic | Aucun changement ; nomenclature/multi-statut, actions et Admin différés | Non | Moyen |
+| Common React filters | R1.1 | Validé fonctionnellement par retour utilisateur | Galerie catégorisée, contrôles actifs, URL, sources séparées ; choix statique et entity search | Aucun pour Activité/Supérieur ; autres sources selon contrats futurs | Non | Moyen |
+| Employee detail | P1 | Endpoint minimal `/api/v1/employees/<id>/` valide sur Debian | Fiche en lecture seule enrichie progressivement | Termine : perimetre objet, contrat commun avec la liste et reponses 401/404 testes | Non | Moyen |
+| Employee status history | P1 | Sous-ressource `/api/v1/employees/<id>/statuses/` validee sur Debian | Historique en lecture seule | Termine : perimetre Employee, contrat, ordre et reponses 401/404 testes | Non | Faible |
+| Employee hierarchy | P1 | Sous-ressource `/api/v1/employees/<id>/hierarchy/` validee sur Debian | Relations directes actuelles et historiques en lecture seule | Termine : perimetre cible, identite minimale liee, ordre et reponses 401/404 testes | Non | Moyen |
+| Employee project participations | P1 | Sous-ressource `/api/v1/employees/<id>/project-participations/` validee sur Debian | Participations actuelles et historiques en lecture seule | Termine : perimetre Employee, reference Project minimale, filtre temporel et ordre testes | Non | Moyen |
 | Teams | P2 | UI Django et ViewSet | Liste/detail puis edition | Stabiliser serializers et permissions | Non | Moyen |
 | Project list | P2 | UI Django et ViewSet | Liste en lecture seule | Contrat v1, filtres et pagination | Non | Moyen |
 | Project detail | P2 | Fiche Django multi-domaines | Fiche React progressive | Endpoint compose ou appels bornes | Non | Eleve |
-| Participants | P2 | Modeles et sous-actions | Consultation puis CRUD | Endpoints v1 et validation metier | Non | Eleve |
+| Participants | P2 | Sous-ressource Employee en lecture seule implementee ; domaine Project non migre | Consultation Employee puis CRUD ulterieur | Definir les endpoints du domaine Project et les droits de modification | Non | Eleve |
 | Funds | P2 | UI Django et ViewSet | Consultation puis CRUD | Contrats v1, calculs et droits | Non | Eleve |
 | Financial summary | P3 | Calculs repartis | Synthese React | Source canonique et endpoint agrege | Non | Eleve |
 | Budgets | P3 | ViewSet et formulaires | CRUD React | Validation et permissions API | Non | Eleve |
