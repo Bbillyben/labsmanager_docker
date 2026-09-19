@@ -105,6 +105,7 @@ urlpatterns +=[
 # router.register(r'plugin', pluginApiViews.PluginConfigViewSet, basename='plugin')
 
 urlpatterns += [
+    path('api/v1/', include('labsmanager.urls_v1')),
     path('api/', include((router.urls, 'api_app'), namespace='api')),
     path('api/settings/', include('settings.urls_api')),
     path('api/plugin/', include('plugin.urls_api')),
