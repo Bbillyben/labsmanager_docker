@@ -1,0 +1,41 @@
+.root { min-width:0; }
+.workload { margin-bottom:1.25rem; padding-bottom:1rem; border-bottom:1px solid var(--border); }
+.workload h3 { margin:0; color:var(--muted-foreground); font-size:.6875rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.groups { display:grid; gap:1.5rem; }
+.group { min-width:0; }
+.group > h3 { display:flex; align-items:center; min-height:2rem; margin:0; padding-bottom:.375rem; border-bottom:1px solid var(--border); color:var(--muted-foreground); font-size:.75rem; font-weight:750; letter-spacing:.045em; text-transform:uppercase; }
+.group > h3 strong { font-weight:600; }
+.group > h3 button { display:flex; width:100%; align-items:center; justify-content:space-between; padding:.25rem 0; border:0; background:transparent; color:inherit; font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:pointer; }
+.group > h3 button:focus-visible { border-radius:var(--radius-sm); outline:2px solid var(--ring); outline-offset:2px; }
+.group > h3 svg { width:1rem; height:1rem; }
+.rows { display:grid; }
+.row { display:grid; grid-template-columns:minmax(15rem,1.4fr) minmax(9rem,.7fr) minmax(10rem,.75fr) 5rem 7rem; align-items:center; gap:1rem; min-width:0; padding:.75rem; border-bottom:1px solid var(--border); }
+.identity { display:grid; min-width:0; gap:.125rem; }
+.identity strong { overflow:hidden; font-size:.8125rem; text-overflow:ellipsis; white-space:nowrap; }
+.identity small, .identity span { color:var(--muted-foreground); font-size:.75rem; }
+.costType, .metric { display:grid; gap:.125rem; }
+.costType span, .metric span { color:var(--muted-foreground); font-size:.6875rem; text-transform:uppercase; }
+.costType strong, .metric strong { font-size:.75rem; font-weight:600; font-variant-numeric:tabular-nums; }
+.state { margin:.75rem 0; color:var(--muted-foreground); font-size:.8125rem; }
+.error { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin:.75rem 0; color:var(--destructive); font-size:.8125rem; }
+.budgetRows { display:grid; }
+.budgetRow { display:grid; grid-template-columns:minmax(15rem,1.15fr) minmax(20rem,1fr); gap:.625rem 1.5rem; padding:.875rem .75rem; border-bottom:1px solid var(--border); }
+.budgetIdentity { display:grid; align-content:start; min-width:0; gap:.125rem; }
+.budgetIdentity strong { overflow:hidden; font-size:.8125rem; text-overflow:ellipsis; white-space:nowrap; }
+.budgetIdentity small, .budgetIdentity span { color:var(--muted-foreground); font-size:.75rem; }
+.budgetAmounts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin:0; }
+.budgetAmounts div { display:grid; align-content:start; gap:.125rem; }
+.budgetAmounts dt { color:var(--muted-foreground); font-size:.6875rem; text-transform:uppercase; }
+.budgetAmounts dd { margin:0; font-size:.8125rem; font-weight:650; font-variant-numeric:tabular-nums; }
+.consumption { display:flex; grid-column:2; align-items:center; gap:.75rem; font-size:.75rem; font-variant-numeric:tabular-nums; }
+.consumption progress { width:min(16rem,100%); height:.3rem; border:0; border-radius:999px; overflow:hidden; background:var(--muted); }
+.consumption progress::-webkit-progress-bar { background:var(--muted); }
+.consumption progress::-webkit-progress-value { background:var(--primary); }
+.consumption progress::-moz-progress-bar { background:var(--primary); }
+.consumptionOverrun strong, .negative { color:var(--destructive); }
+.consumptionOverrun progress::-webkit-progress-value { background:var(--destructive); }
+.consumptionOverrun progress::-moz-progress-bar { background:var(--destructive); }
+.notCalculable { color:var(--muted-foreground); }
+@media(max-width:64rem) { .row { grid-template-columns:minmax(14rem,1fr) repeat(2,minmax(8rem,.55fr)); } .metric:nth-last-child(-n+2) { grid-row:2; } }
+@media(max-width:54rem) { .budgetRow { grid-template-columns:1fr; } .consumption { grid-column:1; } }
+@media(max-width:42rem) { .row { grid-template-columns:1fr 1fr; gap:.75rem; } .identity { grid-column:1 / -1; } .costType { grid-column:1 / -1; } .metric:nth-last-child(-n+2) { grid-row:auto; } .budgetAmounts { grid-template-columns:1fr 1fr; } }

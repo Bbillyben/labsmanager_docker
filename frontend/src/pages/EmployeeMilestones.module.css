@@ -1,0 +1,26 @@
+.tracker { padding-bottom:.75rem; }
+.summary { display:flex; flex-wrap:wrap; gap:.375rem 1rem; margin-bottom:.75rem; color:var(--muted-foreground); font-size:.6875rem; }
+.summary span { display:inline-flex; gap:.25rem; }
+.summary strong { color:var(--foreground); font-variant-numeric:tabular-nums; }
+.groups { display:grid; }
+.group + .group { margin-top:.75rem; }
+.group h3 { margin:0; }
+.group h3 button { display:flex; width:100%; min-height:2rem; align-items:center; justify-content:space-between; padding:.375rem .25rem .3125rem; border:0; border-bottom:1px solid var(--border); border-radius:var(--radius-md) var(--radius-md) 0 0; background:transparent; color:var(--foreground); font:inherit; font-size:.6875rem; font-weight:750; letter-spacing:.055em; text-transform:uppercase; cursor:pointer; }
+.group h3 button:hover { background:var(--muted); }
+.group h3 button:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
+.group h3 button strong { color:var(--muted-foreground); font-weight:600; }
+.group h3 button svg { width:.875rem; color:var(--muted-foreground); }
+.group[data-state="overdue"] h3 button { color:var(--destructive); }
+.group[data-state="due_soon"] h3 button { color:var(--warning); }
+.rows { display:grid; margin-left:.75rem; padding-left:.5rem; border-left:1px solid color-mix(in oklch,var(--border),transparent 30%); }
+.row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:1rem; min-height:3rem; padding:.5rem; border:0; border-top:1px solid color-mix(in oklch,var(--border),transparent 40%); border-radius:0; background:transparent; color:var(--foreground); text-align:left; cursor:pointer; }
+.row:hover { background:var(--muted); }
+.row:focus-visible { position:relative; outline:2px solid var(--ring); outline-offset:-2px; border-radius:var(--radius-md); }
+.main { display:grid; min-width:0; justify-items:start; gap:.125rem; }
+.main > strong { max-width:100%; overflow:hidden; font-size:.8125rem; text-overflow:ellipsis; white-space:nowrap; }
+.main > small, .due { color:var(--muted-foreground); font-size:.75rem; }
+.rowProgress { margin-top:.25rem; font-size:.75rem; }
+.due { padding-top:.0625rem; white-space:nowrap; }
+.muted { margin:.5rem 0; color:var(--muted-foreground); font-size:.8125rem; }
+.error { display:flex; align-items:center; gap:.375rem; color:var(--destructive); font-size:.75rem; }
+@media(max-width:36rem) { .row { gap:.5rem; padding-block:.625rem; } .main > small { white-space:normal; } .due { max-width:8rem; text-align:right; white-space:normal; } }

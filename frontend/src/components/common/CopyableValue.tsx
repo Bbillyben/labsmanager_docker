@@ -1,0 +1,83 @@
+import { Check, Copy } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useTranslation } from '../../i18n/i18n'
+import { Button } from '../../ui/Button'
+import styles from './CopyableValue.module.css'
+
+type Props = {
+  value: string | null | undefined
+  children?: ReactNode
+}
+
+function copyWithDocument(value: string) {
+  if (typeof document.execCommand !== 'function') return false
+
+  const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  const textarea = document.createElement('textarea')
+  textarea.value = value
+  textarea.readOnly = true
+  textarea.tabIndex = -1
+  textarea.setAttribute('aria-hidden', 'true')
+  Object.assign(textarea.style, {
+    position: 'fixed',
+    inset: '0 auto auto -9999px',
+    opacity: '0',
+  })
+  document.body.append(textarea)
+
+  try {
+    textarea.focus({ preventScroll: true })
+    textarea.select()
+    textarea.setSelectionRange(0, value.length)
+    return document.execCommand('copy')
+  } catch {
+    return false
+  } finally {
+    textarea.remove()
+    activeElement?.focus({ preventScroll: true })
+  }
+}
+
+async function writeToClipboard(value: string) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value)
+      return true
+    }
+  } catch {
+    // The legacy command remains available in insecure HTTP contexts.
+  }
+  return copyWithDocument(value)
+}
+
+export function CopyableValue({ value, children }: Props) {
+  const { t } = useTranslation()
+  const [copied, setCopied] = useState(false)
+  const timeout = useRef<number | undefined>(undefined)
+  const copyable = value !== null && value !== undefined && value !== ''
+
+  useEffect(() => () => window.clearTimeout(timeout.current), [])
+
+  async function copy() {
+    if (!copyable) return
+    if (await writeToClipboard(value)) {
+      setCopied(true)
+      window.clearTimeout(timeout.current)
+      timeout.current = window.setTimeout(() => setCopied(false), 1600)
+    } else {
+      setCopied(false)
+    }
+  }
+
+  return <span className={styles.value}>
+    <span className={styles.content}>{children ?? value ?? '—'}</span>
+    {copyable && <Button
+      aria-label={copied ? t('copy.copied') : t('copy.copy')}
+      className={styles.copy}
+      onClick={() => void copy()}
+      size="icon-xs"
+      title={copied ? t('copy.copied') : t('copy.copy')}
+      variant="ghost"
+    >{copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}</Button>}
+  </span>
+}

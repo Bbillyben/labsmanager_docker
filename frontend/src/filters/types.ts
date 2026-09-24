@@ -8,7 +8,7 @@ export type ChoiceSource = {
 }
 export type EntitySources = Readonly<Record<string, EntitySearchSource>>
 
-type Base = { id: string; label: string; category: string; description?: string; placeholder?: string }
+type Base = { id: string; label: string; category: string; description?: string; placeholder?: string; defaultValue?: string }
 type Single = { multiple?: false; serialization?: never }
 type Multiple = { multiple: true; serialization: 'csv' | 'repeat' }
 export type StaticChoiceFilter = Base & Single & {
@@ -17,9 +17,11 @@ export type StaticChoiceFilter = Base & Single & {
 export type EntityFilter = Base & Single & {
   type: 'entity-search'; parameter: string; source: string; idFormat?: 'positive-integer'
 }
+export type ChoiceFilter = Base & Single & { type: 'dynamic-choice'; parameter: string; source: string }
+export type InputFilter = Base & Single & { type: 'text' | 'date'; parameter: string }
 // Only these controls are renderable today. Future definitions cannot accidentally
 // enter a live catalogue before their controls and server contracts are supplied.
-export type SupportedFilter = StaticChoiceFilter | EntityFilter
+export type SupportedFilter = StaticChoiceFilter | EntityFilter | ChoiceFilter | InputFilter
 export type DynamicChoiceFilter = Base & (Single | Multiple) & {
   type: 'dynamic-choice'; parameter: string; source: string
 }

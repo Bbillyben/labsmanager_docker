@@ -523,3 +523,280 @@ Vérification manuelle ciblée :
 - Vérifier la compacité sur laptop et petit écran. Aucun bouton « Sélectionner » ni colonne de sélection ne subsiste.
 
 Les libellés/options du filtre se modifient dans `frontend/src/config/employeeFilters.ts`, séparément du rendu. Cette configuration appartient au frontend comme le script historique ; un changement nécessite le build habituel.
+
+## R2.6a.1 — FullCalendar React pour Employee Calendar
+
+### Installation npm
+
+Depuis `frontend/`, avec Node 24 :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm install --save @fullcalendar/react@7.1.0 temporal-polyfill
+```
+
+`@fullcalendar/react` fournit ici les sous-chemins Standard `daygrid`, `multimonth`, `interaction` et le thème classic. Ne pas installer Scheduler/Premium et ne configurer aucune clé de licence. Le `package-lock.json` généré doit être versionné avec `package.json`. Aucun `npm audit fix` automatique n'est demandé.
+
+### Validation automatisée
+
+```bash
+cd /home/django_project/labsmanager/frontend
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm test -- --run src/calendar/fullCalendarAdapter.test.ts src/pages/EmployeeLeaves.test.tsx
+npm run lint
+npm run typecheck
+npm run build
+```
+
+```bash
+cd /home/django_project/labsmanager/backend
+python3 manage.py test common.tests_calendar plugin.tests labsmanager.tests.test_api_v1_employees --verbosity 1 --keepdb
+python3 manage.py check
+```
+
+Résultats du lot : 7 tests frontend ciblés réussis, ESLint et TypeScript sans erreur, build Vite réussi avec 2 751 modules et l'avertissement existant sur le chunk supérieur à 500 kB. Les 78 tests backend combinés ont réussi en 114,617 s avec la base de test existante conservée ; `manage.py check` ne signale aucune anomalie.
+
+### Validation navigateur ciblée
+
+- Vérifier les vues Mois et Année, la navigation précédent/suivant/Aujourd'hui et le passage vers la synthèse cinq ans.
+- Vérifier qu'un Leave couvrant plusieurs jours forme un seul événement continu, que les demi-journées restent explicites et que clic, Tab, Entrée et Espace ouvrent le Sheet.
+- Vérifier que vacances scolaires et jours fériés sont des fonds continus, sans chips répétés et sans ouverture du Sheet Leave.
+- Vérifier une description contenant une apostrophe, par exemple `Vacances d'Été`, sans `&#x27;` visible.
+- Vérifier filtres, mode Tableau, persistance du mode, light/dark et comportement mobile avec défilement horizontal si nécessaire.
+
+Aucune migration de base, dépendance Python, modification Docker/Nginx ou fonctionnalité d'écriture n'est requise.
+
+
+## R2.7 — mutations GenericInfo et migration des icônes
+
+### Dépendances et périmètre
+
+Aucune installation pip/npm ni modification des verrous. Lucide, Base UI et auditlog déjà
+présents suffisent. FAIcon reste nécessaire aux autres modèles et migrations historiques.
+Aucun changement Docker/Nginx. R2.6a.2 et R2.7 sont validés manuellement.
+
+### Migration : développement effectué, futur déploiement à prévoir
+
+`staff.0014` a été appliquée et ses conversions d’icônes vérifiées par l’utilisateur sur
+la base de développement. React R2.7 et le legacy Django après migration sont validés.
+Aucune réexécution n’est requise sur cette base pour clôturer R2.7.
+
+Les commandes suivantes restent la procédure pour un environnement non encore migré,
+notamment lors du futur déploiement production, après sauvegarde selon la section suivante.
+Depuis `backend/`, avec l’environnement Python habituel, après mise à jour du code :
+
+```bash
+python3 manage.py migrate staff 0014 --plan
+python3 manage.py migrate staff 0014
+python3 manage.py check
+```
+
+La migration `0014_genericinfotype_icon_lucide` change le champ puis convertit exactement
+six chaînes FA connues. Elle conserve les chaînes inconnues, null et vide. Elle est atomique
+sur PostgreSQL et la conversion est explicitement non réversible. Aucun SQL manuel n’est
+nécessaire. Ne pas tenter `migrate staff 0013` comme rollback de cette conversion.
+
+### Production : sauvegarde et restauration
+
+Avant migration, arrêter les écritures applicatives et les workers, conserver la version
+applicative précédente et réaliser une sauvegarde complète vérifiée de la base PostgreSQL
+avec l’outillage habituel (`pg_dump --format=custom`, paramètres de connexion du déploiement).
+Vérifier que l’archive peut être restaurée sur une base séparée avant de poursuivre. Exécuter
+le plan puis la migration ci-dessus avec le backend et les workers de la même version.
+
+En cas de retour arrière exact, maintenir les écritures arrêtées, restaurer la sauvegarde
+complète avec `pg_restore` vers une base de remplacement, remettre la version applicative
+correspondante et sa configuration, puis vérifier avant reprise. Ne pas restaurer seulement
+la colonne icon : l’historique Django des migrations doit correspondre au code restauré.
+Une restauration perd les écritures postérieures à la sauvegarde ; la fenêtre de maintenance
+évite cette divergence. Les paramètres et chemins de sauvegarde restent ceux de l’opérateur,
+aucun secret ni nom de base de production n’est introduit dans ce document.
+
+### Validation automatisée R2.7
+
+Depuis `backend/` :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_generic_info labsmanager.tests.test_generic_info_icons --verbosity 1 --keepdb
+python3 manage.py test labsmanager.tests.test_api_v1 labsmanager.tests.test_api_v1_auth labsmanager.tests.test_api_v1_employees --verbosity 1 --keepdb
+python3 manage.py check
+python3 manage.py makemigrations staff --check --dry-run
+```
+
+Le contrôle global `python3 manage.py makemigrations --check --dry-run` révèle des écarts
+préexistants dans endpoints (Milestones.start_date) et project (Participant.employee).
+Ne pas générer ces migrations dans R2.7 ; leur traitement nécessite un lot distinct.
+
+Depuis `frontend/`, utiliser Node 24 déjà installé :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm test -- src/api/errors.test.ts src/api/useMutation.test.tsx src/pages/useEmployeeResource.test.tsx src/components/common/ConfirmDialog.test.tsx src/pages/EmployeeGenericInfo.test.tsx --maxWorkers=1 --testTimeout=15000
+npm test -- src/pages/EmployeeDetailPage.test.tsx src/api/client.test.ts src/pages/EmployeeContracts.test.tsx src/pages/EmployeeFunding.test.tsx src/pages/EmployeeLeaves.test.tsx src/pages/EmployeeProjectWorkload.test.tsx --maxWorkers=1 --testTimeout=15000
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Depuis la racine : `git diff --check` puis `git -C backend diff --check`.
+Les tests utilisent la base de test PostgreSQL, jamais une migration manuelle de la base métier.
+
+### Protocole navigateur court
+
+1. Lecteur : consulter les informations ; aucun ajout/menu de mutation. Soi sans self_edit :
+   ajout seulement. Soi avec self_edit puis éditeur Employee : ajout/modification/suppression.
+2. Créer une valeur normale puis une valeur vide, et deux informations du même type.
+   Modifier la valeur : le type reste textuel et immuable ; vérifier le résultat après refresh.
+3. Supprimer : annuler d’abord (aucun DELETE), puis confirmer ; vérifier disparition et focus.
+4. Provoquer une erreur backend dans les outils réseau (par exemple valeur >150 via requête
+   modifiée) ; vérifier messages et conservation du Sheet/texte. Bloquer la relecture GET après
+   un POST réussi : message de succès déjà enregistré, réessai GET seul, aucun doublon.
+5. Vérifier hover, clic/sélection maintenant le menu visible, Tab/Entrée/Espace/Échap et retour
+   du focus ; bouton de copie indépendant. Tester tactile, Sheet mobile, light/dark et icônes
+   Lucide/fallback. Vérifier aussi les écrans Django Employee/types et une icône Project.
+
+La validation UX React et legacy a été confirmée par l’utilisateur : R2.7 est clôturé.
+Ce protocole est conservé comme référence ; R2.8 attend une instruction explicite.
+
+
+### Résultats automatisés R2.7 — 23 septembre 2026
+
+- Backend ciblé : **14 tests réussis en 26,531 s** (CRUD, matrice complète incluant
+  self_edit/global/hiérarchie, CSRF, audit avec acteur, migration et compatibilité legacy).
+  Après renforcement des attentes explicites du mapping, les **2 tests icônes** ont été
+  relancés et réussissent en **0,293 s**.
+- Régression backend session/auth/Employee : **90 tests réussis en 156,493 s**.
+- Frontend ciblé : **5 fichiers / 36 tests réussis**, durée **46,41 s**.
+- Régression frontend client/détail/Contracts/Financement/Leave/charge Project :
+  **6 fichiers / 43 tests réussis**, durée **50,50 s**.
+- Les premiers tests backend ont nécessité un accès PostgreSQL hors du bac à sable
+  (`could not create socket: Operation not permitted`). Le test du formulaire legacy
+  a été corrigé pour fournir la requête attendue par bootstrap-modal-forms.
+- La première régression frontend a révélé une fixture encore au format tableau, corrigée.
+  Des tests d’intégration ont aussi dépassé 5 s sous charge ; la validation finale utilise
+  `--maxWorkers=1 --testTimeout=15000`, sans changer les assertions ni la configuration globale.
+- `manage.py check` : aucune anomalie. `makemigrations staff --check --dry-run` : aucun
+  changement manquant. Le contrôle global reste en échec pour les deux écarts préexistants
+  endpoints/project décrits ci-dessus ; aucune migration supplémentaire n’a été créée.
+- ESLint et TypeScript réussis ; build final Vite 7.2.6 réussi (2 760 modules), avec
+  l’avertissement existant de chunk JavaScript >500 kB. Aucun changement de dépendance.
+- `git diff --check` réussi à la racine et dans backend ; nouveaux fichiers également
+  contrôlés pour les espaces de fin de ligne.
+- La migration en développement et la validation manuelle React/legacy ont ensuite été
+  réalisées et confirmées par l’utilisateur ; elles n’ont pas été exécutées par l’agent.
+
+## R2.8 — Gantt Employee (24 septembre 2026)
+
+Depuis `frontend/`, avec Node 24 déjà présent :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm install @svar-ui/react-gantt@2.7.3
+npm install --package-lock-only --lockfile-version=3 --ignore-scripts --no-audit
+npm test -- src/gantt/EmployeeGanttAdapter.test.ts --maxWorkers=1
+npm test -- src/pages/EmployeeDetailPage.test.tsx --maxWorkers=1 --testTimeout=15000
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Le registre npm indique la licence MIT et les peer dependencies React/ReactDOM `>=18`.
+Dans `backend/` :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_employees.EmployeeLeaveV1ApiTests --keepdb
+python3 manage.py test plugin.tests.FrenchHolidayCalendarTests --keepdb
+python3 manage.py check
+```
+
+Aucune migration BDD R2.8. Validation navigateur terminée avec succès.
+
+## R2.9 — dépendances Task/Milestone (24 septembre 2026)
+
+`endpoints.0006_milestonedependency` est une migration additive créée pour le lot ; Codex
+ne l'avait pas appliquée pendant l'implémentation. Vérifier son état réel avant toute
+nouvelle application, puis exécuter depuis `backend/` selon l'environnement :
+
+```bash
+python3 manage.py migrate endpoints 0006 --plan
+python3 manage.py migrate endpoints 0006
+python3 manage.py check
+python3 manage.py test labsmanager.tests.test_api_v1_dependencies --keepdb
+```
+
+Répéter la procédure de migration dans chaque environnement de déploiement ; l'application
+future en production est distincte des essais de développement. Depuis `frontend/`, avec
+Node 24 : `npm run typecheck`, `npm run lint`, `npm test -- src/gantt/EmployeeGanttAdapter.test.ts src/gantt/SvarGanttAdapter.test.tsx src/pages/EmployeeDetailPage.test.tsx --maxWorkers=1 --testTimeout=15000`, `npm test -- src/pages/MilestoneDependencies.test.tsx --maxWorkers=1`, puis `npm run build`. Ces contrôles ciblés et les 14 tests backend ont réussi sur la base de test PostgreSQL ; la base métier de développement n'a pas été migrée par Codex.
+
+Vérification navigateur R2.9 : ouvrir un Sheet Task/Milestone depuis Liste et Gantt ;
+vérifier lecture, projet courant proposé, recherche Project puis item, création inter-Project,
+droits `change` sur les deux Projects, refus self/doublon/cycle, alerte temporelle non
+bloquante, annulation/confirmation DELETE, liens Gantt visibles uniquement pour les deux
+éléments du scope Employee, clavier et responsive. Le Gantt reste en lecture seule.
+
+R2.9 a ensuite été validé fonctionnellement, y compris lecture sans droit de modification
+et formulaire d'ajout ouvert à la demande. L'état de la migration est propre à chaque
+environnement et ne se déduit pas de cette validation fonctionnelle.
+
+## R2.10 — CRUD Leave Employee
+
+Aucune migration de schéma R2.10 : `python3 manage.py makemigrations leave --check --dry-run`
+indique « No changes detected in app 'leave' ». Déployer le code backend et frontend selon
+la procédure habituelle ; ne pas lancer de migration Leave artificielle.
+
+Contrôles ciblés depuis `backend/` et `frontend/` respectivement :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_leave_mutations --keepdb
+python3 manage.py check
+```
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm test -- src/pages/EmployeeLeaveSheet.test.tsx src/pages/EmployeeLeaves.test.tsx src/pages/EmployeeCalendarSelection.test.tsx src/calendar/leaveSelection.test.ts --maxWorkers=1 --testTimeout=15000
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Exécution R2.10 : tests backend ciblés **8 réussis** sur PostgreSQL de test ; **16 tests
+frontend ciblés** réussis, ESLint et build Vite direct réussis. `python3 manage.py check` est sans erreur.
+`npm run typecheck` échoue encore sur trois erreurs préexistantes du Gantt 60/120 mois
+(`EmployeeGanttPanel.tsx`, `SvarGanttAdapter.tsx` et libellé anglais `gantt.months60`).
+Le build de production a été vérifié séparément avec `./node_modules/.bin/vite build` ;
+le script `npm run build` reste bloqué par le contrôle TypeScript initial. Aucune nouvelle
+dépendance n'a été installée.
+
+Le protocole navigateur R2.10 doit couvrir : consultation depuis Tableau et Calendrier,
+création par bouton dans les trois vues, sélection d'un jour puis de plusieurs jours en
+Mois/Année, périodes ST/MI/EN, changement de type, chevauchement et contiguïté, droits
+lecture seule, annulation et confirmation DELETE, rafraîchissement des deux vues, clavier,
+mobile et thèmes. La synthèse cinq ans ne propose pas de sélection de plage.
+
+La validation navigateur R2.10 est terminée avec succès. Les corrections finales ajoutent
+le déplacement et le redimensionnement des Leave autorisés dans Mois/Année via le PATCH
+métier, et utilisent `dayGridYear` pour l'année. La lisibilité annuelle pourra être revue
+dans un lot ultérieur ; aucune migration de schéma R2.10 n'a été nécessaire.
+
+## R2.11a — Project List
+
+Aucune migration de schéma ni nouvelle dépendance. Contrôles ciblés depuis `backend/` et
+`frontend/` respectivement :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_projects --keepdb
+python3 manage.py check
+```
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm test -- --run src/api/projects.test.ts src/pages/ProjectListPage.test.tsx src/pages/EmployeeListPage.test.tsx src/router/AppRouter.test.tsx src/filters/FilterBar.test.tsx --maxWorkers=1 --testTimeout=15000
+npm run typecheck
+```
+
+Le contrôle TypeScript global reste limité par les trois erreurs Gantt/i18n déjà consignées
+ci-dessus. Exécution R2.11a : **8 tests backend** sur PostgreSQL de test et **50 tests
+frontend ciblés** réussis ; ESLint ciblé, `manage.py check`, build Vite direct et
+`git diff --check` réussis. Le build Vite conserve l'avertissement de taille de chunk connu.
+La validation navigateur R2.11a doit encore couvrir filtres et statut par défaut
+sur les deux listes, relations compactes, navigation, CRUD, droits, responsive et thèmes.

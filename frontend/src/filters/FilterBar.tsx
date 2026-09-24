@@ -1,9 +1,10 @@
 import { Popover, PopoverTrigger } from '../components/ui/popover'
 import { NativeSelect } from '../components/ui/native-select'
+import { Input } from '../components/ui/input'
 import { Button } from '../ui/Button'
 import { Plus, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
-import type { EntitySources, SupportedFilter } from './types'
+import type { EntitySources, FilterOption, SupportedFilter } from './types'
 import { changeFilter, resetFilters } from './url'
 import { FilterGallery } from './FilterGallery'
 import { EntitySearch } from './EntitySearch'
@@ -12,12 +13,13 @@ import styles from './Filters.module.css'
 type Props = {
   catalogue: readonly SupportedFilter[]
   sources: EntitySources
+  choiceOptions?: Readonly<Record<string, readonly FilterOption[]>>
   query: URLSearchParams
   onChange: (query: URLSearchParams) => void
   resetParameters?: readonly string[]
 }
 
-export function FilterBar({ catalogue, sources, query, onChange, resetParameters = [] }: Props) {
+export function FilterBar({ catalogue, sources, choiceOptions = {}, query, onChange, resetParameters = [] }: Props) {
   const [open, setOpen] = useState(false)
   const trigger = useRef<HTMLButtonElement>(null)
   const bar = useRef<HTMLDivElement>(null)
@@ -58,7 +60,9 @@ export function FilterBar({ catalogue, sources, query, onChange, resetParameters
         {filter.type === 'static-choice' ? <NativeSelect size="sm" id={controlId} value={value} onChange={(event) => setValue(filter, event.target.value)}>
           <option value="">Choisir…</option>
           {filter.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-        </NativeSelect> : sources[filter.source] ? <EntitySearch key={`${filter.id}:${value}`} id={controlId} label={filter.label} value={value} placeholder={filter.placeholder} source={sources[filter.source]} onChange={(next) => { pendingFocus.current = controlId; setValue(filter, next) }} /> : <span role="alert">Source indisponible</span>}
+        </NativeSelect> : filter.type === 'dynamic-choice' ? <NativeSelect size="sm" id={controlId} value={value} onChange={(event) => setValue(filter, event.target.value)}>
+          <option value="">Choisir…</option>{(choiceOptions[filter.source] ?? []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </NativeSelect> : filter.type === 'text' || filter.type === 'date' ? <Input id={controlId} type={filter.type} value={value} placeholder={filter.placeholder} onChange={(event) => setValue(filter, event.target.value)} /> : filter.type === 'entity-search' && sources[filter.source] ? <EntitySearch key={`${filter.id}:${value}`} id={controlId} label={filter.label} value={value} placeholder={filter.placeholder} source={sources[filter.source]} onChange={(next) => { pendingFocus.current = controlId; setValue(filter, next) }} /> : <span role="alert">Source indisponible</span>}
         <Button variant="ghost" size="icon-xs" aria-label={`Supprimer le filtre ${filter.label.toLocaleLowerCase('fr')}`} onClick={() => { setValue(filter, null); trigger.current?.focus() }}><X /></Button>
       </div>
     })}

@@ -1,0 +1,17 @@
+.block { margin-top: .25rem; outline-offset: 3px; }
+.list { margin: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: .5rem; align-items: center; min-height: 2rem; border-radius: var(--radius); outline-offset: 2px; }
+.row dt { display: flex; align-items: center; gap: .4rem; color: var(--muted-foreground); font-size: .8rem; overflow-wrap: anywhere; }
+.row dt svg { flex-shrink: 0; }
+.row dd { display: flex; align-items: center; justify-content: space-between; gap: .25rem; margin: 0; min-width: 0; }
+.value { min-width: 0; overflow-wrap: anywhere; }
+.actions { opacity: 0; }
+.row:hover .actions, .row:focus-within .actions, .selected .actions { opacity: 1; }
+.selected { background: var(--accent); }
+.empty { color: var(--muted-foreground); font-size: .85rem; }
+.form { display: flex; flex-direction: column; gap: .65rem; }
+.form label { font-size: .875rem; font-weight: 500; }
+.buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.close { position: absolute; right: 1rem; top: 1rem; }
+.fieldError { margin: 0; color: var(--destructive); font-size: .875rem; }
+@media (hover: none) { .actions { opacity: 1; } }

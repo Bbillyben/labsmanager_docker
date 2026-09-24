@@ -1,0 +1,7 @@
+.chart { min-width:0; width:100%; height:34rem; overflow:auto; border:1px solid var(--border); border-radius:var(--radius-md); }
+.chart > div { min-width:44rem; height:100%; }
+.task { display:block; overflow:hidden; height:100%; padding:0 .25rem; border-radius:3px; color:#fff; text-overflow:ellipsis; white-space:nowrap; }
+.task[data-state="overdue"] { background:#b42318; font-weight:700; }
+.task[data-state="due_soon"] { background:#a45b05; }
+.task[data-state="completed"] { background:#357558; }
+.note { color:var(--muted-foreground); font-size:.8125rem; }

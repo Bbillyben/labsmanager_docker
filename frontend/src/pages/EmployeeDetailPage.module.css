@@ -1,0 +1,48 @@
+.back { display:inline-flex; align-items:center; gap:.375rem; margin-bottom:.75rem; color:var(--muted-foreground); font-size:.8125rem; text-decoration:none; }
+.back svg { width:1rem; }
+.headerMeta { display:flex; flex-wrap:wrap; gap:.375rem; }
+.mainError { display:grid; justify-items:start; gap:.75rem; }
+.resourceNav { margin:.25rem 0 1rem; border-bottom:1px solid var(--border); }
+.resourceNavScroll { display:flex; gap:.25rem; overflow-x:auto; overscroll-behavior-inline:contain; scrollbar-width:thin; }
+.resourceNavScroll:focus-visible { border-radius:var(--radius-md); outline:2px solid var(--ring); outline-offset:2px; }
+.resourceLink { position:relative; flex:0 0 auto; padding:.625rem .75rem .5625rem; color:var(--muted-foreground); font-size:.8125rem; font-weight:550; text-decoration:none; white-space:nowrap; }
+.resourceLink:hover { color:var(--foreground); background:var(--muted); }
+.resourceLink:focus-visible { border-radius:var(--radius-md); outline:2px solid var(--ring); outline-offset:-2px; }
+.resourceLinkActive { color:var(--foreground); font-weight:700; }
+.resourceLinkActive::after { position:absolute; right:.75rem; bottom:-1px; left:.75rem; height:2px; border-radius:2px 2px 0 0; background:var(--primary); content:""; }
+.panel { min-width:0; }
+.panelTitle { margin:0 0 .75rem; font-size:1rem; font-weight:650; }
+.projectHeading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.75rem; }
+.projectHeading .panelTitle { margin:0; }
+.overviewSection { min-width:0; }
+.overviewHeading { margin:0 0 1rem; padding-bottom:.625rem; border-bottom:1px solid var(--border); font-size:1rem; font-weight:650; }
+.placeholder { min-height:8rem; }
+.placeholder p { margin:0; color:var(--muted-foreground); font-size:.8125rem; }
+.summaryGrid { display:grid; grid-template-columns:minmax(18rem,1.2fr) minmax(14rem,.8fr) minmax(16rem,1fr); gap:1.5rem; padding-bottom:1.25rem; }
+.column { min-width:0; }
+.column + .column { border-left:1px solid var(--border); padding-left:1.5rem; }
+.miniHeading { margin:0 0 .75rem; color:var(--muted-foreground); font-size:.6875rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.details { display:grid; gap:.375rem; margin:0; }
+.infoRow { display:grid; grid-template-columns:minmax(7.5rem,.8fr) minmax(0,1.2fr); align-items:start; gap:.75rem; }
+.infoRow dt { color:var(--muted-foreground); font-size:.75rem; }
+.infoRow dd { min-width:0; margin:0; font-size:.8125rem; }
+.indicators { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--border); }
+.indicators div { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; }
+.indicators span { color:var(--muted-foreground); font-size:.6875rem; }
+.indicators strong { font-size:.8125rem; font-variant-numeric:tabular-nums; }
+.relations { display:grid; gap:.625rem; }
+.relation { display:grid; gap:.125rem; }
+.relation a, .relation strong { font-size:.8125rem; font-weight:600; }
+.relation small { color:var(--muted-foreground); font-size:.75rem; }
+.previous { margin-top:.375rem; padding-inline:0; color:var(--muted-foreground); }
+.relationshipGroup + .relationshipGroup { margin-top:1.25rem; }
+.relationshipGroup h4 { margin:0 0 .5rem; font-size:.75rem; }
+.muted { color:var(--muted-foreground); font-size:.8125rem; }
+.localError { display:flex; flex-wrap:wrap; align-items:center; gap:.375rem; color:var(--destructive); font-size:.75rem; }
+.tableScroll { overflow-x:auto; }
+.tableScroll table { width:100%; min-width:42rem; border-collapse:collapse; font-size:.8125rem; text-align:left; }
+.tableScroll th, .tableScroll td { height:2.5rem; padding:.375rem .75rem; border-bottom:1px solid var(--border); }
+.tableScroll thead { color:var(--muted-foreground); font-size:.75rem; }
+.tableScroll tbody th { font-weight:600; }
+@media(max-width:70rem) { .summaryGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } .column:last-child { grid-column:1 / -1; border-left:0; border-top:1px solid var(--border); padding:1rem 0 0; } }
+@media(max-width:44rem) { .summaryGrid { grid-template-columns:1fr; } .column + .column, .column:last-child { grid-column:auto; border-left:0; border-top:1px solid var(--border); padding:1rem 0 0; } .infoRow { grid-template-columns:1fr; gap:.125rem; } }

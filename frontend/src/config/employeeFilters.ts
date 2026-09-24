@@ -3,7 +3,7 @@ import type { SupportedFilter } from '../filters/types'
 export const employeeFilters = [
   {
     id: 'activity', label: 'Activité', category: 'Situation', description: 'Actif ou inactif',
-    type: 'static-choice', parameter: 'is_active', multiple: false,
+    type: 'static-choice', parameter: 'is_active', multiple: false, defaultValue: 'true',
     options: [{ value: 'true', label: 'Actifs' }, { value: 'false', label: 'Inactifs' }],
   },
   {
