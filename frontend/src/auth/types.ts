@@ -19,6 +19,11 @@ export type AuthenticatedUser = {
   is_authenticated: true
   is_staff: boolean
   is_superuser: boolean
+  employee: {
+    id: number
+    first_name: string
+    last_name: string
+  } | null
   capabilities: Capabilities
 }
 

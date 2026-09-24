@@ -2,10 +2,11 @@ import { getEmployee, getEmployees, readEmployeeParams } from '../api/employees'
 import { ApiError } from '../api/errors'
 import type { EntitySources } from '../filters/types'
 
-export const employeeFilterSources = {
-  employees: {
+function employeeSource(includeInactive: boolean) {
+  return {
     async search(search, signal) {
       const query = new URLSearchParams({ search, limit: '10' })
+      if (includeInactive) query.set('filters_initialized', '1')
       const response = await getEmployees(readEmployeeParams(query), signal)
       return {
         options: response.results.map((employee) => ({ value: String(employee.id), label: `${employee.first_name} ${employee.last_name}` })),
@@ -21,5 +22,10 @@ export const employeeFilterSources = {
         throw error
       }
     },
-  },
+  } satisfies EntitySources[string]
+}
+
+export const employeeFilterSources = {
+  employees: employeeSource(false),
+  allEmployees: employeeSource(true),
 } satisfies EntitySources

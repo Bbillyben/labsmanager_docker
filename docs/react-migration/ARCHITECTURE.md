@@ -1,168 +1,246 @@
 # Architecture de migration React
 
-## Organisation reelle
+## Organisation du dépôt
 
-La copie de travail `labsmanager/` est organisee autour du depot Git de distribution a la racine et de son sous-module Django officiel :
+Le dépôt de distribution se trouve à la racine. `backend/` est le sous-module Django canonique ; `frontend/` et `docs/react-migration/` sont versionnés dans le dépôt racine. La distribution copie `backend/` vers le chemin interne historique `${LAB_HOME}/labsmanager`, ce qui préserve Gunicorn, Django-Q, collectstatic et les tâches Invoke.
 
-- le depot de distribution `labsmanager_docker` a la racine, avec Docker, Compose, Nginx, les requirements et les scripts Invoke ;
-- `backend/` est le sous-module Django officiel, lie a `git@github.com:Bbillyben/labsmanager.git` et suivant la branche `dev` ;
-- `frontend/` est versionne directement dans le depot racine. Il contient le scaffold Vite/React et son propre `package-lock.json` ;
-- `docs/react-migration/` est egalement versionne dans le depot racine.
+Django reste le backend, porte la logique métier et les permissions, utilise PostgreSQL et conserve l'interface historique pendant la migration. La SPA React 19/TypeScript est montée sous `/app/`. Les contrats stables ajoutés pour React sont publiés sous `/api/v1/`; les routes historiques `/api/` restent compatibles.
 
-L'ancien gitlink `labsmanager/` a ete supprime au profit du sous-module canonique `backend/`. La chaine Docker/distribution copie maintenant ce sous-module dans l'image. Le chemin interne historique `${LAB_HOME}/labsmanager` est conserve : il reste coherent avec `WORKDIR`, Gunicorn, Django-Q, collectstatic et les taches Invoke, sans imposer le nom du repertoire source.
+## Session, transport et shell React
 
-## Backend Django actuel
+React utilise la session Django et le cookie CSRF. Le client appelle des URL relatives, envoie les cookies, copie `csrftoken` dans `X-CSRFToken` pour les méthodes non sûres et centralise uniquement les `401` comme expiration de session. Un `403` reste une interdiction locale.
 
-Le point d'entree est `backend/manage.py`, avec le projet `backend/labsmanager/` (`settings.py`, `urls.py`, `wsgi.py`). Les apps metier restent separees : `staff`, `project`, `fund`, `expense`, `endpoints`, `leave`, `infos`, `notification`, `reports`, `settings`, `plugin`, `common`, `dashboard` et `import`.
+`GET /api/v1/me/` amorce la session, expose les capacités de navigation et une référence Employee nullable pour l'identité utilisateur. Ces capacités adaptent le shell ; elles ne remplacent jamais les contrôles backend. La connexion et la déconnexion React réutilisent django-allauth via les endpoints v1 dédiés.
 
-L'UI est rendue par Django depuis `backend/templates/`, avec les assets sources dans `backend/data/static/`. Elle utilise notamment Bootstrap, jQuery/plugins de tables, calendriers et graphiques. DRF expose deja des ViewSets pour utilisateurs, groupes, employees, equipes, projets, fonds, contrats, depenses, budgets, contributions, jalons, conges, favoris, abonnements, organisations et notes.
+React Router utilise `/app` comme basename. En développement, Vite proxifie `/api` vers Django ; `VITE_DJANGO_PUBLIC_URL` fournit l'origine des liens HTML vers les parcours Django non migrés. Le build React n'est pas encore intégré à Nginx/Docker.
 
-Les routes REST sont sous `/api/`, avec `/api/settings/`, `/api/plugin/` et l'interface DRF `/api-auth/`. Les permissions globales DRF utilisent `DjangoModelPermissionsOrAnonReadOnly`, plusieurs ViewSets ajoutent `IsAuthenticated`, et des mixins metier gerent aussi des droits. Un audit endpoint par endpoint reste requis.
+Les workflows d'invitation, de réinitialisation/changement de mot de passe et de gestion des emails restent servis par django-allauth dans l'interface Django. LabsManager n'expose aucun mode métier anonyme : la réponse anonyme de `/me/` sert uniquement à orienter vers l'authentification.
 
-PostgreSQL est la base par defaut. La configuration est lue d'abord depuis les variables d'environnement, puis `backend/config.yaml` (ou `LABSMANAGER_CONFIG_FILE`), puis les valeurs par defaut. `config.yaml` et `.env` sont sensibles et ignores par Git.
+## Runtime et distribution
 
-## Frontend actuel
+Le développement bare-metal lance Django depuis `backend/` et Vite depuis `frontend/`; Django-Q reste un processus séparé. La configuration Django vient des variables d'environnement puis de `backend/config.yaml`. Les fichiers de configuration sensibles restent ignorés par Git.
 
-`frontend/` contient le socle React 19 + TypeScript de la SPA. React Router est monte avec le basename `/app`; seul l'accueil protege et une page 404 existent a ce stade. Le serveur Vite ecoute sur `0.0.0.0:5173` et proxifie `/api` et `/accounts` vers la cible Django definie par `VITE_DJANGO_PROXY_TARGET`, avec `http://192.168.1.145:8000` comme valeur de developpement par defaut. Le build n'est pas encore integre a Django/Nginx.
+La distribution actuelle utilise Python 3.11, PostgreSQL 13, Gunicorn, un worker Django-Q et Nginx. `requirements.in` décrit les dépendances Python sources et `requirements.txt` leur verrou installé par Docker ; les dépendances npm sont verrouillées dans `frontend/package-lock.json`. Nginx sert les statiques Django et proxifie l'application, sans servir encore le build Vite.
 
-## Developpement bare-metal
+Les capacités `/me/` couvrent actuellement la navigation vers Employees, Teams, Contracts, Projects, Organizations, Calendar, Dashboard, Fund finder et Import. Elles sont calculées depuis les permissions Django existantes et ne constituent jamais une permission d'accès à un objet.
 
-Django est lance depuis `backend/` avec `python manage.py runserver` et rejoint PostgreSQL selon l'environnement ou `config.yaml`. Le frontend se lance separement par `npm run dev` depuis `frontend/`. Les origines Vite locales sont deja autorisees avec credentials et comme origines CSRF de confiance. Django-Q se lance avec `python manage.py qcluster` ; la distribution encapsule cette commande sous `invoke worker`.
+## Design System frontend
 
-## Build et distribution Docker actuels
+Le frontend utilise shadcn/ui avec Base UI/base-nova, Tailwind v4, Lucide et des tokens sémantiques Light/Dark. Les primitives partagées résident dans `frontend/src/components/ui/`; les layouts métier restent en CSS Modules. L'i18n React suit la langue du navigateur avec les catalogues `fr` et `en`, indépendamment de la langue métier des rapports.
 
-Le `Dockerfile` Python 3.11 installe les paquets systeme puis le `requirements.txt` racine avec `pip install -U -r base_requirements.txt`. Il copie le sous-module source `backend/` vers `${LAB_HOME}/labsmanager` dans l'image. Gunicorn sert `labsmanager.wsgi` sur le port 8000. Compose lance PostgreSQL 13, Gunicorn, un worker Django-Q et Nginx.
+Le moteur commun de filtres réside dans `frontend/src/filters/`. Il reçoit un catalogue déclaratif et des sources séparées, conserve l'état dans l'URL et ne déduit aucune permission. Employee utilise actuellement un choix statique Activité et une recherche distante Supérieur.
 
-Le volume persistant partage contient PostgreSQL, les medias et les statiques. `init.sh` initialise les repertoires et copie les assets fournis quand ils sont vides. La collecte Django est explicite : `invoke update` execute actuellement `makemigrations`, `migrate`, `check` et `collectstatic`. Nginx sert `/static/` depuis le volume et reverse-proxy les autres routes vers Gunicorn. Vite n'entre pas dans ce build.
+`FilterBar` coordonne la galerie et les contrôles actifs. Les définitions de filtres ne contiennent pas de callbacks métier ; elles référencent des sources qui chargent une petite nomenclature ou recherchent/résolvent une entité. Les relations sont sérialisées par identifiant stable. Un filtre ajouté sans valeur reste présent dans l'URL mais n'est pas envoyé à l'API. Les extensions date, texte, nombre, plage, choix dynamique et multi-valeur restent typées mais ne sont branchées qu'après validation du contrat backend correspondant.
 
-`requirements.in` est la liste source et `requirements.txt` le verrou effectivement installe par Docker. Les dependances npm sont declarees dans `frontend/package.json` et verrouillees dans `frontend/package-lock.json`.
+## Autorisation et visibilité relationnelle
 
-## Architecture cible et coexistence
+Les collections et détails Employee v1 commencent par borner l'Employee avec `Employee.get_instances_for_user("view", user, queryset)`. Les recherches, filtres et chargements de sous-ressources interviennent ensuite. Un objet absent et un objet hors périmètre produisent le même `404`.
 
-La cible reste : React + TypeScript -> API REST -> Django/DRF -> logique metier et permissions -> ORM Django -> PostgreSQL. Les apps et modeles existants restent en place.
+Une sous-ressource Employee peut exposer l'identité minimale d'une ressource liée pour expliquer la relation. Cette visibilité contextuelle ne confère aucun droit autonome sur la ressource liée. Les endpoints liés conservent leur propre périmètre objet. Le frontend ne rend un lien que si le contrat fournit le droit indépendant nécessaire et si une destination réelle existe.
 
-Les routes Django historiques sont conservees et le nouveau shell React sera monte sous `/app/`, chemin actuellement libre. En developpement, Vite peut proxifier l'API vers Django. En production, il faudra tester le routage Nginx des assets et le fallback SPA sans modifier le proxy historique.
+Ce principe s'applique notamment à la hiérarchie Employee, aux collaborateurs de jalons et aux Project associés aux jalons, participations et segments de charge.
 
-L'authentification cible privilegie la session Django et le cookie CSRF sur la meme origine. Token et Basic sont actuellement actifs dans DRF, mais ne constituent pas le contrat cible sans decision explicite. Le backend reste seul autoritaire pour les permissions.
+## Contrats Employee v1 actuels
 
-Les nouvelles routes stables seront publiees sous `/api/v1/`. Les routes `/api/` actuelles ne seront ni renommees ni cassees pendant la transition.
+| Endpoint | Rôle |
+|---|---|
+| `GET /api/v1/employees/` | Liste paginée, recherche, filtres et tri |
+| `GET /api/v1/employees/<id>/` | Noyau du détail, données générales et indicateurs Django-side |
+| `GET/POST /api/v1/employees/<id>/generic-info/` | Collection enveloppée, capacités contextuelles et création |
+| `PATCH/DELETE /api/v1/employees/<id>/generic-info/<info_id>/` | Valeur modifiable, suppression définitive |
+| `GET /api/v1/generic-info-types/` | Catalogue global authentifié, lecture seule |
+| `GET /api/v1/employees/<id>/statuses/` | Statuts courants et historiques |
+| `GET /api/v1/employees/<id>/hierarchy/` | Supérieurs et subordonnés directs, courants et historiques |
+| `GET /api/v1/employees/<id>/milestones/` | Jalons et tâches contextualisés |
+| `GET /api/v1/employees/<id>/project-participations/` | Relations `Participant` de l'Employee |
+| `GET /api/v1/employees/<id>/project-workload/` | Profil temporel agrégé de charge projet |
+| `GET /api/v1/employees/<id>/contracts/` | Synthèse des Contracts visibles, classés temporellement |
+| `GET /api/v1/employees/<id>/contracts/<contract_id>/` | Détail Contract et dépenses chargés à la demande |
+| `GET /api/v1/employees/<id>/contributions/` | Contributions contextuelles classées temporellement |
+| `GET /api/v1/employees/<id>/contribution-workload/` | Profil temporel agrégé des quotités de Contribution |
+| `GET /api/v1/employees/<id>/budgets/` | Budget items explicitement affectés et valeurs financières interprétées |
+| `GET /api/v1/employees/<id>/leaves/` | Congés contextuels, filtrables par intersection de période et type |
+| `GET /api/v1/employees/<id>/leaves/capabilities/` | Capacités Leave calculées par `change_employee` |
+| `POST /api/v1/employees/<id>/leaves/`, `PATCH/DELETE /api/v1/employees/<id>/leaves/<leave_id>/` | Mutations Leave bornées à l'Employee de l'URL |
+| `GET /api/v1/leave-types/` | Catalogue MPTT hiérarchique, tous les niveaux sélectionnables |
+| `GET /api/v1/employees/<id>/calendar/` | Événements Calendar normalisés et bornés : Leave du cœur puis plugins actifs |
+| `GET /api/v1/employees/<id>/calendar/filters/` | Filtres déclarés par les plugins actifs pour le contexte Calendar Employee |
 
-## Socle du frontend React
+Le détail utilise un sérialiseur dédié pour ne pas alourdir la liste. Il ajoute `birth_date`, `email`, `contract_quotity`, `project_quotity`, `contribution_quotity` et `active_milestones_count`. Les quatre indicateurs réutilisent les méthodes métier du modèle Employee. `generic-info` transporte un identifiant d’icône texte, résolu par un registre Lucide statique, jamais injecté comme HTML.
 
-Le shell React est reserve a `/app/` et utilise des URLs d'API relatives a l'origine courante. Son client HTTP envoie toujours les cookies de session, lit les reponses JSON ou sans contenu, propage les annulations par `AbortSignal` et transforme les reponses non reussies en erreurs typees portant le statut et le corps. Pour une methode non sure, il recopie le cookie Django `csrftoken` dans `X-CSRFToken` lorsqu'il est present.
+Les historiques de statut et de hiérarchie sont des sous-ressources distinctes. Leur chargement, leur erreur et leur réessai restent locaux dans la Vue d'ensemble. `CopyableValue` sépare la valeur copiée du rendu affiché et utilise la Clipboard API avec un fallback compatible avec le développement HTTP.
 
-L'amorcage appelle exclusivement `GET /api/v1/me/` et distingue quatre etats : chargement, session authentifiee, session absente ou expiree, et erreur technique. Une session anonyme n'ouvre aucun mode fonctionnel : le routeur dirige vers la page React `/app/login`. Toute future reponse `401` recue par le client invalide centralement l'etat du shell ; une reponse `403` reste une interdiction metier et ne doit pas etre assimilee a une expiration de session.
+## Layout Employee et sous-routes
 
-Le contexte frontend reprend exactement l'identite et les capacites du contrat backend. Ces capacites servent uniquement a adapter la navigation ; elles ne remplacent jamais les autorisations appliquees par Django. Les liens vers l'interface historique restent des navigations HTML hors SPA et sont construits depuis `VITE_DJANGO_PUBLIC_URL` en developpement separe.
+`EmployeeDetailPage` est le layout partagé de la fiche. Il charge l'Employee, affiche le retour liste, le header commun et `EmployeeResourceNav`, puis rend le panneau actif avec `Outlet`.
 
-## Authentification React AUTH1
+Les routes imbriquées sont :
 
-React possede l'ecran de connexion et l'action de deconnexion, mais Django et django-allauth restent l'autorite. `POST /api/v1/auth/login/` reutilise le `LoginForm` Allauth configure : connexion par nom d'utilisateur ou email, backends existants, duree de session et limitation native des tentatives sont ainsi conserves. La limite globale `login` est consommee par la vue API et la limite `login_failed` reste appliquee par l'adapter. Les erreurs d'identifiant inconnu, mot de passe incorrect et compte inactif partagent volontairement le meme contrat afin de ne pas permettre l'enumeration des comptes.
+- `/app/employees/:id` → `EmployeeOverview` ;
+- `/app/employees/:id/projects` → `EmployeeProjects` ;
+- `/app/employees/:id/contracts` ;
+- `/app/employees/:id/funding` → `EmployeeFunding` ;
+- `/app/employees/:id/leaves` ;
+- `/app/employees/:id/notes`.
 
-`POST /api/v1/auth/logout/` appelle la deconnexion Django native. Les deux endpoints sont exclusivement accessibles en POST et proteges par CSRF, y compris lorsque la connexion est encore anonyme. Le frontend initialise le cookie avec `/api/v1/me/`, envoie `X-CSRFToken`, puis recharge `/me/` apres une connexion reussie avant d'ouvrir le shell. Une route protegee conserve sa destination React dans l'etat du routeur ; seuls les chemins internes commençant par `/` et non par `//` sont acceptes au retour.
+La navigation ressemble à des onglets mais reste une navigation par liens et routes. L'URL porte le panneau actif, permet refresh et back/forward, et évite de charger les données des panneaux non affichés. Contracts rend `EmployeeContracts`, Financement rend `EmployeeFunding`, Congés rend `EmployeeLeaves` et Notes reste un placeholder.
 
-Les workflows d'inscription sur invitation, reinitialisation/changement de mot de passe et gestion des emails restent servis par Allauth dans l'interface Django. Vite ne proxifie plus `/accounts`; seul `/api` est proxifie pendant le developpement. Le proxy aligne vers sa cible l'en-tete `Origin` des requetes API, ce qui permet a Django d'appliquer son controle CSRF sans ajouter l'origine temporaire Vite aux origines de confiance. Cette adaptation reste limitee au serveur de developpement.
+`EmployeeOverview` charge les statuts et relations hiérarchiques et délègue les `GenericInfo` au bloc métier `EmployeeGenericInfo`. Il commence directement par **Informations générales** : aucun titre « Vue d'ensemble » redondant et aucun collapse, car ce panneau ne contient qu'une grande section.
 
-Ce lot ne cree aucune route ni interface Employee. Avant toute interface metier React significative, un lot UX/UI doit fixer les principes de navigation, de composants, d'accessibilite et de presentation qui guideront les ecrans suivants.
+`EmployeeProjects` charge les jalons et participations uniquement lorsque sa route est active. Il contient deux `PersistentCollapsibleSection`, **Jalons et tâches** et **Participations projets**. La seconde contient la timeline de charge puis le tableau des participations.
 
-## Fondations UX/UI React
+## Sections persistantes
 
-Le shell cible combine une sidebar principale retractable, une topbar legere et une zone `main`. La sidebar est ouverte par defaut sur desktop, compacte lorsqu'elle est reduite et hors du flux avec fond de fermeture sur les ecrans plus etroits. Un lien d'evitement, des landmarks nommes, un focus visible et des controles natifs posent l'accessibilite structurelle.
+`PersistentCollapsibleSection` est le composant transversal des grandes sections internes dont le repli a une utilité fonctionnelle. Toute la ligne de titre est un bouton accessible portant `aria-expanded` et `aria-controls`. L'état est mémorisé dans `localStorage` avec une clé stable par type de section, jamais par Employee, et la première ouverture est dépliée.
 
-La seule route React fonctionnelle reste l'accueil. Les domaines autorises par les capacites de `/api/v1/me/` sont presentes comme liens HTML explicitement transitoires vers l'interface historique tant que leur route React n'existe pas. Cette presentation ne vaut jamais autorisation backend et ne determine pas l'architecture finale des domaines migres.
+Les sous-routes et les collapsibles ont des rôles complémentaires : les sous-routes séparent les domaines principaux ; les collapsibles structurent plusieurs grandes sections au sein d'un même panneau. Une seule grande section ne justifie pas à elle seule un collapse.
 
-Les styles utilisent une couche globale limitee au reset, aux tokens semantiques, au theme clair et aux structures partagees, puis des CSS Modules pour les composants. Les couleurs fonctionnelles passent par des proprietes CSS semantiques afin qu'un futur theme sombre puisse les redefinir. Aucun theme sombre selectionnable n'est livre dans UX1.
+## Jalons et tâches R2.2
 
-Les primitives initiales sont limitees a `Button`, `IconButton`, `PageHeader`, `StatusBadge`, `Alert`, `LoadingState` et `EmptyState`. Les tables, filtres, paginations, formulaires, dialogs, tabs et composants metier attendent un cas reel. Les icones React proviennent de `lucide-react`, avec imports individuels, texte visible pour les actions importantes et noms accessibles pour les boutons compacts.
+`EmployeeMilestoneV1View` retourne tous les jalons affectés à l'Employee visible et annote chaque référence Project/Employee avec `can_view`, sans filtrer la collection selon ces droits indépendants.
 
-Le responsive distingue fonctionnellement grand desktop, laptop, tablette et telephone sans creer une application mobile distincte. Le shell preserve la largeur du contenu, replie la navigation sous 1024 px et simplifie les libelles secondaires sous 640 px. Les futurs tableaux conserveront une strategie specifique, a definir avec Employee R1.
+La classification est calculée côté Django, dans cet ordre : completed, overdue, due soon, planned, in progress. Le seuil due soon utilise `NOTIFICATION_ENDPOINTS_MILESTONES_STALE` résolu par `LMUserSetting` pour l'utilisateur courant. `start_date is None` produit `work_kind="milestone"`; une date de début produit `work_kind="task"`. Le type `q` autorise l'affichage de `quotity` comme progression ; le type `o` n'a pas de progression chiffrée pertinente.
 
-## Socle API v1
+`EmployeeMilestones` regroupe les données selon les cinq états et conserve uniquement l'ouverture des groupes dans son état local. `MilestoneDetailSheet` affiche les détails dans un panneau latéral ; ni le Sheet ni les sous-groupes ne sont persistés.
 
-Le premier contrat versionne est expose sous `/api/v1/`, dans un URLconf separe du routeur historique `/api/`. `GET /api/v1/me/` est public afin de permettre l'amorcage de la SPA : il renvoie seulement `is_authenticated: false` pour un visiteur anonyme et, pour une session authentifiee, l'identite Django minimale (`id`, nom d'utilisateur, prenom, nom, email) ainsi que les indicateurs globaux `is_staff` et `is_superuser`.
+## Profil temporel de charge R2.3
 
-La reponse de `GET /api/v1/me/` force aussi la creation du cookie CSRF natif Django. Le futur client doit envoyer les cookies avec ses requetes (`credentials: "include"` en cas d'origine distincte) et recopier la valeur du cookie `csrftoken` dans l'en-tete `X-CSRFToken` pour toute requete non sure. `SessionAuthentication` applique alors le controle CSRF aux sessions authentifiees.
+`EmployeeProjectWorkloadV1View` calcule la charge depuis les bornes `start_date`/`end_date` et la `quotity` des `Participant`, sans utiliser les dates Project. Il construit des intervalles inclusifs uniquement aux événements de début et de fin, additionne les quotités actives et agrège par Project les participations qui se chevauchent. Les segments consécutifs de composition identique sont fusionnés.
 
-Les classes globales DRF restent, sans changement, `TokenAuthentication`, `BasicAuthentication` et `SessionAuthentication`. Le contrat cible de la SPA utilise la session ; la conservation a long terme de Token et Basic reste a decider apres audit de leurs usages existants.
+Une requête bornée exige `start` et `end`. `range=all` est explicite, incompatible avec ces paramètres et conserve les bornes ouvertes sous forme `null`. Les références Project incluent `can_view`, mais le graphique ne crée actuellement aucun lien Project.
 
-## Authentification requise et capacites du frontend
+`EmployeeProjectWorkload` gère les presets et le chargement local. Le preset un an couvre aujourd'hui −3 mois / +9 mois ; cinq ans couvre −1 an / +4 ans. Les boutons précédent/suivant déplacent une fenêtre bornée de six mois et Aujourd'hui remet son offset à zéro. Le mode Tout n'a pas de navigation temporelle.
 
-LabsManager ne propose aucun mode fonctionnel anonyme. La reponse minimale `{"is_authenticated": false}` de `GET /api/v1/me/` sert uniquement a detecter une session absente ou expiree ; le frontend doit alors interrompre l'amorcage de l'application et orienter l'utilisateur vers l'authentification. Seul un utilisateur authentifie charge le shell React.
+`WorkloadTimeline` est le renderer neutre partagé. Son SVG dessine un profil compact en escalier, une ligne de seuil à 100 % et une échelle qui peut dépasser ce seuil. Seule la partie excédentaire utilise le token destructif. `ProjectWorkloadTimeline` adapte les segments et le vocabulaire Project sans déplacer la logique métier dans le renderer.
 
-Pour un utilisateur authentifie, `me` expose un objet `capabilities` limite aux entrees du shell et au prochain ecran de liste des employes. Les noms du contrat sont fonctionnels ; leur calcul reste entierement cote Django :
+## Limites et prochaine évolution
 
-| Capacite API | Permissions Django existantes | Usage Django actuel |
-|---|---|---|
-| `view_employee_list` | `common.employee_list` ou `staff.view_employee` | Lien Employes dans la barre et carte d'accueil ; la future API de liste devra encore appliquer son propre controle et son filtrage objet. |
-| `view_team_list` | `common.team_list` ou `staff.view_team` | Lien Equipes dans la barre et carte d'accueil. |
-| `view_contract_list` | `common.contract_list` ou `expense.view_contract` | Lien Contrats dans la barre et carte d'accueil. |
-| `view_project_list` | `common.project_list` ou `project.view_project` | Lien Projets dans la barre et carte d'accueil. |
-| `view_organizations` | `common.display_infos` | Lien Organisations dans la barre et carte d'accueil. |
-| `view_calendar` | `common.display_calendar` ou `leave.view_leave` | Calendrier ; la page d'accueil accepte les deux droits, tandis que la barre Django historique ne teste que `common.display_calendar`. Le contrat v1 conserve l'union la plus permissive deja exposee par l'UI existante. |
-| `view_dashboard` | `common.display_dashboard` | Lien Tableau de bord dans la barre et carte d'accueil. |
-| `use_fund_finder` | `fund.view_fund` | Entree Recherche de fonds dans le menu Outils. |
-| `import_data` | `common.import` | Entree Import dans le menu Outils. |
+## Contrats Employee R2.4b
 
-Ces booleens servent exclusivement a presenter ou masquer des elements d'interface. Ils ne constituent pas une autorisation : chaque endpoint conserve la responsabilite de verifier les permissions Django et, lorsque necessaire, les regles objet `django-rules`. Aucune logique de regle metier n'est dupliquee dans React.
+`EmployeeContractListV1View` résout d'abord l'Employee dans son scope v1, puis obtient directement ses Contracts par leur relation à cet Employee. Aucun second périmètre autonome Contract ne réduit les données contextuelles de la fiche.
 
-## Convention d'autorisation des collections v1
+La classification temporelle est calculée côté Django avec la priorité future (`start_date > today`), past (`end_date < today`), puis current. Les bornes nulles restent ouvertes. L'ordre place les contrats courants par échéance croissante, les futurs par début croissant et les passés du plus récent au plus ancien. Le booléen historique `is_active` devient `requires_follow_up` dans le contrat API.
 
-Les capacites de `/api/v1/me/` pilotent uniquement la navigation et la presentation. Elles ne remplacent jamais le perimetre objet calcule par Django. Pour chaque collection v1, le backend doit d'abord reutiliser la logique metier existante du modele afin de borner le queryset, puis seulement appliquer recherche, filtres, tri et pagination. Une permission globale peut ouvrir l'ensemble du queryset tandis qu'un utilisateur sans cette permission peut conserver un perimetre relationnel limite. Cette convention sera appliquee endpoint par endpoint, sans abstraction generique prematuree.
+Le sérialiseur charge `contract_type`, `fund`, `project`, `funder` et `institution` avec `select_related`. Le Fund fournit son rendu historique, sa référence et ses relations. `Fund_Institution` représente le financeur ; `project.Institution` est l'Institution gestionnaire. Son `can_view` correspond à `common.display_infos` et sa destination réelle est le parcours Django Organization. Les Project restent textuels faute de route autonome.
 
-## Liste des employes v1
+`EmployeeContracts` rend les groupes current/future/history et garde l'historique compact sans persistance. `ContractDetailSheet` demande le second endpoint seulement à l'ouverture. Celui-ci sélectionne les `Contract_expense` du contrat demandé, additionne directement leurs montants et n'expose jamais `Expense.status`.
 
-`GET /api/v1/employees/` est une collection strictement en lecture seule et reservee aux utilisateurs authentifies. Son queryset initial est obligatoirement passe a `Employee.get_instances_for_user("view", user, queryset)`. Un utilisateur ayant `staff.view_employee` voit l'ensemble ; sinon la logique actuelle borne la reponse a son employe et a ses subordonnes visibles. Un perimetre vide produit une collection paginee vide, pas un refus lie a la capability de navigation.
+## Financement Employee R2.5
 
-Le contrat d'une ligne contient uniquement `id`, `first_name`, `last_name`, `entry_date`, `exit_date`, `is_active`, `current_statuses` et `superiors`. Les relations courantes sont prechargees avant serialisation. `contract_quotity` et `project_quotity` sont reportees : leurs methodes actuelles executent chacune une agregation SQL par employe et leur inclusion naive creerait un cout proportionnel au nombre de lignes.
+`EmployeeContributionListV1View` résout l'Employee avec son scope v1 puis charge directement `Contribution.objects.filter(employee=employee)`. Les relations Fund, Project, Cost Type, Employee Type et Contract Types sont descriptives ; aucune navigation autonome n'est inventée. La temporalité current/future/past repose exclusivement sur les bornes de Contribution et `timezone.localdate()`.
 
-La pagination reutilise le contrat limit/offset existant (`count`, `next`, `previous`, `results`), avec 25 elements par defaut et 250 au maximum. La recherche `search` porte uniquement sur prenom et nom. Les filtres retenus sont `is_active`, `status`, `current_status`, `superior` et `team`. Le tri est limite a `first_name`, `last_name`, `entry_date`, `exit_date` et `is_active`, avec `first_name,last_name,id` par defaut.
+`EmployeeContributionWorkloadV1View` additionne en `Decimal` les quotités des Contributions actives aux frontières de leurs propres dates. Les bornes nulles restent ouvertes, les chevauchements sont agrégés et chaque segment conserve sa composition Contribution/Fund/Project. Les dates du Fund et du Project ne participent pas au calcul.
 
-## Detail employe v1
+`EmployeeBudgetListV1View` applique le même gate Employee puis charge directement `Budget.objects.filter(employee=employee)`, sans périmètre autonome Budget. Pour `Budget` et `Contribution`, `expense` est la somme algébrique réelle des écritures : une valeur positive consomme le budget et une valeur négative représente un remboursement ou une contre-écriture. `BudgetAbstract` définit donc `available=amount-expense` et `consumption_ratio=expense/amount`. `EmployeeBudgetV1Serializer` expose cette dépense nette signée sous le champ historique `consumed` et réutilise les calculs du modèle. Un ratio impossible à calculer reste `null`.
 
-`GET /api/v1/employees/<id>/` est le point d'entree minimal de la future fiche React. Il reutilise le meme perimetre de consultation, les memes prechargements et le meme serialiseur que la liste. Il etablit l'identite de la ressource, verifie son appartenance au perimetre visible et expose le noyau commun `id`, `first_name`, `last_name`, `entry_date`, `exit_date`, `is_active`, `current_statuses` et `superiors`. Il ne reproduit pas l'ensemble de la fiche HTML historique et n'expose notamment ni email, date de naissance, compte lie, contrat, projet, budget, contribution, absence, note ou information generique.
+`EmployeeFunding` contient deux `PersistentCollapsibleSection`, Contributions et Budgets affectés, ouvertes par défaut et persistées par type de section. `EmployeeContributionWorkload` adapte les données au renderer neutre `WorkloadTimeline`. `EmployeeBudgets` affiche les trois montants et une barre de consommation financière ; son erreur et son état vide restent locaux sans masquer les Contributions.
 
-Le queryset est borne par `Employee.get_instances_for_user("view", user, queryset)` avant la recherche de la cle primaire. Un employe absent et un employe hors perimetre produisent donc tous deux un `404`, sans requete de distinction. Un utilisateur anonyme recoit un `401`.
+## Calendar Core et absences Employee R2.6a
 
-Cette convention differe volontairement de la vue HTML historique, qui autorise notamment `is_staff` et teste `staff.change_employee` dans certains cas. L'API v1 conserve une separation nette entre consultation et modification en reutilisant la logique de consultation validee pour la liste. Le comportement HTML n'est pas modifie. Les autres blocs de la fiche seront ajoutes progressivement, par enrichissement justifie ou par endpoints specialises lorsque leurs donnees, leur cycle de vie ou leurs permissions l'exigeront.
+Le noyau non persistant `common.calendar` définit `CalendarContext`, les types de calendrier historiques, `LabsManagerCalendarEvent` et `CalendarService`. Les contrats `events` et `context` ne dépendent pas des plugins. Le service découvre uniquement les plugins actifs par `registry.with_mixin("calendarevent", active=True)`, applique leurs filtres et agrège leurs événements en journalisant chaque défaillance isolée.
 
-## Sous-ressources Employee v1
+```text
+common.calendar
+    ↓
+CalendarService
+    ├── producteurs core
+    └── registre plugins → CalendarEventMixin
+    ↓
+LabsManagerCalendarEvent[]
+    ↓
+API / renderer
+```
 
-Le noyau `GET /api/v1/employees/<id>/` reste volontairement leger. Les collections historiques ou fonctionnelles sont exposees par des sous-ressources lorsqu'elles ont leur propre contrat, leur propre volume ou leur propre evolution. Chaque sous-ressource commence par resoudre l'employe cible exclusivement dans le queryset produit par `Employee.get_instances_for_user("view", user, Employee.objects.all())`. Un identifiant absent ou hors perimetre produit le meme `404`, sans requete de distinction. Pour les futurs blocs sensibles, les permissions propres au domaine s'ajouteront a ce premier controle.
+`CalendarEventMixin` reçoit désormais un contexte typé : `get_calendar_events(context)` retourne des événements et `filter_calendar_queryset(queryset, context)` retourne le queryset filtré. `FrenchHollidayPlugin` utilise ce contrat. `/api/plugin/calendar_plugin/` reste la façade FullCalendar des écrans historiques mais traduit d'abord la requête en contexte et délègue au service unique.
 
-`GET /api/v1/employees/<id>/statuses/` expose l'historique complet des relations `Employee_Status` en lecture seule et sans pagination. Chaque element contient l'identifiant de la relation, le type dans la meme representation `id/code/name` que `current_statuses`, les dates, le code et le libelle Django du caractere contractuel ou statutaire, et l'etat actif calcule par `ActiveDateMixin.is_active`. L'ordre reprend la chronologie historique par date de fin croissante, place explicitement les relations sans date de fin en dernier, puis departage par date de debut croissante et identifiant.
+Le domaine Leave reste responsable de la conversion de ses modèles. Il conserve les marqueurs `ST`, `MI` et `EN` dans les métadonnées ; le cœur Calendar n'interprète pas ces codes. L'API Employee autorise d'abord l'Employee, puis lit directement `Leave.objects.filter(employee=employee)`. Aucun droit autonome Leave ne réduit le contexte.
 
-`GET /api/v1/employees/<id>/hierarchy/` expose separement les relations directes `superiors` et `subordinates`, actuelles et historiques, sans pagination ni recursion. Chaque relation porte son propre identifiant, ses dates, l'etat actif calcule par `ActiveDateMixin.is_active` et seulement l'identite `id/first_name/last_name` de la personne liee. Les deux collections suivent l'ordre historique par date de fin croissante, relations ouvertes en dernier, puis date de debut et identifiant.
+`EmployeeLeaves` propose Calendrier/Tableau avec préférence persistée. Le calendrier demande toujours une fenêtre bornée et fournit Mois, Année et cinq ans avec navigation temporelle. Le tableau consomme le contrat Leave, les événements calendrier consomment le contrat Calendar ; seul un événement `kind="leave"` ouvre le Sheet Leave.
 
-L'autorisation de cette sous-ressource porte sur l'employe cible, resolu dans le perimetre Employee v1. Une fois ce dernier visible, l'identite minimale d'une personne directement liee peut etre exposee meme si cette personne n'appartient pas elle-meme au perimetre general de la liste. Cette representation relationnelle ne donne aucun droit supplementaire : la fiche `GET /api/v1/employees/<linked_id>/` reste inaccessible et retourne `404` si la personne liee est hors perimetre.
+Les vues Mois et Année utilisent FullCalendar React Standard : `dayGridMonth` pour le mois et `dayGridYear` pour l'année. La vue cinq ans conserve une synthèse interne plus légère. L'adaptateur `LabsManagerCalendarEvent → EventInput` est la frontière frontend unique : il traduit `all_day` en `allDay`, conserve `description`, `source`, `kind` et `metadata` dans `extendedProps`, et transmet `display="background"` au moteur sans reconstruire des chips par jour. Les plugins `daygrid`, `interaction` et le thème classic viennent des sous-chemins de `@fullcalendar/react`; aucune dépendance Scheduler/Premium ni clé de licence n'est utilisée.
 
-`GET /api/v1/employees/<id>/project-participations/` expose en lecture seule les relations `Participant` de l'employe visible. Chaque element contient l'identifiant de la participation, le role code/libelle, les dates, la quotite decimale, l'etat temporel `is_active` et une reference Project limitee a `id`, `name`, `start_date` et `end_date`. La collection n'est pas paginee ; elle place les participations actives avant les historiques, puis les dates de fin et de debut les plus recentes avant les plus anciennes, et utilise l'identifiant comme dernier departage deterministe.
+R2.6a.2 ajoute `LabsManagerCalendarFilter`, contrat neutre contenant `id`, `title`, `type`, `source`, `choices` et `default`. `CalendarEventMixin.get_calendar_filters(context)` résout les définitions statiques ou dynamiques, puis `CalendarService.get_filters(context)` agrège les filtres des plugins actifs avec la même isolation que les événements. La façade Django historique adapte ce contrat ; elle ne maintient pas un second moteur de résolution.
 
-Cette sous-ressource applique une visibilite relationnelle propre au contexte Employee : une fois l'employe cible borne par `Employee.get_instances_for_user("view", ...)`, ses participations sont retournees sans filtrage supplementaire par `Project.get_instances_for_user("view", ...)`. La reference Project minimale explique la participation, mais ne confere aucun droit autonome sur le Project et ne prefigure pas sa fiche v1. Le futur lot Project devra definir explicitement la semantique de `Project.status`, sa relation avec l'activite temporelle et son perimetre de visibilite objet.
+React charge les filtres applicables depuis l'endpoint Employee et rend génériquement `select`, `checkbox`, `radio`, `input-text` et `input-color`. Leurs identifiants restent opaques au frontend. Les valeurs survivent à la navigation temporelle locale et sont transmises aux requêtes bornées `/calendar/`. FrenchHolliday fournit ainsi son choix dynamique de zone sans branche spécifique dans React.
 
-Le parametre optionnel `is_active=true|false` filtre en base selon la definition exacte de `ActiveDateMixin.is_active` : bornes absentes ouvertes, date de debut atteinte et date de fin non depassee, avec les deux bornes inclusives. Sans parametre ou avec une valeur booleenne invalide, la convention des filtres v1 conserve la collection complete.
+Sur écran étroit, la vue annuelle `dayGridYear` conserve la grille FullCalendar ; sa lisibilité reste améliorable. La synthèse cinq ans omet volontairement les événements `display="background"`, affiche les dates des événements restants et réutilise le même Sheet Leave. La présentation textuelle des demi-journées est centralisée : Matin, Après-midi, À partir de midi, Jusqu'à midi ou Midi → midi selon les bornes. `eventDrop` et `eventResize` (y compris depuis le début) appellent le PATCH Leave pour les seuls événements `core/leave` modifiables, conservent ST/MI/EN et rétablissent l'événement si l'écriture échoue.
 
+Les panneaux Employee restent en lecture seule à l’exception de GenericInfo, premier cas de mutation R2.7. Notes ne dispose encore d’aucun contrat métier React.
 
-## Moteur commun de filtres R1.1
+## Roadmap après clôture R2.6a.2
 
-Les décisions fonctionnelles durables figurent dans DECISIONS. L'implémentation commune réside dans `frontend/src/filters/` et ne dépend d'aucun domaine. `FilterBar` reçoit un catalogue, un registre de sources, les query parameters et une fonction de navigation ; il coordonne la galerie et les contrôles actifs. `FilterGallery` est un panneau non modal `role=dialog`, avec recherche locale des libellés (insensible aux accents), catégories déclarées et filtres déjà ajoutés désactivés. L'ajout ferme le panneau puis place le focus sur le contrôle vide ; fermer rend le focus au déclencheur. Échap et clic extérieur ferment le panneau, sans piège de focus. Les choix se parcourent avec Tab puis Entrée/Espace.
+- **R2.7** établit le socle des mutations React avec `GenericInfo` comme premier objet simple : permissions, validation, erreurs, feedback et rafraîchissement. `Note` reste hors périmètre de ce lot.
+- **R2.8** implémente Employee uniquement : Employee API v1 → EmployeeGanttAdapter → contrat `LabsManagerGantt` (`items`, identité, parent, nature, dates et état) → LabsManagerGantt → SvarGanttAdapter → SVAR OSS. En parallèle, CalendarService fournit `LabsManagerCalendarEvent[]` et les filtres plugins du contexte `employee-gantt`. L'endpoint Employee Calendar existant reçoit `context=employee-gantt` et ne mélange pas les Leave de l'Agenda à ce contexte. Les filtres restent limités aux événements Calendar. Les événements temporels ordinaires sont des lignes ; `display="background"` reste omis car l'API OSS publique ne permet pas de placer une plage colorée de fond proprement. Les bornes ouvertes sont projetées jusqu'au bord de la fenêtre affichée, sans changer les valeurs métier. Une tâche utilise sa période, un jalon sa date de fin. Le Gantt est strictement en lecture seule.
+- La future fiche Project créera ses propres endpoints et `ProjectGanttAdapter` vers le même contrat ; la future vue globale créera l'agrégation adaptée et `GlobalGanttAdapter`. Leurs contextes Calendar et la volumétrie globale seront décidés dans leurs lots.
+- **R2.9** introduit `MilestoneDependency` entre deux instances du modèle commun Task/Milestone, avec unicité SQL, auto-dépendance interdite et cycles vérifiés côté backend. Le Sheet Employee utilise une API métier : recherche Project puis planning item, tous deux bornés par `Project.get_instances_for_user("change")` pour les mutations. L'incohérence temporelle est calculée côté backend et n'empêche aucune écriture. Le contrat LabsManagerGantt ajoute les dépendances par identités métier ; SvarGanttAdapter ne rend que les liens dont les deux extrémités figurent déjà dans le scope Employee, en lecture seule. Aucun scheduling, type FS/SS/FF/SF, lag ou calendrier ouvré n'est ajouté.
+- **R2.10** ajoute POST/PATCH/DELETE Leave sous l'Employee de l'URL, avec capacités `change_employee` publiées séparément pour les deux vues et catalogue MPTT de Leave_Type. La validation métier compare des intervalles de demi-journées et est réévaluée lors de l'écriture. `EmployeeLeaves` partage un Sheet view/create/edit entre Tableau et Calendrier ; CalendarService reste le seul agrégateur des événements. FullCalendar Mois/Année fournit une sélection à fin exclusive convertie en dates Leave inclusives dans l'UI ; la synthèse cinq ans n'offre pas de sélection. Le workflow demande/approbation reste ultérieur.
 
-`types.ts` définit des unions discriminées : `static-choice`, `entity-search`, `dynamic-choice`, `date`, `text`, `number`, `range`. `SupportedFilter` limite volontairement les catalogues rendus aujourd'hui aux choix statiques mono-valeur et recherches d'entité mono-valeur. Les autres familles ont un contrat d'extension, pas un composant prétendument fonctionnel. `DynamicChoiceFilter` distingue mono-valeur et `multiple: true` avec encodage explicite `csv` ou `repeat` à fixer lors du branchement backend. `RangeFilter` impose deux noms de paramètres et un type date/nombre ; `RangeValue` autorise des bornes omises. Aucun filtre date/range/multiple n'est branché sur Employee.
 
-Une source courte a seulement `loadAll(signal)` ; une source distante a `search(text, signal)` (options + indicateur de résultats supplémentaires) et `resolve(id, signal)` (option ou null). Les sources métier adaptent les contrats API en `{value,label}`. Les définitions contiennent une référence de source, pas des fonctions. Les nomenclatures et les collections courtes ne sont pas copiées dans le frontend ; leur chargement complet et résolution locale seront implémentés à leur premier branchement réel.
+## R2.11a — liste Project
 
-`EntitySearch` est une combobox avec debounce 300 ms, suggestions bornées, chargement/erreur/réessai/aucun résultat, flèches haut/bas et validation Entrée. Échap annule le texte de recherche non appliqué et conserve l'ID courant. Saisir un nom ne change pas le filtre tant qu'une suggestion n'est pas choisie ; la valeur actuellement appliquée reste alors indiquée. Les requêtes remplacées sont annulées et les réponses tardives ignorées. Un ID introuvable/hors scope reste visible comme indisponible et peut être remplacé ou supprimé ; aucune disparition silencieuse du critère.
+`/api/v1/projects/` sert une liste paginée et filtrée sous la visibilité canonique de
+`Project.get_instances_for_user("view", user, ...)`. Les relations Institutions,
+Participants et Funds sont préchargées et sérialisées en éléments compacts ; Funds est
+également borné par sa propre visibilité. Les capacités d'écriture viennent du backend :
+`change` objet Project, `add_project` et `delete_project` globaux. Les mêmes contrôles
+protègent POST/PATCH/DELETE. Le Sheet d'écriture porte seulement les champs racine Project.
 
-`url.ts` normalise les paramètres supportés, modifie/supprime une instance et réinitialise le catalogue sans écraser les paramètres étrangers. La page fournit les paramètres de pagination à effacer (`offset` pour Employee). Exemple : `?superior=` conserve un filtre ajouté en attente de valeur, `?superior=42` applique l'ID ; seules les valeurs non vides partent à l'API. Refresh et back/forward restaurent aussi les contrôles vides. L'ajout et le choix de valeur créent donc deux étapes d'historique. La sérialisation de la requête serveur sert de clé des résultats : ajouter un contrôle vide, à pagination inchangée, ne recharge pas inutilement la table.
+Le catalogue commun de filtres React définit type, options et valeur initiale. Son
+marqueur d'initialisation dans l'URL permet d'appliquer Active=true au premier accès sur
+Project et Employee sans le réintroduire après suppression volontaire. Les définitions
+restent propres à chaque domaine ; `FilterBar` rend les filtres texte, date et choix
+dynamiques ajoutés pour Project. Les listes partagent localement badge de statut,
+comportement de ligne et en-tête triable ; aucun moteur DataTable distinct n'est introduit.
+`/app/projects/:id` est une route React transitoire minimale pour la navigation et la
+création ; la fiche métier n'est pas encore migrée.
 
-Le catalogue Employee reste `config/employeeFilters.ts` : Activité, catégorie Situation, et Supérieur, catégorie Relations. `config/employeeFilterSources.ts` réutilise `GET /api/v1/employees/?search=...&limit=10` sans les filtres de la table ; aucun téléchargement de toutes les pages. Un message invite à affiner si d'autres résultats existent. La résolution utilise `GET /api/v1/employees/<id>/`. Le client HTTP session/401/403 existant reste unique. Le moteur n'interprète jamais les permissions ni la relation de supérieur.
+## R2.7 — mutations GenericInfo
 
-Depuis UX2, la galerie utilise un Popover shadcn de 20rem maximum avec des lignes compactes par catégorie. La barre active revient à la ligne. EntitySearch utilise la Combobox shadcn ; sources, debounce et sérialisation restent identiques. La sélection de ligne R1 reste indépendante.
+La collection retourne `{capabilities: {can_add, can_change, can_delete}, items}` même
+lorsqu’elle est vide. Les capacités restent contextuelles à l’Employee, pas dans `/me/`.
+Le catalogue global des types retourne un tableau `{id, name, icon}`, trié par nom puis
+identifiant, sans pagination ni mutation. Tous ces endpoints exigent une session authentifiée.
 
+Le gate Employee existant est appliqué avant toute opération. PATCH/DELETE recherchent
+ensuite le GenericInfo exclusivement parmi les enfants de cet Employee (404 si absent ou
+étranger). Le payload ne peut jamais fixer l’Employee. POST accepte `type_id` et `value` ;
+PATCH accepte uniquement `value`. Les champs interdits, dont le type en PATCH, produisent
+un 400 explicite. La valeur autorise omission à la création, null et chaîne vide ; sa limite
+est 150 caractères. Les doublons de type sont autorisés. POST retourne 201 et l’objet
+sérialisé, PATCH 200 et l’objet, DELETE 204. PUT n’est pas exposé.
 
-## Design System UX2
+`staff.rules.can_change_employee` combine les permissions globales et objet existantes,
+sans modifier `staff.change_employee` ni `is_user_employee`. `is_linked_employee` exprime
+seulement le lien User/Employee. La rule `staff.change_partial_employee` combine full change
+et ce lien ; elle est enregistrée par `rules`, sans permission modèle attribuable supplémentaire.
+`staff.permissions_v1.generic_info_capabilities` fournit le calcul partagé par GET et les
+contrôles d’écriture : partial pour create, full pour update/delete. `common.self_edit`
+conserve donc le plein droit de mutation sur sa propre fiche via la règle historique.
+Les écritures ordinaires de modèle conservent les signaux et le middleware auditlog.
 
-shadcn/ui (Base UI, style base-nova) constitue la référence pour les nouvelles interfaces React ; Lucide reste la bibliothèque d'icônes unique. Les primitives locales sont dans `src/components/ui/`, configurées par `components.json`, avec `cn` dans `src/lib/utils.ts`. Tailwind v4 est intégré au plugin Vite ; les CSS Modules conservent les layouts et styles métier. Les wrappers historiques Button/StatusBadge délèguent aux primitives, sans seconde implémentation visuelle.
+React réutilise `apiRequest`, la session et CSRF. `useMutation` gère pending, erreur et
+verrou immédiat contre une seconde soumission. Une réponse tardive après démontage du
+formulaire ne déclenche pas de rafraîchissement de son ancien contexte. `normalizeMutationError` conserve les
+messages DRF par champ, `non_field_errors` et `detail`, distingue validation/403/404/401,
+serveur et réseau. Les 401 restent aussi traités centralement. Les erreurs n’effacent
+pas les valeurs et ne ferment pas le formulaire.
 
-Les thèmes Teal Light/Dark définissent les mêmes tokens sémantiques dans `styles/tokens.css`. Les alias historiques permettent la transition des autres pages. La classe racine `dark` sélectionne la palette ; le bouton de topbar mémorise seulement le choix local au navigateur (préférence système au premier affichage), sans synchronisation avec les préférences Django. Ajouter une palette doit changer les tokens, pas les composants.
+`EmployeeGenericInfo` reste un composant métier. `GenericInfoFormSheet` utilise le Sheet
+existant ; le type est sélectionnable seulement en création. `ConfirmDialog` utilise
+Base UI AlertDialog et exige une confirmation avant DELETE, avec annulation et retour du
+focus. Le menu de ligne est réservé aux actions autorisées ; l’ajout reste indépendant.
+Aucune dépendance toast ni framework CRUD n’est introduit.
 
-Direction commune : sections par défaut, Card seulement pour une unité autonome ; typographie fonctionnelle compacte, surfaces discrètes, boutons pleins rares. Employee List est le seul pilote métier UX2. Son tableau HTML conserve clic/clavier et lien indépendant ; la cellule d'actions réservée affiche un DropdownMenu au survol/focus ou après sélection. Le menu sélectionne la ligne et propose uniquement ouvrir la fiche Django/désélectionner.
+Après succès, la représentation serveur actualise immédiatement la collection locale
+(ou l’item est retiré après 204), puis `useEmployeeResource.refresh()` relit la collection.
+`updateData()` invalide les lectures antérieures ; `refresh()` conserve les données et
+retourne un booléen. `refreshError` est distinct de l’erreur initiale. Un échec de relecture
+annonce que la mutation est déjà enregistrée et ne propose que de rejouer GET. Le retry
+historique des autres panneaux conserve son comportement. Les lectures sont annulées au
+changement de contexte ou démontage.
+
+`GenericInfoType.icon` est un CharField nullable/blank de 50 caractères. La migration
+0014 convertit les six chaînes FA connues ; les inconnues, null et vide restent intacts.
+Le registre statique React résout Badge, Contact, Search, Columns3 et Stethoscope, avec
+CircleQuestionMark en fallback. Le legacy Employee conserve le texte sans rendu FAIcon ;
+son admin est spécialisé. Les autres usages FAIcon, notamment Project, sont conservés.

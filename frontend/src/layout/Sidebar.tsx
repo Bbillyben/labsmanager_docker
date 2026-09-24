@@ -22,7 +22,6 @@ type HistoricalItem = { label: string; href: string; capability: Capability; ico
 const historicalItems: HistoricalItem[] = [
   { label: 'Équipes', href: '/staff/team/', capability: 'view_team_list', icon: UsersRound },
   { label: 'Contrats', href: '/expense/', capability: 'view_contract_list', icon: FileSignature },
-  { label: 'Projets', href: '/project/', capability: 'view_project_list', icon: FlaskConical },
   { label: 'Organisations', href: '/infos/', capability: 'view_organizations', icon: Building2 },
   { label: 'Calendrier', href: '/calendar/main', capability: 'view_calendar', icon: CalendarDays },
   { label: 'Tableau de bord', href: '/dashboard/', capability: 'view_dashboard', icon: ChartNoAxesCombined },
@@ -52,6 +51,7 @@ export function Sidebar({ expanded, interactive, user }: SidebarProps) {
             <span className={styles.label}>Employés</span>
           </NavLink>
         )}
+        {user.capabilities.view_project_list && <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/projects/" title="Projets"><FlaskConical aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>Projets</span></NavLink>}
         {visibleHistoricalItems.length > 0 && (
           <div className={styles.group}>
             <p className={styles.groupTitle}>Interface historique</p>

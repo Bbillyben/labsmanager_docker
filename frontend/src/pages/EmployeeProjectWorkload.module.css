@@ -1,0 +1,4 @@
+.section { margin-bottom:1rem; padding-bottom:.875rem; border-bottom:1px solid var(--border); }
+.section h3 { margin:0; color:var(--muted-foreground); font-size:.6875rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.state { margin:.75rem 0; color:var(--muted-foreground); font-size:.8125rem; }
+.error { display:flex; align-items:center; gap:.375rem; margin:.5rem 0; color:var(--destructive); font-size:.75rem; }

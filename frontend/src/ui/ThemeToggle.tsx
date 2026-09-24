@@ -1,13 +1,17 @@
 import { Moon, Sun } from 'lucide-react'
 import { useState } from 'react'
-import { IconButton } from './IconButton'
+import { DropdownMenuItem } from '../components/ui/dropdown-menu'
+import { useTranslation } from '../i18n/i18n'
 
-export function ThemeToggle() {
+export function ThemeMenuItem() {
+  const { t } = useTranslation()
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
-  return <IconButton label={dark ? 'Activer le thème clair' : 'Activer le thème sombre'} onClick={() => {
+  const label = dark ? t('user.appearanceLight') : t('user.appearanceDark')
+
+  return <DropdownMenuItem onClick={() => {
     const next = !dark
     document.documentElement.classList.toggle('dark', next)
     setDark(next)
     try { localStorage.setItem('labsmanager-theme', next ? 'dark' : 'light') } catch { /* The theme remains usable without browser storage. */ }
-  }}>{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</IconButton>
+  }}>{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />} {label}</DropdownMenuItem>
 }

@@ -1,22 +1,37 @@
-import { ExternalLink, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { ChevronDown, IdCard, LogOut, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuth } from '../auth/AuthContext'
 import type { AuthenticatedUser } from '../auth/types'
-import { getDjangoUrl } from '../config/django'
-import { ThemeToggle } from '../ui/ThemeToggle'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu'
+import { useTranslation } from '../i18n/i18n'
+import { Button } from '../ui/Button'
+import { ThemeMenuItem } from '../ui/ThemeToggle'
 import { IconButton } from '../ui/IconButton'
+import { getPageContext } from './pageContext'
 import styles from './Topbar.module.css'
 
 type TopbarProps = { navigationExpanded: boolean; onToggleNavigation: () => void; user: AuthenticatedUser }
 
 export function Topbar({ navigationExpanded, onToggleNavigation, user }: TopbarProps) {
   const auth = useAuth()
+  const location = useLocation()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState(false)
-  const displayName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username
+  const userDisplayName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username
+  const displayName = user.employee?.first_name || userDisplayName
+  const pageContext = getPageContext(location.pathname)
   const ToggleIcon = navigationExpanded ? PanelLeftClose : PanelLeftOpen
 
   async function handleLogout() {
@@ -36,22 +51,36 @@ export function Topbar({ navigationExpanded, onToggleNavigation, user }: TopbarP
   return (
     <header className={styles.topbar}>
       <div className={styles.leading}>
-        <IconButton aria-controls="primary-navigation" aria-expanded={navigationExpanded} label={navigationExpanded ? 'Réduire la navigation' : 'Ouvrir la navigation'} onClick={onToggleNavigation}>
+        <IconButton aria-controls="primary-navigation" aria-expanded={navigationExpanded} label={navigationExpanded ? t('navigation.collapse') : t('navigation.expand')} onClick={onToggleNavigation}>
           <ToggleIcon aria-hidden="true" size={20} strokeWidth={1.8} />
         </IconButton>
-        <span className={styles.context}>Espace de travail</span>
+        {pageContext && <span className={styles.context}>{t(pageContext.label)}</span>}
       </div>
       <div className={styles.account}>
-        {logoutError && <span className={styles.logoutError} role="alert">Déconnexion impossible.</span>}
-        <span className={styles.identity} title={user.username}>{displayName}</span>
-        <a className={styles.historicalLink} href={getDjangoUrl('/')}>
-          <span>Interface historique</span>
-          <ExternalLink aria-hidden="true" size={16} strokeWidth={1.8} />
-        </a>
-        <ThemeToggle />
-        <IconButton disabled={loggingOut} label="Se déconnecter" onClick={handleLogout}>
-          <LogOut aria-hidden="true" size={18} strokeWidth={1.8} />
-        </IconButton>
+        {logoutError && <span className={styles.logoutError} role="alert">{t('user.logoutError')}</span>}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={`${t('user.menu')} : ${displayName}`}
+            render={<Button className={styles.userTrigger} variant="ghost" />}
+            title={user.username}
+          >
+            <UserRound aria-hidden="true" />
+            <span className={styles.identity}>{displayName}</span>
+            <ChevronDown aria-hidden="true" className={styles.chevron} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-52">
+            <DropdownMenuGroup><DropdownMenuLabel>{userDisplayName}</DropdownMenuLabel></DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            {user.employee && <DropdownMenuItem render={<Link to={`/employees/${user.employee.id}`} />}>
+              <IdCard aria-hidden="true" /> {t('user.profile')}
+            </DropdownMenuItem>}
+            <ThemeMenuItem />
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled={loggingOut} onClick={() => void handleLogout()}>
+              <LogOut aria-hidden="true" /> {t('user.logout')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

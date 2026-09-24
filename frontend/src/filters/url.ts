@@ -1,5 +1,19 @@
 import type { SupportedFilter } from './types'
 
+export const filterDefaultsMarker = 'filters_initialized'
+
+/** Materialize catalogue defaults in the URL once; removing a filter then stays removed. */
+export function withFilterDefaults(catalogue: readonly SupportedFilter[], query: URLSearchParams) {
+  const result = new URLSearchParams(query)
+  if (!result.has(filterDefaultsMarker)) {
+    for (const filter of catalogue) {
+      if (filter.defaultValue !== undefined && !result.has(filter.parameter)) result.set(filter.parameter, filter.defaultValue)
+    }
+    result.set(filterDefaultsMarker, '1')
+  }
+  return result
+}
+
 /** An empty parameter persists an added control without applying a server filter. */
 export function readFilterQuery(catalogue: readonly SupportedFilter[], query: URLSearchParams) {
   const result = new URLSearchParams()

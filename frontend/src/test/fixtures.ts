@@ -9,6 +9,11 @@ export const authenticatedUser: AuthenticatedUser = {
   is_authenticated: true,
   is_staff: false,
   is_superuser: false,
+  employee: {
+    id: 42,
+    first_name: 'Ada',
+    last_name: 'Byron',
+  },
   capabilities: {
     view_employee_list: true,
     view_team_list: false,
