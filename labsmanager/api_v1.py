@@ -10,6 +10,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from staff.models import Employee
+
 
 CAPABILITY_PERMISSIONS = {
     "view_employee_list": ("common.employee_list", "staff.view_employee"),
@@ -72,6 +74,12 @@ class CurrentUserView(APIView):
         if not user.is_authenticated:
             return Response({"is_authenticated": False})
 
+        employee = (
+            Employee.objects.filter(user=user)
+            .values("id", "first_name", "last_name")
+            .first()
+        )
+
         return Response(
             {
                 "id": user.pk,
@@ -82,6 +90,7 @@ class CurrentUserView(APIView):
                 "is_authenticated": True,
                 "is_staff": user.is_staff,
                 "is_superuser": user.is_superuser,
+                "employee": employee,
                 "capabilities": get_user_capabilities(user),
             }
         )

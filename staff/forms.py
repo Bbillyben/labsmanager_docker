@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from labsmanager.forms import DateInput
 from django.contrib.auth import get_user_model
 
-from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin
 
 import logging
 logger = logging.getLogger("labsmanager")
@@ -268,7 +268,7 @@ class EmployeeTypeModelForm(SanitizeDataFormMixin, BSModalModelForm):
         model = Employee_Type
         fields = ['name','shortname',]
         
-class GenericInfoTypeForm(SanitizeDataFormMixin,IconFormMixin, BSModalModelForm):
+class GenericInfoTypeForm(SanitizeDataFormMixin, BSModalModelForm):
     allowed_tags= {""}
     class Meta:
         model = GenericInfoType

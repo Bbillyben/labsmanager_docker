@@ -1,8 +1,23 @@
+from django.urls import reverse
+from django.utils.translation import gettext as _
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import connection, transaction
 from rest_framework import serializers
 
+from endpoints.models import Milestones, effective_start_date
+from expense.models import Contract, Contract_expense
+from fund.models import Budget, Contribution
+from leave.models import Leave, Leave_Type
 from project.models import Participant, Project
 
-from .models import Employee, Employee_Status, Employee_Superior, Employee_Type
+from .models import (
+    Employee,
+    Employee_Status,
+    Employee_Superior,
+    Employee_Type,
+    GenericInfo,
+    GenericInfoType,
+)
 
 
 class EmployeeStatusTypeV1Serializer(serializers.ModelSerializer):
@@ -73,6 +88,492 @@ class EmployeeListV1Serializer(serializers.ModelSerializer):
             }
             for relation in employee.current_superior_relations
         ]
+
+
+class EmployeeDetailV1Serializer(EmployeeListV1Serializer):
+    """Serialize the read-only Employee summary used by the React detail."""
+
+    contract_quotity = serializers.SerializerMethodField()
+    project_quotity = serializers.SerializerMethodField()
+    contribution_quotity = serializers.SerializerMethodField()
+    active_milestones_count = serializers.SerializerMethodField()
+
+    class Meta(EmployeeListV1Serializer.Meta):
+        fields = EmployeeListV1Serializer.Meta.fields + (
+            "birth_date",
+            "email",
+            "contract_quotity",
+            "project_quotity",
+            "contribution_quotity",
+            "active_milestones_count",
+        )
+
+    @staticmethod
+    def _quotity(value):
+        """Keep nullable aggregate quotities in the API's decimal-string form."""
+        return None if value is None else format(value, ".3f")
+
+    def get_contract_quotity(self, employee):
+        return self._quotity(employee.contracts_quotity())
+
+    def get_project_quotity(self, employee):
+        return self._quotity(employee.projects_quotity())
+
+    def get_contribution_quotity(self, employee):
+        return self._quotity(employee.contribution_quotity())
+
+    def get_active_milestones_count(self, employee):
+        return employee.active_milestones().count()
+
+
+class GenericInfoTypeV1Serializer(serializers.ModelSerializer):
+    """Serialize the configured identity of an Employee information type."""
+
+    class Meta:
+        model = GenericInfoType
+        fields = ("id", "name", "icon")
+
+
+class EmployeeGenericInfoV1Serializer(serializers.ModelSerializer):
+    """Serialize the server representation used by reads and successful writes."""
+
+    type = GenericInfoTypeV1Serializer(source="info", read_only=True)
+
+    class Meta:
+        model = GenericInfo
+        fields = ("id", "type", "value")
+
+
+class GenericInfoWriteV1Serializer(serializers.Serializer):
+    """Validate explicit writes; identity and parent cannot be reassigned."""
+
+    type_id = serializers.PrimaryKeyRelatedField(
+        source="info", queryset=GenericInfoType.objects.all()
+    )
+    value = serializers.CharField(
+        max_length=150, required=False, allow_blank=True, allow_null=True,
+        trim_whitespace=False,
+    )
+
+    def to_internal_value(self, data):
+        """Reject parent injection and type reassignment before DRF validation."""
+        allowed = {"value"} if self.instance is not None else {"type_id", "value"}
+        if isinstance(data, dict):
+            unexpected = set(data) - allowed
+            if unexpected:
+                raise serializers.ValidationError({
+                    key: [_("This field cannot be supplied or changed.")]
+                    for key in sorted(unexpected)
+                })
+        return super().to_internal_value(data)
+
+    def create(self, validated_data):
+        return GenericInfo.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        if "value" in validated_data:
+            instance.value = validated_data["value"]
+            instance.save(update_fields=["value"])
+        return instance
+
+
+class EmployeeContractExpenseV1Serializer(serializers.ModelSerializer):
+    """Serialize the small expense subset needed by the Contract Sheet."""
+
+    type = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Contract_expense
+        fields = ("id", "expense_id", "date", "desc", "type", "amount")
+
+    def get_type(self, expense):
+        return {
+            "id": expense.type_id,
+            "short_name": expense.type.short_name,
+            "name": expense.type.name,
+        }
+
+
+class EmployeeContractV1Serializer(serializers.ModelSerializer):
+    """Serialize one scoped Contract for the Employee contracts panel."""
+
+    contract_type = serializers.SerializerMethodField()
+    employee = serializers.SerializerMethodField()
+    fund = serializers.SerializerMethodField()
+    requires_follow_up = serializers.BooleanField(source="is_active")
+    status = serializers.SerializerMethodField()
+    temporal_state = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Contract
+        fields = (
+            "id",
+            "employee",
+            "contract_type",
+            "fund",
+            "start_date",
+            "end_date",
+            "quotity",
+            "status",
+            "requires_follow_up",
+            "temporal_state",
+        )
+
+    def get_employee(self, contract):
+        return {
+            "id": contract.employee_id,
+            "first_name": contract.employee.first_name,
+            "last_name": contract.employee.last_name,
+        }
+
+    def get_contract_type(self, contract):
+        if contract.contract_type_id is None:
+            return None
+        return {"id": contract.contract_type_id, "name": contract.contract_type.name}
+
+    def get_fund(self, contract):
+        fund = contract.fund
+        can_view_organizations = self.context.get("can_view_organizations", False)
+        visible_project_ids = self.context.get("visible_project_ids", set())
+        return {
+            "id": fund.pk,
+            "display_name": str(fund),
+            "reference": fund.ref or None,
+            "project": {
+                "id": fund.project_id,
+                "name": fund.project.name,
+                "can_view": fund.project_id in visible_project_ids,
+                "url": None,
+            },
+            "funder": {
+                "id": fund.funder_id,
+                "short_name": fund.funder.short_name,
+                "name": fund.funder.name,
+                "can_view": can_view_organizations,
+                "url": (
+                    reverse(
+                        "orga_single",
+                        kwargs={
+                            "app": "fund",
+                            "model": "fund_institution",
+                            "pk": fund.funder_id,
+                        },
+                    )
+                    if can_view_organizations
+                    else None
+                ),
+            },
+            "institution": {
+                "id": fund.institution_id,
+                "short_name": fund.institution.short_name,
+                "name": fund.institution.name,
+                "can_view": can_view_organizations,
+                "url": (
+                    reverse(
+                        "orga_single",
+                        kwargs={
+                            "app": "project",
+                            "model": "institution",
+                            "pk": fund.institution_id,
+                        },
+                    )
+                    if can_view_organizations
+                    else None
+                ),
+            },
+        }
+
+    def get_status(self, contract):
+        return {"code": contract.status, "label": contract.get_status_display()}
+
+    def get_temporal_state(self, contract):
+        today = self.context["today"]
+        if contract.start_date and contract.start_date > today:
+            return "future"
+        if contract.end_date and contract.end_date < today:
+            return "past"
+        return "current"
+
+
+class EmployeeContractDetailV1Serializer(EmployeeContractV1Serializer):
+    """Add on-demand Contract expenses to the summary contract."""
+
+    expenses = serializers.SerializerMethodField()
+    expense_count = serializers.SerializerMethodField()
+    expense_total = serializers.SerializerMethodField()
+
+    class Meta(EmployeeContractV1Serializer.Meta):
+        fields = EmployeeContractV1Serializer.Meta.fields + (
+            "expense_count",
+            "expense_total",
+            "expenses",
+        )
+
+    def get_expenses(self, contract):
+        return EmployeeContractExpenseV1Serializer(
+            self.context.get("contract_expenses", ()), many=True
+        ).data
+
+    def get_expense_count(self, contract):
+        return len(self.context.get("contract_expenses", ()))
+
+    def get_expense_total(self, contract):
+        total = sum(
+            (expense.amount for expense in self.context.get("contract_expenses", ())),
+            start=0,
+        )
+        return format(total, ".2f")
+
+
+class EmployeeContributionV1Serializer(serializers.ModelSerializer):
+    """Serialize one Contribution in the context of an authorized Employee."""
+
+    fund = serializers.SerializerMethodField()
+    cost_type = serializers.SerializerMethodField()
+    employee_type = serializers.SerializerMethodField()
+    contract_types = serializers.SerializerMethodField()
+    temporal_state = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Contribution
+        fields = (
+            "id",
+            "fund",
+            "cost_type",
+            "desc",
+            "start_date",
+            "end_date",
+            "quotity",
+            "amount",
+            "employee_type",
+            "contract_types",
+            "temporal_state",
+        )
+
+    def get_fund(self, contribution):
+        fund = contribution.fund
+        return {
+            "id": fund.pk,
+            "display_name": str(fund),
+            "reference": fund.ref or None,
+            "project": {
+                "id": fund.project_id,
+                "name": fund.project.name,
+            },
+        }
+
+    def get_cost_type(self, contribution):
+        cost_type = contribution.cost_type
+        if cost_type is None:
+            return None
+        return {
+            "id": cost_type.pk,
+            "short_name": cost_type.short_name,
+            "name": cost_type.name,
+            "is_hr": cost_type.pk in self.context.get("hr_cost_type_ids", set()),
+        }
+
+    def get_employee_type(self, contribution):
+        employee_type = contribution.emp_type
+        if employee_type is None:
+            return None
+        return {
+            "id": employee_type.pk,
+            "code": employee_type.shortname,
+            "name": employee_type.name,
+        }
+
+    def get_contract_types(self, contribution):
+        return [
+            {"id": contract_type.pk, "name": contract_type.name}
+            for contract_type in contribution.contract_type.all()
+        ]
+
+    def get_temporal_state(self, contribution):
+        today = self.context["today"]
+        if contribution.start_date and contribution.start_date > today:
+            return "future"
+        if contribution.end_date and contribution.end_date < today:
+            return "past"
+        return "current"
+
+
+class EmployeeBudgetV1Serializer(serializers.ModelSerializer):
+    """Serialize one Employee Budget with explicit Django-side financials."""
+
+    fund = serializers.SerializerMethodField()
+    cost_type = serializers.SerializerMethodField()
+    employee_type = serializers.SerializerMethodField()
+    contract_types = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField()
+    consumed = serializers.SerializerMethodField()
+    available = serializers.SerializerMethodField()
+    consumption_ratio = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Budget
+        fields = (
+            "id",
+            "fund",
+            "cost_type",
+            "desc",
+            "employee_type",
+            "contract_types",
+            "quotity",
+            "amount",
+            "consumed",
+            "available",
+            "consumption_ratio",
+        )
+
+    def get_fund(self, budget):
+        fund = budget.fund
+        return {
+            "id": fund.pk,
+            "display_name": str(fund),
+            "reference": fund.ref or None,
+            "project": {
+                "id": fund.project_id,
+                "name": fund.project.name,
+            },
+        }
+
+    def get_cost_type(self, budget):
+        cost_type = budget.cost_type
+        if cost_type is None:
+            return None
+        return {
+            "id": cost_type.pk,
+            "short_name": cost_type.short_name,
+            "name": cost_type.name,
+            "is_hr": cost_type.pk in self.context.get("hr_cost_type_ids", set()),
+        }
+
+    def get_employee_type(self, budget):
+        employee_type = budget.emp_type
+        if employee_type is None:
+            return None
+        return {
+            "id": employee_type.pk,
+            "code": employee_type.shortname,
+            "name": employee_type.name,
+        }
+
+    def get_contract_types(self, budget):
+        return [
+            {"id": contract_type.pk, "name": contract_type.name}
+            for contract_type in budget.contract_type.all()
+        ]
+
+    def get_amount(self, budget):
+        return self._money(budget.amount)
+
+    def get_consumed(self, budget):
+        if budget.expense is None:
+            return None
+        return self._money(budget.expense)
+
+    def get_available(self, budget):
+        return self._money(budget.available)
+
+    def get_consumption_ratio(self, budget):
+        ratio = budget.get_consumption_ratio()
+        if ratio == "-":
+            return None
+        return format(ratio, "f")
+
+    @staticmethod
+    def _money(value):
+        return None if value is None else format(value, ".2f")
+
+
+class EmployeeMilestoneV1Serializer(serializers.ModelSerializer):
+    """Serialize milestone workload in the context of a visible Employee."""
+
+    display_state = serializers.SerializerMethodField()
+    days_to_due = serializers.SerializerMethodField()
+    work_kind = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
+    employees = serializers.SerializerMethodField()
+    dependencies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Milestones
+        fields = (
+            "id",
+            "name",
+            "desc",
+            "start_date",
+            "end_date",
+            "status",
+            "type",
+            "quotity",
+            "display_state",
+            "days_to_due",
+            "work_kind",
+            "project",
+            "employees",
+            "dependencies",
+        )
+
+    def get_display_state(self, milestone):
+        """Classify attention state using the viewer's configured threshold."""
+        today = self.context["today"]
+        if milestone.status is True:
+            return "completed"
+        if milestone.end_date and milestone.end_date < today:
+            return "overdue"
+        if (
+            milestone.end_date
+            and milestone.end_date <= today + self.context["stale_delta"]
+        ):
+            return "due_soon"
+        if milestone.start_date and milestone.start_date > today:
+            return "planned"
+        return "in_progress"
+
+    def get_days_to_due(self, milestone):
+        """Return signed calendar days to the deadline, when one exists."""
+        if milestone.end_date is None:
+            return None
+        return (milestone.end_date - self.context["today"]).days
+
+    def get_work_kind(self, milestone):
+        return "milestone" if milestone.start_date is None else "task"
+
+    def get_project(self, milestone):
+        return {
+            "id": milestone.project_id,
+            "name": milestone.project.name,
+            "can_view": milestone.project_id in self.context["visible_project_ids"],
+        }
+
+    def get_employees(self, milestone):
+        visible_ids = self.context["visible_employee_ids"]
+        return [
+            {
+                "id": employee.pk,
+                "first_name": employee.first_name,
+                "last_name": employee.last_name,
+                "can_view": employee.pk in visible_ids,
+            }
+            for employee in milestone.employee.all()
+        ]
+
+    def get_dependencies(self, milestone):
+        visible_ids = self.context["visible_work_ids"]
+        successor_start = effective_start_date(milestone)
+        return [{
+            "id": relation.pk,
+            "predecessor_id": relation.predecessor_id,
+            "successor_id": milestone.pk,
+            "temporally_inconsistent": bool(
+                successor_start
+                and effective_start_date(relation.predecessor)
+                and successor_start < effective_start_date(relation.predecessor)
+            ),
+        } for relation in milestone.visible_dependencies
+            if relation.predecessor_id in visible_ids]
 
 
 class EmployeeStatusHistoryV1Serializer(serializers.ModelSerializer):
@@ -246,3 +747,70 @@ class ProjectParticipationV1Serializer(serializers.ModelSerializer):
             "code": participant.status,
             "label": participant.get_status_display(),
         }
+
+
+class EmployeeLeaveTypeV1Serializer(serializers.ModelSerializer):
+    """Serialize the Leave type displayed by the Employee panel."""
+
+    class Meta:
+        model = Leave_Type
+        fields = ("id", "short_name", "name", "color")
+
+
+class EmployeeLeaveV1Serializer(serializers.ModelSerializer):
+    """Serialize one contextual Leave without autonomous Leave permissions."""
+
+    type = EmployeeLeaveTypeV1Serializer(read_only=True)
+    day_count = serializers.ReadOnlyField(source="dayCount")
+
+    class Meta:
+        model = Leave
+        fields = (
+            "id",
+            "type",
+            "start_date",
+            "start_period",
+            "end_date",
+            "end_period",
+            "day_count",
+            "comment",
+        )
+
+
+class EmployeeLeaveWriteV1Serializer(serializers.ModelSerializer):
+    type_id = serializers.PrimaryKeyRelatedField(source="type", queryset=Leave_Type.objects.all())
+    start_date = serializers.DateField(required=True, allow_null=False)
+    end_date = serializers.DateField(required=True, allow_null=False)
+
+    class Meta:
+        model = Leave
+        fields = ("type_id", "start_date", "start_period", "end_date", "end_period", "comment")
+
+    def validate(self, attrs):
+        unexpected = set(self.initial_data) - set(self.fields)
+        if unexpected:
+            raise serializers.ValidationError({name: "This field is not accepted." for name in unexpected})
+        return attrs
+
+    def _save_validated(self, instance):
+        with transaction.atomic():
+            if connection.vendor == "postgresql":
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT pg_advisory_xact_lock(%s, %s)", [291010, instance.employee_id])
+            try:
+                instance.full_clean()
+            except DjangoValidationError as exc:
+                details = exc.message_dict if hasattr(exc, "message_dict") else {"non_field_errors": exc.messages}
+                if "__all__" in details:
+                    details["non_field_errors"] = details.pop("__all__")
+                raise serializers.ValidationError(details) from exc
+            instance.save()
+        return instance
+
+    def create(self, validated_data):
+        return self._save_validated(Leave(**validated_data))
+
+    def update(self, instance, validated_data):
+        for name, value in validated_data.items():
+            setattr(instance, name, value)
+        return self._save_validated(instance)

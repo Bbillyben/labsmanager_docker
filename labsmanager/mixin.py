@@ -111,11 +111,6 @@ class LabsManagerBudgetMixin(models.Model):
         else:
             return "-"
     
-    def clean_expense(self):
-        if self.cleaned_data['expense']>0:
-            self.cleaned_data['expense']=-self.cleaned_data['expense']
-        return self.cleaned_data['expense']
-
 class LabsManagerFocusBudgetMixin(LabsManagerBudgetMixin):
     ''' add amount_f and expense_f variable reprensenting total amount in Focus
     add method for calculaton
@@ -136,12 +131,6 @@ class LabsManagerFocusBudgetMixin(LabsManagerBudgetMixin):
         else:
             return "-"
     
-    def clean_expense_f(self):
-        if self.cleaned_data['expense_f']>0:
-            self.cleaned_data['expense_f']=-self.cleaned_data['expense_f']
-        return self.cleaned_data['expense_f']
-
-
 class LabsManagerFocusTypeMixin(models.Model):
     class Meta:
         abstract = True
@@ -397,7 +386,7 @@ class RightsCheckerMixin():
         if perm.lower() not in cls.perms_auth:
             logger.error(f"{perm} permission is not valid")
             return cls.objects.none()
-        if not queryset:
+        if queryset is None:
             queryset = cls.objects.all() 
         perm_str = cls._meta.app_label + '.'+perm+"_"+cls._meta.model_name
         if user.has_perm(perm_str):

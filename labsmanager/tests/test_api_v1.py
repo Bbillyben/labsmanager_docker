@@ -4,6 +4,8 @@ from django.test import override_settings
 from django.urls import resolve, reverse
 from rest_framework.test import APIClient, APITestCase
 
+from staff.models import Employee
+
 
 CAPABILITIES_DENIED = {
     "view_employee_list": False,
@@ -82,10 +84,31 @@ class CurrentUserApiTests(APITestCase):
                 "is_authenticated": True,
                 "is_staff": True,
                 "is_superuser": False,
+                "employee": None,
                 "capabilities": CAPABILITIES_DENIED,
             },
         )
         self.assertIn("sessionid", self.client.cookies)
+
+    def test_authenticated_user_includes_linked_employee_identity(self):
+        user = self.create_user("employee-user")
+        employee = Employee.objects.create(
+            user=user,
+            first_name="Benjamin",
+            last_name="LEGENDRE",
+        )
+        self.login(user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.json()["employee"],
+            {
+                "id": employee.pk,
+                "first_name": "Benjamin",
+                "last_name": "LEGENDRE",
+            },
+        )
 
     def test_authenticated_user_capabilities_follow_existing_permissions(self):
         user = self.create_user("permitted-user")

@@ -193,7 +193,7 @@ class Contract(DateMixin, RightsCheckerMixin):
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
-        if not queryset:
+        if queryset is None:
             queryset = cls.objects.all()
         
         subordinate = Employee_Superior.objects.filter(superior__user = user).values_list("employee", flat=True)

@@ -72,7 +72,7 @@ class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelDi
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
-        if not queryset:
+        if queryset is None:
             queryset = cls.objects.all()
         query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
         proj=Participant.objects.filter(query).values('project')
@@ -231,7 +231,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
-        if not queryset:
+        if queryset is None:
             queryset = cls.objects.all()
         if not user.has_perm('fund.view_fund'):         
             query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
@@ -270,6 +270,19 @@ class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
     quotity = models.DecimalField(max_digits=4, decimal_places=3, default=0, validators=PERCENTAGE_VALIDATOR, verbose_name=_('quotity'),  null=True,blank=True)
     desc = models.CharField(max_length=150, verbose_name=_('Description'), blank=True, null=True)
     history = AuditlogHistoryField()
+
+    @property
+    def available(self):
+        """Return the balance using the signed net expense convention."""
+        if self.amount is None or self.expense is None:
+            return None
+        return self.amount - self.expense
+
+    def get_consumption_ratio(self):
+        """Return the signed net consumption ratio when it is calculable."""
+        if self.amount in (None, 0) or self.expense is None:
+            return "-"
+        return self.expense / self.amount
     
     
     def clean(self, *args, **kwargs):
@@ -316,7 +329,7 @@ class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
-        if not queryset:
+        if queryset is None:
             queryset = cls.objects.all()
         query = Q(employee__user=user) & Q(status__in=cls.get_project_modder(perm)) # if cls.get_project_modder(perm) else Q(employee__user=user)
         proj=Participant.objects.filter(query).values('project')

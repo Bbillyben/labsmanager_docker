@@ -11,7 +11,6 @@ from datetime import datetime
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
-from faicon.fields import FAIconField
 
 from labsmanager.mixin import ActiveDateMixin, RightsCheckerMixin
 
@@ -135,7 +134,7 @@ class Employee(models.Model, RightsCheckerMixin):
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
-        if not queryset:
+        if queryset is None:
             queryset = cls.objects.all()
 
         try:
@@ -285,7 +284,7 @@ class GenericInfoType(models.Model):
         verbose_name = _("Type of Generic Info")
     
     name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
-    icon = FAIconField(null=True,)
+    icon = models.CharField(max_length=50, blank=True, null=True)
     
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""

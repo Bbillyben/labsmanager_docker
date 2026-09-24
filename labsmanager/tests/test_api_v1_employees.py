@@ -1,4 +1,6 @@
 from datetime import date, timedelta
+from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -6,15 +8,178 @@ from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from project.models import Participant, Project
+from common.calendar import LabsManagerCalendarEvent
+from endpoints.models import Milestones
+from expense.models import Contract, Contract_expense, Contract_type
+from fund.models import Budget, Contribution, Cost_Type, Fund, Fund_Institution
+from leave.models import Leave, Leave_Type
+from project.models import Institution, Participant, Project
+from settings.models import LMUserSetting
 from staff.models import (
     Employee,
     Employee_Status,
     Employee_Superior,
     Employee_Type,
+    GenericInfo,
+    GenericInfoType,
     Team,
     TeamMate,
 )
+
+
+class EmployeeLeaveV1ApiTests(APITestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="leave-viewer", password="test-password"
+        )
+        self.employee = Employee.objects.create(
+            first_name="Leave", last_name="Viewer", user=self.user
+        )
+        self.other = Employee.objects.create(first_name="Hidden", last_name="Person")
+        self.leave_type = Leave_Type.objects.create(
+            short_name="CP", name="Paid leave", color="#336699"
+        )
+        self.leave = Leave.objects.create(
+            employee=self.employee,
+            type=self.leave_type,
+            start_date=date(2026, 9, 10),
+            start_period="MI",
+            end_date=date(2026, 9, 12),
+            end_period="MI",
+            comment="Family event",
+        )
+        Leave.objects.create(
+            employee=self.other,
+            type=self.leave_type,
+            start_date=date(2026, 9, 10),
+            end_date=date(2026, 9, 10),
+        )
+        self.assertTrue(self.client.login(username=self.user.username, password="test-password"))
+
+    def test_leave_list_is_contextual_and_filters_by_intersection(self):
+        url = reverse("api_v1:employee-leaves", kwargs={"pk": self.employee.pk})
+        response = self.client.get(url, {"from": "2026-09-11", "to": "2026-09-20"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()), 1)
+        payload = response.json()[0]
+        self.assertEqual(payload["id"], self.leave.pk)
+        self.assertEqual(payload["type"]["short_name"], "CP")
+        self.assertEqual(payload["start_period"], "MI")
+        self.assertEqual(payload["day_count"], 1.0)
+        self.assertEqual(payload["comment"], "Family event")
+
+    def test_leave_list_hides_an_employee_outside_the_root_scope(self):
+        response = self.client.get(reverse("api_v1:employee-leaves", kwargs={"pk": self.other.pk}))
+        self.assertEqual(response.status_code, 404)
+
+    @patch("common.calendar.service.CalendarService.plugins", return_value=[])
+    def test_calendar_is_bounded_and_preserves_half_day_metadata(self, _plugins):
+        url = reverse("api_v1:employee-calendar", kwargs={"pk": self.employee.pk})
+        missing = self.client.get(url)
+        response = self.client.get(url, {"from": "2026-09-01", "to": "2026-09-30"})
+
+        self.assertEqual(missing.status_code, 400)
+        self.assertEqual(response.status_code, 200)
+        event = response.json()[0]
+        self.assertEqual(event["kind"], "leave")
+        self.assertEqual(event["start"], "2026-09-10T12:00:00")
+        self.assertEqual(event["end"], "2026-09-12T12:00:00")
+        self.assertEqual(event["metadata"]["start_period"], "MI")
+        self.assertEqual(event["metadata"]["end_period"], "MI")
+
+    @patch("common.calendar.service.CalendarService.get_plugin_events")
+    def test_calendar_keeps_plugin_events_distinct_from_leave(self, plugin_events):
+        plugin_events.return_value = [
+            LabsManagerCalendarEvent(
+                id="sample:holiday",
+                title="Holiday",
+                start=date(2026, 9, 15),
+                source="sample",
+                kind="public_holiday",
+            )
+        ]
+        url = reverse("api_v1:employee-calendar", kwargs={"pk": self.employee.pk})
+        response = self.client.get(
+            url, {"from": "2026-09-01", "to": "2026-09-30"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            {(event["source"], event["kind"]) for event in response.json()},
+            {("core", "leave"), ("sample", "public_holiday")},
+        )
+
+    @patch("common.calendar.service.CalendarService.get_filters")
+    def test_calendar_filter_endpoint_keeps_employee_scope_and_context(
+        self, get_filters
+    ):
+        from common.calendar import LabsManagerCalendarFilter
+
+        get_filters.return_value = [
+            LabsManagerCalendarFilter(
+                id="sample-value",
+                title="Value",
+                type="input-text",
+                source="sample",
+                default="initial",
+            )
+        ]
+        url = reverse(
+            "api_v1:employee-calendar-filters", kwargs={"pk": self.employee.pk}
+        )
+
+        response = self.client.get(url, {"sample-value": "chosen"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["id"], "sample-value")
+        context = get_filters.call_args.args[0]
+        self.assertEqual(context.calendar_type.value, "employee")
+        self.assertEqual(context.employee_id, self.employee.pk)
+        self.assertEqual(context.filters["sample-value"], "chosen")
+
+        hidden_url = reverse(
+            "api_v1:employee-calendar-filters", kwargs={"pk": self.other.pk}
+        )
+        self.assertEqual(self.client.get(hidden_url).status_code, 404)
+
+    @patch("common.calendar.service.CalendarService.get_plugin_events")
+    def test_gantt_context_returns_only_plugin_events_with_existing_semantics(self, plugin_events):
+        plugin_events.return_value = [LabsManagerCalendarEvent(
+            id="sample:holiday", title="Holiday", start=date(2026, 9, 15),
+            source="sample", display="background", color="#c9e0cf",
+        )]
+        url = reverse("api_v1:employee-calendar", kwargs={"pk": self.employee.pk})
+        response = self.client.get(url, {
+            "context": "employee-gantt", "from": "2026-09-01", "to": "2026-09-30",
+            "sample-choice": "visible",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()), 1)
+        self.assertEqual(response.json()[0]["display"], "background")
+        self.assertEqual(response.json()[0]["color"], "#c9e0cf")
+        context = plugin_events.call_args.args[0]
+        self.assertEqual(context.calendar_type.value, "employee-gantt")
+        self.assertEqual(context.filters["sample-choice"], "visible")
+        self.assertEqual(self.client.get(url, {"context": "employee-gantt"}).status_code, 400)
+        hidden_url = reverse("api_v1:employee-calendar", kwargs={"pk": self.other.pk})
+        self.assertEqual(self.client.get(hidden_url, {"context": "employee-gantt", "from": "2026-09-01", "to": "2026-09-30"}).status_code, 404)
+
+    @patch("common.calendar.service.CalendarService.get_filters")
+    def test_gantt_filter_context_preserves_employee_access(self, get_filters):
+        get_filters.return_value = []
+        url = reverse("api_v1:employee-calendar-filters", kwargs={"pk": self.employee.pk})
+        self.assertEqual(self.client.get(url, {"context": "employee-gantt"}).status_code, 200)
+        self.assertEqual(get_filters.call_args.args[0].calendar_type.value, "employee-gantt")
+
+    def test_anonymous_requests_are_rejected(self):
+        self.client.logout()
+        url = reverse("api_v1:employee-leaves", kwargs={"pk": self.employee.pk})
+        self.assertEqual(self.client.get(url).status_code, 401)
+        filters_url = reverse(
+            "api_v1:employee-calendar-filters", kwargs={"pk": self.employee.pk}
+        )
+        self.assertEqual(self.client.get(filters_url).status_code, 401)
 
 
 @override_settings(
@@ -343,7 +508,7 @@ class EmployeeDetailV1ApiTests(APITestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    def test_detail_contract_matches_list_item_and_excludes_other_fields(self):
+    def test_detail_contract_extends_list_with_summary_fields_only(self):
         user = self.create_user("detail-contract-viewer")
         superior = self.create_employee("Alice", "Manager")
         employee = self.create_employee(
@@ -360,11 +525,22 @@ class EmployeeDetailV1ApiTests(APITestCase):
         Employee_Superior.objects.create(employee=employee, superior=superior)
         self.login(user)
 
-        detail_response = self.client.get(self.detail_url(employee.pk))
+        milestones = MagicMock()
+        milestones.count.return_value = 3
+        with (
+            patch.object(Employee, "contracts_quotity", return_value=Decimal("0.500")),
+            patch.object(Employee, "projects_quotity", return_value=Decimal("0.250")),
+            patch.object(Employee, "contribution_quotity", return_value=None),
+            patch.object(Employee, "active_milestones", return_value=milestones),
+        ):
+            detail_response = self.client.get(self.detail_url(employee.pk))
         list_response = self.client.get(self.list_url, {"search": "Bob"})
 
         self.assertEqual(detail_response.status_code, 200)
-        self.assertEqual(detail_response.json(), list_response.json()["results"][0])
+        self.assertEqual(
+            list_response.json()["results"][0]["id"],
+            detail_response.json()["id"],
+        )
         self.assertEqual(
             set(detail_response.json()),
             {
@@ -376,11 +552,271 @@ class EmployeeDetailV1ApiTests(APITestCase):
                 "is_active",
                 "current_statuses",
                 "superiors",
+                "birth_date",
+                "email",
+                "contract_quotity",
+                "project_quotity",
+                "contribution_quotity",
+                "active_milestones_count",
             },
         )
-        self.assertNotIn("email", detail_response.json())
-        self.assertNotIn("birth_date", detail_response.json())
+        self.assertEqual(detail_response.json()["birth_date"], "1990-03-04")
+        self.assertEqual(detail_response.json()["email"], "bob@example.com")
+        self.assertEqual(detail_response.json()["contract_quotity"], "0.500")
+        self.assertEqual(detail_response.json()["project_quotity"], "0.250")
+        self.assertIsNone(detail_response.json()["contribution_quotity"])
+        self.assertEqual(detail_response.json()["active_milestones_count"], 3)
         self.assertNotIn("user", detail_response.json())
+        self.assertNotIn("email", list_response.json()["results"][0])
+
+
+@override_settings(
+    CSRF_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=False,
+    SECURE_SSL_REDIRECT=False,
+)
+class EmployeeGenericInfoV1ApiTests(APITestCase):
+    def create_user(self, username):
+        return get_user_model().objects.create_user(
+            username=username,
+            password="test-password",
+        )
+
+    def create_employee(self, first_name, last_name, user=None):
+        return Employee.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            user=user,
+        )
+
+    def url(self, employee_id):
+        return reverse("api_v1:employee-generic-info", kwargs={"pk": employee_id})
+
+    def login(self, user):
+        self.assertTrue(self.client.login(username=user.username, password="test-password"))
+
+    def grant_global_view(self, user):
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="staff",
+                codename="view_employee",
+            )
+        )
+
+    def test_visible_employee_generic_info_contract_is_read_only(self):
+        user = self.create_user("generic-info-viewer")
+        employee = self.create_employee("Generic", "Target")
+        phone = GenericInfoType.objects.create(
+            name="Téléphone",
+            icon="style:fas,icon:phone",
+        )
+        info = GenericInfo.objects.create(
+            employee=employee,
+            info=phone,
+            value="01 02 03 04 05",
+        )
+        self.grant_global_view(user)
+        self.login(user)
+
+        response = self.client.get(self.url(employee.pk))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["items"],
+            [{
+                "id": info.pk,
+                "type": {
+                    "id": phone.pk,
+                    "name": "Téléphone",
+                    "icon": "style:fas,icon:phone",
+                },
+                "value": "01 02 03 04 05",
+            }],
+        )
+
+    def test_visible_employee_without_generic_info_returns_empty_collection(self):
+        user = self.create_user("empty-generic-info")
+        employee = self.create_employee("Empty", "Info", user=user)
+        self.login(user)
+
+        response = self.client.get(self.url(employee.pk))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["items"], [])
+
+    def test_unknown_or_out_of_scope_employee_returns_not_found(self):
+        user = self.create_user("hidden-generic-info")
+        self.create_employee("Own", "Employee", user=user)
+        hidden = self.create_employee("Hidden", "Employee")
+        self.login(user)
+
+        self.assertEqual(self.client.get(self.url(hidden.pk)).status_code, 404)
+        self.assertEqual(self.client.get(self.url(999999)).status_code, 404)
+
+
+@override_settings(
+    CSRF_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=False,
+    SECURE_SSL_REDIRECT=False,
+)
+class EmployeeMilestoneV1ApiTests(APITestCase):
+    def create_user(self, username):
+        return get_user_model().objects.create_user(
+            username=username,
+            password="test-password",
+        )
+
+    def create_employee(self, first_name, last_name, user=None):
+        return Employee.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            user=user,
+        )
+
+    def create_milestone(self, project, name, employees, **fields):
+        milestone = Milestones.objects.create(
+            project=project,
+            name=name,
+            **fields,
+        )
+        milestone.employee.set(employees)
+        return milestone
+
+    def url(self, employee_id):
+        return reverse("api_v1:employee-milestones", kwargs={"pk": employee_id})
+
+    def login(self, user):
+        self.assertTrue(
+            self.client.login(username=user.username, password="test-password")
+        )
+
+    def test_context_returns_all_assigned_milestones_without_expanding_scopes(self):
+        user = self.create_user("milestone-context-viewer")
+        viewer = self.create_employee("Alice", "Manager", user=user)
+        target = self.create_employee("Bob", "Visible")
+        hidden_colleague = self.create_employee("Cara", "Hidden")
+        Employee_Superior.objects.create(
+            employee=target,
+            superior=viewer,
+        )
+        visible_project = Project.objects.create(name="Visible project")
+        hidden_project = Project.objects.create(name="Context only project")
+        Participant.objects.create(project=visible_project, employee=viewer)
+        visible = self.create_milestone(
+            visible_project,
+            "Visible task",
+            [target],
+            start_date=date.today(),
+        )
+        contextual = self.create_milestone(
+            hidden_project,
+            "Contextual milestone",
+            [target, viewer, hidden_colleague],
+            desc="Full contextual description",
+            type="q",
+            quotity=Decimal("0.650"),
+        )
+        self.login(user)
+
+        response = self.client.get(self.url(target.pk))
+
+        self.assertEqual(response.status_code, 200)
+        by_id = {item["id"]: item for item in response.json()}
+        self.assertEqual(set(by_id), {visible.pk, contextual.pk})
+        self.assertTrue(by_id[visible.pk]["project"]["can_view"])
+        self.assertFalse(by_id[contextual.pk]["project"]["can_view"])
+        self.assertEqual(by_id[visible.pk]["work_kind"], "task")
+        self.assertEqual(by_id[contextual.pk]["work_kind"], "milestone")
+        self.assertEqual(by_id[contextual.pk]["quotity"], "0.650")
+        employee_visibility = {
+            item["id"]: item["can_view"]
+            for item in by_id[contextual.pk]["employees"]
+        }
+        self.assertEqual(
+            employee_visibility,
+            {
+                target.pk: True,
+                viewer.pk: True,
+                hidden_colleague.pk: False,
+            },
+        )
+        self.assertEqual(
+            self.client.get(
+                reverse(
+                    "api_v1:employee-detail",
+                    kwargs={"pk": hidden_colleague.pk},
+                )
+            ).status_code,
+            404,
+        )
+
+    def test_classification_uses_viewer_due_soon_setting_and_strict_order(self):
+        today = date.today()
+        user = self.create_user("milestone-state-viewer")
+        target = self.create_employee("State", "Viewer", user=user)
+        project = Project.objects.create(name="State project")
+        LMUserSetting.objects.create(
+            key="NOTIFICATION_ENDPOINTS_MILESTONES_STALE",
+            value="3",
+            user=user,
+        )
+        milestones = {
+            "completed": self.create_milestone(
+                project,
+                "Completed",
+                [target],
+                status=True,
+                end_date=today - timedelta(days=5),
+            ),
+            "overdue": self.create_milestone(
+                project,
+                "Overdue",
+                [target],
+                end_date=today - timedelta(days=2),
+            ),
+            "due_soon": self.create_milestone(
+                project,
+                "Due boundary",
+                [target],
+                end_date=today + timedelta(days=3),
+            ),
+            "planned": self.create_milestone(
+                project,
+                "Planned",
+                [target],
+                start_date=today + timedelta(days=4),
+            ),
+            "in_progress": self.create_milestone(
+                project,
+                "In progress",
+                [target],
+                start_date=today - timedelta(days=1),
+                end_date=today + timedelta(days=4),
+            ),
+        }
+        self.login(user)
+
+        response = self.client.get(self.url(target.pk))
+
+        self.assertEqual(response.status_code, 200)
+        by_name = {item["name"]: item for item in response.json()}
+        for expected_state, milestone in milestones.items():
+            self.assertEqual(
+                by_name[milestone.name]["display_state"],
+                expected_state,
+            )
+        self.assertEqual(by_name["Overdue"]["days_to_due"], -2)
+        self.assertEqual(by_name["Due boundary"]["days_to_due"], 3)
+        self.assertIsNone(by_name["Planned"]["days_to_due"])
+
+    def test_unknown_and_out_of_scope_employee_are_both_not_found(self):
+        user = self.create_user("milestone-hidden-viewer")
+        self.create_employee("Own", "Employee", user=user)
+        hidden = self.create_employee("Hidden", "Employee")
+        self.login(user)
+
+        self.assertEqual(self.client.get(self.url(hidden.pk)).status_code, 404)
+        self.assertEqual(self.client.get(self.url(999999)).status_code, 404)
 
 
 @override_settings(
@@ -1134,3 +1570,764 @@ class EmployeeProjectParticipationV1ApiTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(set(self.response_ids(response)), {current.pk, historic.pk})
+
+
+@override_settings(
+    CSRF_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=False,
+    SECURE_SSL_REDIRECT=False,
+)
+class EmployeeProjectWorkloadV1ApiTests(APITestCase):
+    def create_user(self, username):
+        return get_user_model().objects.create_user(username=username, password="test-password")
+
+    def create_employee(self, first_name, last_name, user=None):
+        return Employee.objects.create(first_name=first_name, last_name=last_name, user=user)
+
+    def create_project(self, name):
+        return Project.objects.create(name=name)
+
+    def create_participation(self, employee, project, **fields):
+        return Participant.objects.create(employee=employee, project=project, **fields)
+
+    def login(self, user):
+        self.assertTrue(self.client.login(username=user.username, password="test-password"))
+
+    def url(self, employee_id):
+        return reverse("api_v1:employee-project-workload", kwargs={"pk": employee_id})
+
+    def bounded(self, employee_id, start="2026-01-01", end="2026-01-31"):
+        return self.client.get(self.url(employee_id), {"start": start, "end": end})
+
+    def test_visible_employee_and_out_of_scope_employee(self):
+        user = self.create_user("workload-scope")
+        visible = self.create_employee("Visible", "Employee", user=user)
+        hidden = self.create_employee("Hidden", "Employee")
+        self.login(user)
+
+        self.assertEqual(self.bounded(visible.pk).status_code, 200)
+        self.assertEqual(self.bounded(hidden.pk).status_code, 404)
+
+    def test_contextual_projects_are_all_returned_with_independent_can_view(self):
+        user = self.create_user("workload-project-scope")
+        viewer = self.create_employee("Project", "Viewer", user=user)
+        employee = self.create_employee("Project", "Scope")
+        Employee_Superior.objects.create(employee=employee, superior=viewer)
+        visible_project = self.create_project("Visible project")
+        hidden_project = self.create_project("Hidden project")
+        self.create_participation(viewer, visible_project, quotity="0.100")
+        self.create_participation(employee, visible_project, quotity="0.400")
+        self.create_participation(employee, hidden_project, quotity="0.300")
+        self.login(user)
+
+        response = self.bounded(employee.pk)
+
+        self.assertEqual(response.status_code, 200)
+        projects = response.json()["segments"][0]["projects"]
+        self.assertEqual({item["id"] for item in projects}, {visible_project.pk, hidden_project.pk})
+        by_id = {item["id"]: item for item in projects}
+        self.assertTrue(by_id[visible_project.pk]["can_view"])
+        self.assertFalse(by_id[hidden_project.pk]["can_view"])
+
+    def test_intersection_overlap_aggregation_and_zero_periods(self):
+        user = self.create_user("workload-segments")
+        employee = self.create_employee("Segment", "Employee", user=user)
+        alpha = self.create_project("Alpha")
+        beta = self.create_project("Beta")
+        outside = self.create_project("Outside")
+        self.create_participation(employee, alpha, start_date=date(2026, 1, 5), end_date=date(2026, 1, 15), quotity="0.600")
+        self.create_participation(employee, alpha, start_date=date(2026, 1, 10), end_date=date(2026, 1, 20), quotity="0.400")
+        self.create_participation(employee, beta, start_date=date(2026, 1, 10), end_date=date(2026, 1, 12), quotity="0.500")
+        self.create_participation(employee, outside, end_date=date(2025, 12, 31), quotity="1.000")
+        self.login(user)
+
+        response = self.bounded(employee.pk)
+
+        self.assertEqual(response.status_code, 200)
+        segments = response.json()["segments"]
+        self.assertEqual([(item["start"], item["end"]) for item in segments], [
+            ("2026-01-01", "2026-01-04"),
+            ("2026-01-05", "2026-01-09"),
+            ("2026-01-10", "2026-01-12"),
+            ("2026-01-13", "2026-01-15"),
+            ("2026-01-16", "2026-01-20"),
+            ("2026-01-21", "2026-01-31"),
+        ])
+        self.assertEqual([item["total_quotity"] for item in segments], ["0", "0.600", "1.500", "1.000", "0.400", "0"])
+        peak = segments[2]
+        self.assertEqual(next(item["quotity"] for item in peak["projects"] if item["id"] == alpha.pk), "1.000")
+        for segment in segments:
+            self.assertEqual(Decimal(segment["total_quotity"]), sum((Decimal(item["quotity"]) for item in segment["projects"]), Decimal("0")))
+        self.assertNotIn(outside.pk, {item["id"] for segment in segments for item in segment["projects"]})
+
+    def test_open_dates_follow_active_date_semantics_in_bounded_window(self):
+        user = self.create_user("workload-open-dates")
+        employee = self.create_employee("Open", "Dates", user=user)
+        project = self.create_project("Always")
+        self.create_participation(employee, project, end_date=date(2026, 1, 10), quotity="0.300")
+        self.create_participation(employee, project, start_date=date(2026, 1, 20), quotity="0.700")
+        self.login(user)
+
+        segments = self.bounded(employee.pk).json()["segments"]
+
+        self.assertEqual([(item["start"], item["end"], item["total_quotity"]) for item in segments], [
+            ("2026-01-01", "2026-01-10", "0.300"),
+            ("2026-01-11", "2026-01-19", "0"),
+            ("2026-01-20", "2026-01-31", "0.700"),
+        ])
+
+    def test_invalid_and_ambiguous_ranges_are_rejected(self):
+        user = self.create_user("workload-invalid")
+        employee = self.create_employee("Invalid", "Range", user=user)
+        self.login(user)
+
+        requests = [
+            {},
+            {"start": "2026-01-01"},
+            {"start": "bad", "end": "2026-01-31"},
+            {"start": "2026-02-01", "end": "2026-01-31"},
+            {"range": "all", "start": "2026-01-01"},
+            {"range": "unknown"},
+        ]
+        for params in requests:
+            with self.subTest(params=params):
+                self.assertEqual(self.client.get(self.url(employee.pk), params).status_code, 400)
+
+    def test_range_all_preserves_open_bounds_without_invented_dates(self):
+        user = self.create_user("workload-all-open")
+        viewer = self.create_employee("All", "Viewer", user=user)
+        employee = self.create_employee("All", "Open")
+        Employee_Superior.objects.create(employee=employee, superior=viewer)
+        project = self.create_project("Open project")
+        self.create_participation(employee, project, quotity="1.200")
+        self.login(user)
+
+        response = self.client.get(self.url(employee.pk), {"range": "all"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["range"], {"start": None, "end": None})
+        self.assertEqual(response.json()["segments"], [{
+            "start": None,
+            "end": None,
+            "total_quotity": "1.200",
+            "projects": [{
+                "id": project.pk,
+                "name": "Open project",
+                "quotity": "1.200",
+                "can_view": False,
+            }],
+        }])
+
+    def test_range_all_uses_natural_finite_extent_and_exact_boundaries(self):
+        user = self.create_user("workload-all-finite")
+        employee = self.create_employee("All", "Finite", user=user)
+        project = self.create_project("Finite project")
+        self.create_participation(employee, project, start_date=date(2024, 2, 1), end_date=date(2024, 2, 29), quotity="1.000")
+        self.login(user)
+
+        response = self.client.get(self.url(employee.pk), {"range": "all"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["range"], {"start": "2024-02-01", "end": "2024-02-29"})
+        self.assertEqual(response.json()["segments"][0]["start"], "2024-02-01")
+        self.assertEqual(response.json()["segments"][0]["end"], "2024-02-29")
+
+
+@override_settings(
+    CSRF_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=False,
+    SECURE_SSL_REDIRECT=False,
+)
+class EmployeeContributionV1ApiTests(APITestCase):
+    def setUp(self):
+        self.today = date.today()
+        self.hr_root = Cost_Type.objects.create(
+            short_name="HR", name="Human resources", is_hr=True
+        )
+        self.hr_child = Cost_Type.objects.create(
+            short_name="SAL", name="Salary", parent=self.hr_root, is_hr=False
+        )
+        self.employee_type = Employee_Type.objects.create(
+            shortname="RES", name="Researcher"
+        )
+        self.contract_type = Contract_type.objects.create(name="Permanent")
+
+    def create_user(self, username):
+        return get_user_model().objects.create_user(
+            username=username, password="test-password"
+        )
+
+    def create_employee(self, first_name, last_name, user=None):
+        return Employee.objects.create(
+            first_name=first_name, last_name=last_name, user=user
+        )
+
+    def create_fund(self, name):
+        project = Project.objects.create(name=f"{name} project")
+        funder = Fund_Institution.objects.create(
+            short_name=f"F{name[:4]}", name=f"{name} funder"
+        )
+        institution = Institution.objects.create(
+            short_name=f"I{name[:4]}", name=f"{name} institution"
+        )
+        return Fund.objects.create(
+            project=project,
+            funder=funder,
+            institution=institution,
+            ref=f"REF-{name}",
+        )
+
+    def create_contribution(self, employee, fund, **fields):
+        contribution = Contribution.objects.create(
+            employee=employee,
+            fund=fund,
+            cost_type=self.hr_child,
+            **fields,
+        )
+        return contribution
+
+    def login(self, user):
+        self.assertTrue(
+            self.client.login(username=user.username, password="test-password")
+        )
+
+    def grant_global_employee_view(self, user):
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="staff", codename="view_employee"
+            )
+        )
+
+    def list_url(self, employee):
+        return reverse("api_v1:employee-contributions", kwargs={"pk": employee.pk})
+
+    def workload_url(self, employee):
+        return reverse(
+            "api_v1:employee-contribution-workload", kwargs={"pk": employee.pk}
+        )
+
+    def bounded(self, employee, start="2026-01-01", end="2026-01-31"):
+        return self.client.get(
+            self.workload_url(employee), {"start": start, "end": end}
+        )
+
+    def test_employee_gate_and_contextual_collection_prevent_cross_employee_leaks(self):
+        user = self.create_user("contribution-scope")
+        own = self.create_employee("Own", "Employee", user=user)
+        hidden = self.create_employee("Hidden", "Employee")
+        own_contribution = self.create_contribution(
+            own, self.create_fund("Own"), quotity=Decimal("0.200")
+        )
+        hidden_contribution = self.create_contribution(
+            hidden, self.create_fund("Hidden"), quotity=Decimal("0.900")
+        )
+        self.login(user)
+
+        self.assertEqual(self.client.get(self.list_url(hidden)).status_code, 404)
+        self.grant_global_employee_view(user)
+
+        response = self.client.get(self.list_url(own))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.json()], [own_contribution.pk])
+        self.assertNotIn(hidden_contribution.pk, [item["id"] for item in response.json()])
+
+    def test_list_serializes_relations_hr_descendant_and_temporal_states(self):
+        user = self.create_user("contribution-list")
+        employee = self.create_employee("List", "Employee", user=user)
+        fund = self.create_fund("List")
+        current = self.create_contribution(
+            employee,
+            fund,
+            start_date=None,
+            end_date=None,
+            quotity=Decimal("0.500"),
+            amount=Decimal("12000.00"),
+            desc="Salary valorisation",
+            emp_type=self.employee_type,
+        )
+        current.contract_type.add(self.contract_type)
+        future = self.create_contribution(
+            employee,
+            fund,
+            start_date=self.today + timedelta(days=1),
+            quotity=Decimal("0.250"),
+        )
+        past = self.create_contribution(
+            employee,
+            fund,
+            end_date=self.today - timedelta(days=1),
+            quotity=Decimal("0.100"),
+        )
+        self.login(user)
+
+        response = self.client.get(self.list_url(employee))
+
+        self.assertEqual(response.status_code, 200)
+        by_id = {item["id"]: item for item in response.json()}
+        self.assertEqual(by_id[current.pk]["temporal_state"], "current")
+        self.assertEqual(by_id[future.pk]["temporal_state"], "future")
+        self.assertEqual(by_id[past.pk]["temporal_state"], "past")
+        self.assertTrue(by_id[current.pk]["cost_type"]["is_hr"])
+        self.assertEqual(by_id[current.pk]["fund"]["project"]["name"], fund.project.name)
+        self.assertEqual(by_id[current.pk]["employee_type"]["code"], "RES")
+        self.assertEqual(by_id[current.pk]["contract_types"][0]["name"], "Permanent")
+        self.assertEqual(by_id[current.pk]["amount"], "12000.00")
+
+    def test_workload_aggregates_overlaps_and_excludes_other_employee(self):
+        user = self.create_user("contribution-workload")
+        employee = self.create_employee("Timeline", "Employee", user=user)
+        other = self.create_employee("Other", "Employee")
+        alpha = self.create_fund("Alpha")
+        beta = self.create_fund("Beta")
+        self.create_contribution(
+            employee,
+            alpha,
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 1, 20),
+            quotity=Decimal("0.600"),
+        )
+        self.create_contribution(
+            employee,
+            beta,
+            start_date=date(2026, 1, 10),
+            end_date=date(2026, 1, 31),
+            quotity=Decimal("0.700"),
+        )
+        leaked = self.create_contribution(
+            other,
+            self.create_fund("Leak"),
+            quotity=Decimal("1.000"),
+        )
+        self.login(user)
+
+        response = self.bounded(employee)
+
+        self.assertEqual(response.status_code, 200)
+        segments = response.json()["segments"]
+        self.assertEqual(
+            [(item["start"], item["end"], item["total_quotity"]) for item in segments],
+            [
+                ("2026-01-01", "2026-01-09", "0.600"),
+                ("2026-01-10", "2026-01-20", "1.300"),
+                ("2026-01-21", "2026-01-31", "0.700"),
+            ],
+        )
+        ids = {
+            item["id"]
+            for segment in segments
+            for item in segment["contributions"]
+        }
+        self.assertNotIn(leaked.pk, ids)
+
+    def test_workload_preserves_open_bounds(self):
+        user = self.create_user("contribution-open")
+        employee = self.create_employee("Open", "Employee", user=user)
+        contribution = self.create_contribution(
+            employee,
+            self.create_fund("Open"),
+            start_date=None,
+            end_date=None,
+            quotity=Decimal("0.400"),
+        )
+        self.login(user)
+
+        response = self.client.get(self.workload_url(employee), {"range": "all"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["range"], {"start": None, "end": None})
+        self.assertEqual(response.json()["segments"][0]["start"], None)
+        self.assertEqual(response.json()["segments"][0]["end"], None)
+        self.assertEqual(response.json()["segments"][0]["total_quotity"], "0.400")
+        self.assertEqual(
+            response.json()["segments"][0]["contributions"][0]["id"],
+            contribution.pk,
+        )
+
+
+@override_settings(
+    CSRF_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=False,
+    SECURE_SSL_REDIRECT=False,
+)
+class EmployeeBudgetV1ApiTests(APITestCase):
+    def setUp(self):
+        self.hr_root = Cost_Type.objects.create(
+            short_name="HRB", name="HR budgets", is_hr=True
+        )
+        self.hr_child = Cost_Type.objects.create(
+            short_name="PAY", name="Personnel", parent=self.hr_root, is_hr=False
+        )
+        self.employee_type = Employee_Type.objects.create(
+            shortname="ENG", name="Engineer"
+        )
+        self.contract_type = Contract_type.objects.create(name="Fixed term")
+
+    def create_user(self, username):
+        return get_user_model().objects.create_user(
+            username=username, password="test-password"
+        )
+
+    def create_employee(self, first_name, last_name, user=None):
+        return Employee.objects.create(
+            first_name=first_name, last_name=last_name, user=user
+        )
+
+    def create_fund(self, name):
+        project = Project.objects.create(name=f"{name} project")
+        funder = Fund_Institution.objects.create(
+            short_name=f"F{name[:4]}", name=f"{name} funder"
+        )
+        institution = Institution.objects.create(
+            short_name=f"I{name[:4]}", name=f"{name} institution"
+        )
+        return Fund.objects.create(
+            project=project,
+            funder=funder,
+            institution=institution,
+            ref=f"REF-{name}",
+        )
+
+    def create_budget(self, employee, fund, **fields):
+        return Budget.objects.create(
+            employee=employee,
+            fund=fund,
+            cost_type=self.hr_child,
+            **fields,
+        )
+
+    def login(self, user):
+        self.assertTrue(
+            self.client.login(username=user.username, password="test-password")
+        )
+
+    def grant_global_employee_view(self, user):
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="staff", codename="view_employee"
+            )
+        )
+
+    def url(self, employee):
+        return reverse("api_v1:employee-budgets", kwargs={"pk": employee.pk})
+
+    def test_employee_gate_and_contextual_collection_prevent_cross_employee_leaks(self):
+        user = self.create_user("budget-scope")
+        own = self.create_employee("Own", "Employee", user=user)
+        other = self.create_employee("Other", "Visible")
+        own_budget = self.create_budget(own, self.create_fund("Own"))
+        other_budget = self.create_budget(other, self.create_fund("Other"))
+        self.login(user)
+
+        self.assertEqual(self.client.get(self.url(other)).status_code, 404)
+        self.grant_global_employee_view(user)
+
+        response = self.client.get(self.url(own))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.json()], [own_budget.pk])
+        self.assertNotIn(other_budget.pk, [item["id"] for item in response.json()])
+
+    def test_hr_descendant_relations_and_normal_financial_values(self):
+        user = self.create_user("budget-normal")
+        employee = self.create_employee("Budget", "Employee", user=user)
+        fund = self.create_fund("Normal")
+        budget = self.create_budget(
+            employee,
+            fund,
+            emp_type=self.employee_type,
+            quotity=Decimal("0.500"),
+            desc="Research engineer",
+            amount=Decimal("80000.00"),
+            expense=Decimal("54000.00"),
+        )
+        budget.contract_type.add(self.contract_type)
+        self.login(user)
+
+        response = self.client.get(self.url(employee))
+
+        self.assertEqual(response.status_code, 200)
+        item = response.json()[0]
+        self.assertEqual(item["fund"]["project"]["name"], fund.project.name)
+        self.assertTrue(item["cost_type"]["is_hr"])
+        self.assertEqual(item["employee_type"]["code"], "ENG")
+        self.assertEqual(item["contract_types"][0]["name"], "Fixed term")
+        self.assertEqual(item["amount"], "80000.00")
+        self.assertEqual(item["consumed"], "54000.00")
+        self.assertEqual(item["available"], "26000.00")
+        self.assertEqual(item["consumption_ratio"], "0.675")
+        self.assertNotIn("expense", item)
+        self.assertEqual(budget.available, Decimal("26000.00"))
+        self.assertEqual(budget.get_consumption_ratio(), Decimal("0.675"))
+
+    def test_zero_and_null_amounts_do_not_invent_ratios(self):
+        user = self.create_user("budget-non-calculable")
+        employee = self.create_employee("Zero", "Budget", user=user)
+        fund = self.create_fund("Zero")
+        zero = self.create_budget(
+            employee,
+            fund,
+            amount=Decimal("0.00"),
+            expense=Decimal("10.00"),
+        )
+        nulls = self.create_budget(
+            employee,
+            fund,
+            amount=None,
+            expense=None,
+        )
+        self.login(user)
+
+        response = self.client.get(self.url(employee))
+
+        by_id = {item["id"]: item for item in response.json()}
+        self.assertEqual(by_id[zero.pk]["consumed"], "10.00")
+        self.assertEqual(by_id[zero.pk]["available"], "-10.00")
+        self.assertIsNone(by_id[zero.pk]["consumption_ratio"])
+        self.assertIsNone(by_id[nulls.pk]["amount"])
+        self.assertIsNone(by_id[nulls.pk]["consumed"])
+        self.assertIsNone(by_id[nulls.pk]["available"])
+        self.assertIsNone(by_id[nulls.pk]["consumption_ratio"])
+
+    def test_overconsumption_keeps_true_ratio_and_negative_available(self):
+        user = self.create_user("budget-overrun")
+        employee = self.create_employee("Over", "Budget", user=user)
+        budget = self.create_budget(
+            employee,
+            self.create_fund("Overrun"),
+            amount=Decimal("100.00"),
+            expense=Decimal("112.00"),
+        )
+        self.login(user)
+
+        item = self.client.get(self.url(employee)).json()[0]
+
+        self.assertEqual(item["id"], budget.pk)
+        self.assertEqual(item["consumed"], "112.00")
+        self.assertEqual(item["available"], "-12.00")
+        self.assertEqual(item["consumption_ratio"], "1.12")
+
+    def test_negative_expense_is_preserved_as_a_refund(self):
+        user = self.create_user("budget-refund")
+        employee = self.create_employee("Refund", "Budget", user=user)
+        budget = self.create_budget(
+            employee,
+            self.create_fund("Refund"),
+            amount=Decimal("40000.00"),
+            expense=Decimal("-1000.00"),
+        )
+        self.login(user)
+
+        item = self.client.get(self.url(employee)).json()[0]
+
+        self.assertEqual(item["id"], budget.pk)
+        self.assertEqual(item["consumed"], "-1000.00")
+        self.assertEqual(item["available"], "41000.00")
+        self.assertEqual(item["consumption_ratio"], "-0.025")
+        self.assertEqual(budget.available, Decimal("41000.00"))
+        self.assertEqual(budget.get_consumption_ratio(), Decimal("-0.025"))
+
+
+@override_settings(
+    CSRF_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=False,
+    SECURE_SSL_REDIRECT=False,
+)
+class EmployeeContractV1ApiTests(APITestCase):
+    def setUp(self):
+        self.today = date.today()
+        self.contract_type = Contract_type.objects.create(name="Doctoral")
+        self.cost_type = Cost_Type.objects.create(
+            short_name="SAL", name="Salary", is_hr=True
+        )
+
+    def create_user(self, username):
+        return get_user_model().objects.create_user(
+            username=username, password="test-password"
+        )
+
+    def create_employee(self, first_name, last_name, user=None):
+        return Employee.objects.create(
+            first_name=first_name, last_name=last_name, user=user
+        )
+
+    def create_fund(self, name, suffix=""):
+        project = Project.objects.create(name=f"{name} project {suffix}".strip())
+        funder = Fund_Institution.objects.create(
+            short_name=f"F{suffix or name[:2]}", name=f"{name} Funder {suffix}".strip()
+        )
+        institution = Institution.objects.create(
+            short_name=f"I{suffix or name[:2]}", name=f"{name} Institution {suffix}".strip()
+        )
+        return Fund.objects.create(
+            project=project,
+            funder=funder,
+            institution=institution,
+            ref=f"REF-{suffix or name}",
+        )
+
+    def create_contract(self, employee, fund, **fields):
+        return Contract.objects.create(
+            employee=employee,
+            fund=fund,
+            contract_type=self.contract_type,
+            **fields,
+        )
+
+    def login(self, user):
+        self.assertTrue(
+            self.client.login(username=user.username, password="test-password")
+        )
+
+    def list_url(self, employee):
+        return reverse("api_v1:employee-contracts", kwargs={"pk": employee.pk})
+
+    def detail_url(self, employee, contract):
+        return reverse(
+            "api_v1:employee-contract-detail",
+            kwargs={"pk": employee.pk, "contract_pk": contract.pk},
+        )
+
+    def grant(self, user, app_label, codename):
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label=app_label, codename=codename
+            )
+        )
+
+    def test_employee_gate_then_contextual_contract_collection(self):
+        user = self.create_user("contract-scope")
+        own = self.create_employee("Own", "Viewer", user=user)
+        hidden = self.create_employee("Hidden", "Employee")
+        hidden_contract = self.create_contract(hidden, self.create_fund("Hidden"))
+        self.login(user)
+
+        self.assertEqual(self.client.get(self.list_url(hidden)).status_code, 404)
+        self.assertEqual(
+            self.client.get(self.detail_url(hidden, hidden_contract)).status_code,
+            404,
+        )
+
+        self.grant(user, "staff", "view_employee")
+        response = self.client.get(self.list_url(hidden))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.json()], [hidden_contract.pk])
+        self.assertEqual(
+            self.client.get(self.detail_url(hidden, hidden_contract)).status_code,
+            200,
+        )
+        self.assertNotEqual(own.pk, hidden.pk)
+
+    def test_subordinate_contracts_are_visible_and_classified_from_dates(self):
+        user = self.create_user("contract-manager")
+        manager = self.create_employee("Line", "Manager", user=user)
+        subordinate = self.create_employee("Visible", "Subordinate")
+        Employee_Superior.objects.create(employee=subordinate, superior=manager)
+        fund = self.create_fund("Scoped")
+        current_open = self.create_contract(
+            subordinate, fund, start_date=None, end_date=None, is_active=True
+        )
+        current_ending = self.create_contract(
+            subordinate, fund, end_date=self.today + timedelta(days=3), is_active=False
+        )
+        future = self.create_contract(
+            subordinate,
+            fund,
+            start_date=self.today + timedelta(days=2),
+            end_date=self.today + timedelta(days=30),
+            status="prov",
+        )
+        past = self.create_contract(
+            subordinate,
+            fund,
+            start_date=self.today - timedelta(days=30),
+            end_date=self.today - timedelta(days=1),
+        )
+        self.login(user)
+
+        response = self.client.get(self.list_url(subordinate))
+
+        self.assertEqual(response.status_code, 200)
+        items = response.json()
+        self.assertEqual(
+            [item["id"] for item in items],
+            [current_ending.pk, current_open.pk, future.pk, past.pk],
+        )
+        by_id = {item["id"]: item for item in items}
+        self.assertEqual(by_id[current_open.pk]["temporal_state"], "current")
+        self.assertEqual(by_id[future.pk]["temporal_state"], "future")
+        self.assertEqual(by_id[past.pk]["temporal_state"], "past")
+        self.assertTrue(by_id[current_open.pk]["requires_follow_up"])
+        self.assertFalse(by_id[current_ending.pk]["requires_follow_up"])
+        self.assertEqual(by_id[future.pk]["status"]["code"], "prov")
+
+    def test_fund_relations_and_independent_visibility_are_serialized(self):
+        user = self.create_user("contract-relations")
+        employee = self.create_employee("Relation", "Viewer", user=user)
+        fund = self.create_fund("Relation")
+        contract = self.create_contract(employee, fund)
+        Participant.objects.create(project=fund.project, employee=employee)
+        self.login(user)
+
+        without_permission = self.client.get(self.list_url(employee)).json()[0]
+        self.assertEqual(without_permission["fund"]["reference"], fund.ref)
+        self.assertEqual(without_permission["fund"]["project"]["name"], fund.project.name)
+        self.assertTrue(without_permission["fund"]["project"]["can_view"])
+        self.assertFalse(without_permission["fund"]["institution"]["can_view"])
+        self.assertIsNone(without_permission["fund"]["institution"]["url"])
+
+        self.grant(user, "common", "display_infos")
+        with_permission = self.client.get(self.list_url(employee)).json()[0]
+        self.assertTrue(with_permission["fund"]["institution"]["can_view"])
+        self.assertEqual(
+            with_permission["fund"]["institution"]["url"],
+            f"/infos/project/institution/{fund.institution_id}",
+        )
+        self.assertEqual(contract.employee_id, employee.pk)
+
+    def test_detail_loads_only_requested_contract_expenses_and_ignores_status(self):
+        user = self.create_user("contract-expenses")
+        employee = self.create_employee("Expense", "Viewer", user=user)
+        fund = self.create_fund("Expense")
+        other_fund = self.create_fund("Other", "2")
+        contract = self.create_contract(employee, fund, quotity=Decimal("0.500"))
+        other = self.create_contract(employee, other_fund)
+        first = Contract_expense.objects.create(
+            contract=contract,
+            fund_item=fund,
+            type=self.cost_type,
+            expense_id="PAY-1",
+            desc="First salary",
+            date=self.today,
+            amount=Decimal("120.00"),
+            status="e",
+        )
+        second = Contract_expense.objects.create(
+            contract=contract,
+            fund_item=fund,
+            type=self.cost_type,
+            expense_id="PAY-2",
+            desc="Correction",
+            date=self.today - timedelta(days=1),
+            amount=Decimal("-20.00"),
+            status="p",
+        )
+        Contract_expense.objects.create(
+            contract=other,
+            fund_item=other_fund,
+            type=self.cost_type,
+            date=self.today,
+            amount=Decimal("999.00"),
+            status="r",
+        )
+        self.login(user)
+
+        response = self.client.get(self.detail_url(employee, contract))
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["expense_count"], 2)
+        self.assertEqual(payload["expense_total"], "100.00")
+        self.assertEqual({item["id"] for item in payload["expenses"]}, {first.pk, second.pk})
+        self.assertNotIn("status", payload["expenses"][0])
+        self.assertEqual(payload["quotity"], "0.500")

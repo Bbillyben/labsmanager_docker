@@ -2,7 +2,6 @@ from django.contrib import admin
 from staff.models import Employee, Employee_Status, Employee_Type, Team, TeamMate, GenericInfoType, GenericInfo, Employee_Superior
 from django.utils.translation import gettext_lazy as _
 from .forms import TeamMateForm
-from labsmanager.admin import GenericInfoTypeAdmin
 from leave.models import Leave
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
@@ -20,6 +19,10 @@ from .ressources import EmployeeAdminResource
 #         fields = ('id', 'first_name', 'last_name', 'birth_date','entry_date', 'exit_date', 'is_active',)
         
         
+class EmployeeGenericInfoTypeAdmin(admin.ModelAdmin):
+    """Keep Employee type administration textual; Project retains FAIcon."""
+    list_display = ("name", "icon")
+
 # admin class
 class EmployeeStatusInline(admin.TabularInline):
     model = Employee_Status
@@ -89,4 +92,4 @@ admin.site.register(Employee_Type, EmployeeTypeAdmin)
 
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Employee_Status)
-admin.site.register(GenericInfoType, GenericInfoTypeAdmin)
+admin.site.register(GenericInfoType, EmployeeGenericInfoTypeAdmin)

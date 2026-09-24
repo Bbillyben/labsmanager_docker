@@ -1,5 +1,6 @@
 from django.utils.translation import gettext_lazy as _
-from django.utils.html import escape
+
+from common.calendar import CalendarType, LabsManagerCalendarEvent
 
 from plugin import LabManagerPlugin
 from plugin.mixins import SettingsMixin, ScheduleMixin, CalendarEventMixin
@@ -7,8 +8,9 @@ from plugin.mixins import SettingsMixin, ScheduleMixin, CalendarEventMixin
 from labsmanager.validators import RGBColorValidator
 from labsmanager import settings
 import json
+import gzip
 import datetime
-from pathlib import Path       
+from pathlib import Path
 import os
 import urllib.request
 import logging
@@ -46,7 +48,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             'type':'choices',
         },
      }
-    
+
     SCHEDULED_TASKS = {
         # Name of the task (will be prepended with the plugin name)
         'FHP_PULL': {
@@ -59,10 +61,10 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             "title":_("Vacation Zone Choice"),
             "type":"select",
             "choices":"get_vacation_zones_object",
-            "default":"get_default_zone", 
+            "default":"get_default_zone",
         }
     }
-    
+
 
     def activate(self):
         """Activate plugin calendarevent.
@@ -72,7 +74,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
         path = folder / "vac.json"
         if not path.is_file():
             self.__class__.FHP_pull()
-        
+
     def deactivate(self):
         logger.debug(f"[FHP] Start {self.__class__.__name__} deactivation .....")
 
@@ -95,11 +97,11 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                 logger.warning("[FHP] Unable to delete %s: %s", file_path, exc)
 
         logger.info("[FHP] Deleted %s file(s) from %s", delete_count, folder)
-        
+
     @classmethod
     def get_static_folder(cls):
         return Path(str(settings.MEDIA_ROOT)) / "frenchholliday"
-    
+
     @classmethod
     def FHP_pull(cls):
         logger.debug("[FrenchHollidayPlugin / FHP_pull] starting ...")
@@ -126,6 +128,9 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
 
                 with urllib.request.urlopen(req, timeout=30) as response:
                     raw_data = response.read()
+
+                if raw_data.startswith(b"\x1f\x8b"):
+                    raw_data = gzip.decompress(raw_data)
 
                 text_data = raw_data.decode("utf-8")
 
@@ -157,96 +162,89 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             vac_ok,
             fer_ok
         )
-    
-    @classmethod
-    def get_event(cls, request, event_list):  
-        if cls.get_calendar_type(request) in ("project_all", "project", "employee_project"):
-            return
 
-        nex_evt = cls.get_vacation_events(request) or []
-        event_list.extend(nex_evt)
-    
     @classmethod
-    def get_filters(cls, request, calendar_type, *args, **kwargs):
-        if calendar_type in ["main", "employee"]:
-            return super().get_filters(request, args, kwargs)
-        return {}
-        
-    @classmethod   
-    def get_vacation_events(cls, request):
-        folder = Path(cls.get_static_folder())        
-        
+    def get_calendar_events(cls, context):
+        if context.calendar_type in (
+            CalendarType.PROJECT_ALL,
+            CalendarType.PROJECT,
+            CalendarType.EMPLOYEE_PROJECT,
+        ):
+            return []
+        return cls.get_vacation_events(context)
+
+    @classmethod
+    def get_calendar_filters(cls, context):
+        if context.calendar_type in (CalendarType.MAIN, CalendarType.EMPLOYEE, CalendarType.EMPLOYEE_GANTT):
+            return super().get_calendar_filters(context)
+        return []
+
+    @classmethod
+    def get_vacation_events(cls, context):
+        folder = Path(cls.get_static_folder())
+
         vac_json = cls.load_json_file(folder / "vac.json", default=[])
         dayoff_json = cls.load_json_file(folder / "dayoff.json", default={})
-        
+
         if not isinstance(vac_json, list):
             logger.warning("[FHP] Unexpected format for vac.json: expected list")
             vac_json = []
 
         if not isinstance(dayoff_json, dict):
             logger.warning("[FHP] Unexpected format for dayoff.json: expected dict")
-            dayoff_json = {}    
-        
-        if "frenchholliday-zone" in request.POST:
-            zone = request.POST["frenchholliday-zone"]
-        else:
-            zone = cls.get_setting(cls(), key="FHP_VACATION_ZONE")
-        
+            dayoff_json = {}
+
+        zone = context.filters.get("frenchholliday-zone") or cls.get_setting(
+            cls(), key="FHP_VACATION_ZONE"
+        )
+
         color = cls.get_setting(cls(), key="FHP_COLOR")
         title = cls.get_setting(cls(), key="FHP_TITLE")
         logger.debug(f"[FHP]  vacation event parameters : zone :{zone} / color {color} / title :{title}")
-        
-        start = datetime.datetime(datetime.MINYEAR, 1, 1)
-        end = datetime.datetime(datetime.MAXYEAR, 12, 31)
 
-        if "start" in request.POST:
-            raw_start = request.POST.get("start")
-            try:
-                start = datetime.datetime.strptime(raw_start, "%Y-%m-%dT%H:%M:%SZ")
-            except Exception as exc:
-                logger.warning(
-                    "[FHP] Invalid start date from request skipped: value=%s error=%s",
-                    raw_start,
-                    exc
-                )
+        start = context.start or datetime.datetime(datetime.MINYEAR, 1, 1)
+        end = context.end or datetime.datetime(datetime.MAXYEAR, 12, 31)
+        if isinstance(start, datetime.date) and not isinstance(start, datetime.datetime):
+            start = datetime.datetime.combine(start, datetime.time.min)
+        if isinstance(end, datetime.date) and not isinstance(end, datetime.datetime):
+            end = datetime.datetime.combine(end, datetime.time.max)
 
-        if "end" in request.POST:
-            raw_end = request.POST.get("end")
-            try:
-                end = datetime.datetime.strptime(raw_end, "%Y-%m-%dT%H:%M:%SZ")
-            except Exception as exc:
-                logger.warning(
-                    "[FHP] Invalid end date from request skipped: value=%s error=%s",
-                    raw_end,
-                    exc
-                )
-            
         bg_color_vac=color
         bg_color_off=color
         # classname_color_vac="vacation"
         # classname_color_off="dayoff"
-        
+
         start = start.replace(tzinfo=None)
         end = end.replace(tzinfo=None)
-        
+
         data=[]
         unik = set()
         for v in vac_json:
             zone_value = v.get("zones")
             start_value = v.get("start_date")
             end_value = v.get("end_date")
-            description = v.get("description")  
+            description = v.get("description")
+            population = (v.get("population") or "").strip().lower()
+
+
             if zone_value  != zone:
                 continue
+
+            # The source dataset can contain separate dates for pupils and
+            # teachers, ..... LabsManager displays school holidays, so teacher-only
+            # => entries must not generate a second calendar period.
+            if "enseignant" in population and "élève" not in population:
+                continue
+
             if not start_value or not end_value or not description:
                 logger.warning("[FHP] Incomplete vacation entry skipped: %s", v)
-                continue    
+                continue
             key = (start_value, end_value, zone_value, description)
-            
+
             if key in unik:
                 continue
             unik.add(key)
-            
+
             try:
                 s = datetime.datetime.strptime(v['start_date'], "%Y-%m-%dT%H:%M:%S%z")
                 e = datetime.datetime.strptime(v['end_date'], "%Y-%m-%dT%H:%M:%S%z")
@@ -263,23 +261,20 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                 )
                 continue
             if (start<=e and s<=end):
-                tmp={
-                    'start': s.strftime('%Y-%m-%d'),
-                    'end': e.strftime('%Y-%m-%d'),
-                    'zone': escape(v['zones']),
-                    'desc': escape(v['description']),
-                    'display': 'background',
-                    'color': bg_color_vac,
-                    # 'className': classname_color_vac,
-                }
-                if title:
-                    tmp['title'] = (
-                        "<span style='color:black;margin-left:0.5em;'>"
-                        + escape(v['description'])
-                        + "</span>"
-                    )
-                data.append(tmp)
-                
+                description = str(v['description'])
+                data.append(LabsManagerCalendarEvent(
+                    id=f"frenchholliday:vacation:{zone}:{s.date()}:{e.date()}",
+                    title=description if title else "",
+                    start=s.date(),
+                    end=e.date(),
+                    source=cls.SLUG,
+                    kind="school_holiday",
+                    color=bg_color_vac,
+                    description=description,
+                    display="background",
+                    metadata={"zone": str(v['zones'])},
+                ))
+
         for item in dayoff_json:
             try:
                 d = datetime.datetime.strptime(item, "%Y-%m-%d")
@@ -293,23 +288,20 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                 )
                 continue
             if (start<=d and d<=end):
-                tmp={
-                    'start': item,
-                    #'end': e.strftime('%Y-%m-%d'),
-                    'desc': escape(dayoff_json[item]),
-                    'display': 'background',
-                    'color': bg_color_off,
-                    # 'className': classname_color_off,
-                }
-                if title:
-                    tmp['title'] = (
-                        "<span style='color:black;'>"
-                        + escape(dayoff_json[item])
-                        + "</span>"
-                    )
-                data.append(tmp)
-            
-        return  data  
+                description = str(dayoff_json[item])
+                data.append(LabsManagerCalendarEvent(
+                    id=f"frenchholliday:dayoff:{item}",
+                    title=description if title else "",
+                    start=d.date(),
+                    end=(d + datetime.timedelta(days=1)).date(),
+                    source=cls.SLUG,
+                    kind="public_holiday",
+                    color=bg_color_off,
+                    description=description,
+                    display="background",
+                ))
+
+        return  data
     @classmethod
     def get_vacation_zones_choices(cls):
             folder = Path(cls.get_static_folder())
@@ -329,7 +321,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
                 listZone.append((zone, zone))
                 unik.add(zone)
             listZone.sort(key=lambda x: x[1])
-            return listZone 
+            return listZone
     @classmethod
     def get_vacation_zones_object(cls):
         zones = cls.get_vacation_zones_choices() or []
@@ -351,4 +343,3 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             logger.warning("[FHP] Unable to read JSON file %s: %s", path, exc)
 
         return default
-    

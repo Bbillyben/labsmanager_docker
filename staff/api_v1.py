@@ -1,21 +1,417 @@
-from datetime import date
+from datetime import date, timedelta
+from decimal import Decimal
 
-from django.db.models import Case, F, IntegerField, Prefetch, Q, Value, When
+from django.db.models import Case, DateField, F, IntegerField, Prefetch, Q, Value, When
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from labsmanager.pagination import LabPagination
-from project.models import Participant
+from endpoints.models import MilestoneDependency, Milestones
+from expense.models import Contract, Contract_expense
+from fund.models import Budget, Contribution, Cost_Type
+from leave.calendar import leave_to_calendar_event
+from leave.models import Leave, Leave_Type
+from project.models import Participant, Project
+from settings.models import LMUserSetting
 
+from .permissions_v1 import generic_info_capabilities, leave_capabilities
 from .filters_v1 import EmployeeListV1Filter
-from .models import Employee, Employee_Status, Employee_Superior
+from .models import Employee, Employee_Status, Employee_Superior, GenericInfo, GenericInfoType
 from .serializers_v1 import (
+    EmployeeDetailV1Serializer,
+    EmployeeContractDetailV1Serializer,
+    EmployeeContractV1Serializer,
+    EmployeeBudgetV1Serializer,
+    EmployeeContributionV1Serializer,
+    EmployeeGenericInfoV1Serializer,
+    GenericInfoTypeV1Serializer,
+    GenericInfoWriteV1Serializer,
     EmployeeHierarchyV1Serializer,
+    EmployeeLeaveV1Serializer,
+    EmployeeLeaveWriteV1Serializer,
     EmployeeListV1Serializer,
+    EmployeeMilestoneV1Serializer,
     EmployeeStatusHistoryV1Serializer,
     ProjectParticipationV1Serializer,
 )
+
+from common.calendar import CalendarContext, CalendarService, CalendarType
+
+
+class EmployeeContractV1Mixin:
+    """Resolve Employee first, then expose its contextual Contracts."""
+
+    def get_employee(self):
+        if not hasattr(self, "_v1_employee"):
+            visible_employees = Employee.get_instances_for_user(
+                "view", self.request.user, Employee.objects.all()
+            )
+            self._v1_employee = get_object_or_404(
+                visible_employees, pk=self.kwargs["pk"]
+            )
+        return self._v1_employee
+
+    def get_contract_queryset(self):
+        employee = self.get_employee()
+        return Contract.objects.filter(employee=employee).select_related(
+            "employee",
+            "contract_type",
+            "fund__project",
+            "fund__funder",
+            "fund__institution",
+        )
+
+    def get_contract_context(self):
+        visible_project_ids = set(
+            Project.get_instances_for_user(
+                "view", self.request.user, Project.objects.all()
+            ).values_list("pk", flat=True)
+        )
+        return {
+            "request": self.request,
+            "today": timezone.localdate(),
+            "visible_project_ids": visible_project_ids,
+            "can_view_organizations": self.request.user.has_perm(
+                "common.display_infos"
+            ),
+        }
+
+
+class EmployeeContractListV1View(EmployeeContractV1Mixin, generics.ListAPIView):
+    """List scoped Contracts for one visible Employee in temporal groups."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmployeeContractV1Serializer
+    pagination_class = None
+
+    def get_queryset(self):
+        today = timezone.localdate()
+        future = Q(start_date__gt=today)
+        past = ~future & Q(end_date__lt=today)
+        return self.get_contract_queryset().annotate(
+            _v1_temporal_order=Case(
+                When(future, then=Value(1)),
+                When(past, then=Value(2)),
+                default=Value(0),
+                output_field=IntegerField(),
+            ),
+            _v1_current_end=Case(
+                When(future | past, then=Value(None)),
+                default=F("end_date"),
+                output_field=DateField(),
+            ),
+            _v1_future_start=Case(
+                When(future, then=F("start_date")),
+                default=Value(None),
+                output_field=DateField(),
+            ),
+            _v1_past_end=Case(
+                When(past, then=F("end_date")),
+                default=Value(None),
+                output_field=DateField(),
+            ),
+        ).order_by(
+            "_v1_temporal_order",
+            F("_v1_current_end").asc(nulls_last=True),
+            F("_v1_future_start").asc(nulls_last=True),
+            F("_v1_past_end").desc(nulls_last=True),
+            "pk",
+        )
+
+    def get_serializer_context(self):
+        return self.get_contract_context()
+
+
+class EmployeeContractDetailV1View(EmployeeContractV1Mixin, generics.RetrieveAPIView):
+    """Return one scoped Contract and its expenses on demand."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmployeeContractDetailV1Serializer
+    lookup_url_kwarg = "contract_pk"
+
+    def get_queryset(self):
+        return self.get_contract_queryset()
+
+    def get_object(self):
+        if not hasattr(self, "_v1_contract"):
+            self._v1_contract = super().get_object()
+        return self._v1_contract
+
+    def get_serializer_context(self):
+        context = self.get_contract_context()
+        contract = self.get_object()
+        context["contract_expenses"] = list(
+            Contract_expense.objects.filter(contract=contract)
+            .select_related("type")
+            .order_by(F("date").desc(), F("pk").desc())
+        )
+        return context
+
+
+class EmployeeContributionListV1View(generics.ListAPIView):
+    """List every Contribution attached to one visible Employee."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmployeeContributionV1Serializer
+    pagination_class = None
+
+    def get_queryset(self):
+        visible_employees = Employee.get_instances_for_user(
+            "view", self.request.user, Employee.objects.all()
+        )
+        employee = get_object_or_404(visible_employees, pk=self.kwargs["pk"])
+        today = timezone.localdate()
+        future = Q(start_date__gt=today)
+        past = ~future & Q(end_date__lt=today)
+        return (
+            Contribution.objects.filter(employee=employee)
+            .select_related("fund__project", "cost_type", "emp_type")
+            .prefetch_related("contract_type")
+            .annotate(
+                _v1_temporal_order=Case(
+                    When(future, then=Value(1)),
+                    When(past, then=Value(2)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                ),
+                _v1_current_end=Case(
+                    When(future | past, then=Value(None)),
+                    default=F("end_date"),
+                    output_field=DateField(),
+                ),
+                _v1_future_start=Case(
+                    When(future, then=F("start_date")),
+                    default=Value(None),
+                    output_field=DateField(),
+                ),
+                _v1_past_end=Case(
+                    When(past, then=F("end_date")),
+                    default=Value(None),
+                    output_field=DateField(),
+                ),
+            )
+            .order_by(
+                "_v1_temporal_order",
+                F("_v1_current_end").asc(nulls_last=True),
+                F("_v1_future_start").asc(nulls_last=True),
+                F("_v1_past_end").desc(nulls_last=True),
+                "pk",
+            )
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update(
+            today=timezone.localdate(),
+            hr_cost_type_ids=set(
+                Cost_Type.objects.filter(is_hr=True)
+                .get_descendants(include_self=True)
+                .values_list("pk", flat=True)
+            ),
+        )
+        return context
+
+
+class EmployeeBudgetListV1View(generics.ListAPIView):
+    """List Budget items explicitly attached to one visible Employee."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmployeeBudgetV1Serializer
+    pagination_class = None
+
+    def get_queryset(self):
+        visible_employees = Employee.get_instances_for_user(
+            "view", self.request.user, Employee.objects.all()
+        )
+        employee = get_object_or_404(visible_employees, pk=self.kwargs["pk"])
+        return (
+            Budget.objects.filter(employee=employee)
+            .select_related(
+                "fund__project",
+                "fund__funder",
+                "fund__institution",
+                "cost_type",
+                "emp_type",
+            )
+            .prefetch_related("contract_type")
+            .order_by("fund__project__name", "cost_type__name", "pk")
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["hr_cost_type_ids"] = set(
+            Cost_Type.objects.filter(is_hr=True)
+            .get_descendants(include_self=True)
+            .values_list("pk", flat=True)
+        )
+        return context
+
+
+def _v1_date_parameter(request, name, required=False):
+    """Parse an ISO date query parameter with a stable validation error."""
+    raw = request.query_params.get(name)
+    if not raw:
+        if required:
+            raise ValidationError({name: "This query parameter is required."})
+        return None
+    try:
+        return date.fromisoformat(raw)
+    except ValueError as exc:
+        raise ValidationError({name: "Expected an ISO date (YYYY-MM-DD)."}) from exc
+
+
+class EmployeeLeaveQuerysetMixin:
+    """Resolve Employee scope before loading its contextual Leave objects."""
+
+    def get_employee(self):
+        visible_employees = Employee.get_instances_for_user(
+                "view", self.request.user, Employee.objects.all()
+            )
+        print(f' ###########  EmployeeLeaveQuerysetMixin -> get_employee / visible_employees :{visible_employees}')
+        return get_object_or_404(visible_employees, pk=self.kwargs["pk"])
+
+    def get_leave_queryset(self, *, require_bounds=False):
+        employee = self.get_employee()
+        start = _v1_date_parameter(self.request, "from", required=require_bounds)
+        end = _v1_date_parameter(self.request, "to", required=require_bounds)
+        if start and end and start > end:
+            raise ValidationError({"to": "Must be on or after from."})
+
+        queryset = Leave.objects.filter(employee=employee).select_related("type")
+        if start:
+            queryset = queryset.filter(end_date__gte=start)
+        if end:
+            queryset = queryset.filter(start_date__lte=end)
+
+        leave_type = self.request.query_params.get("type")
+        if leave_type:
+            try:
+                queryset = queryset.filter(type_id=int(leave_type))
+            except ValueError as exc:
+                raise ValidationError({"type": "Expected a Leave type id."}) from exc
+        return queryset.order_by("start_date", "start_period", "end_date", "pk"), start, end
+
+
+class EmployeeLeaveListV1View(EmployeeLeaveQuerysetMixin, generics.ListAPIView):
+    """List Leave records belonging to one authorized Employee."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmployeeLeaveV1Serializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset, _start, _end = self.get_leave_queryset()
+        return queryset
+
+    def post(self, request, *args, **kwargs):
+        employee = self.get_employee()
+        if not leave_capabilities(request.user, employee)["can_add"]:
+            raise PermissionDenied()
+        serializer = EmployeeLeaveWriteV1Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        leave = serializer.save(employee=employee)
+        return Response(EmployeeLeaveV1Serializer(leave).data, status=201)
+
+
+class EmployeeLeaveCapabilitiesV1View(EmployeeLeaveQuerysetMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        return Response(leave_capabilities(request.user, self.get_employee()))
+
+
+class EmployeeLeaveDetailV1View(EmployeeLeaveQuerysetMixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_leave(self):
+        return get_object_or_404(
+            Leave.objects.select_related("type").filter(employee=self.get_employee()),
+            pk=self.kwargs["leave_id"],
+        )
+
+    def patch(self, request, *args, **kwargs):
+        leave = self.get_leave()
+        if not leave_capabilities(request.user, leave.employee)["can_change"]:
+            raise PermissionDenied()
+        serializer = EmployeeLeaveWriteV1Serializer(leave, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        return Response(EmployeeLeaveV1Serializer(serializer.save()).data)
+
+    def delete(self, request, *args, **kwargs):
+        leave = self.get_leave()
+        if not leave_capabilities(request.user, leave.employee)["can_delete"]:
+            raise PermissionDenied()
+        leave.delete()
+        return Response(status=204)
+
+
+class LeaveTypeCatalogueV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        return Response([{
+            "id": leave_type.pk,
+            "name": leave_type.name,
+            "short_name": leave_type.short_name,
+            "color": str(leave_type.color),
+            "parent_id": leave_type.parent_id,
+            "depth": leave_type.level,
+        } for leave_type in Leave_Type.objects.order_by("tree_id", "lft")])
+
+
+class EmployeeCalendarV1View(EmployeeLeaveQuerysetMixin, APIView):
+    """Aggregate bounded Employee Leave and plugin calendar events."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        gantt = request.query_params.get("context") == CalendarType.EMPLOYEE_GANTT.value
+        if gantt:
+            employee = self.get_employee()
+            start = _v1_date_parameter(request, "from", required=True)
+            end = _v1_date_parameter(request, "to", required=True)
+            if start > end:
+                raise ValidationError({"to": "Must be on or after from."})
+        else:
+            queryset, start, end = self.get_leave_queryset(require_bounds=True)
+        context = CalendarContext(
+            calendar_type=CalendarType.EMPLOYEE_GANTT if gantt else CalendarType.EMPLOYEE,
+            user=request.user,
+            start=start,
+            end=end,
+            employee_id=employee.pk if gantt else self.kwargs["pk"],
+            filters=request.query_params,
+        )
+        service = CalendarService()
+        core_events = []
+        if not gantt:
+            queryset = service.filter_calendar_queryset(queryset, context)
+            core_events = [leave_to_calendar_event(leave) for leave in queryset]
+        events = service.get_events(context, core_events)
+        return Response([event.as_dict() for event in events])
+
+
+class EmployeeCalendarFilterV1View(EmployeeLeaveQuerysetMixin, APIView):
+    """Expose plugin filters applicable to one authorized Employee calendar."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        employee = self.get_employee()
+        gantt = request.query_params.get("context") == CalendarType.EMPLOYEE_GANTT.value
+        context = CalendarContext(
+            calendar_type=CalendarType.EMPLOYEE_GANTT if gantt else CalendarType.EMPLOYEE,
+            user=request.user,
+            employee_id=employee.pk,
+            filters=request.query_params,
+        )
+        filters = CalendarService().get_filters(context)
+        return Response([calendar_filter.as_dict() for calendar_filter in filters])
 
 
 def _parse_v1_boolean(value):
@@ -100,14 +496,159 @@ class EmployeeListV1View(EmployeeV1QuerysetMixin, generics.ListAPIView):
 
 
 class EmployeeDetailV1View(EmployeeV1QuerysetMixin, generics.RetrieveAPIView):
-    """Retrieve the minimal Employee v1 representation within visible scope.
+    """Retrieve the Employee summary used by the read-only React detail.
 
     The lookup runs against the same permission-bounded queryset as the list.
     Consequently, unknown and out-of-scope identifiers both return 404.
     """
 
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = EmployeeListV1Serializer
+    serializer_class = EmployeeDetailV1Serializer
+
+
+class EmployeeGenericInfoV1Mixin:
+    """Authorize the root before resolving or mutating a contextual child."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_employee(self):
+        """Resolve once in the existing view scope; hidden and absent both yield 404."""
+        if not hasattr(self, "_employee"):
+            visible = Employee.get_instances_for_user(
+                "view", self.request.user, Employee.objects.all()
+            )
+            self._employee = get_object_or_404(visible, pk=self.kwargs["pk"])
+        return self._employee
+
+    def get_queryset(self):
+        return GenericInfo.objects.filter(employee=self.get_employee()).select_related(
+            "info"
+        ).order_by("info__name", "pk")
+
+    def get_capabilities(self):
+        return generic_info_capabilities(self.request.user, self.get_employee())
+
+    def require_capability(self, action):
+        """Enforce the same capability advertised by the contextual collection."""
+        if not self.get_capabilities()[action]:
+            raise PermissionDenied()
+
+
+class EmployeeGenericInfoV1View(EmployeeGenericInfoV1Mixin, generics.GenericAPIView):
+    """List contextual capabilities and values, or create a new value."""
+
+    serializer_class = EmployeeGenericInfoV1Serializer
+
+    def get(self, request, *args, **kwargs):
+        return Response({
+            "capabilities": self.get_capabilities(),
+            "items": self.get_serializer(self.get_queryset(), many=True).data,
+        })
+
+    def post(self, request, *args, **kwargs):
+        self.require_capability("can_add")
+        serializer = GenericInfoWriteV1Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        info = serializer.save(employee=self.get_employee())
+        return Response(self.get_serializer(info).data, status=201)
+
+
+class EmployeeGenericInfoDetailV1View(EmployeeGenericInfoV1Mixin, generics.GenericAPIView):
+    """Change only value, or delete an Employee-owned information item."""
+
+    serializer_class = EmployeeGenericInfoV1Serializer
+    lookup_url_kwarg = "generic_info_id"
+
+    def patch(self, request, *args, **kwargs):
+        info = self.get_object()
+        self.require_capability("can_change")
+        serializer = GenericInfoWriteV1Serializer(info, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        info = serializer.save()
+        return Response(self.get_serializer(info).data)
+
+    def delete(self, request, *args, **kwargs):
+        info = self.get_object()
+        self.require_capability("can_delete")
+        info.delete()
+        return Response(status=204)
+
+
+class GenericInfoTypeV1View(generics.ListAPIView):
+    """Expose the global information-type catalogue to authenticated users."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = GenericInfoTypeV1Serializer
+    pagination_class = None
+    queryset = GenericInfoType.objects.order_by("name", "pk")
+
+
+class EmployeeMilestoneV1View(generics.ListAPIView):
+    """List all milestones assigned to one visible Employee.
+
+    Milestones are contextual workload data: Project and co-assignee identity
+    remains visible even when the caller cannot open those linked resources.
+    The serializer receives the independent Project and Employee visibility
+    sets so that it can expose `can_view` without filtering the collection.
+    """
+
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmployeeMilestoneV1Serializer
+    pagination_class = None
+
+    def get_queryset(self):
+        """Resolve Employee scope and preload every contextual relation."""
+        user = self.request.user
+        visible_employees = Employee.get_instances_for_user(
+            "view", user, Employee.objects.all()
+        )
+        employee = get_object_or_404(visible_employees, pk=self.kwargs["pk"])
+
+        self.visible_employee_ids = set(
+            visible_employees.values_list("pk", flat=True)
+        )
+        visible_projects = Project.get_instances_for_user(
+            "view", user, Project.objects.all()
+        )
+        self.visible_project_ids = set(
+            visible_projects.values_list("pk", flat=True).distinct()
+        )
+        self.today = timezone.localdate()
+        stale_days = LMUserSetting.get_setting(
+            "NOTIFICATION_ENDPOINTS_MILESTONES_STALE",
+            user=user,
+        )
+        self.stale_delta = timedelta(days=int(stale_days))
+
+        assigned_employees = Employee.objects.order_by(
+            "first_name", "last_name", "pk"
+        )
+        milestones = Milestones.objects.filter(employee=employee).distinct()
+        self.visible_work_ids = set(milestones.values_list("pk", flat=True))
+        return (
+            milestones
+            .select_related("project")
+            .prefetch_related(
+                Prefetch("employee", queryset=assigned_employees),
+                Prefetch(
+                    "incoming_dependencies",
+                    queryset=MilestoneDependency.objects.select_related("predecessor"),
+                    to_attr="visible_dependencies",
+                ),
+            )
+            .order_by("pk")
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update(
+            today=getattr(self, "today", timezone.localdate()),
+            stale_delta=getattr(self, "stale_delta", timedelta()),
+            visible_employee_ids=getattr(self, "visible_employee_ids", set()),
+            visible_project_ids=getattr(self, "visible_project_ids", set()),
+            visible_work_ids=getattr(self, "visible_work_ids", set()),
+        )
+        return context
 
 
 class EmployeeStatusHistoryV1View(generics.ListAPIView):
@@ -281,4 +822,329 @@ class EmployeeProjectParticipationV1View(generics.ListAPIView):
             F("end_date").desc(nulls_first=True),
             F("start_date").desc(nulls_last=True),
             "pk",
+        )
+
+
+def _workload_composition(participations, segment_start, visible_project_ids):
+    """Aggregate active Participant quotities by Project at one boundary."""
+    projects = {}
+    for participation in participations:
+        starts_before = participation.start_date is None or segment_start is None or participation.start_date <= segment_start
+        ends_after = participation.end_date is None or segment_start is None or participation.end_date >= segment_start
+        if segment_start is None:
+            starts_before = participation.start_date is None
+            ends_after = participation.end_date is None or participation.start_date is None
+        if not (starts_before and ends_after):
+            continue
+        project = projects.setdefault(
+            participation.project_id,
+            {
+                "id": participation.project_id,
+                "name": participation.project.name,
+                "quotity": Decimal("0"),
+                "can_view": participation.project_id in visible_project_ids,
+            },
+        )
+        project["quotity"] += participation.quotity
+
+    result = []
+    for project in sorted(projects.values(), key=lambda item: (item["name"], item["id"])):
+        result.append({**project, "quotity": format(project["quotity"], "f")})
+    return result
+
+
+def _build_workload_segments(participations, requested_start, requested_end, visible_project_ids):
+    """Build inclusive, contiguous segments only at Participant boundaries."""
+    if requested_start is not None and requested_end is not None:
+        boundaries = {requested_start, requested_end + timedelta(days=1)}
+        for participation in participations:
+            boundaries.add(max(participation.start_date or requested_start, requested_start))
+            effective_end = min(participation.end_date or requested_end, requested_end)
+            boundaries.add(effective_end + timedelta(days=1))
+        ordered = sorted(boundaries)
+        intervals = [(ordered[index], ordered[index + 1] - timedelta(days=1)) for index in range(len(ordered) - 1)]
+    else:
+        boundaries = sorted(
+            {participation.start_date for participation in participations if participation.start_date is not None}
+            | {participation.end_date + timedelta(days=1) for participation in participations if participation.end_date is not None}
+        )
+        if not boundaries:
+            intervals = [(None, None)] if participations else []
+        else:
+            intervals = []
+            if any(participation.start_date is None for participation in participations):
+                intervals.append((None, boundaries[0] - timedelta(days=1)))
+            intervals.extend(
+                (boundaries[index], boundaries[index + 1] - timedelta(days=1))
+                for index in range(len(boundaries) - 1)
+            )
+            if any(participation.end_date is None for participation in participations):
+                intervals.append((boundaries[-1], None))
+
+    segments = []
+    for segment_start, segment_end in intervals:
+        composition = _workload_composition(participations, segment_start, visible_project_ids)
+        total = sum((Decimal(project["quotity"]) for project in composition), Decimal("0"))
+        segment = {
+            "start": segment_start.isoformat() if segment_start else None,
+            "end": segment_end.isoformat() if segment_end else None,
+            "total_quotity": format(total, "f"),
+            "projects": composition,
+        }
+        if segments and segments[-1]["projects"] == segment["projects"]:
+            segments[-1]["end"] = segment["end"]
+        else:
+            segments.append(segment)
+    return segments
+
+
+class EmployeeProjectWorkloadV1View(APIView):
+    """Return the exact temporal Project workload of one visible Employee."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk):
+        visible_employees = Employee.get_instances_for_user(
+            "view", request.user, Employee.objects.all()
+        )
+        employee = get_object_or_404(visible_employees, pk=pk)
+
+        range_value = request.query_params.get("range")
+        raw_start = request.query_params.get("start")
+        raw_end = request.query_params.get("end")
+        if range_value is not None:
+            if range_value != "all" or raw_start is not None or raw_end is not None:
+                raise ValidationError({"range": "Use range=all without start or end."})
+            requested_start = requested_end = None
+            queryset = Participant.objects.filter(employee=employee)
+        else:
+            if raw_start is None or raw_end is None:
+                raise ValidationError({"range": "Both start and end are required."})
+            try:
+                requested_start = date.fromisoformat(raw_start)
+                requested_end = date.fromisoformat(raw_end)
+            except ValueError as error:
+                raise ValidationError({"range": "start and end must use YYYY-MM-DD."}) from error
+            if requested_start.isoformat() != raw_start or requested_end.isoformat() != raw_end:
+                raise ValidationError({"range": "start and end must use YYYY-MM-DD."})
+            if requested_start > requested_end:
+                raise ValidationError({"range": "start must be before or equal to end."})
+            queryset = Participant.objects.filter(
+                employee=employee,
+            ).filter(
+                Q(start_date__isnull=True) | Q(start_date__lte=requested_end),
+                Q(end_date__isnull=True) | Q(end_date__gte=requested_start),
+            )
+
+        participations = list(queryset.select_related("project").order_by("pk"))
+        project_ids = {participation.project_id for participation in participations}
+        visible_project_ids = set(
+            Project.get_instances_for_user(
+                "view", request.user, Project.objects.filter(pk__in=project_ids)
+            ).values_list("pk", flat=True)
+        )
+        if range_value == "all":
+            range_start = None if any(item.start_date is None for item in participations) else min((item.start_date for item in participations), default=None)
+            range_end = None if any(item.end_date is None for item in participations) else max((item.end_date for item in participations), default=None)
+        else:
+            range_start, range_end = requested_start, requested_end
+
+        return Response({
+            "range": {
+                "start": range_start.isoformat() if range_start else None,
+                "end": range_end.isoformat() if range_end else None,
+            },
+            "segments": _build_workload_segments(
+                participations, requested_start, requested_end, visible_project_ids
+            ),
+        })
+
+
+def _contribution_workload_composition(contributions, segment_start):
+    """Return active Contributions and their exact Decimal quotities."""
+    composition = []
+    for contribution in contributions:
+        if segment_start is None:
+            active = contribution.start_date is None
+        else:
+            active = (
+                (contribution.start_date is None or contribution.start_date <= segment_start)
+                and (contribution.end_date is None or contribution.end_date >= segment_start)
+            )
+        if not active:
+            continue
+        composition.append(
+            {
+                "id": contribution.pk,
+                "quotity": format(contribution.quotity or Decimal("0"), "f"),
+                "fund": {
+                    "id": contribution.fund_id,
+                    "display_name": str(contribution.fund),
+                    "reference": contribution.fund.ref or None,
+                },
+                "project": {
+                    "id": contribution.fund.project_id,
+                    "name": contribution.fund.project.name,
+                },
+                "cost_type": (
+                    {
+                        "id": contribution.cost_type_id,
+                        "short_name": contribution.cost_type.short_name,
+                        "name": contribution.cost_type.name,
+                    }
+                    if contribution.cost_type_id
+                    else None
+                ),
+            }
+        )
+    return composition
+
+
+def _build_contribution_workload_segments(
+    contributions, requested_start, requested_end
+):
+    """Build an inclusive step profile at Contribution date boundaries."""
+    if requested_start is not None and requested_end is not None:
+        boundaries = {requested_start, requested_end + timedelta(days=1)}
+        for contribution in contributions:
+            boundaries.add(
+                max(contribution.start_date or requested_start, requested_start)
+            )
+            effective_end = min(
+                contribution.end_date or requested_end, requested_end
+            )
+            boundaries.add(effective_end + timedelta(days=1))
+        ordered = sorted(boundaries)
+        intervals = [
+            (ordered[index], ordered[index + 1] - timedelta(days=1))
+            for index in range(len(ordered) - 1)
+        ]
+    else:
+        boundaries = sorted(
+            {
+                contribution.start_date
+                for contribution in contributions
+                if contribution.start_date is not None
+            }
+            | {
+                contribution.end_date + timedelta(days=1)
+                for contribution in contributions
+                if contribution.end_date is not None
+            }
+        )
+        if not boundaries:
+            intervals = [(None, None)] if contributions else []
+        else:
+            intervals = []
+            if any(item.start_date is None for item in contributions):
+                intervals.append((None, boundaries[0] - timedelta(days=1)))
+            intervals.extend(
+                (boundaries[index], boundaries[index + 1] - timedelta(days=1))
+                for index in range(len(boundaries) - 1)
+            )
+            if any(item.end_date is None for item in contributions):
+                intervals.append((boundaries[-1], None))
+
+    segments = []
+    for segment_start, segment_end in intervals:
+        composition = _contribution_workload_composition(
+            contributions, segment_start
+        )
+        total = sum(
+            (Decimal(item["quotity"]) for item in composition), Decimal("0")
+        )
+        segment = {
+            "start": segment_start.isoformat() if segment_start else None,
+            "end": segment_end.isoformat() if segment_end else None,
+            "total_quotity": format(total, "f"),
+            "contributions": composition,
+        }
+        if segments and segments[-1]["contributions"] == composition:
+            segments[-1]["end"] = segment["end"]
+        else:
+            segments.append(segment)
+    return segments
+
+
+class EmployeeContributionWorkloadV1View(APIView):
+    """Return the exact Contribution quotity profile of one visible Employee."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk):
+        visible_employees = Employee.get_instances_for_user(
+            "view", request.user, Employee.objects.all()
+        )
+        employee = get_object_or_404(visible_employees, pk=pk)
+
+        range_value = request.query_params.get("range")
+        raw_start = request.query_params.get("start")
+        raw_end = request.query_params.get("end")
+        if range_value is not None:
+            if range_value != "all" or raw_start is not None or raw_end is not None:
+                raise ValidationError(
+                    {"range": "Use range=all without start or end."}
+                )
+            requested_start = requested_end = None
+            queryset = Contribution.objects.filter(employee=employee)
+        else:
+            if raw_start is None or raw_end is None:
+                raise ValidationError(
+                    {"range": "Both start and end are required."}
+                )
+            try:
+                requested_start = date.fromisoformat(raw_start)
+                requested_end = date.fromisoformat(raw_end)
+            except ValueError as error:
+                raise ValidationError(
+                    {"range": "start and end must use YYYY-MM-DD."}
+                ) from error
+            if (
+                requested_start.isoformat() != raw_start
+                or requested_end.isoformat() != raw_end
+            ):
+                raise ValidationError(
+                    {"range": "start and end must use YYYY-MM-DD."}
+                )
+            if requested_start > requested_end:
+                raise ValidationError(
+                    {"range": "start must be before or equal to end."}
+                )
+            queryset = Contribution.objects.filter(employee=employee).filter(
+                Q(start_date__isnull=True) | Q(start_date__lte=requested_end),
+                Q(end_date__isnull=True) | Q(end_date__gte=requested_start),
+            )
+
+        contributions = list(
+            queryset.select_related(
+                "fund__project",
+                "fund__funder",
+                "fund__institution",
+                "cost_type",
+            ).order_by("pk")
+        )
+        if range_value == "all":
+            range_start = (
+                None
+                if any(item.start_date is None for item in contributions)
+                else min((item.start_date for item in contributions), default=None)
+            )
+            range_end = (
+                None
+                if any(item.end_date is None for item in contributions)
+                else max((item.end_date for item in contributions), default=None)
+            )
+        else:
+            range_start, range_end = requested_start, requested_end
+
+        return Response(
+            {
+                "range": {
+                    "start": range_start.isoformat() if range_start else None,
+                    "end": range_end.isoformat() if range_end else None,
+                },
+                "segments": _build_contribution_workload_segments(
+                    contributions, requested_start, requested_end
+                ),
+            }
         )

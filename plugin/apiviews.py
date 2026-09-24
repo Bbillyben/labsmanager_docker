@@ -241,16 +241,19 @@ class PluginReload(generics.CreateAPIView):
 from django.views.generic.base import View
 from settings.accessor import get_global_setting
 class PluginCalendarEventDispatcher(View):
-    
-    def post(self, request,*args, **kwargs):
-        from plugin import registry
-        event_list = []
-        for plugin in registry.with_mixin("calendarevent", active=True):
-            plugin.get_event(request, event_list)
-        return JsonResponse(event_list, safe=False)
-    def get(self, request,*args, **kwargs):
-        from plugin import registry
-        event_list = []
-        for plugin in registry.with_mixin("calendarevent", active=True):
-            plugin.get_event(request, event_list)
-        return JsonResponse(event_list, safe=False)
+    """Preserve the historical FullCalendar endpoint over CalendarService."""
+
+    def dispatch_events(self, request):
+        from common.calendar import CalendarService
+        from plugin.calendar_adapter import legacy_calendar_context
+
+        events = CalendarService().get_events(legacy_calendar_context(request))
+        return JsonResponse(
+            [event.as_fullcalendar_dict() for event in events], safe=False
+        )
+
+    def post(self, request, *args, **kwargs):
+        return self.dispatch_events(request)
+
+    def get(self, request, *args, **kwargs):
+        return self.dispatch_events(request)

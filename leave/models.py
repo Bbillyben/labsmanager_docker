@@ -85,8 +85,27 @@ class Leave(ActiveDateMixin):
     
     def clean(self):
         super().clean()
-        if self.start_date == self.end_date and self.start_period == self.end_period:
-            raise ValidationError(_('On the same day leave can not start and end at the same period'))
+        if not self.start_date or not self.end_date:
+            return
+        start = self.start_date.toordinal() * 2 + (self.start_period == "MI")
+        end = self.end_date.toordinal() * 2 + (1 if self.end_period == "MI" else 2)
+        if start >= end:
+            raise ValidationError({"end_date": _("End must be after start.")})
+        if not self.employee_id or not self.type_id:
+            return
+        candidates = Leave.objects.filter(
+            employee_id=self.employee_id,
+            type_id=self.type_id,
+            start_date__lte=self.end_date,
+            end_date__gte=self.start_date,
+        ).exclude(pk=self.pk).only("start_date", "start_period", "end_date", "end_period")
+        for other in candidates:
+            other_start = other.start_date.toordinal() * 2 + (other.start_period == "MI")
+            other_end = other.end_date.toordinal() * 2 + (1 if other.end_period == "MI" else 2)
+            if start < other_end and other_start < end:
+                raise ValidationError({"__all__": ValidationError(
+                    _("A leave of this type already overlaps this period."), code="overlap"
+                )})
         
     def __str__(self):
         return f'{self.employee} - {self.type}'

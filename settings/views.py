@@ -196,7 +196,6 @@ class SettingList_GenericInfo(LoginRequiredMixin, TemplateView):
             'title':_('Generic Info Employee'),
             'columns':[
                 {'name':_('name'),'item':'name',},
-                {'name':_('Icon'),'item':'icon_val', 'formatter':'iconFormatter'},
             ], 
             'action':{
             },

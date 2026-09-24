@@ -91,3 +91,22 @@ rules.add_perm('staff.change_participant', is_participant_manager)
 
 
 
+
+
+@rules.predicate
+def is_linked_employee(user, employee=None):
+    """Match the linked Employee without granting full self-edit rights."""
+    return bool(employee and user.is_authenticated and employee.user_id == user.pk)
+
+
+@rules.predicate
+def can_change_employee(user, employee=None):
+    """Combine existing global and object Employee change permissions."""
+    return bool(
+        employee and user.is_authenticated and user.is_active
+        and (user.has_perm("staff.change_employee")
+             or user.has_perm("staff.change_employee", employee))
+    )
+
+
+rules.add_perm("staff.change_partial_employee", can_change_employee | is_linked_employee)
