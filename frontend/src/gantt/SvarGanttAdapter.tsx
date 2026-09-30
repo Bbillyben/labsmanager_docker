@@ -5,7 +5,7 @@ import type { CalendarEvent } from '../api/employees'
 import type { GanttIdentity, LabsManagerGanttData, LabsManagerGanttItem } from './model'
 import styles from './LabsManagerGantt.module.css'
 
-export type GanttWindow = { from: string; to: string; months: 6 | 12 | 24 | 60 }
+export type GanttWindow = { from: string; to: string; months: 6 | 12 | 24 | 60 | 120 }
 
 function date(value: string) { return new Date(`${value.slice(0, 10)}T12:00:00`) }
 function calendarDate(value: string) { return value.includes('T') ? new Date(value) : date(value) }

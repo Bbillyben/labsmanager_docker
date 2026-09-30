@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { PageHeader } from '../ui/PageHeader'
+import { useTranslation } from '../i18n/i18n'
 
 export function NotFoundPage() {
-  return <div><PageHeader title="Page introuvable" description="Cette page React n’existe pas ou n’est pas encore disponible." /><Link to="/">Revenir à l’accueil</Link></div>
+  const { t } = useTranslation()
+  return <div><PageHeader title={t('common.notFound')} description={t('common.notFoundDescription')} /><Link to="/">{t('common.backHome')}</Link></div>
 }

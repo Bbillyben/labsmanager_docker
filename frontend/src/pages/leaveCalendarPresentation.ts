@@ -1,0 +1,7 @@
+import type { CalendarEvent, EmployeeLeave, EmployeeLeaveType } from '../api/employees'
+
+function formatDate(value: string, language: string) { return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) }
+export function rangeLabel(range: { from: string; to: string }, language: string) { return `${formatDate(range.from, language)} – ${formatDate(range.to, language)}` }
+export function typeFromEvent(event: CalendarEvent): EmployeeLeaveType | null { const id = Number(event.metadata.leave_type_id); if (!Number.isFinite(id)) return null; return { id, name: event.title, short_name: String(event.metadata.leave_type_short_name ?? ''), color: String(event.metadata.leave_type_color ?? event.color ?? '') } }
+export function uniqueTypes(types: EmployeeLeaveType[]) { return [...new Map(types.map((type) => [type.id, type])).values()].sort((a, b) => a.name.localeCompare(b.name)) }
+export function leaveFromEvent(event: CalendarEvent): EmployeeLeave { return { id: Number(event.metadata.leave_id), type: typeFromEvent(event)!, start_date: String(event.metadata.start_date), start_period: event.metadata.start_period as 'ST' | 'MI', end_date: String(event.metadata.end_date), end_period: event.metadata.end_period as 'MI' | 'EN', day_count: Number(event.metadata.day_count), comment: event.description } }

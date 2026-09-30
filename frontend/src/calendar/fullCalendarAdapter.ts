@@ -21,6 +21,7 @@ export function toFullCalendarEvent(event: CalendarEvent, canChange = false): Ev
     display: event.display || 'auto',
     interactive: isLeave,
     editable: isLeave && canChange,
+    resourceId: isLeave && event.metadata.employee_id ? String(event.metadata.employee_id) : undefined,
     extendedProps: {
       description: event.description,
       source: event.source,

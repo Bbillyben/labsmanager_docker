@@ -4,7 +4,6 @@ import { getEmployeeCalendar, getEmployeeCalendarFilters, type CalendarEvent, ty
 import { CalendarPluginFilters, effectiveCalendarFilterValues, type CalendarFilterValues } from '../calendar/CalendarPluginFilters'
 import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
-import { MilestoneDetailSheet } from '../pages/MilestoneDetailSheet'
 import { adaptEmployeeGantt } from './EmployeeGanttAdapter'
 import { LabsManagerGantt } from './LabsManagerGantt'
 import type { GanttIdentity } from './model'
@@ -18,7 +17,7 @@ function bounds(anchor: Date, months: 6 | 12 | 24 | 60 | 120): GanttWindow {
   return { from: iso(from), to: iso(to), months }
 }
 
-export function EmployeeGanttPanel({ active, employeeId, participations, work, projectError, workError, onRetryProjects, onRetryWork }: {
+export function EmployeeGanttPanel({ active, employeeId, participations, work, projectError, workError, onRetryProjects, onRetryWork, onOpen }: {
   active: boolean
   employeeId: string
   participations: EmployeeProjectParticipation[] | null
@@ -27,6 +26,7 @@ export function EmployeeGanttPanel({ active, employeeId, participations, work, p
   workError: boolean
   onRetryProjects: () => void
   onRetryWork: () => void
+  onOpen: (item: EmployeeMilestone) => void
 }) {
   const { language, t } = useTranslation()
   const [months, setMonths] = useState<6 | 12 | 24 | 60 | 120>(24)
@@ -39,7 +39,6 @@ export function EmployeeGanttPanel({ active, employeeId, participations, work, p
   const [loadedEventKey, setLoadedEventKey] = useState('')
   const [eventError, setEventError] = useState(false)
   const [eventRetry, setEventRetry] = useState(0)
-  const [selected, setSelected] = useState<EmployeeMilestone | null>(null)
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
   const window = useMemo(() => bounds(anchor, months), [anchor, months])
   const filters = useMemo(() => effectiveCalendarFilterValues(definitions ?? [], values), [definitions, values])
@@ -82,7 +81,10 @@ export function EmployeeGanttPanel({ active, employeeId, participations, work, p
   }
   const move = (direction: number) => setAnchor((current) => new Date(current.getFullYear(), current.getMonth() + direction * navigationStep, 1))
   const select = (identity: GanttIdentity) => {
-    if (identity.kind === 'work') setSelected(work?.find((item) => String(item.id) === identity.id) ?? null)
+    if (identity.kind === 'work') {
+      const item = work?.find((candidate) => String(candidate.id) === identity.id)
+      if (item) onOpen(item)
+    }
   }
   const rangeLabel = `${new Intl.DateTimeFormat(language, { month: 'short', year: 'numeric' }).format(new Date(`${window.from}T12:00:00`))} – ${new Intl.DateTimeFormat(language, { month: 'short', year: 'numeric' }).format(new Date(`${window.to}T12:00:00`))}`
 
@@ -105,6 +107,5 @@ export function EmployeeGanttPanel({ active, employeeId, participations, work, p
     {workError && <div role="alert">{t('employee.secondaryError')} <Button onClick={onRetryWork} size="xs" variant="ghost">{t('common.retry')}</Button></div>}
     {(participations === null || work === null || definitions === null || events === null) && !eventError && !projectError && !workError && !filterError && <p role="status">{t('gantt.loading')}</p>}
     {participations !== null && work !== null && events !== null && <LabsManagerGantt data={data} dark={dark} events={events} onSelect={select} window={window} />}
-    <MilestoneDetailSheet milestone={selected} onClose={() => setSelected(null)} onDependenciesChanged={onRetryWork} />
   </section>
 }

@@ -38,3 +38,20 @@ export async function apiRequest<T>(url: string, init: RequestInit = {}): Promis
   }
   return payload as T
 }
+
+export async function apiFileRequest(url: string, init: RequestInit): Promise<{ blob: Blob; filename: string | null }> {
+  if (!url.startsWith('/') || url.startsWith('//')) throw new TypeError('API URLs must be relative to the current origin')
+  const headers = new Headers(init.headers)
+  const csrfToken = getCsrfToken()
+  if (csrfToken) headers.set('X-CSRFToken', csrfToken)
+  const response = await fetch(url, { ...init, headers, credentials: 'include' })
+  if (!response.ok) {
+    if (response.status === 401) unauthorizedListeners.forEach((listener) => listener())
+    throw new ApiError(response.status, await readResponse(response))
+  }
+  const disposition = response.headers.get('content-disposition') ?? ''
+  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+  const quoted = disposition.match(/filename="([^"]+)"/i)?.[1]
+  const filename = encoded ? decodeURIComponent(encoded) : quoted ?? null
+  return { blob: await response.blob(), filename }
+}

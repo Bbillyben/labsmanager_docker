@@ -1,5 +1,6 @@
-import { ArrowLeft } from 'lucide-react'
-import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { ArrowLeft, FileDown, FileText } from 'lucide-react'
+import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
 import { getEmployee } from '../api/employees'
 import { ApiError } from '../api/errors'
 import { LoadingState } from '../components/LoadingState'
@@ -7,6 +8,8 @@ import { useTranslation, type TranslationKey } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
+import { EntityActionMenu, type EntityActionGroup } from '../components/EntityActionMenu'
+import { ReportExportDialog } from '../components/ReportExportDialog'
 import { StatusBadge } from '../ui/StatusBadge'
 import { EmployeeDetailContext } from './employeeDetailContext'
 import { useEmployeeResource } from './useEmployeeResource'
@@ -14,8 +17,11 @@ import styles from './EmployeeDetailPage.module.css'
 
 export function EmployeeDetailPage() {
   const { employeeId = '' } = useParams()
+  const location = useLocation()
   const { t } = useTranslation()
   const employee = useEmployeeResource(employeeId, getEmployee)
+  const [exportFormat, setExportFormat] = useState<'word' | 'pdf' | null>(null)
+  const actionTrigger = useRef<HTMLElement | null>(null)
 
   if (employee.loading) return <LoadingState message={t('employee.loading')} />
   if (employee.error) {
@@ -26,10 +32,15 @@ export function EmployeeDetailPage() {
   if (!employee.data) return null
 
   const name = `${employee.data.first_name} ${employee.data.last_name}`
-  return <EmployeeDetailContext.Provider value={{ employee: employee.data, employeeId }}>
-    <Link className={styles.back} to="/employees/"><ArrowLeft aria-hidden="true" /> {t('common.backToEmployees')}</Link>
+  const actionGroups: EntityActionGroup[] = [[
+    ...(employee.data.capabilities?.can_export_word ? [{ id: 'word', label: t('reports.word'), icon: <FileText aria-hidden="true" />, onSelect: () => setExportFormat('word' as const) }] : []),
+    ...(employee.data.capabilities?.can_export_pdf ? [{ id: 'pdf', label: t('reports.pdf'), icon: <FileDown aria-hidden="true" />, onSelect: () => setExportFormat('pdf' as const) }] : []),
+  ]]
+  return <EmployeeDetailContext.Provider value={{ employee: employee.data, employeeId, refreshEmployee: employee.refresh }}>
+    <Link className={styles.back} to={`/employees/${typeof location.state?.employeeListSearch === 'string' && location.state.employeeListSearch ? `?${location.state.employeeListSearch}` : ''}`}><ArrowLeft aria-hidden="true" /> {t('common.backToEmployees')}</Link>
     <PageHeader
       title={name}
+      actions={<EntityActionMenu label={t('reports.entityActions', { name })} groups={actionGroups} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => exportFormat ? false : true} />}
       meta={<div className={styles.headerMeta}>
         <StatusBadge tone={employee.data.is_active ? 'success' : 'neutral'}>{t(employee.data.is_active ? 'employee.active' : 'employee.inactive')}</StatusBadge>
         {employee.data.current_statuses.map((status) => <StatusBadge key={status.id}>{status.name || status.code}</StatusBadge>)}
@@ -37,6 +48,7 @@ export function EmployeeDetailPage() {
     />
     <EmployeeResourceNav employeeId={employeeId} />
     <div className={styles.panel}><Outlet /></div>
+    {exportFormat && <ReportExportDialog entity="employee" id={employee.data.id} format={exportFormat} title={t('reports.employeeTitle', { format: t(exportFormat === 'word' ? 'reports.word' : 'reports.pdf') })} timeframe returnFocus={actionTrigger} onClose={() => setExportFormat(null)} />}
   </EmployeeDetailContext.Provider>
 }
 
@@ -51,6 +63,7 @@ const resourceLinks: Array<{ path: string; label: TranslationKey; end?: boolean 
 
 function EmployeeResourceNav({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation()
+  const location = useLocation()
   const base = `/employees/${employeeId}`
   return <nav aria-label={t('employee.resourceNavigation')} className={styles.resourceNav}>
     <div className={styles.resourceNavScroll} tabIndex={0}>
@@ -59,6 +72,7 @@ function EmployeeResourceNav({ employeeId }: { employeeId: string }) {
         end={item.end}
         key={item.path || 'overview'}
         to={item.path ? `${base}/${item.path}` : base}
+        state={location.state}
       >{t(item.label)}</NavLink>)}
     </div>
   </nav>

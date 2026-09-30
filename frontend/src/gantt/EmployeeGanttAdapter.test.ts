@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { EmployeeMilestone, EmployeeProjectParticipation } from '../api/employees'
 import { adaptEmployeeGantt } from './EmployeeGanttAdapter'
+import { adaptPlanningGantt } from './PlanningGanttAdapter'
 import { toSvarTasks } from './SvarGanttAdapter'
 
 const participation: EmployeeProjectParticipation = {
-  id: 3, project: { id: 7, name: 'Atlas', start_date: '2026-01-01', end_date: '2026-12-31' },
+  id: 3, project: { id: 7, name: 'Atlas', start_date: '2026-01-01', end_date: '2026-12-31', can_view: true },
   role: { code: 'member', label: 'Member' }, start_date: '2026-02-01', end_date: '2026-08-31',
   quotity: '0.5', is_active: true,
 }
@@ -20,6 +21,12 @@ describe('Employee Gantt adaptation', () => {
     expect(data.items.map((item) => item.key)).toEqual(['project:7', 'participation:3', 'work:8', 'work:9', 'work:10'])
     expect(data.items[2]).toMatchObject({ parentKey: 'project:7', kind: 'task', state: 'overdue' })
     expect(data.items[3]).toMatchObject({ kind: 'milestone', state: 'completed' })
+  })
+
+  it('adapts the same Planning items without Employee participation rows', () => {
+    const data = adaptPlanningGantt(work)
+    expect(data.items.map((item) => item.key)).toEqual(['project:7', 'work:8', 'work:9', 'work:10'])
+    expect(data.items[1]).toMatchObject({ kind: 'task', state: 'overdue' })
   })
 
   it('maps scoped dependencies without inventing missing endpoints', () => {

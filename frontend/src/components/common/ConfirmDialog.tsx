@@ -1,11 +1,12 @@
 import { AlertDialog } from '@base-ui/react/alert-dialog'
+import { Trash2 } from 'lucide-react'
 import type { ReactNode, RefObject } from 'react'
 import { useTranslation } from '../../i18n/i18n'
 import { Button } from '../../ui/Button'
 
-export function ConfirmDialog({ title, description, pending, error, onConfirm, onCancel, returnFocus }: {
+export function ConfirmDialog({ title, description, pending, error, onConfirm, onCancel, returnFocus, confirmLabel, cancelLabel }: {
   title: string; description: string; pending: boolean; error?: ReactNode
-  onConfirm: () => void; onCancel: () => void; returnFocus: RefObject<HTMLElement | null>
+  onConfirm: () => void; onCancel: () => void; returnFocus: RefObject<HTMLElement | null>; confirmLabel?: string; cancelLabel?: string
 }) {
   const { t } = useTranslation()
   return <AlertDialog.Root open onOpenChange={(open) => { if (!open && !pending) onCancel() }}>
@@ -17,8 +18,8 @@ export function ConfirmDialog({ title, description, pending, error, onConfirm, o
           <AlertDialog.Description className="my-4 text-sm text-muted-foreground">{description}</AlertDialog.Description>
           {error}
           <div className="mt-4 flex justify-end gap-2">
-            <Button autoFocus disabled={pending} onClick={onCancel}>{t('genericInfo.cancel')}</Button>
-            <Button variant="destructive" disabled={pending} onClick={onConfirm}>{t(pending ? 'genericInfo.pending' : 'genericInfo.delete')}</Button>
+            <Button autoFocus disabled={pending} onClick={onCancel}>{cancelLabel ?? t('genericInfo.cancel')}</Button>
+            <Button variant={confirmLabel ? 'default' : 'destructive'} disabled={pending} onClick={onConfirm}>{!confirmLabel && <Trash2 aria-hidden="true" />}{pending ? t('genericInfo.pending') : confirmLabel ?? t('genericInfo.delete')}</Button>
           </div>
         </AlertDialog.Popup>
       </AlertDialog.Viewport>

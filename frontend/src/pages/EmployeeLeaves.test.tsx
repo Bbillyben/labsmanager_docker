@@ -6,6 +6,7 @@ import { I18nProvider } from '../i18n/I18nProvider'
 import { jsonResponse } from '../test/fixtures'
 import { EmployeeDetailContext } from './employeeDetailContext'
 import { EmployeeLeaves } from './EmployeeLeaves'
+import { projectCalendarRange, shiftProjectCalendarAnchor, type ProjectCalendarScope } from './projectCalendarScopes'
 
 const employee: EmployeeDetail = {
   id: 12, first_name: 'Jean', last_name: 'Dupont', birth_date: null, email: null,
@@ -64,7 +65,7 @@ describe('Employee Leaves panel', () => {
     const sheet = await screen.findByRole('dialog')
     expect(within(sheet).getByText('Famille')).toBeInTheDocument()
     expect(within(sheet).getByText(/1 j.*Midi → midi/)).toBeInTheDocument()
-  })
+  }, 15_000)
 
   it('persists Table mode and opens a row with the keyboard', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
@@ -80,17 +81,22 @@ describe('Employee Leaves panel', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
-  it('requests bounded Year and 5-year windows and navigates them', async () => {
+  it('uses all four shared scopes and navigates with their matching API bounds', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => responseFor(input))
     renderPanel()
     await screen.findByRole('region', { name: 'Calendrier des absences' })
-    await user.click(screen.getByRole('button', { name: 'Année' }))
-    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).includes('from=2026-01-01&to=2026-12-31'))).toBe(true))
-    await user.click(screen.getByRole('button', { name: '5 ans' }))
-    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).includes('from=2024-01-01&to=2028-12-31'))).toBe(true))
+    const anchor = new Date('2026-09-22T12:00:00Z')
+    for (const [scope, label] of [['fifteenDays', '15 jours'], ['month', 'Mois'], ['twoMonths', '2 mois'], ['year', 'Année']] as Array<[ProjectCalendarScope, string]>) {
+      await user.click(screen.getByRole('button', { name: label }))
+      const range = projectCalendarRange(scope, anchor)
+      await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).includes(`/calendar/?from=${range.from}&to=${range.to}`))).toBe(true))
+      expect(localStorage.getItem('labsmanager:employee:leaves-calendar-view')).toBe(scope)
+    }
+    expect(screen.queryByRole('button', { name: '5 ans' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Période suivante' }))
-    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).includes('from=2029-01-01&to=2033-12-31'))).toBe(true))
+    const next = projectCalendarRange('year', shiftProjectCalendarAnchor(anchor, 'year', 1))
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).includes(`/calendar/?from=${next.from}&to=${next.to}`))).toBe(true))
   }, 15_000)
 
   it('applies table filters and retries a local error', async () => {
@@ -130,17 +136,13 @@ describe('Employee Leaves panel', () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/calendar/filters/'))).toHaveLength(1)
   })
 
-  it('omits background events from five years and opens a dated Leave by keyboard', async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => responseFor(input, [leaveEvent, pluginEvent]))
+  it('falls back from a stored legacy five-year view to the shared month scope', async () => {
+    localStorage.setItem('labsmanager:employee:leaves-calendar-view', 'fiveYears')
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => responseFor(input, [leaveEvent, pluginEvent]))
     renderPanel()
-
-    await user.click(await screen.findByRole('button', { name: '5 ans' }))
-    const eventButton = await screen.findByRole('button', { name: 'Ouvrir le congé Congés payés' })
-    expect(within(eventButton).getByText(/10\/09\/2026 → 12\/09\/2026/)).toBeInTheDocument()
-    expect(screen.queryByText('Jour férié')).not.toBeInTheDocument()
-    eventButton.focus()
-    await user.keyboard('{Enter}')
-    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: 'Calendrier des absences' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mois' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('button', { name: '5 ans' })).not.toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/calendar/?from=2026-09-01&to=2026-09-30'))).toBe(true)
   })
 })

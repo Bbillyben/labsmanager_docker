@@ -798,5 +798,224 @@ Le contrôle TypeScript global reste limité par les trois erreurs Gantt/i18n d�
 ci-dessus. Exécution R2.11a : **8 tests backend** sur PostgreSQL de test et **50 tests
 frontend ciblés** réussis ; ESLint ciblé, `manage.py check`, build Vite direct et
 `git diff --check` réussis. Le build Vite conserve l'avertissement de taille de chunk connu.
-La validation navigateur R2.11a doit encore couvrir filtres et statut par défaut
-sur les deux listes, relations compactes, navigation, CRUD, droits, responsive et thèmes.
+La validation navigateur R2.11a a été confirmée par l'utilisateur. La recherche Employee
+du filtre Participant a été ajoutée ensuite et reste à valider au navigateur.
+
+## R2.11b — ProjectSingle et vue d’ensemble
+
+Aucune migration de schéma ni nouvelle dépendance. Contrôles ciblés :
+
+```bash
+cd backend
+python3 manage.py test labsmanager.tests.test_api_v1_projects labsmanager.tests.test_api_v1_project_overview --keepdb
+python3 manage.py check
+```
+
+```bash
+cd frontend
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm test -- --run src/pages/ProjectDetailPage.test.tsx src/pages/ProjectListPage.test.tsx src/pages/EmployeeGenericInfo.test.tsx --maxWorkers=1 --testTimeout=15000
+npx vite build
+npm run typecheck
+```
+
+Résultat : **17 tests backend** et **39 tests frontend** ciblés réussis ; `manage.py check`,
+ESLint ciblé, build Vite direct et `git diff --check` réussis. La validation navigateur
+R2.11b reste à faire. Le contrôle TypeScript global conserve les trois erreurs Gantt/i18n
+préexistantes ; le build Vite avertit seulement sur la taille du chunk déjà connue.
+
+### Complément R2.11b — icônes GenericInfoTypeProject
+
+`project.0008_genericinfotypeproject_icon_lucide` convertit les cinq anciennes valeurs
+FAIcon connues vers Lucide, après passage du champ à `CharField`. Elle est **créée mais
+non appliquée sur la base de développement**. Les valeurs inconnues, nulles et vides
+restent inchangées. Après vérification et sauvegarde de la base cible, l’utilisateur
+exécutera depuis `backend/` :
+
+```bash
+python3 manage.py migrate project 0008_genericinfotypeproject_icon_lucide --plan
+python3 manage.py migrate project 0008_genericinfotypeproject_icon_lucide
+```
+
+Les tests ciblés utilisent uniquement la base PostgreSQL de test ; ils n’appliquent pas
+manuellement la migration à la base de développement.
+Validation du complément : **13 tests backend** (mapping, champs, legacy, API et CRUD)
+et **43 tests frontend** ciblés réussis ; `manage.py check`, ESLint ciblé, build Vite
+direct et `git diff --check` réussis. Les trois erreurs TypeScript Gantt/i18n déjà
+connues restent présentes. `makemigrations --check --dry-run project` propose encore
+`AlterField Participant.employee`, écart sans rapport avec cette migration d’icônes.
+
+## R2.11-i18n — vérifications React
+
+Le contrôle `frontend/src/i18n/i18n.test.ts` vérifie l’égalité des clés FR/EN, la
+parité des interpolations et quelques rendus représentatifs. Depuis `frontend/` :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npm test -- --maxWorkers=2 --testTimeout=15000
+npm run typecheck
+npm run lint
+npx vite build
+```
+`npm run typecheck` reste bloqué par deux erreurs de typage Gantt préexistantes
+(`EmployeeGanttPanel.tsx:18` et `SvarGanttAdapter.tsx:100`, union `120`). Les
+anciennes erreurs de clés `gantt.months60`/`gantt.months120` ont disparu ; le
+build Vite direct (`npx vite build`) vérifie les ressources compilées.
+
+Résultat final : **36 fichiers / 207 tests frontend réussis**, ESLint réussi,
+`npx vite build` réussi et `git diff --check` réussi.
+
+## R2.12a — Project Funding Core
+
+Depuis `backend/`, exécuter les tests ciblés avec accès à la base PostgreSQL de
+test, puis le contrôle Django :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_funding --keepdb
+python3 manage.py check
+```
+
+Depuis `frontend/`, avec Node NVM existant :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npx vitest run src/pages/ProjectFundingPanel.test.tsx src/pages/ProjectDetailPage.test.tsx src/router/AppRouter.test.tsx src/i18n/i18n.test.ts --maxWorkers=1 --testTimeout=15000
+npx eslint src/pages/ProjectFundingPanel.tsx src/pages/ProjectFundingPanel.test.tsx src/pages/ProjectDetailPage.tsx src/pages/ProjectDetailPage.test.tsx src/api/funding.ts src/api/projects.ts src/router/AppRouter.tsx src/i18n/i18n.ts
+npm run typecheck
+npx vite build
+```
+
+Contrôler les diffs à la racine et dans `backend/` avec `git diff --check`.
+Aucune commande de migration n'est nécessaire pour R2.12a. La validation navigateur
+reste à effectuer ; ne pas exécuter de mutation manuelle sur la base de développement
+par cette procédure de tests.
+
+Résultat technique : **19 tests backend** Funding/Project Overview et **50 tests
+frontend** ciblés réussis ; `manage.py check`, ESLint ciblé, TypeScript et build Vite
+réussis. Le build conserve l'avertissement existant de taille de chunk.
+
+## R2.12b — Expense individuelle et synchronisation
+
+Depuis `backend/` avec la base PostgreSQL de test :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_expenses.ExpenseV1Tests labsmanager.tests.test_api_v1_funding --keepdb
+python3 manage.py check
+```
+
+Depuis `frontend/` avec Node NVM existant :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npx vitest run src/pages/ExpenseSection.test.tsx src/pages/EmployeeContracts.test.tsx src/pages/ProjectFundingPanel.test.tsx src/components/common/ConfirmDialog.test.tsx src/i18n/i18n.test.ts --maxWorkers=1 --testTimeout=15000
+npx eslint src/api/expenses.ts src/pages/ExpenseSection.tsx src/pages/ExpenseSection.test.tsx src/pages/ProjectFundingPanel.tsx src/pages/ProjectFundingPanel.test.tsx src/pages/ContractDetailSheet.tsx src/pages/EmployeeContracts.test.tsx src/components/common/ConfirmDialog.tsx src/i18n/i18n.ts
+npm run typecheck
+npx vite build
+```
+
+Résultats : **18 tests backend** Expense/Funding et **23 tests frontend** ciblés
+réussis ; contrôle Django, ESLint ciblé, TypeScript et build Vite réussis. Le
+build conserve l'avertissement connu sur la taille du chunk. Aucune migration
+de schéma n'est nécessaire. La validation navigateur R2.12b a depuis été effectuée
+avec succès.
+
+## R2.12c — Synthèse financière Fund unifiée
+
+Depuis `frontend/`, avec le Node NVM existant :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npx vitest run src/pages/ProjectFundingPanel.test.tsx src/pages/ExpenseSection.test.tsx src/pages/ProjectDetailPage.test.tsx src/router/AppRouter.test.tsx src/i18n/i18n.test.ts --maxWorkers=1 --testTimeout=15000
+npx eslint src/pages/ProjectFundingPanel.tsx src/pages/ProjectFundingPanel.test.tsx src/i18n/i18n.ts
+npm run typecheck
+npx vite build
+```
+
+Résultats : **61 tests frontend** sur 5 fichiers, ESLint ciblé, TypeScript et
+build Vite réussis. Le build garde son avertissement de taille de chunk. Contrôle
+final `git diff --check` à la racine. Aucun fichier backend, contrat API ou
+migration modifié ; aucun nouveau contrôle Django nécessaire. R2.12a/b/c ont
+depuis été validés au navigateur.
+
+## R2.13a — Menus d’entité et exports Project/Employee
+
+Depuis `backend/`, avec PostgreSQL de test :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_reports labsmanager.tests.test_api_v1_projects.ProjectListV1Tests labsmanager.tests.test_api_v1_employees.EmployeeDetailV1ApiTests --keepdb
+python3 manage.py check
+```
+
+Depuis `frontend/`, avec Node NVM existant :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npx vitest run src/api/client.test.ts src/components/EntityActionMenu.test.tsx src/components/ReportExportDialog.test.tsx src/pages/ProjectDetailPage.test.tsx src/pages/EmployeeDetailPage.test.tsx src/i18n/i18n.test.ts --maxWorkers=1 --testTimeout=15000
+npx eslint src/api/client.ts src/api/client.test.ts src/api/reports.ts src/components/EntityActionMenu.tsx src/components/EntityActionMenu.test.tsx src/components/ReportExportDialog.tsx src/components/ReportExportDialog.test.tsx src/pages/ProjectDetailPage.tsx src/pages/ProjectDetailPage.test.tsx src/pages/EmployeeDetailPage.tsx src/pages/EmployeeDetailPage.test.tsx src/pages/ProjectSheet.tsx src/i18n/i18n.ts
+npm run typecheck
+npx vite build
+```
+
+Résultats : **22 tests backend** et **65 tests frontend** réussis, contrôle Django,
+ESLint ciblé, TypeScript et build Vite réussis. Le build garde l'avertissement
+connu de taille de chunk. Contrôler `git diff --check` à la racine et dans
+`backend/`. Aucune migration ni dépendance ajoutée. R2.12a/b/c sont validés
+au navigateur ; validation navigateur R2.13a attendue.
+
+Le `git diff --check` racine et le contrôle limité aux fichiers backend R2.13a
+passent. Le contrôle global du dépôt `backend/` relève des espaces finaux déjà
+présents dans la modification préexistante de `fund/rules.py`, hors de ce lot.
+
+## R2.13b — Project Settings
+
+Depuis `backend/`, avec PostgreSQL de test :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_project_settings labsmanager.tests.test_api_v1_projects.ProjectListV1Tests --keepdb
+python3 manage.py check
+```
+
+Depuis `frontend/`, avec Node NVM existant :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npx vitest run src/components/SettingsSheet.test.tsx src/pages/ProjectDetailPage.test.tsx --maxWorkers=1 --testTimeout=15000
+npx vitest run src/pages/ProjectFundingPanel.test.tsx src/components/EntityActionMenu.test.tsx --maxWorkers=1 --testTimeout=15000
+npx eslint src/api/settings.ts src/components/SettingsSheet.tsx src/components/SettingsSheet.test.tsx src/pages/ProjectDetailPage.tsx src/pages/ProjectDetailPage.test.tsx src/api/projects.ts src/i18n/i18n.ts
+npm run typecheck
+npx vite build
+```
+
+Résultats : **13 tests backend et 54 tests frontend** réussis, contrôle Django,
+ESLint ciblé, TypeScript et build Vite réussis. Le build conserve son avertissement
+connu de taille de chunk. Les catalogues Django FR/EN ont été recompilés pour les
+libellés et descriptions des trois Settings. Aucun changement de schéma, migration
+ou dépendance. R2.13b a été validé au navigateur.
+
+## R2.13c — Édition partielle du Planning Employee
+
+Depuis `backend/`, avec PostgreSQL de test :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_employee_milestone_mutations labsmanager.tests.test_api_v1_employees.EmployeeMilestoneV1ApiTests labsmanager.tests.test_api_v1_project_planning --keepdb
+python3 manage.py check
+```
+
+Depuis `frontend/`, avec Node NVM existant :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npx vitest run src/pages/EmployeeDetailPage.test.tsx src/pages/MilestoneDetailSheet.test.tsx --maxWorkers=1 --testTimeout=20000
+npx vitest run src/pages/ProjectDetailPage.test.tsx --maxWorkers=1 --testTimeout=20000
+npx vitest run src/pages/PlanningMilestoneFormSheet.test.tsx --maxWorkers=1 --testTimeout=20000
+npx eslint src/api/planning.ts src/api/employees.ts src/pages/EmployeeProjects.tsx src/gantt/EmployeeGanttPanel.tsx src/pages/MilestoneDetailSheet.tsx src/pages/EmployeeDetailPage.test.tsx src/i18n/i18n.ts
+npm run typecheck
+npx vite build
+```
+
+Résultats : **12 tests backend** et **58 tests frontend** réussis sur les lots
+ciblés, contrôle Django, ESLint ciblé, TypeScript et build Vite réussis. Un
+lancement frontend combiné a connu un délai de rendu sur un test Project
+préexistant ; sa relance isolée passe. Le build conserve son avertissement
+connu de taille de chunk. Aucun changement de schéma ni dépendance. Validation
+navigateur R2.13c attendue.

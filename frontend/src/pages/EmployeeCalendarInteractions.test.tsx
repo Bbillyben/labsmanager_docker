@@ -1,8 +1,10 @@
-import { act, render, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { CalendarEvent } from '../api/employees'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { EmployeeCalendar } from './EmployeeCalendar'
+import { projectCalendarScopes, projectDayGridViews } from './projectCalendarScopes'
+import timelinePlugin from '@fullcalendar/react-scheduler/timeline'
 
 const calendar = vi.hoisted(() => ({ props: {} as Record<string, unknown> }))
 vi.mock('@fullcalendar/react', () => ({ default: (props: Record<string, unknown>) => { calendar.props = props; return <div /> } }))
@@ -15,14 +17,41 @@ const plugin = { ...leave, id: 'plugin:1', source: 'plugin', kind: 'holiday' }
 
 function mount(onChangeDates = vi.fn().mockResolvedValue(undefined), canChange = true) {
   const onOpen = vi.fn()
-  render(<I18nProvider><EmployeeCalendar anchor={new Date(2026, 9, 1)} events={[leave, plugin]} onOpen={onOpen} onCreate={vi.fn()} onChangeDates={onChangeDates} canCreate canChange={canChange} view="year" /></I18nProvider>)
+  render(<I18nProvider><EmployeeCalendar anchor={new Date(2026, 9, 1)} events={[leave, plugin]} onOpen={onOpen} onCreate={vi.fn()} onChangeDates={onChangeDates} canCreate canChange={canChange} projectScope="year" /></I18nProvider>)
   return { onOpen, onChangeDates }
 }
 
 describe('Employee Calendar direct Leave interactions', () => {
-  it('uses dayGridYear and sends a date-only business mutation after a drop', async () => {
+  it('registers the shared views and plugins for Employee and Project', () => {
+    mount(vi.fn(), false)
+    expect(calendar.props.initialView).toBe(projectCalendarScopes.year.calendarView)
+    expect(calendar.props.views).toBe(projectDayGridViews)
+    expect(calendar.props.plugins).toContain(timelinePlugin)
+    expect(calendar.props.dayMaxEvents).toBe(false)
+    expect(calendar.props.dayMaxEventRows).toBe(false)
+  })
+
+  it.each(['month', 'year'] as const)('shows the Employee on a Project Leave in %s, without renaming plugin events', (projectScope) => {
+    render(<I18nProvider><EmployeeCalendar anchor={new Date(2026, 9, 1)} events={[{ ...leave, metadata: { ...leave.metadata, employee_id: 12 } }, plugin]} onOpen={vi.fn()} onCreate={vi.fn()} onChangeDates={vi.fn()} canCreate={false} canChange={false} projectScope={projectScope} projectEmployeeNames={new Map([[12, 'Ada Reader']])} /></I18nProvider>)
+    const eventContent = calendar.props.eventContent as (info: unknown) => React.ReactNode
+    render(<>{eventContent({ event: { id: 'leave:7', title: 'Leave', extendedProps: { source: 'core', kind: 'leave', metadata: { employee_id: 12 } } } })}</>)
+    expect(screen.getByRole('button', { name: /Ada Reader — Leave/ })).toHaveTextContent('Ada Reader — Leave')
+    render(<>{eventContent({ event: { id: 'plugin:1', title: 'Holiday', extendedProps: { source: 'plugin', kind: 'holiday', metadata: {} } } })}</>)
+    expect(screen.getByText('Holiday')).toBeInTheDocument()
+    expect(screen.queryByText('Ada Reader — Holiday')).not.toBeInTheDocument()
+  })
+
+  it('uses the existing Project creation callback for a non-resource Timeline selection', () => {
+    const onCreate = vi.fn()
+    render(<I18nProvider><EmployeeCalendar anchor={new Date(2026, 9, 1)} events={[leave]} onOpen={vi.fn()} onCreate={onCreate} onChangeDates={vi.fn()} canCreate canChange={false} projectScope="year" /></I18nProvider>)
+    const select = calendar.props.select as (selection: { allDay: boolean; startStr: string; endStr: string }) => void
+    select({ allDay: false, startStr: '2026-10-06T12:00:00+02:00', endStr: '2026-10-09T00:00:00+02:00' })
+    expect(onCreate).toHaveBeenCalledWith({ start_date: '2026-10-06', end_date: '2026-10-08' })
+  })
+
+  it('uses the shared year view and sends a date-only business mutation after a drop', async () => {
     const { onChangeDates } = mount()
-    expect(calendar.props.initialView).toBe('dayGridYear')
+    expect(calendar.props.initialView).toBe('dayGridYearCustom')
     expect((calendar.props.events as Array<{ editable: boolean }>).map((event) => event.editable)).toEqual([true, false])
     await act(async () => (calendar.props.eventDrop as (info: unknown) => void)({
       event: { id: 'leave:7', startStr: '2026-10-13' }, oldEvent: { startStr: '2026-10-10' }, revert: vi.fn(),

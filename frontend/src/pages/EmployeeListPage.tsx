@@ -2,10 +2,10 @@ import { Input } from '../components/ui/input'
 import { SelectableTableRow } from '../components/SelectableTableRow'
 import { SortableTableHeader } from '../components/SortableTableHeader'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../components/ui/dropdown-menu'
-import { Ellipsis, ExternalLink, X } from 'lucide-react'
+import { Download, Ellipsis, ExternalLink, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { employeeQuery, getEmployees, readEmployeeParams, type EmployeeIdentity, type EmployeeListParams, type EmployeeListResponse, type EmployeeSortField } from '../api/employees'
+import { employeeQuery, getEmployeeFilterOptions, getEmployees, readEmployeeParams, type EmployeeFilterOptions, type EmployeeIdentity, type EmployeeListParams, type EmployeeListResponse, type EmployeeSortField } from '../api/employees'
 import { ApiError } from '../api/errors'
 import { LoadingState } from '../components/LoadingState'
 import { Alert } from '../ui/Alert'
@@ -18,23 +18,37 @@ import styles from './EmployeeListPage.module.css'
 import { FilterBar } from '../filters/FilterBar'
 import { employeeFilters } from '../config/employeeFilters'
 import { employeeFilterSources } from '../config/employeeFilterSources'
+import { projectFilterSources } from '../config/projectFilterSources'
+import { ListExportDialog } from '../components/ListExportDialog'
 import { filterDefaultsMarker } from '../filters/url'
+import { useTranslation } from '../i18n/i18n'
 
 const fullName = (employee: EmployeeIdentity) => `${employee.first_name} ${employee.last_name}`
 const employeeUrl = (id: number) => `/employees/${id}`
-function dateLabel(value: string | null) {
-  if (!value) return '—'
-  const [year, month, day] = value.split('-')
-  return `${day}/${month}/${year}`
+const filterSources = { ...employeeFilterSources, ...projectFilterSources }
+function dateLabel(value: string | null, language: string) {
+  return value ? new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : '—'
 }
 
 type UpdateParams = (patch: Partial<EmployeeListParams>) => void
 
 export function EmployeeListPage() {
+  const { t } = useTranslation()
   const [query, setQuery] = useSearchParams()
   const params = readEmployeeParams(query)
   const canonicalQuery = employeeQuery(params)
   const [retry, setRetry] = useState(0)
+  const [options, setOptions] = useState<EmployeeFilterOptions | null>(null)
+  const [optionsError, setOptionsError] = useState(false)
+  const [optionsRetry, setOptionsRetry] = useState(0)
+  const [exportOpen, setExportOpen] = useState(false)
+  const exportButton = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    getEmployeeFilterOptions(controller.signal).then((value) => { if (!controller.signal.aborted) setOptions(value) }, () => { if (!controller.signal.aborted) setOptionsError(true) })
+    return () => controller.abort()
+  }, [optionsRetry])
 
   // Keep shared URLs consistent with the parameters actually sent to v1.
   useEffect(() => {
@@ -46,28 +60,35 @@ export function EmployeeListPage() {
   const filtered = Boolean(params.search || [...params.filters.values()].some(Boolean))
 
   return <>
-    <PageHeader title="Employés" />
+    <PageHeader title={t('page.employees')} />
     <div className={styles.toolbar}>
       <form key={params.search} role="search" className={styles.search} onSubmit={(event) => {
         event.preventDefault()
         const search = String(new FormData(event.currentTarget).get('search') ?? '').trim()
         update({ search })
       }}>
-        <label htmlFor="employee-search">Rechercher un employé</label>
+        <label htmlFor="employee-search">{t('employee.listSearch')}</label>
         <div className={styles.controls}>
-          <Input id="employee-search" name="search" type="search" defaultValue={params.search} placeholder="Prénom ou nom" />
-          <Button variant="ghost" type="submit">Rechercher</Button>
+          <Input id="employee-search" name="search" type="search" defaultValue={params.search} placeholder={t('employee.searchPlaceholder')} />
+          <Button variant="ghost" type="submit">{t('common.search')}</Button>
         </div>
       </form>
-      {filtered && <Button variant="ghost" onClick={reset}>Réinitialiser la recherche et les filtres</Button>}
+      <Button ref={exportButton} variant="secondary" onClick={() => setExportOpen(true)}><Download aria-hidden="true" />{t('listExport.title')}</Button>
+      {filtered && <Button variant="ghost" onClick={reset}>{t('list.searchReset')}</Button>}
     </div>
-    <FilterBar catalogue={employeeFilters} sources={employeeFilterSources} query={new URLSearchParams(canonicalQuery)} onChange={setQuery} resetParameters={['offset']} />
-    {params.search && <p className={styles.summary}>Recherche : « {params.search} »</p>}
+    {optionsError && <Alert tone="danger">{t('employee.filterOptionsError')} <Button variant="ghost" onClick={() => { setOptionsError(false); setOptionsRetry((value) => value + 1) }}>{t('common.retry')}</Button></Alert>}
+    <FilterBar catalogue={employeeFilters(t)} sources={filterSources} choiceOptions={{
+      statuses: options?.statuses.map((item) => ({ value: String(item.id), label: item.name })) ?? [],
+      teams: options?.teams.map((item) => ({ value: String(item.id), label: item.name })) ?? [],
+    }} query={new URLSearchParams(canonicalQuery)} onChange={setQuery} resetParameters={['offset']} />
+    {params.search && <p className={styles.summary}>{t('list.searchSummary', { query: params.search })}</p>}
     <EmployeeResults key={`${employeeQuery(params, true)}:${retry}`} params={params} update={update} filtered={filtered} reset={reset} retry={() => setRetry((value) => value + 1)} />
+    {exportOpen && <ListExportDialog entity="employees" listQuery={canonicalQuery} returnFocus={exportButton} onClose={() => setExportOpen(false)} />}
   </>
 }
 
 function EmployeeResults({ params, update, filtered, reset, retry }: { params: EmployeeListParams; update: UpdateParams; filtered: boolean; reset: () => void; retry: () => void }) {
+  const { t, language } = useTranslation()
   const [result, setResult] = useState<EmployeeListResponse | null>(null)
   const [error, setError] = useState<unknown>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -88,8 +109,8 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
     return () => controller.abort()
   }, [requestParams])
 
-  if (error) return <div className={styles.feedback}><Alert tone="danger">{error instanceof ApiError && error.status === 403 ? 'Accès interdit à la liste des employés.' : 'Impossible de charger les employés. Réessayez.'}</Alert><Button variant="ghost" onClick={retry}>Réessayer</Button></div>
-  if (!result) return <div className={styles.loading}><LoadingState message="Chargement des employés…" /></div>
+  if (error) return <div className={styles.feedback}><Alert tone="danger">{error instanceof ApiError && error.status === 403 ? t('employee.listForbidden') : t('employee.listLoadError')}</Alert><Button variant="ghost" onClick={retry}>{t('common.retry')}</Button></div>
+  if (!result) return <div className={styles.loading}><LoadingState message={t('employee.listLoading')} /></div>
 
   const selected = result.results.find((employee) => employee.id === selectedId)
   const page = Math.floor(params.offset / params.limit) + 1
@@ -98,36 +119,36 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
     return <SortableTableHeader label={label} field={field} ordering={params.ordering || 'first_name'} onSort={(ordering) => update({ ordering })} />
   }
 
-  return <section aria-label="Liste des employés">
-    <p className={styles.summary} role="status">{result.count} {result.count === 1 ? 'employé' : 'employés'}{result.results.length > 0 && ` · ${params.offset + 1}–${params.offset + result.results.length}`}</p>
-    <p className="sr-only" role="status">{selected ? `Sélection : ${fullName(selected)}` : 'Aucune ligne sélectionnée'}</p>
-    {result.results.length > 0 ? <div className={styles.scroll} role="region" aria-label="Tableau des employés, défilement horizontal" tabIndex={0}>
+  return <section aria-label={t('employee.listLabel')}>
+    <p className={styles.summary} role="status">{t(result.count === 1 ? 'employee.countOne' : 'employee.countMany', { count: result.count })}{result.results.length > 0 && ` · ${params.offset + 1}–${params.offset + result.results.length}`}</p>
+    <p className="sr-only" role="status">{selected ? t('list.selected', { name: fullName(selected) }) : t('list.noneSelected')}</p>
+    {result.results.length > 0 ? <div className={styles.scroll} role="region" aria-label={t('employee.tableScroll')} tabIndex={0}>
       <table className={styles.table}>
-        <caption className={styles.caption}>Cliquez sur une ligne pour la sélectionner ; au clavier, utilisez Entrée ou Espace. Le nom ouvre la fiche Employee.</caption>
-        <thead><tr>{sortable('Employé', 'first_name')}<th scope="col">Statuts actuels</th><th scope="col">Supérieurs</th>{sortable('Entrée', 'entry_date')}{sortable('Sortie', 'exit_date')}{sortable('Activité', 'is_active')}<th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+        <caption className={styles.caption}>{t('employee.tableHelp')}</caption>
+        <thead><tr>{sortable(t('employee.columnEmployee'), 'first_name')}<th scope="col">{t('employee.currentStatuses')}</th><th scope="col">{t('employee.superiors')}</th>{sortable(t('employee.columnEntry'), 'entry_date')}{sortable(t('employee.columnExit'), 'exit_date')}{sortable(t('employee.activity'), 'is_active')}<th scope="col"><span className="sr-only">{t('list.actions')}</span></th></tr></thead>
         <tbody>{result.results.map((employee) => <SelectableTableRow key={employee.id} id={`employee-row-${employee.id}`} rowId={employee.id} selectedId={selectedId} onSelect={setSelectedId}>
-          <th scope="row"><span className={styles.selectionMark} aria-hidden="true">{selectedId === employee.id ? '✓' : ''}</span><Link to={employeeUrl(employee.id)}>{fullName(employee)}</Link></th>
+          <th scope="row"><span className={styles.selectionMark} aria-hidden="true">{selectedId === employee.id ? '✓' : ''}</span><Link to={employeeUrl(employee.id)} state={{ employeeListSearch: employeeQuery(params) }}>{fullName(employee)}</Link></th>
           <td><div className={styles.statuses}>{employee.current_statuses.length ? employee.current_statuses.map((status, index) => <StatusBadge key={`${status.id}-${index}`}>{status.name || status.code}</StatusBadge>) : '—'}</div></td>
           <td>{employee.superiors.length ? employee.superiors.map(fullName).join(', ') : '—'}</td>
-          <td className={styles.date}>{dateLabel(employee.entry_date)}</td><td className={styles.date}>{dateLabel(employee.exit_date)}</td>
+          <td className={styles.date}>{dateLabel(employee.entry_date, language)}</td><td className={styles.date}>{dateLabel(employee.exit_date, language)}</td>
           <td><ActivityStatusBadge active={employee.is_active} /></td>
           <td className={styles.actions}>
             <DropdownMenu onOpenChange={(open) => { if (open) { returnToRow.current = false; setSelectedId(employee.id) } }}>
-              <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className={styles.rowMenu} />} aria-label={`Actions pour ${fullName(employee)}`}><Ellipsis /></DropdownMenuTrigger>
+              <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className={styles.rowMenu} />} aria-label={t('common.actionsFor', { name: fullName(employee) })}><Ellipsis /></DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-52" finalFocus={() => returnToRow.current ? document.getElementById(`employee-row-${employee.id}`) : true}>
-                <DropdownMenuItem render={<Link to={employeeUrl(employee.id)} />}><ExternalLink /> Ouvrir la fiche</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { returnToRow.current = true; setSelectedId(null) }}><X /> Désélectionner</DropdownMenuItem>
+                <DropdownMenuItem render={<Link to={employeeUrl(employee.id)} state={{ employeeListSearch: employeeQuery(params) }} />}><ExternalLink /> {t('list.openProfile')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { returnToRow.current = true; setSelectedId(null) }}><X /> {t('list.deselect')}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </td>
         </SelectableTableRow>)}</tbody>
       </table>
-    </div> : params.offset > 0 ? <EmptyState title="Cette page est vide" description="La liste a pu évoluer. Revenez à la première page." /> : <EmptyState title={filtered ? 'Aucun résultat' : 'Aucun employé accessible'} description={filtered ? 'Modifiez la recherche ou réinitialisez les filtres.' : 'Aucun employé n’est disponible dans votre périmètre.'} />}
-    {result.results.length === 0 && (params.offset > 0 ? <Button variant="ghost" onClick={() => update({ offset: 0 })}>Première page</Button> : filtered && <Button variant="ghost" onClick={reset}>Effacer les critères</Button>)}
-    <nav className={styles.pagination} aria-label="Pagination des employés">
-      <Button variant="ghost" disabled={!result.previous} onClick={() => update({ offset: Math.max(0, params.offset - params.limit) })}>Précédent</Button>
-      <span>Page {page} sur {pages}</span>
-      <Button variant="ghost" disabled={!result.next} onClick={() => update({ offset: params.offset + params.limit })}>Suivant</Button>
+    </div> : params.offset > 0 ? <EmptyState title={t('list.emptyPage')} description={t('list.emptyPageDescription')} /> : <EmptyState title={filtered ? t('list.noResults') : t('employee.noAccessible')} description={filtered ? t('list.adjustFilters') : t('employee.noneInScope')} />}
+    {result.results.length === 0 && (params.offset > 0 ? <Button variant="ghost" onClick={() => update({ offset: 0 })}>{t('list.firstPage')}</Button> : filtered && <Button variant="ghost" onClick={reset}>{t('list.clearCriteria')}</Button>)}
+    <nav className={styles.pagination} aria-label={t('employee.pagination')}>
+      <Button variant="ghost" disabled={!result.previous} onClick={() => update({ offset: Math.max(0, params.offset - params.limit) })}>{t('common.previous')}</Button>
+      <span>{t('common.pageOf', { page, pages })}</span>
+      <Button variant="ghost" disabled={!result.next} onClick={() => update({ offset: params.offset + params.limit })}>{t('common.next')}</Button>
     </nav>
   </section>
 }

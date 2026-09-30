@@ -15,6 +15,7 @@
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@fullcalendar/react": "^7.1.0",
+    "@fullcalendar/react-scheduler": "^7.1.0",
     "@svar-ui/react-gantt": "^2.7.3",
     "@tailwindcss/vite": "^4.3.3",
     "class-variance-authority": "^0.7.1",

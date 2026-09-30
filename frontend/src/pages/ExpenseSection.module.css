@@ -1,0 +1,16 @@
+.section { margin-top: 1.5rem; outline: none; }
+.heading, .buttons, .pagination { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.heading h3 { margin: 0; font-size: .95rem; }
+.filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
+.filters label, .form label { display: grid; gap: .3rem; font-size: .8rem; color: var(--muted-foreground); }
+.filters input, .form input, .filters select, .form select { width: 100%; min-height: 2.25rem; padding: .35rem .5rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--background); color: var(--foreground); }
+.scroll { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.table th, .table td { padding: .55rem .45rem; text-align: left; border-bottom: 1px solid var(--border); }
+.table th { color: var(--muted-foreground); white-space: nowrap; }
+.number { text-align: right !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.actions { width: 2.5rem; }
+.pagination { margin-top: .75rem; font-size: .8rem; }
+.form { display: grid; gap: .85rem; padding: 1rem 0; overflow-y: auto; }
+@media (max-width: 55rem) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 30rem) { .filters { grid-template-columns: 1fr; } }

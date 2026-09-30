@@ -1,25 +1,34 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import type { EmployeeMilestone, EmployeeMilestoneState } from '../api/employees'
+import type { PlanningMilestone, PlanningMilestoneState } from '../api/planning'
 import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
+import { ItemActionMenu } from '../components/ItemActionMenu'
 import { MilestoneDetailSheet, Progress } from './MilestoneDetailSheet'
 import { milestoneStateKey } from './milestonePresentation'
 import styles from './EmployeeMilestones.module.css'
 
 type MilestoneResource = {
-  data: EmployeeMilestone[] | null
+  data: PlanningMilestone[] | null
   error: unknown
   loading: boolean
   retry: () => void
 }
 
-const groupOrder: EmployeeMilestoneState[] = ['overdue', 'due_soon', 'in_progress', 'planned', 'completed']
+const groupOrder: PlanningMilestoneState[] = ['overdue', 'due_soon', 'in_progress', 'planned', 'completed']
 
-export function EmployeeMilestones({ resource }: { resource: MilestoneResource }) {
+export type PlanningMilestoneActions = {
+  canChange: boolean; canDelete: boolean
+  onEdit: (item: PlanningMilestone) => void; onDelete: (item: PlanningMilestone) => void
+  onTrigger?: (trigger: HTMLElement) => void
+  onMenuOpen?: () => void
+  finalFocus?: () => boolean
+}
+
+export function PlanningMilestoneTable({ resource, onOpen, actions }: { resource: MilestoneResource; onOpen?: (item: PlanningMilestone) => void; actions?: PlanningMilestoneActions }) {
   const { t } = useTranslation()
-  const [selected, setSelected] = useState<EmployeeMilestone | null>(null)
-  const [openGroups, setOpenGroups] = useState<Record<EmployeeMilestoneState, boolean>>({
+  const [selected, setSelected] = useState<PlanningMilestone | null>(null)
+  const [openGroups, setOpenGroups] = useState<Record<PlanningMilestoneState, boolean>>({
     overdue: true,
     due_soon: true,
     in_progress: true,
@@ -45,28 +54,34 @@ export function EmployeeMilestones({ resource }: { resource: MilestoneResource }
             <span>{title}<span aria-hidden="true"> · </span><strong>{items.length}</strong></span>
             {open ? <ChevronDown aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
           </button></h3>
-          {open && <div className={styles.rows}>{items.map((milestone) => <MilestoneRow key={milestone.id} milestone={milestone} onOpen={() => setSelected(milestone)} />)}</div>}
+          {open && <div className={styles.rows}>{items.map((milestone) => <MilestoneRow key={milestone.id} milestone={milestone} onOpen={() => (onOpen ?? setSelected)(milestone)} actions={actions} />)}</div>}
         </section>
       })}</div>
     </>}
-    <MilestoneDetailSheet milestone={selected} onClose={() => setSelected(null)} onDependenciesChanged={resource.retry} />
+    {!onOpen && <MilestoneDetailSheet milestone={selected} onClose={() => setSelected(null)} onDependenciesChanged={resource.retry} />}
   </div>
 }
 
-function MilestoneRow({ milestone, onOpen }: { milestone: EmployeeMilestone; onOpen: () => void }) {
+function MilestoneRow({ milestone, onOpen, actions }: { milestone: PlanningMilestone; onOpen: () => void; actions?: PlanningMilestoneActions }) {
   const { language, t } = useTranslation()
-  return <button aria-label={t('employee.openMilestone', { name: milestone.name })} className={styles.row} onClick={onOpen} type="button">
+  return <div className={styles.row}><button aria-label={t('employee.openMilestone', { name: milestone.name })} className={styles.rowButton} onClick={onOpen} type="button">
     <span className={styles.main}>
       <strong>{milestone.name}</strong>
       <small>{milestone.project.name} · {t(milestone.work_kind === 'milestone' ? 'employee.milestone' : 'employee.task')}{milestone.end_date && <> · {formatDate(milestone.end_date, language)}</>}</small>
+      {!!milestone.employees.length && <small className={styles.assignees}>{t('employee.assignees')}: {milestone.employees.map((employee) => `${employee.first_name} ${employee.last_name}`).join(', ')}</small>}
       {milestone.type === 'q' && <span className={styles.rowProgress}><Progress label={`${t('employee.progress')} — ${milestone.name}`} value={milestone.quotity} /></span>}
     </span>
     <span className={styles.due}>{dueText(milestone, language, t)}</span>
-  </button>
+  </button>{actions && (actions.canChange || actions.canDelete) && <span className={styles.rowActions}><ItemActionMenu
+    label={t('common.actionsFor', { name: milestone.name })}
+    canChange={actions.canChange} canDelete={actions.canDelete} onOpen={() => actions.onMenuOpen?.()}
+    onTrigger={actions.onTrigger} finalFocus={actions.finalFocus}
+    onEdit={() => actions.onEdit(milestone)} onDelete={() => actions.onDelete(milestone)}
+  /></span>}</div>
 }
 
 type Translator = ReturnType<typeof useTranslation>['t']
-function dueText(milestone: EmployeeMilestone, language: string, t: Translator) {
+function dueText(milestone: PlanningMilestone, language: string, t: Translator) {
   if (milestone.end_date === null || milestone.days_to_due === null) return t('employee.noDeadline')
   if (milestone.display_state === 'completed') return formatDate(milestone.end_date, language)
   if (milestone.days_to_due === 0) return t('employee.dueToday')
@@ -78,7 +93,7 @@ function formatDate(value: string, language: string) {
   return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
 }
 
-function sortMilestones(state: EmployeeMilestoneState, items: EmployeeMilestone[]) {
+function sortMilestones(state: PlanningMilestoneState, items: PlanningMilestone[]) {
   return [...items].sort((left, right) => {
     if (state === 'overdue') return compareNumber(right.days_to_due, left.days_to_due) || left.id - right.id
     if (state === 'due_soon' || state === 'in_progress') return compareNumber(left.days_to_due, right.days_to_due) || left.id - right.id

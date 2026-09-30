@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react'
-import { getEmployeeMilestones, getEmployeeProjectParticipations, type EmployeeProjectParticipation } from '../api/employees'
+import { Link } from 'react-router-dom'
+import { getEmployeeMilestones, getEmployeeProjectParticipations, updateEmployeeMilestone, type EmployeeProjectParticipation } from '../api/employees'
+import type { PlanningMilestone } from '../api/planning'
 import { EmployeeGanttPanel } from '../gantt/EmployeeGanttPanel'
 import { PersistentCollapsibleSection } from '../components/common/PersistentCollapsibleSection'
 import { useTranslation } from '../i18n/i18n'
@@ -7,7 +9,8 @@ import { Button } from '../ui/Button'
 import { StatusBadge } from '../ui/StatusBadge'
 import { useEmployeeDetail } from './employeeDetailContext'
 import styles from './EmployeeDetailPage.module.css'
-import { EmployeeMilestones } from './EmployeeMilestones'
+import { PlanningMilestoneTable } from './PlanningMilestoneTable'
+import { MilestoneDetailSheet } from './MilestoneDetailSheet'
 import { EmployeeProjectWorkload } from './EmployeeProjectWorkload'
 import { useEmployeeResource, type EmployeeResource } from './useEmployeeResource'
 
@@ -17,6 +20,16 @@ export function EmployeeProjects() {
   const milestones = useEmployeeResource(employeeId, getEmployeeMilestones)
   const projects = useEmployeeResource(employeeId, getEmployeeProjectParticipations)
   const [mode, setMode] = useState<'list' | 'gantt'>('list')
+  const [selected, setSelected] = useState<PlanningMilestone | null>(null)
+
+  async function saveMilestone(value: Parameters<typeof updateEmployeeMilestone>[2]) {
+    if (!selected) throw new Error('No milestone selected')
+    const saved = await updateEmployeeMilestone(employeeId, selected.id, value)
+    setSelected(saved)
+    milestones.updateData((items) => items.map((item) => item.id === saved.id ? saved : item))
+    void milestones.refresh()
+    return saved
+  }
 
   return <>
     <div className={styles.projectHeading}><h2 className={styles.panelTitle}>{t('employee.navProjects')}</h2>
@@ -24,7 +37,7 @@ export function EmployeeProjects() {
     </div>
     {mode === 'list' && <>
     <PersistentCollapsibleSection storageKey="labsmanager:employee:milestones-open" title={t('employee.milestones')}>
-      <EmployeeMilestones resource={milestones} />
+      <PlanningMilestoneTable resource={milestones} onOpen={setSelected} />
     </PersistentCollapsibleSection>
     <PersistentCollapsibleSection storageKey="labsmanager:employee:project-participations-open" title={t('employee.projects')}>
       <EmployeeProjectWorkload employeeId={employeeId} />
@@ -34,13 +47,14 @@ export function EmployeeProjects() {
       </div> : <p className={styles.muted}>{t('employee.noProjects')}</p>}</SecondaryResource>
     </PersistentCollapsibleSection>
     </>}
-    <EmployeeGanttPanel active={mode === 'gantt'} employeeId={employeeId} key={employeeId} participations={projects.data} work={milestones.data} projectError={Boolean(projects.error)} workError={Boolean(milestones.error)} onRetryProjects={projects.retry} onRetryWork={milestones.retry} />
+    <EmployeeGanttPanel active={mode === 'gantt'} employeeId={employeeId} key={employeeId} participations={projects.data} work={milestones.data} projectError={Boolean(projects.error)} workError={Boolean(milestones.error)} onRetryProjects={projects.retry} onRetryWork={milestones.retry} onOpen={setSelected} />
+    <MilestoneDetailSheet key={selected?.id ?? 'closed'} milestone={selected} onClose={() => setSelected(null)} onDependenciesChanged={milestones.retry} employeeEdit={selected ? { canChange: !!selected.can_change, onSave: saveMilestone } : undefined} />
   </>
 }
 
 function ProjectRow({ item }: { item: EmployeeProjectParticipation }) {
   const { t } = useTranslation()
-  return <tr><th scope="row">{item.project.name}</th><td>{item.role.label}</td><td>{period(item.start_date, item.end_date, t)}</td><td>{quotity(item.quotity)}</td><td><StatusBadge tone={item.is_active ? 'success' : 'neutral'}>{t(item.is_active ? 'employee.current' : 'employee.historical')}</StatusBadge></td></tr>
+  return <tr><th scope="row">{item.project.can_view ? <Link to={`/projects/${item.project.id}`}>{item.project.name}</Link> : item.project.name}</th><td>{item.role.label}</td><td>{period(item.start_date, item.end_date, t)}</td><td>{quotity(item.quotity)}</td><td><StatusBadge tone={item.is_active ? 'success' : 'neutral'}>{t(item.is_active ? 'employee.current' : 'employee.historical')}</StatusBadge></td></tr>
 }
 
 function SecondaryResource<T>({ children, resource }: { children: (data: T) => ReactNode; resource: EmployeeResource<T> }) {

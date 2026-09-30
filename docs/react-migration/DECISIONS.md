@@ -74,11 +74,12 @@
 - `CopyableValue` est transversal et reçoit séparément la valeur à placer dans le presse-papiers et le rendu affiché. Une valeur absente ne présente aucune action.
 - La fiche Employee était strictement en lecture seule jusqu’à R2.6a.2 ; R2.7 introduit uniquement les mutations GenericInfo décrites ci-dessous.
 
-## Employee Projects en lecture seule
+## Employee Projects : lecture contextuelle et édition partielle R2.13c
 
 - La classification des jalons est autoritaire côté Django et dépend de l'utilisateur courant : completed, overdue, due soon, planned, puis in progress. Le seuil due soon vient de `NOTIFICATION_ENDPOINTS_MILESTONES_STALE` via `LMUserSetting`; React n'en recalcule pas la valeur.
 - Pour les jalons, l'absence de `start_date` signifie milestone/jalon et sa présence signifie task/activity. `type="q"` utilise `quotity` comme progression ; `type="o"` n'affiche aucune progression numérique.
 - La collection de jalons reste contextuelle à l'Employee visible. Les marqueurs `can_view` des ressources liées déterminent seulement si une navigation indépendante peut être proposée ; ils ne filtrent pas les données nécessaires à la compréhension de la charge du subordonné.
+- R2.13c ajoute `can_change` par item via `endpoints.change_milestones`. Le scope Employee accepte seulement `desc`, `quotity` et `status` par PATCH, avec `save()` et la cohérence progression/terminé du Planning Project. Le Sheet commun reste en consultation par défaut ; aucune création, suppression ou mutation de dépendance n'est proposée depuis Employee. Project garde son CRUD complet ; le Gantt Employee reflète la relecture sans devenir éditable directement.
 - Le profil de charge projet est calculé depuis les dates et quotités des relations `Participant`, jamais depuis les dates Project. Les changements de composition définissent les segments ; les participations chevauchantes d'un même Project sont agrégées.
 - `range=all` est une requête explicite et conserve les bornes ouvertes. Les presets bornés sont un an (aujourd'hui −3 mois / +9 mois) et cinq ans (−1 an / +4 ans), navigables par pas de six mois avec retour à Aujourd'hui.
 - `ProjectWorkloadTimeline` reste compact, affiche un profil en escalier et le seuil 100 %, autorise une échelle supérieure à 100 %, et réserve le token `--destructive` à la seule surcharge. La composition Project est accessible au clavier et au pointeur. Aucun faux lien Project n'est créé.
@@ -92,6 +93,12 @@
 - Les dépenses du contrat sont chargées à la demande lors de l'ouverture du détail, et non avec toute la liste. Cette synthèse ne mensualise pas artificiellement les dépenses, ne projette pas de valeurs et ne crée ni graphique financier ni dashboard comptable.
 - `Expense.status` (`Engaged`, `Realised`, `Projected`) n'est pas utilisé fonctionnellement dans cette interface prévue et ne doit créer aucune dépendance React. Son éventuelle suppression future reste indécise ; aucune suppression de modèle n'est décidée ici.
 - R2.4b reste strictement en lecture seule. Les mutations Contract sont différées.
+
+## R2.15 Contracts Project et harmonisation Employee
+
+- La présentation R2.4b par groupes et `ContractDetailSheet` est remplacée dans les deux fiches par une liste sélectionnable, un détail partagé sous la liste, puis `ExpenseSection`. Le Sheet Contract sert à créer et modifier ; les actions de ligne utilisent le menu canonique et la suppression confirmée.
+- Les capacités Project Contract découlent de `project.change_project` global ou objet sur le Project visible, sans exiger un droit RH sur chaque Participant. Les capacités Employee Contract gardent leurs règles propres ; le même Contract peut donc avoir des actions différentes selon l'endpoint.
+- Le Fund d'un Contract Project appartient au Project et son Employee en est Participant, vérifiés côté serveur. L'identité Employee/Fund ne change pas lors d'un PATCH. `Contract.is_active` reste exclusivement l'indicateur « Suivi RH » ; la temporalité dépend des dates.
 
 ## R2.5 Financement, Contributions et Budgets
 
@@ -108,14 +115,13 @@
 - Une sous-ressource Calendar autorise d'abord sa ressource racine. Pour Employee, les Leave proviennent ensuite directement de la relation Employee, sans second périmètre autonome Leave.
 - `CalendarEventMixin` expose `get_calendar_events(context)` et `filter_calendar_queryset(queryset, context)`. Les anciennes mutations de liste d'événements ne constituent plus une API interne supportée.
 - `/calendar_plugin/` reste compatible comme façade FullCalendar des écrans Django et délègue au même service ; aucun moteur historique parallèle n'est conservé.
-- Les vues calendaires React demandent toujours une période bornée. Le renderer Employee reste local au besoin Mois/Année/cinq ans et ne crée pas une abstraction calendrier frontend universelle.
-- Le renderer Employee utilise FullCalendar React Standard pour Mois (`dayGridMonth`) et Année (`dayGridYear` depuis R2.10). La synthèse cinq ans reste interne ; les timelines Project/Contribution ne dépendent pas de FullCalendar.
-- Un adaptateur explicite convertit le contrat Calendar en `EventInput`. `description`, `source`, `kind` et `metadata` restent dans `extendedProps`; `display="background"` demeure un vrai événement de fond FullCalendar. Aucun composant Scheduler/Premium et aucune clé de licence ne sont introduits.
+- Les vues calendaires React demandent toujours une période bornée. Depuis R2.16c, Employee et Project partagent `projectCalendarScopes` et `projectDayGridViews` pour 15 jours, Mois, 2 mois et Année ; l'ancien calendrier Employee cinq ans est supprimé. Les timelines de charge Project/Contribution ne dépendent pas de FullCalendar.
+- Un adaptateur explicite convertit le contrat Calendar en `EventInput`. `description`, `source`, `kind` et `metadata` restent dans `extendedProps`; `display="background"` demeure un vrai événement de fond FullCalendar. Project Ressources utilise Scheduler et sa clé AGPL depuis R2.16.
 - Un événement de plugin reste distinct d'un événement métier Leave. Seul l'événement Leave ouvre le Sheet du congé.
 - Les textes calendaires restent des données brutes. L'API et les producteurs ne pré-échappent pas les apostrophes en entités HTML ; React et FullCalendar assurent l'échappement de rendu normal.
 - Les plugins déclarent leurs filtres par `get_calendar_filters(CalendarContext)`. Le cœur les normalise sous `LabsManagerCalendarFilter` (`id`, `title`, `type`, `source`, `choices`, `default`) et les agrège dans `CalendarService`; React traite leurs identifiants comme des données opaques.
 - Les définitions historiques `FILTERS` restent une forme déclarative acceptable et leurs `choices`/`default` peuvent être statiques ou issus de classmethods. L'interface Django historique est un adaptateur du contrat normalisé, pas un moteur parallèle.
-- La vue annuelle utilise `dayGridYear` depuis R2.10 ; sa lisibilité étroite reste améliorable. La synthèse cinq ans exclut tous les événements `display="background"` et affiche les dates des événements conservés.
+- Les vues DayGrid communes affichent tous les événements sans débordement `+X` ; les événements de fond restent transmis à FullCalendar dans chaque scope.
 - Les demi-journées utilisent une règle textuelle partagée : Matin ou Après-midi sur un seul jour, À partir de midi ou Jusqu'à midi sur plusieurs jours, et Midi → midi lorsque les deux bornes sont à midi.
 - R2.6a.2 clôt le Calendar/Leave Employee en lecture seule. La roadmap a ensuite séparé le Gantt Employee R2.8 des futurs scopes Project/global, puis R2.9 dépendances déclaratives sans scheduling et R2.10 mutations Leave.
 
@@ -134,7 +140,7 @@
 ## R2.10 — absences Employee
 
 - Les mutations Leave suivent `change_employee` sur l'Employee de l'URL. Le catalogue Leave_Type est sélectionnable à tous les niveaux ; les dates sont obligatoires à l'écriture. Un même Employee et un même type ne peuvent avoir deux intervalles de demi-journées qui se chevauchent ; deux intervalles contigus sont permis. Aucun schéma supplémentaire n'est introduit.
-- Un seul Sheet sert Tableau et Calendrier pour consultation, création et modification. Seules les vues Mois/Année permettent la sélection de plage ; la date de fin exclusive FullCalendar est convertie dans l'UI. Calendar Core et ses plugins conservent leur contrat.
+- Un seul Sheet sert Tableau et Calendrier pour consultation, création et modification. Depuis R2.16c, les quatre scopes Employee permettent la sélection de plage ; la date de fin exclusive FullCalendar est convertie dans l'UI. Calendar Core et ses plugins conservent leur contrat.
 - **Toute suppression déclenchée depuis l'interface utilisateur nécessite une confirmation explicite avant exécution.**
 
 ## R2.11a — liste Project
@@ -142,6 +148,18 @@
 - La visibilité de la liste et du détail Project suit `Project.get_instances_for_user("view")` ; le backend publie les capacités de mutation calculées avec les droits Project existants. Les relations de liste sont compactes et préchargées, avec la visibilité Fund appliquée aux fonds affichés.
 - Le catalogue de filtres React reste commun aux listes Employee et Project. Active=true est une valeur initiale explicite et visible dans les deux listes ; un marqueur d'initialisation d'URL empêche son retour après retrait volontaire. Les définitions métier restent propres à chaque liste.
 - La création et l'édition de Project partagent un Sheet limité aux champs racine. La création navigue avec l'identifiant du POST vers une route React transitoire ; le contenu de la fiche Project relève de R2.11b. La suppression utilise la confirmation générale.
+
+## R2.11b — fiche Project
+
+- La Vue d’ensemble est la seule section Project active. Les autres entrées restent visibles mais désactivées jusqu’à leur lot métier ; aucun contenu financier n’est ajouté.
+- Les droits Project et des trois collections enfants sont calculés et appliqués côté backend. Les mutations enfants restent rattachées au Project de l’URL. L’ajout et la modification suivent les droits Project objet ou les permissions globales du modèle enfant ; la suppression requiert la permission globale de suppression correspondante. Le choix d’un Employee pour un Participant exige sa visibilité.
+- GenericInfo utilise un composant React commun aux fiches Employee et Project, paramétré par les appels API et les capacités contextuelles. La quotité Participant est stockée comme fraction et présentée en pourcentage dans le formulaire.
+
+## R2.11-refactor-2 — Shared Planning Core
+
+- Tasks et Milestones constituent un même métier Planning : `PlanningMilestoneTable`, `MilestoneDetailSheet`, le contrat API et `PlanningGanttAdapter` sont communs aux scopes. Cette évolution remplace l'hypothèse R2.8 d'un `ProjectGanttAdapter` nécessaire par défaut.
+- Le backend qualifie les états temporels selon la préférence de l'utilisateur et applique les filtres Planning au queryset déjà borné par le contexte. Tableau et Gantt consomment la même collection ; les filtres Calendar/plugins continuent à ne concerner que leurs événements.
+- Aucun CRUD Task/Milestone React n'existe dans le contexte Employee actuel. Le futur CRUD Project doit réutiliser un socle commun lorsque son contrat sera défini ; l'affectation d'un Employee doit être validée côté backend contre les participants du Project, indépendamment de `change_project`.
 
 
 ## R2.7 — premier pattern de mutation React
@@ -167,12 +185,57 @@
 - DELETE est définitif et précédé d’une confirmation accessible. Auditlog reste la traçabilité.
 - Succès de mutation et succès de relecture sont distincts. La réponse serveur actualise
   immédiatement l’affichage ; une relecture échouée ne déclenche jamais une nouvelle écriture.
-- GenericInfoType seul sort de FAIcon : CharField et mapping Django borné vers Lucide.
+- GenericInfoType sort de FAIcon en R2.7 : CharField et mapping Django borné vers Lucide.
   Une icône inconnue est conservée exactement en base ; CircleQuestionMark est le fallback React.
   Null et vide restent acceptés. Aucun convertisseur général ni adaptateur Lucide vers FAIcon.
 - La conversion perd les styles FA et est explicitement non réversible. Sauvegarde BDD avant
   production et restauration avec version applicative correspondante constituent le rollback.
-- Le legacy Employee abandonne seulement le rendu FAIcon concerné. Project et la dépendance
-  FAIcon restent en place, y compris pour les migrations historiques.
+- Le legacy Employee abandonne seulement le rendu FAIcon concerné. Project suivra en
+  R2.11b ; la dépendance FAIcon reste nécessaire aux autres modèles et migrations historiques.
 - Création imbriquée de type, mutations de types en API v1, Paramètres React, Note, Gantt,
   dépendances et mutations Leave restent exclus. Aucune nouvelle dépendance.
+
+## R2.12b — Expense individuelle
+
+- `Expense.fund_item` pointe vers Fund ; `expense.change_expense` suit l'intention historique
+  `project.change_project` via ce lien. La permission Fund ne s'y substitue pas.
+- L'affectation et la désaffectation d'un Contract conservent le parent Expense et son PK.
+  La promotion insère l'enfant multi-table `Contract_expense` avec le même PK ; la
+  désaffectation supprime seulement cet enfant avec `keep_parents=True`.
+- Une Contract_expense exige le Cost_Type RH historique ; Contract et Budget sont
+  indépendants et doivent appartenir au même Fund. Les trois statuts restent agrégés
+  identiquement ; la dépense individuelle conserve le signe saisi.
+- La synchronisation est une action Fund autorisée par `fund.change_fund` objet et
+  le mode `e`/`h`, sans permission Django nouvelle. Elle conserve l'appel historique
+  `calculate_expense(force=True)` et actualise ensuite les totaux en cache.
+
+## R2.14 — Budgets et Contributions Project
+
+- Budget et Contribution restent deux modèles et deux sections métier ; les contrats de champs, formulaires et Sheets partagent uniquement le socle réel `BudgetAbstract`. Une ligne correspond à un objet, sans agrégation ni répartition automatique.
+- Les écritures Project Budget/Contribution utilisent le droit objet `project.change_project`, exposé aussi comme capacité API. La lecture exige le Project et le Fund visibles. Les validations `clean()` et les hooks de persistance restent côté Django.
+- Seul Budget porte des Expense contextuelles ; la création fixe Budget et Fund dans l’API, et React réutilise `ExpenseSection`. Le calcul historique `available = amount - expense` est conservé, indépendamment de la convention Fund. Aucun Expense n’est associé à Contribution.
+- La suppression d’un Budget conserve le `on_delete=CASCADE` historique sur `Expense.budget_item` ; l’interface l’annonce dans la confirmation. Aucun versioning, workflow ni contrôle global d’enveloppe n’est introduit.
+
+## R2.16 — Calendar Project et Scheduler
+
+- Leave reste un événement cœur produit par un seul producteur du domaine Leave pour Employee et Project ; `CalendarService` agrège les événements complémentaires des plugins sans devenir producteur Leave.
+- La lecture Project Calendar suit `Project.get_instances_for_user("view", ...)` ; une mutation Leave exige `staff.change_employee` sur l'Employee. La création depuis Project exige aussi que l'Employee soit Participant du Project.
+- La vue Ressources utilise `resourceTimeline` du paquet officiel FullCalendar 7 `@fullcalendar/react-scheduler` : Mois standard et durées 15 jours, 2 mois et Année depuis R2.16a. Le dépôt étant sous AGPLv3, elle emploie `AGPL-My-Frontend-And-Backend-Are-Open-Source`.
+
+## R2.17 — Generic Notes
+
+- `GenericNote` conserve son lien générique et ajoute un auteur obligatoire, protégé contre suppression, ainsi que `visibility=object|creator`. La migration attribue les notes historiques au compte administratif nommé `ben_admin`, identifié sur la base de développement ; son absence bloque volontairement une migration d'un environnement contenant des notes.
+- L'API Notes v1 accepte Project, Employee, Team, Institution et Contract comme parents. Elle filtre la visibilité avant de retourner les notes et partage un seul calcul de capacités avec les mutations. Le créateur n'est jamais accepté depuis le client. La permission historique `staff.changenote_employee` reste distincte de `staff.change_employee` ; Contract utilise `expense.change_contract`.
+- Le panneau React réutilise l'éditeur WYSIWYG déjà fourni par `django_prose_editor` et le champ backend sanitizé. Le contenu se sauvegarde après temporisation et à la fermeture de l'édition ; nom et visibilité ont leurs actions propres. Le même `GenericNotes` est hébergé en Sheet depuis la ligne Contract, sans système Notes parallèle. Son compteur est filtré par visibilité et agrégé côté backend.
+
+## R2.19a — filtres des listes Employee et Project
+
+- La liste Employee complète son catalogue URL existant sans état parallèle : le filtre Nom partage le paramètre `search` et sa recherche backend prénom/nom ; Statut couvre tout l'historique, Statut actuel suit `Employee_Status.current`, Team couvre leader et TeamMate, Project suit Participant. Les sous-requêtes d'identifiants conservent l'intersection et évitent les doublons.
+- Les choix Statut/Team proviennent des relations d'Employees visibles. Le Project choisi utilise le même `EntitySearch` que Supérieur et Participant. Les liens vers les fiches transmettent le contexte de liste pour que le retour dédié restitue son URL filtrée, triée et paginée.
+- Les dix filtres Project et leur sémantique restent inchangés. « En retard » applique `Project.staleFilter()` : Project actif dont `end_date` est au plus tard maintenant plus `DASHBOARD_PROJECT_STALE_TO_MONTH` mois (3 par défaut), y compris les projets déjà échus.
+
+## R2.19b — exports des listes Employee et Project
+
+- Les vues d'export réutilisent les vues de liste v1 pour construire le queryset visible, filtré et ordonné ; seule la liste le pagine. Les Resources métier historiques produisent les fichiers complets, sans colonnes React propres à l'export.
+- CSV, TSV, XLS et XLSX sont explicitement autorisés. Les endpoints d'export réservent `?format=` au choix du fichier, malgré l'override de renderer portant le même nom dans DRF ; leur réponse fichier a un MIME et un nom daté propres. Le Dialog de liste est partagé entre Employee et Project, distinct du Dialog de rapports Word/PDF.
+- `ProjectResource` reçoit explicitement un scope Fund. Les exports utilisateur v1 et historique réutilisent `Fund.get_instances_for_user("view", …)` et transmettent les Funds visibles préchargés ; le texte Fund et les six agrégats sont bornés au même ensemble. Le mode complet est réservé aux appels explicites de confiance et n'est pas employé par les endpoints utilisateur.
