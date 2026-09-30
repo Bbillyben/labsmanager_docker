@@ -14,6 +14,8 @@ from labsmanager import serializers
 from django.contrib.contenttypes.models import ContentType
 
 from .models import OrganizationInfos, Contact, GenericNote
+from .api_v1 import legacy_visible_notes
+import nh3
 from project.models import Project, Institution, Institution_Participant
 from fund.models import Fund_Institution, Fund
 from expense.models import Contract
@@ -22,15 +24,49 @@ class genericnoteViewSet(viewsets.ModelViewSet):
     queryset = GenericNote.objects.all()
     serializer_class = serializers.GenericInfoSerialiszer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        action = 'view' if self.request.method in ('GET', 'HEAD') else 'delete' if self.request.method == 'DELETE' else 'change'
+        return legacy_visible_notes(self.request.user, action)
+
+    def create(self, request, *args, **kwargs):
+        from rest_framework.exceptions import PermissionDenied
+        raise PermissionDenied()
+
+    def update(self, request, *args, **kwargs):
+        from rest_framework.exceptions import MethodNotAllowed
+        raise MethodNotAllowed('PUT')
+
+    def partial_update(self, request, pk=None):
+        from rest_framework.exceptions import ValidationError
+        from .api_v1 import validate_and_save
+        note = get_object_or_404(self.get_queryset(), pk=pk)
+        if not request.data or set(request.data) - {'note', 'name'}:
+            raise ValidationError({'detail': 'Unsupported note fields.'})
+        if 'note' in request.data:
+            if not isinstance(request.data['note'], str):
+                raise ValidationError({'note': 'Expected HTML text.'})
+            note.note = request.data['note']
+        if 'name' in request.data:
+            if not isinstance(request.data['name'], str) or not request.data['name'].strip():
+                raise ValidationError({'name': 'This field is required.'})
+            note.name = request.data['name'].strip()
+        validate_and_save(note)
+        return Response(self.serializer_class(note).data)
     
     def list(self, request):
-        serializer = self.serializer_class(self.queryset, many=True)
-        return Response(serializer.data)
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+        data = serializer.data
+        for item in data:
+            item['note'] = nh3.clean(item['note'] or '')
+        return Response(data)
     
     def retrieve(self, request, pk=None):
-        note = get_object_or_404(self.queryset, pk=pk)
+        note = get_object_or_404(self.get_queryset(), pk=pk)
         serializer = self.serializer_class(note)
-        return Response(serializer.data)
+        data = serializer.data
+        data['note'] = nh3.clean(data['note'] or '')
+        return Response(data)
     
     # def update(self, request, pk=None):
     #     note = get_object_or_404(self.queryset, pk=pk)

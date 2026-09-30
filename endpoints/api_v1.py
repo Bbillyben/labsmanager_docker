@@ -1,6 +1,7 @@
 """Minimal v1 planning dependency and candidate APIs."""
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions
@@ -9,9 +10,98 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from project.models import Project
+from project.models import Participant
+from project.api_v1 import project_capabilities
 from staff.models import Employee
 
 from .models import MilestoneDependency, Milestones
+from .planning_serializers_v1 import PlanningMilestoneV1Serializer, PlanningMilestoneWriteV1Serializer
+from .planning_v1 import filter_planning_items, planning_serializer_context, preload_planning_items
+
+
+class ProjectPlanningScopeV1Mixin:
+    """Authorize Project first, then scope every Planning operation to it."""
+
+    def get_project(self, request, pk):
+        return get_object_or_404(
+            Project.get_instances_for_user("view", request.user, Project.objects.all()), pk=pk,
+        )
+
+    def can_change(self, request, project):
+        return project_capabilities(request.user, project)["can_change"]
+
+    def serialize_item(self, request, project, item):
+        scoped = Milestones.objects.filter(project=project)
+        loaded = preload_planning_items(scoped.filter(pk=item.pk)).get()
+        return PlanningMilestoneV1Serializer(
+            loaded, context=planning_serializer_context(request.user, scoped),
+        ).data
+
+
+class ProjectPlanningV1View(ProjectPlanningScopeV1Mixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk):
+        project = self.get_project(request, pk)
+        scoped = filter_planning_items(Milestones.objects.filter(project=project), request.query_params)
+        items = PlanningMilestoneV1Serializer(
+            preload_planning_items(scoped), many=True,
+            context=planning_serializer_context(request.user, scoped),
+        ).data
+        participants = Participant.objects.filter(project=project).select_related("employee").order_by(
+            "employee__last_name", "employee__first_name", "employee_id",
+        )
+        unique_participants = {}
+        for relation in participants:
+            unique_participants[relation.employee_id] = {
+                "id": relation.employee_id,
+                "first_name": relation.employee.first_name,
+                "last_name": relation.employee.last_name,
+            }
+        can_change = self.can_change(request, project)
+        return Response({
+            "capabilities": {"can_add": can_change, "can_change": can_change, "can_delete": can_change},
+            "participants": list(unique_participants.values()),
+            "items": items,
+        })
+
+    @transaction.atomic
+    def post(self, request, pk):
+        project = self.get_project(request, pk)
+        if not self.can_change(request, project):
+            raise PermissionDenied()
+        serializer = PlanningMilestoneWriteV1Serializer(
+            data=request.data, context={"project": project},
+        )
+        serializer.is_valid(raise_exception=True)
+        item = serializer.save()
+        return Response(self.serialize_item(request, project, item), status=201)
+
+
+class ProjectPlanningItemV1View(ProjectPlanningScopeV1Mixin, APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @transaction.atomic
+    def patch(self, request, pk, item_id):
+        project = self.get_project(request, pk)
+        item = get_object_or_404(Milestones.objects.filter(project=project), pk=item_id)
+        if not self.can_change(request, project):
+            raise PermissionDenied()
+        serializer = PlanningMilestoneWriteV1Serializer(
+            item, data=request.data, partial=True, context={"project": project},
+        )
+        serializer.is_valid(raise_exception=True)
+        item = serializer.save()
+        return Response(self.serialize_item(request, project, item))
+
+    @transaction.atomic
+    def delete(self, request, pk, item_id):
+        project = self.get_project(request, pk)
+        item = get_object_or_404(Milestones.objects.filter(project=project), pk=item_id)
+        if not self.can_change(request, project):
+            raise PermissionDenied()
+        item.delete()
+        return Response(status=204)
 
 
 def editable_projects(user):
@@ -51,6 +141,15 @@ def dependency_dict(dependency, *, can_delete):
         "successor_id": dependency.successor_id,
         "temporally_inconsistent": dependency.temporally_inconsistent,
         "can_delete": can_delete,
+    }
+
+
+def successor_dependency_dict(dependency):
+    return {
+        "id": dependency.pk,
+        "successor": item_dict(dependency.successor),
+        "predecessor_id": dependency.predecessor_id,
+        "temporally_inconsistent": dependency.temporally_inconsistent,
     }
 
 
@@ -102,6 +201,9 @@ class MilestoneDependenciesV1View(APIView):
         relations = MilestoneDependency.objects.filter(
             successor=successor, predecessor__in=readable
         ).select_related("predecessor__project", "successor").order_by("pk")
+        successors = MilestoneDependency.objects.filter(
+            predecessor=successor, successor__in=readable,
+        ).select_related("successor__project", "predecessor").order_by("pk")
         return Response({
             "can_add": successor.project_id in editable_ids,
             "predecessors": [dependency_dict(
@@ -109,6 +211,7 @@ class MilestoneDependenciesV1View(APIView):
                 can_delete=successor.project_id in editable_ids
                 and relation.predecessor.project_id in editable_ids,
             ) for relation in relations],
+            "successors": [successor_dependency_dict(relation) for relation in successors],
         })
 
     def post(self, request, successor_id):

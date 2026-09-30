@@ -8,7 +8,7 @@ from django.db.models import Q
 from staff.models import Employee
 from project.models import Project, Participant
 from labsmanager.forms import DateInput
-from labsmanager.mixin import SanitizeDataFormMixin, IconFormMixin
+from labsmanager.mixin import SanitizeDataFormMixin
 from labsmanager.widgets import CustomCheckBox
 from fund.models import Fund
 import datetime
@@ -179,7 +179,7 @@ class GenericInfoProjectForm(SanitizeDataFormMixin, BSModalModelForm):
         if instance and instance.pk:
             self.fields['info'].disabled = True
             
-class GenericInfoTypeProjectForm(SanitizeDataFormMixin,IconFormMixin,  BSModalModelForm):
+class GenericInfoTypeProjectForm(SanitizeDataFormMixin, BSModalModelForm):
     allowed_tags= {""}
     class Meta:
         model = models.GenericInfoTypeProject

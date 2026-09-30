@@ -328,6 +328,9 @@ class EmployeeReport(TemplateReport):
         
         employee_content_type = ContentType.objects.get_for_model(Employee)
         notes = GenericNote.objects.filter(content_type=employee_content_type,object_id=emp.id)
+        from infos.api_v1 import note_admin
+        if not note_admin(request.user):
+            notes = notes.filter(models.Q(visibility='object') | models.Q(visibility='creator', creator=request.user))
  
         context["notes"]=notes
         
@@ -412,6 +415,9 @@ class ProjectReport(TemplateReport):
         # fore Generic Notes
         ct = ContentType.objects.get_for_model(Project)
         notes = GenericNote.objects.filter(content_type=ct,object_id=proj.id)
+        from infos.api_v1 import note_admin
+        if not note_admin(request.user):
+            notes = notes.filter(models.Q(visibility='object') | models.Q(visibility='creator', creator=request.user))
  
         context["notes"]=notes
         

@@ -180,6 +180,15 @@ class GenericNoteCreateView(LoginRequiredMixin, BSModalCreateView):
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
     model = models.GenericNote
+
+    def form_valid(self, form):
+        from django.core.exceptions import PermissionDenied
+        from .api_v1 import PARENTS, capabilities, parent_for
+        scope = next((name for name, model in PARENTS.items() if model == form.instance.content_type.model_class()), None)
+        if scope is None or not capabilities(self.request.user, parent_for(self.request.user, scope, form.instance.object_id))['can_add']:
+            raise PermissionDenied
+        form.instance.creator = self.request.user
+        return super().form_valid(form)
     
     def get(self, request, *args, **kwargs):
         kw = self.get_form_kwargs()
@@ -202,9 +211,24 @@ class GenericNoteUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_message = 'Success: Leave was updated.'
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
+
+    def get_queryset(self):
+        from .api_v1 import legacy_visible_notes
+        return legacy_visible_notes(self.request.user, 'change')
+
+    def form_valid(self, form):
+        from django.core.exceptions import PermissionDenied
+        original = self.get_object()
+        if form.instance.content_type_id != original.content_type_id or form.instance.object_id != original.object_id:
+            raise PermissionDenied
+        return super().form_valid(form)
     
 class GenericNoteRemoveView(LoginRequiredMixin, BSmodalDeleteViwGenericForeingKeyMixin, BSModalDeleteView):
     model = models.GenericNote
     template_name = 'form_delete_base.html'
     success_url = reverse_lazy('employee_index')
     success_message = "deleted"
+
+    def get_queryset(self):
+        from .api_v1 import legacy_visible_notes
+        return legacy_visible_notes(self.request.user, 'delete')

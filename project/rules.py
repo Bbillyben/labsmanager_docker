@@ -48,13 +48,18 @@ def is_participant_superior(user, participant = None):
     except:
         return False
 
+from django.contrib.auth.backends import ModelBackend
+@rules.predicate
+def has_global_change_project(user, project=None):
+    return ModelBackend().has_perm(user, "project.change_project")
+
 #    Rules ======================
 
 
-rules.add_perm('project.change_project', is_project_leader |  is_project_coleader)
-rules.add_perm('project.view_project', is_project_participant)
+rules.add_perm('project.change_project', has_global_change_project | is_project_leader |  is_project_coleader)
+rules.add_perm('project.view_project', has_global_change_project | is_project_participant)
 
 
-rules.add_perm('project.view_participant', is_participant_superior)
+rules.add_perm('project.view_participant', has_global_change_project | is_participant_superior)
 
-rules.add_perm('project.view_fund', is_project_leader |  is_project_coleader)
+rules.add_perm('project.view_fund',has_global_change_project | is_project_leader |  is_project_coleader)

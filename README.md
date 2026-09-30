@@ -6,33 +6,47 @@
 </p>
 
 
-________________________________________
 
-On progress documentation : https://labsmanager-doc.readthedocs.io/en/latest/
+---
+
+On progress documentation : <https://labsmanager-doc.readthedocs.io/en/latest/>
 
 ### features
 
-* employee : keep track of employees, status, contract, project involvement, dedicated budgets, leaves, ....
-* team: reference employee into teams
-* contract : keep track of employee's contract with dates, fund, ... 
-* projects : keep track of everything regarding projects
-* fund 
-* budget
-* expense
-* leave
-* insitution and funder : gather information and contact from tutellary institution and funding ones
-* dashboard
-* report : ability to use templates for editing report for employee and projects.
 
-________________________________
+- employee : keep track of employees, status, contract, project involvement, dedicated budgets, leaves, ....
+- team: reference employee into teams
+- contract : keep track of employee's contract with dates, fund, ...
+- projects : keep track of everything regarding projects
+- fund
+- budget
+- expense
+- leave
+- insitution and funder : gather information and contact from tutellary institution and funding ones
+- dashboard
+- report : ability to use templates for editing report for employee and projects.
+
+
+<br />
+
+
+### License
+
+LabsManager is licensed under the GNU Affero General Public License v3.0.
+
+---
 #### credits
 
 inspired by [Inventree](https://github.com/inventree/InvenTree)
 (some code come directly from them)
 
 
-##### Menu images from 
 
-- https://www.freevector.com
-- https://fr.vecteezy.com
+##### Menu images from
+
+- <https://www.freevector.com>
+
+- <https://fr.vecteezy.com>
+
+
 

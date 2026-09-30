@@ -359,6 +359,61 @@ class EmployeeListV1ApiTests(APITestCase):
         self.assertEqual(set(self.result_ids(team_response)), {leader.pk, member.pk})
         self.assertNotIn(other.pk, self.result_ids(team_response))
 
+    def test_complete_filters_intersect_with_project_membership_and_temporal_status(self):
+        user = self.create_user("complete-filter-viewer")
+        self.grant_global_view(user)
+        leader = self.create_employee("Alice", "Leader", is_active=True)
+        member = self.create_employee("Bea", "Member", is_active=True)
+        outsider = self.create_employee("Cara", "Outside", is_active=False)
+        old_type = Employee_Type.objects.create(shortname="OLD-F", name="Former role")
+        current_type = Employee_Type.objects.create(shortname="NOW-F", name="Current role")
+        Employee_Status.objects.create(employee=member, type=old_type, end_date=date.today() - timedelta(days=1))
+        Employee_Status.objects.create(employee=member, type=current_type)
+        Employee_Status.objects.create(employee=member, type=current_type)
+        Employee_Status.objects.create(employee=leader, type=current_type)
+        Employee_Superior.objects.create(employee=member, superior=leader)
+        team = Team.objects.create(name="Project team", leader=leader)
+        TeamMate.objects.create(team=team, employee=member, end_date=date.today() - timedelta(days=1))
+        project = Project.objects.create(name="Filtered Project")
+        Participant.objects.create(project=project, employee=leader, status="l")
+        Participant.objects.create(project=project, employee=member, status="p")
+        self.login(user)
+
+        self.assertEqual(self.result_ids(self.client.get(self.url, {"search": "Bea"})), [member.pk])
+        self.assertEqual(self.result_ids(self.client.get(self.url, {"is_active": "false"})), [outsider.pk])
+        self.assertEqual(self.result_ids(self.client.get(self.url, {"status": old_type.pk})), [member.pk])
+        self.assertEqual(self.client.get(self.url, {"current_status": old_type.pk}).json()["count"], 0)
+        self.assertEqual(set(self.result_ids(self.client.get(self.url, {"team": team.pk}))), {leader.pk, member.pk})
+        self.assertEqual(set(self.result_ids(self.client.get(self.url, {"project": project.pk}))), {leader.pk, member.pk})
+        self.assertEqual(self.result_ids(self.client.get(self.url, {"superior": leader.pk})), [member.pk])
+        combined = self.client.get(self.url, {"is_active": "true", "current_status": current_type.pk,
+                                              "team": team.pk, "project": project.pk, "superior": leader.pk})
+        self.assertEqual(self.result_ids(combined), [member.pk])
+        self.assertEqual(combined.json()["count"], 1)
+        self.assertEqual(self.result_ids(self.client.get(self.url, {"status": old_type.pk, "superior": leader.pk})), [member.pk])
+        page = self.client.get(self.url, {"current_status": current_type.pk, "ordering": "-first_name", "limit": 1})
+        self.assertEqual(page.json()["count"], 2)
+        self.assertEqual(self.result_ids(page), [member.pk])
+        self.assertIsNotNone(page.json()["next"])
+        self.assertEqual(self.result_ids(self.client.get(self.url, {"current_status": current_type.pk,
+                                                                  "ordering": "-first_name", "limit": 1, "offset": 1})), [leader.pk])
+
+    def test_filter_options_are_bounded_to_visible_employees(self):
+        user = self.create_user("filter-options-viewer")
+        own = self.create_employee("Own", "Employee", user=user)
+        hidden = self.create_employee("Hidden", "Employee")
+        visible_type = Employee_Type.objects.create(shortname="VIS-F", name="Visible role")
+        hidden_type = Employee_Type.objects.create(shortname="HID-F", name="Hidden role")
+        Employee_Status.objects.create(employee=own, type=visible_type)
+        Employee_Status.objects.create(employee=hidden, type=hidden_type)
+        Team.objects.create(name="Visible team", leader=own)
+        Team.objects.create(name="Hidden team", leader=hidden)
+        self.login(user)
+        response = self.client.get(reverse("api_v1:employee-filter-options"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["name"] for item in response.json()["statuses"]], ["Visible role"])
+        self.assertEqual([item["name"] for item in response.json()["teams"]], ["Visible team"])
+
     def test_response_contains_only_the_v1_list_contract(self):
         user = self.create_user("contract-viewer")
         self.grant_global_view(user)
@@ -558,6 +613,7 @@ class EmployeeDetailV1ApiTests(APITestCase):
                 "project_quotity",
                 "contribution_quotity",
                 "active_milestones_count",
+                "capabilities",
             },
         )
         self.assertEqual(detail_response.json()["birth_date"], "1990-03-04")
@@ -808,6 +864,24 @@ class EmployeeMilestoneV1ApiTests(APITestCase):
         self.assertEqual(by_name["Overdue"]["days_to_due"], -2)
         self.assertEqual(by_name["Due boundary"]["days_to_due"], 3)
         self.assertIsNone(by_name["Planned"]["days_to_due"])
+
+    def test_planning_filters_apply_inside_authorized_employee_scope(self):
+        user = self.create_user("milestone-filter-viewer")
+        target = self.create_employee("Filter", "Owner", user=user)
+        hidden = self.create_employee("Other", "Employee")
+        project = Project.objects.create(name="Planning filters")
+        task = self.create_milestone(project, "Report task", [target], start_date=date.today())
+        milestone = self.create_milestone(project, "Report milestone", [target])
+        self.create_milestone(project, "Report hidden", [hidden], start_date=date.today())
+        self.login(user)
+
+        tasks = self.client.get(self.url(target.pk), {"search": "report", "kind": "task"})
+        points = self.client.get(self.url(target.pk), {"search": "report", "kind": "milestone"})
+
+        self.assertEqual(tasks.status_code, 200)
+        self.assertEqual([item["id"] for item in tasks.json()], [task.pk])
+        self.assertEqual([item["id"] for item in points.json()], [milestone.pk])
+        self.assertEqual(self.client.get(self.url(hidden.pk), {"search": "report"}).status_code, 404)
 
     def test_unknown_and_out_of_scope_employee_are_both_not_found(self):
         user = self.create_user("milestone-hidden-viewer")
@@ -1371,7 +1445,27 @@ class EmployeeProjectParticipationV1ApiTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.response_ids(response), [participation.pk])
         self.assertEqual(response.json()[0]["project"]["id"], project.pk)
+        self.assertFalse(response.json()[0]["project"]["can_view"])
         self.assertFalse(user.has_perm("project.view_project", project))
+
+    def test_project_reference_reports_independent_view_permission(self):
+        user = self.create_user("participation-project-viewer")
+        viewer = self.create_employee("Project", "Viewer", user=user)
+        target = self.create_employee("Project", "Target")
+        Employee_Superior.objects.create(employee=target, superior=viewer)
+        visible_project = self.create_project("Visible project")
+        hidden_project = self.create_project("Context only project")
+        self.create_participation(viewer, visible_project)
+        self.create_participation(target, visible_project)
+        self.create_participation(target, hidden_project)
+        self.login(user)
+
+        response = self.client.get(self.participations_url(target.pk))
+
+        self.assertEqual(response.status_code, 200)
+        by_project = {item["project"]["id"]: item["project"] for item in response.json()}
+        self.assertTrue(by_project[visible_project.pk]["can_view"])
+        self.assertFalse(by_project[hidden_project.pk]["can_view"])
 
     def test_known_employee_outside_scope_returns_not_found(self):
         user = self.create_user("limited-participation-viewer")
@@ -1456,6 +1550,7 @@ class EmployeeProjectParticipationV1ApiTests(APITestCase):
                     "name": "Project reference",
                     "start_date": "2020-01-01",
                     "end_date": "2030-12-31",
+                    "can_view": False,
                 },
                 "role": {
                     "code": "l",
@@ -1488,7 +1583,7 @@ class EmployeeProjectParticipationV1ApiTests(APITestCase):
             )
             self.assertEqual(
                 set(item["project"]),
-                {"id", "name", "start_date", "end_date"},
+                {"id", "name", "start_date", "end_date", "can_view"},
             )
             self.assertNotIn("status", item["project"])
             self.assertNotIn("is_active", item["project"])

@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
+from project.models import Participant
 
 from .models import Employee, Employee_Status, Employee_Superior, Team, TeamMate
 
@@ -18,10 +19,11 @@ class EmployeeListV1Filter(filters.FilterSet):
     current_status = filters.NumberFilter(method="filter_current_status")
     superior = filters.NumberFilter(method="filter_superior")
     team = filters.NumberFilter(method="filter_team")
+    project = filters.NumberFilter(method="filter_project")
 
     class Meta:
         model = Employee
-        fields = ("is_active", "status", "current_status", "superior", "team")
+        fields = ("is_active", "status", "current_status", "superior", "team", "project")
 
     def filter_status(self, queryset, name, value):
         """Keep employees having the requested status type at any date.
@@ -72,7 +74,7 @@ class EmployeeListV1Filter(filters.FilterSet):
         return queryset.filter(pk__in=employee_ids)
 
     def filter_team(self, queryset, name, value):
-        """Keep current team members and the selected team's leader.
+        """Keep team members and the selected team's leader.
 
         Args:
             queryset: Already permission-bounded Employee queryset.
@@ -80,9 +82,13 @@ class EmployeeListV1Filter(filters.FilterSet):
             value: Team primary key.
 
         Returns:
-            QuerySet: Distinct employees in the original scope who lead or
-            currently belong to the team.
+            QuerySet: Employees in the original scope who lead or belong to the team.
         """
         leader_ids = Team.objects.filter(pk=value).values("leader_id")
-        member_ids = TeamMate.current.filter(team_id=value).values("employee_id")
-        return queryset.filter(Q(pk__in=leader_ids) | Q(pk__in=member_ids)).distinct()
+        member_ids = TeamMate.objects.filter(team_id=value).values("employee_id")
+        return queryset.filter(Q(pk__in=leader_ids) | Q(pk__in=member_ids))
+
+    def filter_project(self, queryset, name, value):
+        """Use Participant membership, independently of Contracts."""
+        employee_ids = Participant.objects.filter(project_id=value).values("employee_id")
+        return queryset.filter(pk__in=employee_ids)

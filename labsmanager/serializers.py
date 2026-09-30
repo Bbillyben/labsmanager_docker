@@ -959,7 +959,6 @@ class EmployeeInfoTypeSerialize(serializers.ModelSerializer):
         model = GenericInfoType
         fields = ['pk', 'name', 'icon', ]
 
-from faicon.widgets import parse_icon
 
 class EmployeeInfoTypeIconSerialize(serializers.ModelSerializer):
     icon_val=serializers.CharField(source='icon', read_only=True, allow_null=True)
@@ -1161,14 +1160,10 @@ class ProjectInfoTypeSerialize(serializers.ModelSerializer):
         fields = ['pk', 'name', 'icon', ] 
 
 class ProjectInfoTypeIconSerialize(serializers.ModelSerializer):
-    icon_val=serializers.SerializerMethodField()
+    icon_val=serializers.CharField(source='icon', read_only=True, allow_null=True)
     class Meta:
         model = GenericInfoTypeProject
         fields = ['pk', 'name', 'icon_val', ]
-        
-    def get_icon_val(self,obj):
-        ic =parse_icon(str(obj.icon))
-        return {'style':ic.style, "icon":ic.icon}    
     
        
 class ProjectInfoSerialize(serializers.ModelSerializer):

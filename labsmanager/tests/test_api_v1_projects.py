@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, timedelta
+from unittest.mock import patch
 
 from auditlog.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
@@ -38,6 +39,23 @@ class ProjectListV1Tests(APITestCase):
         self.assertEqual([item["name"] for item in self.client.get(self.list_url, {"search": "beta"}).json()["results"]], ["Beta"])
         self.assertEqual([item["name"] for item in self.client.get(self.list_url, {"ordering": "-name", "limit": 1}).json()["results"]], ["Secret"])
         self.assertEqual(self.client.get(self.list_url, {"ordering": "name", "limit": 1, "offset": 1}).json()["results"][0]["name"], "Beta")
+
+    @patch("project.models.LMUserSetting.get_setting", return_value=3)
+    def test_stale_filter_keeps_existing_active_and_end_date_threshold(self, _setting):
+        self.grant("view_project")
+        today = date.today()
+        soon = Project.objects.create(name="Soon", status=True, end_date=today + timedelta(days=20))
+        overdue = Project.objects.create(name="Overdue", status=True, end_date=today - timedelta(days=1))
+        far = Project.objects.create(name="Far", status=True, end_date=today + timedelta(days=200))
+        inactive = Project.objects.create(name="Inactive", status=False, end_date=today + timedelta(days=20))
+        stale = {item["id"] for item in self.client.get(self.list_url, {"stale": "true"}).json()["results"]}
+        fresh = {item["id"] for item in self.client.get(self.list_url, {"stale": "false"}).json()["results"]}
+        self.assertIn(soon.pk, stale)
+        self.assertIn(overdue.pk, stale)
+        self.assertNotIn(far.pk, stale)
+        self.assertNotIn(inactive.pk, stale)
+        self.assertIn(far.pk, fresh)
+        self.assertIn(inactive.pk, fresh)
 
     def test_compact_relations_are_scoped_to_visible_projects(self):
         institution = Institution.objects.create(short_name="IN", name="Institution")
@@ -89,7 +107,7 @@ class ProjectListV1Tests(APITestCase):
         self.client.force_login(reader)
         detail = reverse("api_v1:project-detail", kwargs={"pk": self.visible.pk})
         self.assertEqual(self.client.get(detail).status_code, 200)
-        self.assertEqual(self.client.get(detail).json()["capabilities"], {"can_add": False, "can_change": False, "can_delete": False})
+        self.assertEqual(self.client.get(detail).json()["capabilities"], {"can_add": False, "can_change": False, "can_delete": False, "can_export_word": False, "can_export_pdf": False, "can_change_settings": False})
         self.assertEqual(self.client.patch(detail, {"status": False}, format="json").status_code, 403)
         self.assertEqual(self.client.delete(detail).status_code, 403)
         self.assertEqual(self.client.post(self.list_url, {"name": "Denied"}, format="json").status_code, 403)

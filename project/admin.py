@@ -1,5 +1,4 @@
 from django.contrib import admin
-from labsmanager.admin import GenericInfoTypeAdmin
 from project.models import Project, Institution, Institution_Participant, Participant, GenericInfoTypeProject, GenericInfoProject
 from django.contrib.sessions.models import Session
 from settings.models import LMProjectSetting
@@ -28,6 +27,9 @@ class ProjectAdmin(admin.ModelAdmin):
     
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('short_name', 'name')
+
+class ProjectGenericInfoTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'icon')
     
     
     
@@ -52,6 +54,5 @@ admin.site.register(Session, SessionAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Institution, InstitutionAdmin)
 
-admin.site.register(GenericInfoTypeProject, GenericInfoTypeAdmin)
-
+admin.site.register(GenericInfoTypeProject, ProjectGenericInfoTypeAdmin)
 

@@ -113,6 +113,21 @@ class DependencyApiTests(APITestCase):
         self.assertTrue(response.json()["predecessors"][0]["temporally_inconsistent"])
         self.assertFalse(response.json()["predecessors"][0]["can_delete"])
 
+    def test_successors_are_directional_and_only_visible_items_are_returned(self):
+        visible_relation = MilestoneDependency.objects.create(predecessor=self.first, successor=self.second)
+        hidden_project = Project.objects.create(name="Hidden successor project")
+        hidden_item = Milestones.objects.create(name="Hidden successor", project=hidden_project)
+        MilestoneDependency.objects.create(predecessor=self.first, successor=hidden_item)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["predecessors"], [])
+        self.assertEqual([relation["id"] for relation in response.json()["successors"]], [visible_relation.pk])
+        self.assertEqual(response.json()["successors"][0]["successor"]["id"], self.second.pk)
+        self.assertEqual(response.json()["successors"][0]["predecessor_id"], self.first.pk)
+        self.assertNotIn("can_delete", response.json()["successors"][0])
+        self.assertNotIn("Hidden successor", str(response.json()))
+        self.assertEqual(self.client.get(reverse("api_v1:planning-dependencies", kwargs={"successor_id": hidden_item.pk})).status_code, 404)
+
     def test_api_rejects_self_and_duplicate_with_explicit_codes(self):
         Participant.objects.filter(employee=self.employee, project=self.second_project).update(status="l")
         self.assertEqual(self.client.post(self.url, {"predecessor_id": self.first.pk}).json()["code"], "self_dependency")

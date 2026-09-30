@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseNotFound
 from django.db.models import F, Sum, ExpressionWrapper, IntegerField
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 from view_breadcrumbs import BaseBreadcrumbMixin
 from labsmanager.mixin import CrumbListMixin
@@ -190,31 +191,37 @@ def get_orga_contact_info(request, id):
 from .models import GenericNote
 from labsmanager.serializers import GenericInfoSerialiszer
 import rules
+from .api_v1 import PARENTS, parent_for, capabilities, note_admin
+import nh3
+@login_required
 def get_generic_infos_template(request, app, model, pk):
-
+    scope = next((scope for scope, parent_model in PARENTS.items() if parent_model._meta.app_label == app and parent_model._meta.model_name == model), None)
+    if scope is None:
+        from django.http import Http404
+        raise Http404
+    parent = parent_for(request.user, scope, pk)
     data={}
     data['app']=app
     data['model']=model
     data['object_id']=pk
-    #custom permission rules
-    rulesname = f'{app}.change_{model}'
-    spec_rulesname = f'{app}.changenote_{model}'
-    if not rules.perm_exists(rulesname):
-        data['custom_rule']=False
-    else:
-        model_class = apps.get_model(app_label=app, model_name=model)
-        obj = get_object_or_404(model_class, pk=pk)
-        if not obj:
-            data['custom_rule']=False
-        else:
-             data['custom_rule']=request.user.has_perm(rulesname, obj)|request.user.has_perm(spec_rulesname, obj)
+    data['custom_rule'] = capabilities(request.user, parent)['can_add']
 
     return render(request, 'notes/note_panel.html', data)
 
+@login_required
 def get_generic_infos(request, app, model, pk):
+    scope = next((scope for scope, parent_model in PARENTS.items() if parent_model._meta.app_label == app and parent_model._meta.model_name == model), None)
+    if scope is None:
+        from django.http import Http404
+        raise Http404
+    parent_for(request.user, scope, pk)
     ct = ContentType.objects.get(app_label=app, model=model)
     infos = GenericNote.objects.filter(content_type = ct, object_id=pk)
+    if not note_admin(request.user):
+        infos = infos.filter(visibility='object') | infos.filter(visibility='creator', creator=request.user)
     data={"infos":GenericInfoSerialiszer(infos, many=True).data}
+    for item in data['infos']:
+        item['note'] = nh3.clean(item['note'] or '')
     data['app']=app
     data['model']=model
     data['object_id']=pk

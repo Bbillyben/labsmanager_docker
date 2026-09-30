@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.db.models import Q, Value
+from django.db.models import Q, Value, Prefetch
 
 from project.models import Participant, Project, Institution_Participant
 from rest_framework import viewsets, permissions
@@ -121,7 +121,15 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
     
     def download_queryset(self, queryset, export_format):
         """Download the filtered queryset as a data file"""
-        dataset = ProjectResource().export(queryset=queryset)
+        visible_funds = Fund.get_instances_for_user(
+            "view", self.request.user, Fund.objects.all()
+        )
+        queryset = queryset.prefetch_related(
+            Prefetch("fund_set", queryset=visible_funds.select_related(
+                "funder", "institution"
+            ), to_attr="list_funds")
+        )
+        dataset = ProjectResource(fund_scope="visible").export(queryset=queryset)
         filedata = dataset.export(export_format)
         dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
         filename = f"Projects_{dateSuffix}.{export_format}"

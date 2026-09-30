@@ -11,8 +11,16 @@ def can_print_employee_report(user, employee= None):
         return True
     return is_user_subordinate(user, employee)
 
+@rules.predicate
+def can_print_project_report(user, project= None):
+    if not project:
+        return False
+    return user.has_perm("project.change_project", project)
+
 
 #    Rules ======================
 rules.add_perm("reports.view_employeewordreport", can_print_employee_report)
 rules.add_perm("reports.view_employeepdfreport", can_print_employee_report)
+rules.add_perm("reports.view_projectwordreport", can_print_project_report)
+rules.add_perm("reports.view_projectpdfreport", can_print_project_report)
 

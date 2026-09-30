@@ -1,7 +1,11 @@
 """Permission-scoped Project list and root-object mutations for React."""
 
+from decimal import Decimal
+
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Prefetch, Q
+from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as django_filters
 from rest_framework import filters, generics, permissions, serializers
 from rest_framework.exceptions import PermissionDenied
@@ -10,9 +14,13 @@ from rest_framework.views import APIView
 
 from fund.models import Fund, Fund_Institution
 from labsmanager.pagination import LabPagination
-from staff.models import Team, TeamMate
+from labsmanager.list_export_v1 import ListExportContentNegotiation, export_list_queryset
+from staff.models import Employee, Team, TeamMate
+from reports.api_v1 import report_capabilities
+from settings.api_v1 import can_change_project_settings
 
-from .models import Institution, Institution_Participant, Participant, Project
+from .models import GenericInfoProject, GenericInfoTypeProject, Institution, Institution_Participant, Participant, Project
+from .resources import ProjectResource
 
 
 def project_capabilities(user, project=None):
@@ -21,6 +29,26 @@ def project_capabilities(user, project=None):
         "can_change": bool(project and Project.get_instances_for_user("change", user, Project.objects.filter(pk=project.pk)).exists()),
         "can_delete": bool(project and user.has_perm("project.delete_project")),
     }
+
+
+def project_child_capabilities(user, project, model_name):
+    """One authority for advertised child actions and mutation enforcement."""
+    can_change_project = project_capabilities(user, project)["can_change"]
+    prefix = f"project.{{}}_{model_name}"
+    # Legacy Project actions grant leaders/co-leaders add/change. Deletion keeps
+    # the explicit model permission, as for Project and its existing child UI.
+    return {
+        "can_add": can_change_project or user.has_perm(prefix.format("add")),
+        "can_change": can_change_project or user.has_perm(prefix.format("change")),
+        "can_delete": user.has_perm(prefix.format("delete")),
+    }
+
+
+def validate_model(instance):
+    try:
+        instance.full_clean()
+    except DjangoValidationError as error:
+        raise serializers.ValidationError(getattr(error, "message_dict", None) or error.messages) from error
 
 
 class ProjectListV1Serializer(serializers.ModelSerializer):
@@ -68,6 +96,175 @@ class ProjectWriteV1Serializer(serializers.ModelSerializer):
         if end and (not start or end < start):
             raise serializers.ValidationError({"end_date": "End date must be on or after start date."})
         return attrs
+
+
+class ProjectGenericInfoV1Serializer(serializers.ModelSerializer):
+    type = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GenericInfoProject
+        fields = ("id", "type", "value")
+
+    def get_type(self, item):
+        return {"id": item.info_id, "name": item.info.name, "icon": str(item.info.icon) if item.info.icon else None}
+
+
+class ProjectInstitutionV1Serializer(serializers.ModelSerializer):
+    institution = serializers.SerializerMethodField()
+    status_label = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = Institution_Participant
+        fields = ("id", "institution", "status", "status_label")
+
+    def get_institution(self, item):
+        return {"id": item.institution_id, "short_name": item.institution.short_name, "name": item.institution.name}
+
+
+class ProjectParticipantV1Serializer(serializers.ModelSerializer):
+    employee = serializers.SerializerMethodField()
+    status_label = serializers.CharField(source="get_status_display", read_only=True)
+    quotity = serializers.DecimalField(max_digits=4, decimal_places=3, read_only=True)
+
+    class Meta:
+        model = Participant
+        fields = ("id", "employee", "status", "status_label", "start_date", "end_date", "quotity", "is_active")
+
+    def get_employee(self, item):
+        employee = item.employee
+        return {
+            "id": employee.pk,
+            "first_name": employee.first_name,
+            "last_name": employee.last_name,
+            "is_active": employee.is_active,
+            "can_view": employee.pk in self.context.get("visible_employee_ids", set()),
+        }
+
+
+class ProjectOverviewV1Serializer(serializers.ModelSerializer):
+    capabilities = serializers.SerializerMethodField()
+    funding_visible = serializers.SerializerMethodField()
+    generic_info = serializers.SerializerMethodField()
+    institutions = serializers.SerializerMethodField()
+    participants = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = ("id", "name", "start_date", "end_date", "status", "capabilities", "funding_visible", "generic_info", "institutions", "participants")
+
+    def get_capabilities(self, project):
+        user = self.context["request"].user
+        return {
+            **project_capabilities(user, project),
+            **report_capabilities(user, "project", project),
+            "can_change_settings": can_change_project_settings(user, project),
+        }
+
+    def get_funding_visible(self, project):
+        user = self.context["request"].user
+        return bool(user.has_perm("fund.view_fund") or user.has_perm("fund.view_fund", project))
+
+    def child_collection(self, project, model_name, items, serializer):
+        return {
+            "capabilities": project_child_capabilities(self.context["request"].user, project, model_name),
+            "items": serializer(items, many=True, context=self.context).data,
+        }
+
+    def get_generic_info(self, project):
+        return self.child_collection(project, "genericinfoproject", project.overview_generic_info, ProjectGenericInfoV1Serializer)
+
+    def get_institutions(self, project):
+        return self.child_collection(project, "institution_participant", project.overview_institutions, ProjectInstitutionV1Serializer)
+
+    def get_participants(self, project):
+        return self.child_collection(project, "participant", project.overview_participants, ProjectParticipantV1Serializer)
+
+
+class ContextualWriteSerializer(serializers.Serializer):
+    """Reject parent substitution and unknown fields for Project-owned resources."""
+
+    def to_internal_value(self, data):
+        allowed = set(self.fields)
+        if self.instance is not None:
+            allowed -= self.immutable_on_update
+        if isinstance(data, dict):
+            unexpected = set(data) - allowed
+            if unexpected:
+                raise serializers.ValidationError({field: "This field cannot be supplied or changed." for field in sorted(unexpected)})
+        return super().to_internal_value(data)
+
+    immutable_on_update = frozenset()
+
+
+class ProjectGenericInfoWriteV1Serializer(ContextualWriteSerializer):
+    immutable_on_update = frozenset({"type_id"})
+    type_id = serializers.PrimaryKeyRelatedField(source="info", queryset=GenericInfoTypeProject.objects.all())
+    value = serializers.CharField(max_length=150, required=False, allow_blank=True, allow_null=True, trim_whitespace=False)
+
+    def create(self, validated_data):
+        item = GenericInfoProject(project=self.context["project"], **validated_data)
+        validate_model(item)
+        item.save()
+        return item
+
+    def update(self, instance, validated_data):
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        validate_model(instance)
+        instance.save()
+        return instance
+
+
+class ProjectInstitutionWriteV1Serializer(ContextualWriteSerializer):
+    immutable_on_update = frozenset({"institution_id"})
+    institution_id = serializers.PrimaryKeyRelatedField(source="institution", queryset=Institution.objects.all())
+    status = serializers.ChoiceField(choices=Institution_Participant.type_part, required=False)
+
+    def create(self, validated_data):
+        item = Institution_Participant(project=self.context["project"], **validated_data)
+        validate_model(item)
+        item.save()
+        return item
+
+    def update(self, instance, validated_data):
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        validate_model(instance)
+        instance.save()
+        return instance
+
+
+class ProjectParticipantWriteV1Serializer(ContextualWriteSerializer):
+    immutable_on_update = frozenset({"employee_id"})
+    employee_id = serializers.PrimaryKeyRelatedField(source="employee", queryset=Employee.objects.all())
+    status = serializers.ChoiceField(choices=Participant.type_part, required=False)
+    start_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
+    quotity = serializers.DecimalField(max_digits=4, decimal_places=3, min_value=Decimal("0"), max_value=Decimal("1"))
+
+    def validate(self, attrs):
+        start = attrs.get("start_date", self.instance.start_date if self.instance else None)
+        end = attrs.get("end_date", self.instance.end_date if self.instance else None)
+        if end and (not start or end < start):
+            raise serializers.ValidationError({"end_date": "End date must be on or after start date."})
+        if self.instance is None:
+            visible = Employee.get_instances_for_user("view", self.context["request"].user, Employee.objects.all())
+            if not visible.filter(pk=attrs["employee"].pk).exists():
+                raise serializers.ValidationError({"employee_id": "Employee is not available."})
+        return attrs
+
+    def create(self, validated_data):
+        item = Participant(project=self.context["project"], **validated_data)
+        validate_model(item)
+        item.save()
+        return item
+
+    def update(self, instance, validated_data):
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        validate_model(instance)
+        instance.save()
+        return instance
 
 
 class ProjectListV1Filter(django_filters.FilterSet):
@@ -119,7 +316,7 @@ class ProjectV1QuerysetMixin:
         return visible.prefetch_related(
             Prefetch("institution_participant_set", queryset=Institution_Participant.objects.select_related("institution").order_by("institution__short_name", "pk"), to_attr="list_institutions"),
             Prefetch("participant_project", queryset=Participant.objects.select_related("employee").filter(employee__is_active=True).order_by("employee__last_name", "employee__first_name", "pk"), to_attr="list_participants"),
-            Prefetch("fund_set", queryset=visible_funds.select_related("funder").order_by("funder__short_name", "ref", "pk"), to_attr="list_funds"),
+            Prefetch("fund_set", queryset=visible_funds.select_related("funder", "institution").order_by("funder__short_name", "ref", "pk"), to_attr="list_funds"),
         )
 
 
@@ -162,11 +359,39 @@ class ProjectListV1View(ProjectV1QuerysetMixin, generics.ListCreateAPIView):
                 Participant.objects.create(project=project, employee=employee, status="l")
 
 
+class ProjectListExportV1View(ProjectListV1View):
+    """Export the list's scoped filters and ordering before pagination."""
+
+    http_method_names = ("get", "head", "options")
+    content_negotiation_class = ListExportContentNegotiation
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        return export_list_queryset(request, queryset, ProjectResource, "Project", resource_kwargs={"fund_scope": "visible"})
+
+
 class ProjectDetailV1View(ProjectV1QuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_serializer_class(self):
-        return ProjectWriteV1Serializer if self.request.method in ("PATCH", "PUT") else ProjectListV1Serializer
+        return ProjectWriteV1Serializer if self.request.method in ("PATCH", "PUT") else ProjectOverviewV1Serializer
+
+    def get_queryset(self):
+        if self.request.method != "GET":
+            return Project.get_instances_for_user("view", self.request.user, Project.objects.all())
+        return Project.get_instances_for_user("view", self.request.user, Project.objects.all()).prefetch_related(
+            Prefetch("genericinfoproject_set", queryset=GenericInfoProject.objects.select_related("info").order_by("info__name", "pk"), to_attr="overview_generic_info"),
+            Prefetch("institution_participant_set", queryset=Institution_Participant.objects.select_related("institution").order_by("institution__short_name", "pk"), to_attr="overview_institutions"),
+            Prefetch("participant_project", queryset=Participant.objects.select_related("employee").order_by("employee__last_name", "employee__first_name", "pk"), to_attr="overview_participants"),
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.request.method == "GET":
+            context["visible_employee_ids"] = set(Employee.get_instances_for_user(
+                "view", self.request.user, Employee.objects.all()
+            ).values_list("pk", flat=True))
+        return context
 
     def perform_update(self, serializer):
         if not project_capabilities(self.request.user, serializer.instance)["can_change"]:
@@ -196,4 +421,104 @@ class ProjectFilterOptionsV1View(APIView):
             "funders": list(Fund_Institution.objects.filter(fund__in=funds).distinct().order_by("short_name").values("id", "short_name")),
             "institutions": list(Institution.objects.filter(Q(institution_participant__project__in=projects) | Q(fund__in=funds)).distinct().order_by("short_name").values("id", "short_name")),
             "teams": list(Team.objects.filter(Q(teammate__employee__participant_employee__project__in=projects) | Q(leader__participant_employee__project__in=projects)).distinct().order_by("name").values("id", "name")),
+        })
+
+
+class ProjectOverviewChildMixin:
+    permission_classes = (permissions.IsAuthenticated,)
+    model = None
+    model_name = ""
+    write_serializer = None
+    read_serializer = None
+    related = ""
+    item_kwarg = "item_id"
+
+    def get_project(self):
+        if not hasattr(self, "_project"):
+            visible = Project.get_instances_for_user("view", self.request.user, Project.objects.all())
+            self._project = get_object_or_404(visible, pk=self.kwargs["pk"])
+        return self._project
+
+    def get_queryset(self):
+        return self.model.objects.filter(project=self.get_project()).select_related(self.related).order_by("pk")
+
+    def get_item(self):
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs[self.item_kwarg])
+
+    def capabilities(self):
+        return project_child_capabilities(self.request.user, self.get_project(), self.model_name)
+
+    def require_action(self, action):
+        if not self.capabilities()[action]:
+            raise PermissionDenied()
+
+    def serializer_context(self):
+        context = {"request": self.request, "project": self.get_project()}
+        if self.model_name == "participant":
+            context["visible_employee_ids"] = set(Employee.get_instances_for_user(
+                "view", self.request.user, Employee.objects.all()
+            ).values_list("pk", flat=True))
+        return context
+
+    def read(self, item):
+        return self.read_serializer(item, context=self.serializer_context()).data
+
+
+class ProjectOverviewChildCollectionV1View(ProjectOverviewChildMixin, APIView):
+    def get(self, request, *args, **kwargs):
+        return Response({
+            "capabilities": self.capabilities(),
+            "items": self.read_serializer(self.get_queryset(), many=True, context=self.serializer_context()).data,
+        })
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        self.require_action("can_add")
+        serializer = self.write_serializer(data=request.data, context=self.serializer_context())
+        serializer.is_valid(raise_exception=True)
+        return Response(self.read(serializer.save()), status=201)
+
+
+class ProjectOverviewChildDetailV1View(ProjectOverviewChildMixin, APIView):
+    @transaction.atomic
+    def patch(self, request, *args, **kwargs):
+        item = self.get_item()
+        self.require_action("can_change")
+        serializer = self.write_serializer(item, data=request.data, partial=True, context=self.serializer_context())
+        serializer.is_valid(raise_exception=True)
+        return Response(self.read(serializer.save()))
+
+    @transaction.atomic
+    def delete(self, request, *args, **kwargs):
+        item = self.get_item()
+        self.require_action("can_delete")
+        item.delete()
+        return Response(status=204)
+
+
+PROJECT_OVERVIEW_RESOURCES = {
+    "generic-info": (GenericInfoProject, "genericinfoproject", ProjectGenericInfoWriteV1Serializer, ProjectGenericInfoV1Serializer, "info"),
+    "institutions": (Institution_Participant, "institution_participant", ProjectInstitutionWriteV1Serializer, ProjectInstitutionV1Serializer, "institution"),
+    "participants": (Participant, "participant", ProjectParticipantWriteV1Serializer, ProjectParticipantV1Serializer, "employee"),
+}
+
+
+def project_child_view(resource, detail=False):
+    model, model_name, write_serializer, read_serializer, related = PROJECT_OVERVIEW_RESOURCES[resource]
+    base = ProjectOverviewChildDetailV1View if detail else ProjectOverviewChildCollectionV1View
+    return base.as_view(model=model, model_name=model_name, write_serializer=write_serializer, read_serializer=read_serializer, related=related)
+
+
+class ProjectOverviewOptionsV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk):
+        visible = Project.get_instances_for_user("view", request.user, Project.objects.all())
+        get_object_or_404(visible, pk=pk)
+        return Response({
+            "generic_info_types": [
+                {"id": item.pk, "name": item.name, "icon": str(item.icon) if item.icon else None}
+                for item in GenericInfoTypeProject.objects.order_by("name", "pk")
+            ],
+            "institutions": list(Institution.objects.order_by("short_name", "pk").values("id", "short_name", "name")),
         })

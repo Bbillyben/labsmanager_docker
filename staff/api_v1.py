@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db.models import Case, DateField, F, IntegerField, Prefetch, Q, Value, When
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,17 +12,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from labsmanager.pagination import LabPagination
-from endpoints.models import MilestoneDependency, Milestones
+from labsmanager.list_export_v1 import ListExportContentNegotiation, export_list_queryset
+from endpoints.models import Milestones
+from endpoints.planning_serializers_v1 import EmployeePlanningMilestoneV1Serializer, EmployeeMilestonePartialWriteV1Serializer
+from endpoints.planning_v1 import filter_planning_items, planning_serializer_context, preload_planning_items
 from expense.models import Contract, Contract_expense
 from fund.models import Budget, Contribution, Cost_Type
-from leave.calendar import leave_to_calendar_event
+from leave.calendar import produce_leave_calendar_events
 from leave.models import Leave, Leave_Type
 from project.models import Participant, Project
-from settings.models import LMUserSetting
 
 from .permissions_v1 import generic_info_capabilities, leave_capabilities
+from .ressources import EmployeeResource
 from .filters_v1 import EmployeeListV1Filter
-from .models import Employee, Employee_Status, Employee_Superior, GenericInfo, GenericInfoType
+from .models import Employee, Employee_Status, Employee_Superior, Employee_Type, GenericInfo, GenericInfoType, Team, TeamMate
 from .serializers_v1 import (
     EmployeeDetailV1Serializer,
     EmployeeContractDetailV1Serializer,
@@ -35,7 +39,6 @@ from .serializers_v1 import (
     EmployeeLeaveV1Serializer,
     EmployeeLeaveWriteV1Serializer,
     EmployeeListV1Serializer,
-    EmployeeMilestoneV1Serializer,
     EmployeeStatusHistoryV1Serializer,
     ProjectParticipationV1Serializer,
 )
@@ -378,7 +381,11 @@ class EmployeeCalendarV1View(EmployeeLeaveQuerysetMixin, APIView):
             if start > end:
                 raise ValidationError({"to": "Must be on or after from."})
         else:
-            queryset, start, end = self.get_leave_queryset(require_bounds=True)
+            self.get_employee()
+            start = _v1_date_parameter(request, "from", required=True)
+            end = _v1_date_parameter(request, "to", required=True)
+            if start > end:
+                raise ValidationError({"to": "Must be on or after from."})
         context = CalendarContext(
             calendar_type=CalendarType.EMPLOYEE_GANTT if gantt else CalendarType.EMPLOYEE,
             user=request.user,
@@ -388,10 +395,7 @@ class EmployeeCalendarV1View(EmployeeLeaveQuerysetMixin, APIView):
             filters=request.query_params,
         )
         service = CalendarService()
-        core_events = []
-        if not gantt:
-            queryset = service.filter_calendar_queryset(queryset, context)
-            core_events = [leave_to_calendar_event(leave) for leave in queryset]
+        core_events = [] if gantt else produce_leave_calendar_events(context, service)
         events = service.get_events(context, core_events)
         return Response([event.as_dict() for event in events])
 
@@ -495,6 +499,32 @@ class EmployeeListV1View(EmployeeV1QuerysetMixin, generics.ListAPIView):
     ordering = ("first_name", "last_name", "pk")
 
 
+class EmployeeListExportV1View(EmployeeListV1View):
+    """Export the exact visible, filtered and ordered list without pagination."""
+
+    http_method_names = ("get", "head", "options")
+    content_negotiation_class = ListExportContentNegotiation
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        return export_list_queryset(request, queryset, EmployeeResource, "Employee")
+
+
+class EmployeeListFilterOptionsV1View(APIView):
+    """Offer status types and teams linked to visible Employees."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        visible = Employee.get_instances_for_user("view", request.user, Employee.objects.all())
+        type_ids = Employee_Status.objects.filter(employee__in=visible).values("type_id")
+        team_ids = TeamMate.objects.filter(employee__in=visible).values("team_id")
+        return Response({
+            "statuses": list(Employee_Type.objects.filter(pk__in=type_ids).order_by("name", "pk").values("id", "name")),
+            "teams": list(Team.objects.filter(Q(leader__in=visible) | Q(pk__in=team_ids)).distinct().order_by("name", "pk").values("id", "name")),
+        })
+
+
 class EmployeeDetailV1View(EmployeeV1QuerysetMixin, generics.RetrieveAPIView):
     """Retrieve the Employee summary used by the read-only React detail.
 
@@ -593,7 +623,7 @@ class EmployeeMilestoneV1View(generics.ListAPIView):
     """
 
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = EmployeeMilestoneV1Serializer
+    serializer_class = EmployeePlanningMilestoneV1Serializer
     pagination_class = None
 
     def get_queryset(self):
@@ -604,51 +634,40 @@ class EmployeeMilestoneV1View(generics.ListAPIView):
         )
         employee = get_object_or_404(visible_employees, pk=self.kwargs["pk"])
 
-        self.visible_employee_ids = set(
-            visible_employees.values_list("pk", flat=True)
+        milestones = filter_planning_items(
+            Milestones.objects.filter(employee=employee).distinct(),
+            self.request.query_params,
         )
-        visible_projects = Project.get_instances_for_user(
-            "view", user, Project.objects.all()
-        )
-        self.visible_project_ids = set(
-            visible_projects.values_list("pk", flat=True).distinct()
-        )
-        self.today = timezone.localdate()
-        stale_days = LMUserSetting.get_setting(
-            "NOTIFICATION_ENDPOINTS_MILESTONES_STALE",
-            user=user,
-        )
-        self.stale_delta = timedelta(days=int(stale_days))
-
-        assigned_employees = Employee.objects.order_by(
-            "first_name", "last_name", "pk"
-        )
-        milestones = Milestones.objects.filter(employee=employee).distinct()
-        self.visible_work_ids = set(milestones.values_list("pk", flat=True))
-        return (
-            milestones
-            .select_related("project")
-            .prefetch_related(
-                Prefetch("employee", queryset=assigned_employees),
-                Prefetch(
-                    "incoming_dependencies",
-                    queryset=MilestoneDependency.objects.select_related("predecessor"),
-                    to_attr="visible_dependencies",
-                ),
-            )
-            .order_by("pk")
-        )
+        self.planning_context = planning_serializer_context(user, milestones)
+        return preload_planning_items(milestones)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update(
-            today=getattr(self, "today", timezone.localdate()),
-            stale_delta=getattr(self, "stale_delta", timedelta()),
-            visible_employee_ids=getattr(self, "visible_employee_ids", set()),
-            visible_project_ids=getattr(self, "visible_project_ids", set()),
-            visible_work_ids=getattr(self, "visible_work_ids", set()),
-        )
+        context.update(getattr(self, "planning_context", {}))
         return context
+
+
+class EmployeeMilestoneDetailV1View(APIView):
+    """Limit an assigned Employee milestone update to progress, status and description."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @transaction.atomic
+    def patch(self, request, pk, item_id):
+        visible = Employee.get_instances_for_user("view", request.user, Employee.objects.all())
+        employee = get_object_or_404(visible, pk=pk)
+        item = get_object_or_404(
+            Milestones.objects.select_for_update().filter(employee=employee), pk=item_id,
+        )
+        if not request.user.has_perm("endpoints.change_milestones", item):
+            raise PermissionDenied()
+        serializer = EmployeeMilestonePartialWriteV1Serializer(item, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        saved = serializer.save()
+        scoped = Milestones.objects.filter(pk=saved.pk)
+        loaded = preload_planning_items(scoped).get()
+        context = {"request": request, **planning_serializer_context(request.user, scoped)}
+        return Response(EmployeePlanningMilestoneV1Serializer(loaded, context=context).data)
 
 
 class EmployeeStatusHistoryV1View(generics.ListAPIView):
@@ -768,6 +787,19 @@ class EmployeeProjectParticipationV1View(generics.ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = ProjectParticipationV1Serializer
     pagination_class = None
+
+    def get_serializer_context(self):
+        """Expose independent Project visibility without filtering participations."""
+        context = super().get_serializer_context()
+        project_ids = Participant.objects.filter(
+            employee_id=self.kwargs["pk"]
+        ).values_list("project_id", flat=True)
+        context["visible_project_ids"] = set(
+            Project.get_instances_for_user(
+                "view", self.request.user, Project.objects.filter(pk__in=project_ids)
+            ).values_list("pk", flat=True)
+        )
+        return context
 
     def get_queryset(self):
         """Return the target Employee's optionally filtered participations.

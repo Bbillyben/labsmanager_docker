@@ -4,6 +4,7 @@ from django.core.validators import MaxLengthValidator
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 
 
 from faicon.fields import FAIconField
@@ -144,6 +145,8 @@ class GenericNote(TimeStampMixin):
     content_type = models.ForeignKey(ContentType, related_name="content_type_note", on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='generic_notes')
+    visibility = models.CharField(max_length=7, choices=(('object', _('Object viewers')), ('creator', _('Creator only'))), default='object')
     
     name = Nh3Field_CharField(
         max_length=50, verbose_name=_('Name'), default=_('General'))

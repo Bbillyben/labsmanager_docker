@@ -4,11 +4,11 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import connection, transaction
 from rest_framework import serializers
 
-from endpoints.models import Milestones, effective_start_date
 from expense.models import Contract, Contract_expense
 from fund.models import Budget, Contribution
 from leave.models import Leave, Leave_Type
 from project.models import Participant, Project
+from reports.api_v1 import report_capabilities
 
 from .models import (
     Employee,
@@ -97,6 +97,7 @@ class EmployeeDetailV1Serializer(EmployeeListV1Serializer):
     project_quotity = serializers.SerializerMethodField()
     contribution_quotity = serializers.SerializerMethodField()
     active_milestones_count = serializers.SerializerMethodField()
+    capabilities = serializers.SerializerMethodField()
 
     class Meta(EmployeeListV1Serializer.Meta):
         fields = EmployeeListV1Serializer.Meta.fields + (
@@ -106,7 +107,11 @@ class EmployeeDetailV1Serializer(EmployeeListV1Serializer):
             "project_quotity",
             "contribution_quotity",
             "active_milestones_count",
+            "capabilities",
         )
+
+    def get_capabilities(self, employee):
+        return report_capabilities(self.context["request"].user, "employee", employee)
 
     @staticmethod
     def _quotity(value):
@@ -224,6 +229,7 @@ class EmployeeContractV1Serializer(serializers.ModelSerializer):
             "id": contract.employee_id,
             "first_name": contract.employee.first_name,
             "last_name": contract.employee.last_name,
+            "can_view": contract.employee_id in self.context.get("visible_employee_ids", set()),
         }
 
     def get_contract_type(self, contract):
@@ -487,95 +493,6 @@ class EmployeeBudgetV1Serializer(serializers.ModelSerializer):
         return None if value is None else format(value, ".2f")
 
 
-class EmployeeMilestoneV1Serializer(serializers.ModelSerializer):
-    """Serialize milestone workload in the context of a visible Employee."""
-
-    display_state = serializers.SerializerMethodField()
-    days_to_due = serializers.SerializerMethodField()
-    work_kind = serializers.SerializerMethodField()
-    project = serializers.SerializerMethodField()
-    employees = serializers.SerializerMethodField()
-    dependencies = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Milestones
-        fields = (
-            "id",
-            "name",
-            "desc",
-            "start_date",
-            "end_date",
-            "status",
-            "type",
-            "quotity",
-            "display_state",
-            "days_to_due",
-            "work_kind",
-            "project",
-            "employees",
-            "dependencies",
-        )
-
-    def get_display_state(self, milestone):
-        """Classify attention state using the viewer's configured threshold."""
-        today = self.context["today"]
-        if milestone.status is True:
-            return "completed"
-        if milestone.end_date and milestone.end_date < today:
-            return "overdue"
-        if (
-            milestone.end_date
-            and milestone.end_date <= today + self.context["stale_delta"]
-        ):
-            return "due_soon"
-        if milestone.start_date and milestone.start_date > today:
-            return "planned"
-        return "in_progress"
-
-    def get_days_to_due(self, milestone):
-        """Return signed calendar days to the deadline, when one exists."""
-        if milestone.end_date is None:
-            return None
-        return (milestone.end_date - self.context["today"]).days
-
-    def get_work_kind(self, milestone):
-        return "milestone" if milestone.start_date is None else "task"
-
-    def get_project(self, milestone):
-        return {
-            "id": milestone.project_id,
-            "name": milestone.project.name,
-            "can_view": milestone.project_id in self.context["visible_project_ids"],
-        }
-
-    def get_employees(self, milestone):
-        visible_ids = self.context["visible_employee_ids"]
-        return [
-            {
-                "id": employee.pk,
-                "first_name": employee.first_name,
-                "last_name": employee.last_name,
-                "can_view": employee.pk in visible_ids,
-            }
-            for employee in milestone.employee.all()
-        ]
-
-    def get_dependencies(self, milestone):
-        visible_ids = self.context["visible_work_ids"]
-        successor_start = effective_start_date(milestone)
-        return [{
-            "id": relation.pk,
-            "predecessor_id": relation.predecessor_id,
-            "successor_id": milestone.pk,
-            "temporally_inconsistent": bool(
-                successor_start
-                and effective_start_date(relation.predecessor)
-                and successor_start < effective_start_date(relation.predecessor)
-            ),
-        } for relation in milestone.visible_dependencies
-            if relation.predecessor_id in visible_ids]
-
-
 class EmployeeStatusHistoryV1Serializer(serializers.ModelSerializer):
     """Serialize one historical Employee-to-status relation.
 
@@ -700,14 +617,20 @@ class EmployeeHierarchyV1Serializer(serializers.ModelSerializer):
 class ProjectReferenceV1Serializer(serializers.ModelSerializer):
     """Serialize the minimal Project identity needed by an Employee relation.
 
-    This reference deliberately excludes Project status, permissions, finance,
-    participants, and other domain data. Its presence does not grant access to
-    a future standalone Project resource.
+    This reference deliberately excludes Project status, finance, participants,
+    and other domain data. Its presence does not grant standalone Project access;
+    `can_view` only reports the existing independent visibility rule.
     """
+
+    can_view = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
-        fields = ("id", "name", "start_date", "end_date")
+        fields = ("id", "name", "start_date", "end_date", "can_view")
+
+    def get_can_view(self, project):
+        """Report independent visibility for this contextual reference."""
+        return project.pk in self.context.get("visible_project_ids", set())
 
 
 class ProjectParticipationV1Serializer(serializers.ModelSerializer):

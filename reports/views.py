@@ -1,10 +1,13 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import reverse, reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.apps import apps
 
 from bootstrap_modal_forms.generic import BSModalFormView
 from .models import EmployeeWordReport, EmployeePDFReport, ProjectWordReport, ProjectPDFReport, TemplateReport
 from .forms import ReportBaseForm, EmployeeWordReportForm, EmployeePDFReportForm, ProjectWordReportForm, ProjectPDFReportForm
+from .api_v1 import scoped_report, validate_legacy_employee_dates
 
 import logging
 logger =logging.getLogger("labsmanager")
@@ -71,27 +74,29 @@ class ProjectPDFReportView(WordBaseReportView):
     form_class = ProjectPDFReportForm
     nav_url='project_pdf_report' 
 
+@login_required
 def userWordReport(request, pk, template):
-    rep = EmployeeWordReport.objects.get(pk=template)
-    return rep.render(request, {"pk":int(pk),})
+    return render_legacy_report(request, pk, template, "employee", "word")
 
+@login_required
 def userPDFReport(request, pk, template):
-    rep = EmployeePDFReport.objects.get(pk=template)
-    return rep.render(request, {"pk":int(pk),})
+    return render_legacy_report(request, pk, template, "employee", "pdf")
 
+@login_required
 def projectWordReport(request, pk, template):
-    rep = ProjectWordReport.objects.get(pk=template)
-    return rep.render(request, {"pk":int(pk),})
+    return render_legacy_report(request, pk, template, "project", "word")
 
+@login_required
 def projectPDFReport(request, pk, template):
-    rep = ProjectPDFReport.objects.get(pk=template)
-    return rep.render(request, {"pk":int(pk),})
+    return render_legacy_report(request, pk, template, "project", "pdf")
 
     
-from django.http import FileResponse, Http404
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.apps import apps
+def render_legacy_report(request, pk, template, entity, format_name):
+    report_model, instance = scoped_report(request.user, entity, pk, format_name)
+    if entity == "employee" and not validate_legacy_employee_dates(request):
+        return HttpResponseBadRequest("Invalid report date range.")
+    report = get_object_or_404(report_model, pk=template)
+    return report.render(request, {"pk": instance.pk})
 
 @login_required
 def download_template_report(request, app, model, pk):

@@ -18,6 +18,28 @@ class CalendarEventMixin:
     """Add normalized events and optional declarative filters to a plugin."""
 
     FILTERS = {}
+    '''FILTERS 
+        if implemented, will add some filter choices to main calendar page (not in employee nor team panels), 
+        
+        FILTERS={
+            "TEST_CHOICES":{            # this will add a filter in main calendar
+                                            # TEST_CHOICES in lower case (aka test_choices) will be used as filter name
+                                            # filter value will be accissible through [plugin-slug]-test_choices
+                "title":"Test Choices", # title prompted on the filter box
+                "type":"select",        # could be "select" for a dropdown/select item, 
+                                            #   "checkbox" for a bunch of checkboxes
+                                            #   "radio" for a radio list
+                                            #   "input-text" "input-color" for input type selectors, no choices required
+                "choices":{             # dict of valid choices with pair value:name, value will be returned as filter value
+                    "val1":"Value 1",
+                    "val2":"Value 2",
+                    ....
+                "choices":"myClassMethod"   # could be the string name of a **classmethod** as well
+                "default":"default value"   # could be the string name of a **classmethod** as well
+                                            # for checkbox, give a separated string list of value to be checked
+        },            
+    }
+    '''
     authorized_type = [
         "select",
         "checkbox",

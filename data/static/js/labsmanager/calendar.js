@@ -48,7 +48,7 @@
             })
             var globals={
                 datesSet: plugin.settingsCal.datesSet,
-                schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+                schedulerLicenseKey: 'AGPL-My-Frontend-And-Backend-Are-Open-Source',
                 
                 timeZone: 'UTC',
                 locale:plugin.settingsCal.local,

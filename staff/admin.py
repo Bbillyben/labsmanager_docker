@@ -20,7 +20,7 @@ from .ressources import EmployeeAdminResource
         
         
 class EmployeeGenericInfoTypeAdmin(admin.ModelAdmin):
-    """Keep Employee type administration textual; Project retains FAIcon."""
+    """Keep Employee type administration textual."""
     list_display = ("name", "icon")
 
 # admin class

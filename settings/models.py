@@ -1267,24 +1267,24 @@ class LMProjectSetting(BaseLabsManagerSetting):
     extra_unique_fields = ['project']
     SETTINGS = {
         'EXPENSE_CALCULATION': {
-            'name': _('Expense base calculation'),
-            'description': _('Simple : Timepoint only, Expense : sum of expense, hybrid'),
+            'name': _('Expense calculation mode'),
+            'description': _('Defines the source used to calculate fund expenses.'),
             'default': 's',
             'choices': [
-                ('s', 'Simple'),
-                ('e', 'Expense'),
-                ('h', 'Hybrid')
+                ('s', _('Simple')),
+                ('e', _('Individual expenses')),
+                ('h', _('Hybrid'))
             ],
         },
         'LEADER_EDIT_FUND': {
-            'name': _('Leader can edit fund'),
-            'description': _('wether the leader can edit fund of project'),
+            'name': _('Project leader can edit funding'),
+            'description': _('Allows the project leader to edit project funding.'),
             'default': True,
             'validator': bool,
         },
         'EMPLOYEE_EDIT_MILESTONE': {
-            'name': _('Employee can edit Milestones'),
-            'description': _('wether an employee can edit a milestones he is attributed'),
+            'name': _('Employees can edit assigned milestones'),
+            'description': _('Allows an employee to edit a milestone assigned to them.'),
             'default': True,
             'validator': bool,
         },

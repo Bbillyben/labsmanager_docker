@@ -57,7 +57,14 @@ def can_user_view_contract(user, item):
 #    Rules ======================
 
 rules.add_perm('expense.change_contract_expense', is_user_contract_project_leader)
-rules.add_perm('expense.change_expense', is_user_contract_project_leader)
+@rules.predicate
+def is_user_expense_project_leader(user, expense=None):
+    if not expense:
+        return False
+    return user.has_perm('project.change_project', expense.fund_item.project)
+
+
+rules.add_perm('expense.change_expense', is_user_expense_project_leader)
 rules.add_perm('expense.add_expense', is_user_fund_project_leader)
 # rules.add_perm('expense.change_contract', is_user_contract_project_leader)
 

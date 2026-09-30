@@ -12,7 +12,7 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -2155,30 +2155,40 @@ msgid "Openstreetmap"
 msgstr "Openstreetmap"
 
 #: settings/models.py:1270
-msgid "Expense base calculation"
-msgstr "Base de calcul des dépense"
+msgid "Expense calculation mode"
+msgstr "Mode de calcul des dépenses"
 
 #: settings/models.py:1271
-msgid "Simple : Timepoint only, Expense : sum of expense, hybrid"
-msgstr ""
-"Simple : point uniquement, Expense : somme des dépenses, Hybride : point "
-"dans le temps uniquement."
+msgid "Defines the source used to calculate fund expenses."
+msgstr "Définit la source utilisée pour calculer les dépenses du financement."
 
 #: settings/models.py:1280
-msgid "Leader can edit fund"
-msgstr "Le responsable peut modifier le projet"
+msgid "Project leader can edit funding"
+msgstr "Le responsable peut modifier les financements"
 
 #: settings/models.py:1281
-msgid "wether the leader can edit fund of project"
-msgstr "définir si un responsable peut modifier le projet"
+msgid "Allows the project leader to edit project funding."
+msgstr "Autorise le responsable du projet à modifier les financements du projet."
 
 #: settings/models.py:1286
-msgid "Employee can edit Milestones"
-msgstr "L'employé peut modifier les jalons"
+msgid "Employees can edit assigned milestones"
+msgstr "Les employés peuvent modifier leurs jalons"
 
 #: settings/models.py:1287
-msgid "wether an employee can edit a milestones he is attributed"
-msgstr "définir si un employé peut modifier les jalons qui lui sont attribués"
+msgid "Allows an employee to edit a milestone assigned to them."
+msgstr "Autorise un employé à modifier un jalon qui lui est attribué."
+
+#: settings/models.py:1274
+msgid "Simple"
+msgstr "Simple"
+
+#: settings/models.py:1275
+msgid "Individual expenses"
+msgstr "Dépenses individuelles"
+
+#: settings/models.py:1276
+msgid "Hybrid"
+msgstr "Hybride"
 
 #: settings/views.py:21 templates/labmanager/index.html:124
 #: templates/navbar.html:112 templates/settings/modal_project_settings.html:4

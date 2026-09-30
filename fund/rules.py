@@ -5,15 +5,19 @@ from staff.rules import is_employee_superior, is_user_employee
 
 from project.models import Project
 from staff.models import Employee
+from settings.accessor import get_project_setting
+
 
 #    Predicates ======================
 @rules.predicate
-def is_user_fund_project_leader(user, fund = None):
-    """ return true if the user as the project change permission
-    """
+def is_user_fund_project_leader(user, fund=None):
     if not fund:
         return False
+
     try:
+        if not get_project_setting('LEADER_EDIT_FUND', fund.project):
+            return False
+
         return user.has_perm('project.change_project', fund.project)
     except:
         return False

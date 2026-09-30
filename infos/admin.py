@@ -21,8 +21,18 @@ class OrgaInfoTypeAdmin(GenericInfoTypeAdmin):
 from labsmanager.admin import UsedContenTypeFilter
     
 class noteAdmin(admin.ModelAdmin):
-    list_display = ( 'name', 'content_type','content_object',)
+    list_display = ( 'name', 'content_type','content_object','creator','visibility',)
     list_filter=(UsedContenTypeFilter ,)
+    readonly_fields = ('creator',)
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.creator = request.user
+        super().save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        from .api_v1 import legacy_visible_notes
+        return super().get_queryset(request).filter(pk__in=legacy_visible_notes(request.user).values('pk'))
 
 admin.site.register(GenericNote, noteAdmin)
 

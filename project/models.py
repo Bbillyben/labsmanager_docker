@@ -11,7 +11,6 @@ from settings.models import LMUserSetting
 from dashboard import utils
 
 from labsmanager.mixin import ActiveDateMixin, RightsCheckerMixin
-from faicon.fields import FAIconField
 import datetime
 import decimal
 import logging
@@ -270,7 +269,7 @@ class GenericInfoTypeProject(models.Model):
         verbose_name = _("Type of Generic Info")
     
     name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
-    icon = FAIconField(null=True,)
+    icon = models.CharField(max_length=50, blank=True, null=True)
     
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""

@@ -373,7 +373,7 @@
         elts=this;
 
         var globals={
-            schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+            schedulerLicenseKey: 'AGPL-My-Frontend-And-Backend-Are-Open-Source',
             timeZone: 'UTC',
             locale:settingsCal.local,
             initialView: settingsCal.initialView,

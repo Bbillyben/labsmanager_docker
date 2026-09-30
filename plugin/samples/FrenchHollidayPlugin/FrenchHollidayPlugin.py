@@ -167,7 +167,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
     def get_calendar_events(cls, context):
         if context.calendar_type in (
             CalendarType.PROJECT_ALL,
-            CalendarType.PROJECT,
+            # CalendarType.PROJECT,
             CalendarType.EMPLOYEE_PROJECT,
         ):
             return []
