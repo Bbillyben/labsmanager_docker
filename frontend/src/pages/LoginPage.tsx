@@ -6,6 +6,7 @@ import { useAuth } from '../auth/AuthContext'
 import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
 import { getDjangoUrl } from '../config/django'
+import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
 import styles from './LoginPage.module.css'
 
@@ -17,6 +18,7 @@ function safeReturnPath(value: unknown) {
 
 export function LoginPage() {
   const auth = useAuth()
+  const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
   const [identifier, setIdentifier] = useState('')
@@ -29,7 +31,7 @@ export function LoginPage() {
     if (auth.status === 'authenticated') navigate(returnPath, { replace: true })
   }, [auth.status, navigate, returnPath])
 
-  if (auth.status === 'loading') return <main className="centered-state"><LoadingState message="Chargement de la session…" /></main>
+  if (auth.status === 'loading') return <main className="centered-state"><LoadingState message={t('common.loadSession')} /></main>
   if (auth.status === 'error') return <ErrorState />
   if (auth.status === 'authenticated') return <Navigate replace to={returnPath} />
 
@@ -43,11 +45,11 @@ export function LoginPage() {
       navigate(returnPath, { replace: true })
     } catch (caught) {
       if (caught instanceof ApiError && caught.status === 429) {
-        setError('Trop de tentatives de connexion. Réessayez plus tard.')
+        setError(t('auth.tooManyAttempts'))
       } else if (caught instanceof ApiError && caught.status === 400) {
-        setError('Identifiant ou mot de passe incorrect.')
+        setError(t('auth.invalidCredentials'))
       } else {
-        setError('La connexion est momentanément indisponible.')
+        setError(t('auth.unavailable'))
       }
     } finally {
       setSubmitting(false)
@@ -59,19 +61,19 @@ export function LoginPage() {
       <section aria-labelledby="login-title" className={styles.card}>
         <img alt="LabsManager" className={styles.logo} src={`${import.meta.env.BASE_URL}labsmanager-logo.png`} />
         <div className={styles.heading}>
-          <p className={styles.eyebrow}>Espace de travail</p>
-          <h1 id="login-title">Connexion</h1>
-          <p>Utilisez votre identifiant ou votre adresse email LabsManager.</p>
+          <p className={styles.eyebrow}>{t('auth.workspace')}</p>
+          <h1 id="login-title">{t('auth.login')}</h1>
+          <p>{t('auth.loginDescription')}</p>
         </div>
         {error && <p className={styles.error} role="alert">{error}</p>}
         <form className={styles.form} onSubmit={handleSubmit}>
-          <label htmlFor="login-identifier">Identifiant ou email</label>
+          <label htmlFor="login-identifier">{t('auth.identifier')}</label>
           <input autoComplete="username" autoFocus id="login-identifier" name="login" onChange={(event) => setIdentifier(event.target.value)} required value={identifier} />
-          <label htmlFor="login-password">Mot de passe</label>
+          <label htmlFor="login-password">{t('auth.password')}</label>
           <input autoComplete="current-password" id="login-password" name="password" onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
-          <Button disabled={submitting} type="submit" variant="primary">{submitting ? 'Connexion…' : 'Se connecter'}</Button>
+          <Button disabled={submitting} type="submit" variant="primary">{t(submitting ? 'auth.signingIn' : 'auth.signIn')}</Button>
         </form>
-        <a className={styles.helpLink} href={getDjangoUrl('/accounts/password/reset/')}>Mot de passe oublié ?</a>
+        <a className={styles.helpLink} href={getDjangoUrl('/accounts/password/reset/')}>{t('auth.forgotPassword')}</a>
       </section>
     </main>
   )

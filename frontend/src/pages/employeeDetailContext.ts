@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { EmployeeDetail } from '../api/employees'
 
-export type EmployeeDetailContextValue = { employee: EmployeeDetail; employeeId: string }
+export type EmployeeDetailContextValue = { employee: EmployeeDetail; employeeId: string; refreshEmployee?: () => Promise<unknown> }
 export const EmployeeDetailContext = createContext<EmployeeDetailContextValue | null>(null)
 
 export function useEmployeeDetail() {

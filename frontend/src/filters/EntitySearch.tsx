@@ -2,11 +2,13 @@ import { Combobox, ComboboxInput, ComboboxContent, ComboboxList, ComboboxItem } 
 import { Button } from '../ui/Button'
 import { useEffect, useState } from 'react'
 import type { EntitySearchSource, FilterOption } from './types'
+import { useTranslation } from '../i18n/i18n'
 import styles from './Filters.module.css'
 
 type Props = { id: string; label: string; value: string; placeholder?: string; source: EntitySearchSource; onChange: (value: string) => void }
 
 export function EntitySearch({ id, label, value, placeholder, source, onChange }: Props) {
+  const { t } = useTranslation()
   const [resolved, setResolved] = useState<FilterOption | null>(null)
   const [resolution, setResolution] = useState<'loading' | 'ready' | 'missing' | 'error'>(value ? 'loading' : 'ready')
   const [attempt, setAttempt] = useState(0)
@@ -48,19 +50,19 @@ export function EntitySearch({ id, label, value, placeholder, source, onChange }
       open={showResults} onOpenChange={(open) => { if (!open) cancel(); else { setExpanded(true); if (draft === null) setDraft('') } }}
       onInputValueChange={(text, details) => { if (details.reason === 'input-change') { setDraft(text); setExpanded(true); setResult(null) } }}
       onValueChange={(option) => { if (option) choose(option) }}>
-      <ComboboxInput id={id} aria-label={label} showTrigger={false} placeholder={resolution === 'loading' ? 'Chargement du libellé…' : placeholder ?? 'Rechercher…'} />
+      <ComboboxInput id={id} aria-label={label} showTrigger={false} placeholder={resolution === 'loading' ? t('filters.loadingLabel') : placeholder ?? t('filters.placeholder')} />
       <ComboboxContent>
-        {!current && <p role="status" className="p-2 text-xs">Recherche en cours…</p>}
-        {current?.error && <div role="alert" className="p-2 text-xs">Recherche indisponible. <Button variant="ghost" onClick={() => { setResult(null); setAttempt((count) => count + 1) }}>Réessayer la recherche</Button></div>}
-        {current && !current.error && !options.length && <p role="status" className="p-2 text-xs">Aucun résultat.</p>}
-        <ComboboxList aria-label={`Résultats pour ${label.toLocaleLowerCase('fr')}`}>
+        {!current && <p role="status" className="p-2 text-xs">{t('filters.searching')}</p>}
+        {current?.error && <div role="alert" className="p-2 text-xs">{t('filters.searchUnavailable')} <Button variant="ghost" onClick={() => { setResult(null); setAttempt((count) => count + 1) }}>{t('filters.retrySearch')}</Button></div>}
+        {current && !current.error && !options.length && <p role="status" className="p-2 text-xs">{t('filters.noResults')}</p>}
+        <ComboboxList aria-label={t('filters.resultsFor', { label: label.toLocaleLowerCase() })}>
           {options.map((option) => <ComboboxItem key={option.value} value={option}>{option.label}</ComboboxItem>)}
         </ComboboxList>
-        {current?.hasMore && <p className="p-2 text-xs">Affinez la recherche pour voir d’autres résultats.</p>}
+        {current?.hasMore && <p className="p-2 text-xs">{t('filters.refine')}</p>}
       </ComboboxContent>
     </Combobox>
-    {value && draft !== null && <small>Valeur appliquée : {resolved?.label ?? `ID ${value}`}</small>}
-    {resolution === 'missing' && <small role="status">Valeur indisponible (ID {value}). Choisissez une autre valeur ou supprimez le filtre.</small>}
-    {resolution === 'error' && <div role="alert">Libellé indisponible (ID {value}). <Button variant="ghost" onClick={() => { setResolution('loading'); setAttempt((count) => count + 1) }}>Réessayer le libellé</Button></div>}
+    {value && draft !== null && <small>{t('filters.appliedValue', { value: resolved?.label ?? `ID ${value}` })}</small>}
+    {resolution === 'missing' && <small role="status">{t('filters.valueUnavailable', { id: value })}</small>}
+    {resolution === 'error' && <div role="alert">{t('filters.labelUnavailable', { id: value })} <Button variant="ghost" onClick={() => { setResolution('loading'); setAttempt((count) => count + 1) }}>{t('filters.retryLabel')}</Button></div>}
   </div>
 }

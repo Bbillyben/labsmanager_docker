@@ -4,6 +4,7 @@ import { Input } from '../components/ui/input'
 import { X, ChevronRight } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import type { SupportedFilter } from './types'
+import { useTranslation } from '../i18n/i18n'
 import styles from './Filters.module.css'
 
 type Props = {
@@ -16,25 +17,26 @@ type Props = {
 }
 
 export function FilterGallery({ catalogue, query, onAdd, onClose, finalFocus, id }: Props) {
+  const { language, t } = useTranslation()
   const [search, setSearch] = useState('')
   const input = useRef<HTMLInputElement>(null)
   const titleId = useId()
-  const normalize = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr')
+  const normalize = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase(language)
   const available = catalogue.filter((filter) => normalize(filter.label).includes(normalize(search.trim())))
   const categories = [...new Set(available.map((filter) => filter.category))]
 
   return <PopoverContent id={id} aria-labelledby={titleId} align="start" initialFocus={input} finalFocus={finalFocus} className="w-80 max-w-[calc(100vw-2rem)] max-h-[70vh] overflow-y-auto gap-2 p-3">
-    <div className={styles.galleryHeader}><h2 id={titleId}>Ajouter un filtre</h2><Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Fermer la galerie"><X /></Button></div>
-    <label className={styles.searchLabel}>Rechercher un filtre<Input ref={input} type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Rechercher un filtre…" /></label>
+    <div className={styles.galleryHeader}><h2 id={titleId}>{t('filters.add')}</h2><Button variant="ghost" size="icon-sm" onClick={onClose} aria-label={t('filters.closeGallery')}><X /></Button></div>
+    <label className={styles.searchLabel}>{t('filters.search')}<Input ref={input} type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('filters.searchPlaceholder')} /></label>
     {categories.map((category) => <section key={category} aria-label={category} className={styles.category}>
       <h3>{category}</h3>
       <div className={styles.tiles}>{available.filter((filter) => filter.category === category).map((filter) => {
         const active = query.has(filter.parameter)
         return <Button variant="ghost" key={filter.id} className="h-auto w-full justify-between px-2 py-2 text-left" disabled={active} onClick={() => onAdd(filter)}>
-          <span><span className="block text-sm font-medium">{filter.label}</span><span className="block text-xs text-muted-foreground">{active ? 'Déjà ajouté' : filter.description}</span></span><ChevronRight />
+          <span><span className="block text-sm font-medium">{filter.label}</span><span className="block text-xs text-muted-foreground">{active ? t('filters.alreadyAdded') : filter.description}</span></span><ChevronRight />
         </Button>
       })}</div>
     </section>)}
-    {available.length === 0 && <p role="status">Aucun filtre correspondant.</p>}
+    {available.length === 0 && <p role="status">{t('filters.noMatch')}</p>}
   </PopoverContent>
 }

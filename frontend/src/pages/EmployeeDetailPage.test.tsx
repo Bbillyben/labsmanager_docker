@@ -69,16 +69,29 @@ const milestones = [
   { id: 24, name: 'Jalon terminé', desc: null, start_date: null, end_date: '2026-08-01', status: true, type: 'q', quotity: '1.000', display_state: 'completed', days_to_due: -50, work_kind: 'milestone', project: { id: 10, name: 'Projet Atlas', can_view: false }, employees: [] },
 ]
 
-type Payloads = { statuses?: unknown; hierarchy?: unknown; genericInfo?: unknown; projects?: unknown; milestones?: unknown | (() => Response); workload?: unknown; contracts?: unknown; contributions?: unknown; contributionWorkload?: unknown; budgets?: unknown; calendar?: unknown; calendarFilters?: unknown }
+type Payloads = { detail?: unknown; statuses?: unknown; hierarchy?: unknown; genericInfo?: unknown; projects?: unknown; milestones?: unknown | (() => Response); milestonePatchError?: boolean; workload?: unknown; contracts?: unknown; contributions?: unknown; contributionWorkload?: unknown; budgets?: unknown; calendar?: unknown; calendarFilters?: unknown }
 function mockApi(payloads: Payloads = {}) {
-  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
-    const url = String(input)
+  const workState = Array.isArray(payloads.milestones) ? structuredClone(payloads.milestones) : structuredClone(milestones)
+  return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = String(input), method = init?.method ?? 'GET'
     if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
+    if (url === '/api/v1/notes/employee/12/') return jsonResponse({ capabilities: { can_add: false }, items: [] })
+    if (url.startsWith('/api/v1/reports/employee/')) return jsonResponse({ templates: [{ id: 9, name: 'Rapport employé' }] })
     if (url.endsWith('/statuses/')) return jsonResponse(payloads.statuses ?? statuses)
     if (url.endsWith('/hierarchy/')) return jsonResponse(payloads.hierarchy ?? hierarchy)
     if (url.endsWith('/generic-info/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, items: payloads.genericInfo ?? genericInfo })
+    if (/\/api\/v1\/planning\/items\/\d+\/dependencies\/$/.test(url)) return jsonResponse({ can_add: true, predecessors: [], successors: [] })
+    if (/\/milestones\/\d+\/$/.test(url) && method === 'PATCH') {
+      if (payloads.milestonePatchError) return jsonResponse({ desc: ['Modification refusée'] }, 400)
+      const id = Number(url.match(/\/milestones\/(\d+)\/$/)?.[1])
+      const index = workState.findIndex((item: { id: number }) => item.id === id)
+      const body = JSON.parse(String(init?.body))
+      const saved = { ...workState[index], ...body }
+      workState[index] = saved
+      return jsonResponse(saved)
+    }
     if (url.endsWith('/milestones/')) {
-      const payload = payloads.milestones ?? milestones
+      const payload = Array.isArray(payloads.milestones) || payloads.milestones === undefined ? workState : payloads.milestones
       if (typeof payload === 'function') return payload()
       return payload instanceof Response ? payload : jsonResponse(payload)
     }
@@ -87,10 +100,11 @@ function mockApi(payloads: Payloads = {}) {
     if (url.includes('/contribution-workload/')) return jsonResponse(payloads.contributionWorkload ?? { range: { start: '2026-06-20', end: '2027-06-20' }, segments: [] })
     if (url.endsWith('/contributions/')) return jsonResponse(payloads.contributions ?? [])
     if (url.endsWith('/budgets/')) return jsonResponse(payloads.budgets ?? [])
+    if (url.endsWith('/contracts/capabilities/')) return jsonResponse({ can_add: false, can_change: false, can_delete: false })
     if (url.endsWith('/contracts/')) return jsonResponse(payloads.contracts ?? [])
     if (url.includes('/calendar/filters/')) return jsonResponse(payloads.calendarFilters ?? [])
     if (url.includes('/calendar/')) return jsonResponse(payloads.calendar ?? [])
-    if (/\/api\/v1\/employees\/\d+\/$/.test(url)) return jsonResponse(detail)
+    if (/\/api\/v1\/employees\/\d+\/$/.test(url)) return jsonResponse(payloads.detail ?? detail)
     throw new Error(`Unexpected URL ${url}`)
   })
 }
@@ -101,6 +115,37 @@ function renderAt(id = 12, panel = '') {
 }
 
 describe('Employee R2 detail', () => {
+  it('uses the shared entity menu for independent exports without an Edit action', async () => {
+    mockApi({ detail: { ...detail, capabilities: { can_export_word: true, can_export_pdf: false } } })
+    renderAt()
+    const user = userEvent.setup()
+    const trigger = await screen.findByRole('button', { name: 'Actions pour Jean Dupont' }, { timeout: 5000 })
+    await user.click(trigger)
+    expect(await screen.findByRole('menuitem', { name: 'Export Word' })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: /Modifier/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: 'Export PDF' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('menuitem', { name: 'Export Word' }))
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent('Exporter l’employé — Export Word')
+    expect(within(dialog).getByLabelText('Du')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Au')).toBeInTheDocument()
+  })
+
+  it('shows no Employee menu without exports and shows PDF alone when permitted', async () => {
+    mockApi({ detail: { ...detail, capabilities: { can_export_word: false, can_export_pdf: true } } })
+    renderAt()
+    const trigger = await screen.findByRole('button', { name: 'Actions pour Jean Dupont' })
+    await userEvent.setup().click(trigger)
+    expect(await screen.findByRole('menuitem', { name: 'Export PDF' })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: 'Export Word' })).not.toBeInTheDocument()
+  })
+
+  it('omits the Employee entity menu when no header action is available', async () => {
+    mockApi({ detail: { ...detail, capabilities: { can_export_word: false, can_export_pdf: false } } })
+    renderAt()
+    await screen.findByRole('heading', { name: 'Jean Dupont' })
+    expect(screen.queryByRole('button', { name: 'Actions pour Jean Dupont' })).not.toBeInTheDocument()
+  })
   beforeEach(() => {
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] })
     Object.defineProperty(window.navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn().mockResolvedValue(undefined) } })
@@ -188,7 +233,7 @@ describe('Employee R2 detail', () => {
     expect(screen.queryByRole('button', { name: /précédent/ })).not.toBeInTheDocument()
   })
 
-  it('navigates locally with the same Employee id and keeps only Notes as a placeholder', async () => {
+  it('navigates locally with the same Employee id and opens shared Notes', async () => {
     const user = userEvent.setup()
     mockApi()
     renderAt()
@@ -224,7 +269,7 @@ describe('Employee R2 detail', () => {
     await user.click(notesLink)
     expect(window.location.pathname).toBe('/app/employees/12/notes')
     expect(notesLink).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByText('Ce panneau sera disponible prochainement.')).toBeInTheDocument()
+    expect(await screen.findByText('Aucune note.')).toBeInTheDocument()
   })
 
   it('loads milestones, workload and participations only on Projects', async () => {
@@ -239,6 +284,20 @@ describe('Employee R2 detail', () => {
     expect(urls.some((url) => url.endsWith('/milestones/'))).toBe(true)
     expect(urls.some((url) => url.endsWith('/project-participations/'))).toBe(true)
     expect(urls.some((url) => url.includes('/project-workload/'))).toBe(true)
+  })
+
+  it('links only independently visible Projects in the participation list', async () => {
+    const user = userEvent.setup()
+    mockApi({ projects: projects.map((item) => ({ ...item, project: { ...item.project, can_view: item.project.id === 10 } })) })
+    renderAt(12, 'projects')
+
+    const participations = await screen.findByRole('region', { name: 'Participations aux projets' })
+    expect(within(participations).getByRole('link', { name: 'Projet Atlas' })).toHaveAttribute('href', '/app/projects/10')
+    expect(within(participations).queryByRole('link', { name: 'Projet passé' })).not.toBeInTheDocument()
+    expect(within(participations).getByText('Projet passé')).toBeInTheDocument()
+    expect(within(participations).getByText('Responsable')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Gantt' }))
+    expect(await screen.findByTestId('employee-gantt')).toBeInTheDocument()
   })
 
   it('switches to Gantt with Calendar filters without refetching Employee business data', async () => {
@@ -269,7 +328,7 @@ describe('Employee R2 detail', () => {
     await user.click(screen.getByRole('button', { name: 'Select project' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(window.location.pathname).toBe('/app/employees/12/projects')
-    await user.click(screen.getByRole('button', { name: 'Open work' }))
+    await user.click(await screen.findByRole('button', { name: 'Open work' }))
     expect(await screen.findByRole('dialog')).toHaveTextContent('Rapport budget')
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Fermer' }))
     await user.click(screen.getByRole('button', { name: 'Liste' }))
@@ -306,6 +365,7 @@ describe('Employee R2 detail', () => {
     expect(screen.getByRole('button', { name: 'Terminés · 1' })).toBeInTheDocument()
     expect(screen.queryByText('Jalon terminé')).not.toBeInTheDocument()
     expect(screen.getAllByRole('progressbar')).toHaveLength(1)
+    expect(within(screen.getByRole('button', { name: 'Ouvrir le détail de Rapport budget' })).getByText(/Jean Dupont, Personne Contextuelle/)).toBeInTheDocument()
     expect(within(screen.getByRole('button', { name: 'Ouvrir le détail de Préparer atelier' })).queryByRole('progressbar')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Ouvrir le détail de Rapport budget' }))
@@ -317,12 +377,64 @@ describe('Employee R2 detail', () => {
     expect(within(sheet).getByText('Personne Contextuelle')).toBeInTheDocument()
     expect(within(sheet).queryByRole('link', { name: 'Personne Contextuelle' })).not.toBeInTheDocument()
     expect(within(sheet).getByRole('progressbar')).toHaveValue(65)
+    expect(within(sheet).queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Créer|Supprimer/ })).not.toBeInTheDocument()
 
     await user.click(within(sheet).getByRole('button', { name: 'Fermer' }))
     const task = screen.getByRole('button', { name: 'Ouvrir le détail de Préparer atelier' })
     task.focus()
     await user.keyboard('{Enter}')
     expect(await screen.findByRole('heading', { name: 'Préparer atelier' })).toBeInTheDocument()
+  })
+
+  it('edits only Employee Planning progress, status and description, then refreshes list and Gantt', async () => {
+    const user = userEvent.setup()
+    const fetchMock = mockApi({ milestones: milestones.map((item) => ({ ...item, can_change: item.id === 20 })) })
+    renderAt(12, 'projects')
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir le détail de Rapport budget' }, { timeout: 5000 }))
+    const sheet = await screen.findByRole('dialog')
+    expect(within(sheet).getByText('Préparer le rapport complet.')).toBeInTheDocument()
+    await user.click(within(sheet).getByRole('button', { name: 'Modifier' }))
+    expect(within(sheet).getByRole('textbox', { name: 'Description' })).toHaveValue('Préparer le rapport complet.')
+    expect(within(sheet).getByRole('spinbutton', { name: 'Progression (%)' })).toHaveValue(65)
+    expect(within(sheet).getByRole('checkbox', { name: 'Terminé' })).not.toBeChecked()
+    expect(within(sheet).queryByRole('textbox', { name: /Nom|Projet/ })).not.toBeInTheDocument()
+    expect(within(sheet).queryByRole('button', { name: /Ajouter un prédécesseur|Ajouter un successeur|Supprimer/ })).not.toBeInTheDocument()
+    await user.clear(within(sheet).getByRole('textbox', { name: 'Description' }))
+    await user.type(within(sheet).getByRole('textbox', { name: 'Description' }), 'Brouillon')
+    await user.click(within(sheet).getByRole('button', { name: 'Annuler' }))
+    expect(within(sheet).getByText('Préparer le rapport complet.')).toBeInTheDocument()
+    await user.click(within(sheet).getByRole('button', { name: 'Modifier' }))
+    await user.clear(within(sheet).getByRole('textbox', { name: 'Description' }))
+    await user.type(within(sheet).getByRole('textbox', { name: 'Description' }), 'Terminé côté Employee')
+    await user.clear(within(sheet).getByRole('spinbutton', { name: 'Progression (%)' }))
+    await user.type(within(sheet).getByRole('spinbutton', { name: 'Progression (%)' }), '75')
+    await user.click(within(sheet).getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(within(sheet).getByText('Terminé côté Employee')).toBeInTheDocument())
+    expect(within(sheet).queryByRole('textbox', { name: 'Description' })).not.toBeInTheDocument()
+    const patch = fetchMock.mock.calls.find(([input, init]) => String(input).endsWith('/milestones/20/') && init?.method === 'PATCH')
+    expect(JSON.parse(String(patch?.[1]?.body))).toEqual({ desc: 'Terminé côté Employee', quotity: '0.750', status: false })
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([input]) => String(input).endsWith('/milestones/')).length).toBe(2))
+    await user.click(within(sheet).getByRole('button', { name: 'Fermer' }))
+    expect(within(screen.getByRole('button', { name: 'Ouvrir le détail de Rapport budget' })).getByRole('progressbar')).toHaveValue(75)
+    await user.click(screen.getByRole('button', { name: 'Gantt' }))
+    await user.click(await screen.findByRole('button', { name: 'Open work' }, { timeout: 5000 }))
+    expect(within(await screen.findByRole('dialog')).getByText('Terminé côté Employee')).toBeInTheDocument()
+  })
+
+  it('uses per-item capability in Employee Planning and retains the Sheet after a PATCH error', async () => {
+    const user = userEvent.setup()
+    mockApi({ milestones: milestones.map((item) => ({ ...item, can_change: item.id === 20 })), milestonePatchError: true })
+    renderAt(12, 'projects')
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir le détail de Préparer atelier' }))
+    expect(within(await screen.findByRole('dialog')).queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Fermer' }))
+    await user.click(screen.getByRole('button', { name: 'Ouvrir le détail de Rapport budget' }))
+    const sheet = await screen.findByRole('dialog')
+    await user.click(within(sheet).getByRole('button', { name: 'Modifier' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Enregistrer' }))
+    expect(await within(sheet).findByText('Modification refusée')).toBeInTheDocument()
+    expect(within(sheet).getByRole('textbox', { name: 'Description' })).toBeInTheDocument()
   })
 
   it('expands completed milestones on demand', async () => {

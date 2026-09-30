@@ -1,6 +1,6 @@
 import { useEffect, useId, useState, type FormEvent, type RefObject } from 'react'
 import { X } from 'lucide-react'
-import { createEmployeeGenericInfo, getGenericInfoTypes, updateEmployeeGenericInfo, type EmployeeGenericInfo, type GenericInfoType } from '../api/employees'
+import type { GenericInfoApi, GenericInfoItem, GenericInfoType } from './genericInfoContext'
 import { normalizeMutationError } from '../api/errors'
 import { useMutation } from '../api/useMutation'
 import { Input } from '../components/ui/input'
@@ -11,9 +11,9 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import styles from './EmployeeGenericInfo.module.css'
 
-export function GenericInfoFormSheet({ employeeId, item, onClose, onSaved, returnFocus }: {
-  employeeId: string; item: EmployeeGenericInfo | null; onClose: () => void
-  onSaved: (item: EmployeeGenericInfo) => void; returnFocus: RefObject<HTMLElement | null>
+export function GenericInfoFormSheet({ api, item, onClose, onSaved, returnFocus }: {
+  api: GenericInfoApi; item: GenericInfoItem | null; onClose: () => void
+  onSaved: (item: GenericInfoItem) => void; returnFocus: RefObject<HTMLElement | null>
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -27,18 +27,18 @@ export function GenericInfoFormSheet({ employeeId, item, onClose, onSaved, retur
   useEffect(() => {
     if (item) return
     const controller = new AbortController()
-    getGenericInfoTypes(controller.signal).then(
+    api.types(controller.signal).then(
       (data) => { if (!controller.signal.aborted) { setTypes(data); setCatalogueError(false) } },
       () => { if (!controller.signal.aborted) setCatalogueError(true) },
     )
     return () => controller.abort()
-  }, [item, attempt])
+  }, [api, item, attempt])
 
   async function submit(event: FormEvent) {
     event.preventDefault()
     const result = await mutation.run(() => item
-      ? updateEmployeeGenericInfo(employeeId, item.id, value)
-      : createEmployeeGenericInfo(employeeId, { type_id: Number(typeId), value }))
+      ? api.update(item.id, value)
+      : api.create({ type_id: Number(typeId), value }))
     if (result) onSaved(result.data)
   }
   return <Sheet open onOpenChange={(open) => { if (!open && !mutation.pending) onClose() }}>

@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   getEmployeeCalendar,
@@ -18,12 +18,13 @@ import { halfDayLabel } from '../calendar/halfDayPresentation'
 import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
 import { useEmployeeDetail } from './employeeDetailContext'
-import { EmployeeCalendar, type EmployeeCalendarView } from './EmployeeCalendar'
+import { EmployeeCalendar } from './EmployeeCalendar'
 import { EmployeeLeaveSheet } from './EmployeeLeaveSheet'
+import { leaveFromEvent, rangeLabel, typeFromEvent, uniqueTypes } from './leaveCalendarPresentation'
+import { projectCalendarRange, projectCalendarScopeOrder, projectCalendarScopes, shiftProjectCalendarAnchor, type ProjectCalendarScope } from './projectCalendarScopes'
 import styles from './EmployeeLeaves.module.css'
 
 type DisplayMode = 'calendar' | 'table'
-type CalendarView = EmployeeCalendarView
 type Resource<T> = { data: T | null; error: unknown; loading: boolean; retry: () => void }
 const modeKey = 'labsmanager:employee:leaves-display'
 const viewKey = 'labsmanager:employee:leaves-calendar-view'
@@ -32,9 +33,9 @@ export function EmployeeLeaves() {
   const { employeeId } = useEmployeeDetail()
   const { language, t } = useTranslation()
   const [mode, setModeState] = useState<DisplayMode>(() => localStorage.getItem(modeKey) === 'table' ? 'table' : 'calendar')
-  const [view, setViewState] = useState<CalendarView>(() => {
+  const [scope, setScopeState] = useState<ProjectCalendarScope>(() => {
     const stored = localStorage.getItem(viewKey)
-    return stored === 'year' || stored === 'fiveYears' ? stored : 'month'
+    return projectCalendarScopeOrder.find((item) => item === stored) ?? 'month'
   })
   const [anchor, setAnchor] = useState(() => new Date())
   const [filters, setFilters] = useState<EmployeeLeaveFilters>({})
@@ -46,7 +47,7 @@ export function EmployeeLeaves() {
   const pendingLeaveMutation = useRef(false)
   const capabilityLoader = useCallback((signal: AbortSignal) => getLeaveCapabilities(employeeId, signal), [employeeId])
   const capabilities = useAsyncResource(capabilityLoader, `leave-capabilities:${employeeId}`)
-  const range = useMemo(() => calendarRange(view, anchor), [view, anchor])
+  const range = useMemo(() => projectCalendarRange(scope, anchor), [scope, anchor])
   const calendarBounds = useMemo(() => ({
     from: filters.from && filters.from > range.from ? filters.from : range.from,
     to: filters.to && filters.to < range.to ? filters.to : range.to,
@@ -68,8 +69,8 @@ export function EmployeeLeaves() {
   const resource = useAsyncResource(activeLoader, resourceKey, rememberTypes)
 
   const setMode = (next: DisplayMode) => { localStorage.setItem(modeKey, next); setModeState(next) }
-  const setView = (next: CalendarView) => { localStorage.setItem(viewKey, next); setViewState(next) }
-  const move = (direction: number) => setAnchor((current) => shiftAnchor(current, view, direction))
+  const setScope = (next: ProjectCalendarScope) => { localStorage.setItem(viewKey, next); setScopeState(next) }
+  const move = (direction: number) => setAnchor((current) => shiftProjectCalendarAnchor(current, scope, direction))
   const openEvent = (event: CalendarEvent) => {
     if (event.kind === 'leave') { setCreating(null); setSelected(leaveFromEvent(event)) }
   }
@@ -100,7 +101,7 @@ export function EmployeeLeaves() {
         <Button aria-pressed={mode === 'table'} onClick={() => setMode('table')} size="sm" variant={mode === 'table' ? 'default' : 'ghost'}>{t('leaves.table')}</Button>
       </div>
       <LeaveFilters filters={filters} onChange={setFilters} types={knownTypes} />
-      {capabilities.data?.can_add && <Button onClick={() => openCreate()} size="sm">{t('leaves.add')}</Button>}
+      {capabilities.data?.can_add && <Button onClick={() => openCreate()} size="sm"><Plus aria-hidden="true" />{t('leaves.add')}</Button>}
       {Boolean(capabilities.error) && <div className={styles.error} role="alert">{t('leaves.capabilitiesError')} <Button onClick={capabilities.retry} size="xs" variant="ghost">{t('common.retry')}</Button></div>}
     </div>
 
@@ -113,14 +114,14 @@ export function EmployeeLeaves() {
           <strong>{rangeLabel(range, language)}</strong>
         </div>
         <div aria-label={t('leaves.calendarLabel')} className={styles.segmented} role="group">
-          {(['month', 'year', 'fiveYears'] as const).map((item) => <Button aria-pressed={view === item} key={item} onClick={() => setView(item)} size="sm" variant={view === item ? 'secondary' : 'ghost'}>{t(`leaves.${item}`)}</Button>)}
+          {projectCalendarScopeOrder.map((item) => <Button aria-pressed={scope === item} key={item} onClick={() => setScope(item)} size="sm" variant={scope === item ? 'secondary' : 'ghost'}>{t(projectCalendarScopes[item].label)}</Button>)}
         </div>
       </div>
       {calendarFilterResource.error && <div className={styles.error} role="alert"><span>{t('leaves.pluginFiltersError')}</span><Button onClick={calendarFilterResource.retry} size="sm" variant="ghost">{t('common.retry')}</Button></div>}
       {calendarErrorText && <div className={styles.error} role="alert">{calendarErrorText}</div>}
       <CalendarPluginFilters definitions={calendarFilterResource.data ?? []} onChange={setCalendarFilterValues} values={calendarFilterValues} />
       <ResourceState resource={resource} />
-      {resource.data && <>{resource.data.length === 0 && <p className={styles.state}>{t('leaves.empty')}</p>}<EmployeeCalendar anchor={anchor} events={resource.data as CalendarEvent[]} onOpen={openEvent} onCreate={openCreate} onChangeDates={changeCalendarDates} canCreate={Boolean(capabilities.data?.can_add)} canChange={Boolean(capabilities.data?.can_change)} view={view} /></>}
+      {resource.data && <>{resource.data.length === 0 && <p className={styles.state}>{t('leaves.empty')}</p>}<EmployeeCalendar anchor={anchor} events={resource.data as CalendarEvent[]} onOpen={openEvent} onCreate={openCreate} onChangeDates={changeCalendarDates} canCreate={Boolean(capabilities.data?.can_add)} canChange={Boolean(capabilities.data?.can_change)} projectScope={scope} /></>}
     </>}
 
     {mode === 'table' && <>
@@ -144,12 +145,12 @@ function LeaveFilters({ filters, onChange, types }: { filters: EmployeeLeaveFilt
   </div>
 }
 
-function LeaveTable({ leaves, onOpen }: { leaves: EmployeeLeave[]; onOpen: (leave: EmployeeLeave) => void }) {
+export function LeaveTable({ leaves, onOpen, employeeNames }: { leaves: EmployeeLeave[]; onOpen: (leave: EmployeeLeave) => void; employeeNames?: Map<number, string> }) {
   const { language, t } = useTranslation()
   if (!leaves.length) return <p className={styles.state}>{t('leaves.empty')}</p>
-  return <div className={styles.tableScroll}><table><thead><tr><th>{t('leaves.type')}</th><th>{t('leaves.start')}</th><th>{t('leaves.end')}</th><th>{t('leaves.duration')}</th><th>{t('leaves.comment')}</th></tr></thead>
+  return <div className={styles.tableScroll}><table><thead><tr>{employeeNames && <th>{t('projectCalendar.participants')}</th>}<th>{t('leaves.type')}</th><th>{t('leaves.start')}</th><th>{t('leaves.end')}</th><th>{t('leaves.duration')}</th><th>{t('leaves.comment')}</th></tr></thead>
     <tbody>{leaves.map((leave) => { const period = halfDayLabel(leave, t); return <tr aria-label={t('leaves.open', { name: leave.type.name })} key={leave.id} onClick={() => onOpen(leave)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(leave) } }} tabIndex={0}>
-      <td><span className={styles.typeDot} style={{ background: leave.type.color }} />{leave.type.name}</td><td>{formatDate(leave.start_date, language)}</td><td>{formatDate(leave.end_date, language)}</td><td>{t('leaves.days', { count: leave.day_count })}<small>{period}</small></td><td>{leave.comment || '—'}</td>
+      {employeeNames && <td>{employeeNames.get(leave.id) ?? '—'}</td>}<td><span className={styles.typeDot} style={{ background: leave.type.color }} />{leave.type.name}</td><td>{formatDate(leave.start_date, language)}</td><td>{formatDate(leave.end_date, language)}</td><td>{t('leaves.days', { count: leave.day_count })}<small>{period}</small></td><td>{leave.comment || '—'}</td>
     </tr> })}</tbody></table></div>
 }
 
@@ -173,16 +174,4 @@ function useAsyncResource<T>(loader: (signal: AbortSignal) => Promise<T>, resour
   return { data: current.data, error: current.error, loading: !current.data && !current.error, retry: () => setAttempt((value) => value + 1) }
 }
 
-function calendarRange(view: CalendarView, anchor: Date) {
-  const year = anchor.getFullYear(); const month = anchor.getMonth()
-  if (view === 'month') return { from: isoDate(new Date(year, month, 1)), to: isoDate(new Date(year, month + 1, 0)) }
-  if (view === 'year') return { from: `${year}-01-01`, to: `${year}-12-31` }
-  return { from: `${year - 2}-01-01`, to: `${year + 2}-12-31` }
-}
-function shiftAnchor(value: Date, view: CalendarView, direction: number) { const next = new Date(value); if (view === 'month') next.setMonth(next.getMonth() + direction); else next.setFullYear(next.getFullYear() + direction * (view === 'fiveYears' ? 5 : 1)); return next }
-function isoDate(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}` }
 function formatDate(value: string, language: string) { return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) }
-function rangeLabel(range: { from: string; to: string }, language: string) { return `${formatDate(range.from, language)} – ${formatDate(range.to, language)}` }
-function typeFromEvent(event: CalendarEvent): EmployeeLeaveType | null { const id = Number(event.metadata.leave_type_id); if (!Number.isFinite(id)) return null; return { id, name: event.title, short_name: String(event.metadata.leave_type_short_name ?? ''), color: String(event.metadata.leave_type_color ?? event.color ?? '') } }
-function uniqueTypes(types: EmployeeLeaveType[]) { return [...new Map(types.map((type) => [type.id, type])).values()].sort((a, b) => a.name.localeCompare(b.name)) }
-function leaveFromEvent(event: CalendarEvent): EmployeeLeave { return { id: Number(event.metadata.leave_id), type: typeFromEvent(event)!, start_date: String(event.metadata.start_date), start_period: event.metadata.start_period as 'ST' | 'MI', end_date: String(event.metadata.end_date), end_period: event.metadata.end_period as 'MI' | 'EN', day_count: Number(event.metadata.day_count), comment: event.description } }

@@ -1,0 +1,24 @@
+.panel { display: grid; gap: 1.5rem; min-width: 0; }
+.fundContent { display: grid; gap: 1rem; min-width: 0; }
+.fundContent > :last-child { margin-top: 0; }
+.section { display: grid; gap: .8rem; min-width: 0; border-top: 1px solid var(--border); padding-top: 1rem; }
+.section h2 { font-size: 1.15rem; font-weight: 600; }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.scroll { overflow-x: auto; max-width: 100%; }
+.table { border-collapse: collapse; width: 100%; font-size: .875rem; }
+.table th, .table td { border-bottom: 1px solid var(--border); padding: .55rem .7rem; text-align: left; white-space: nowrap; }
+.table thead th { font-weight: 600; background: var(--muted); }
+.table tbody tr[data-selected="true"] { background: var(--accent); }
+.table tbody tr:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.table .number { text-align: right; font-variant-numeric: tabular-nums; }
+.table .actions { width: 2.8rem; }
+.actions > * { opacity: 0; }
+tr:hover .actions > *, tr:focus-within .actions > *, tr[data-selected="true"] .actions > * { opacity: 1; }
+.total { font-weight: 700; background: var(--muted); }
+.empty, .hint { color: var(--muted-foreground); font-size: .9rem; }
+.form { display: grid; gap: .8rem; margin-top: 1rem; }
+.form label { display: grid; gap: .3rem; font-size: .9rem; }
+.form input:not([type="checkbox"]) { min-height: 2.25rem; width: 100%; border: 1px solid var(--border); border-radius: .35rem; padding: .25rem .5rem; background: var(--background); color: var(--foreground); }
+.form .check { display: flex; align-items: center; gap: .5rem; }
+.buttons { display: flex; justify-content: flex-end; gap: .5rem; }
+@media (hover: none) { .actions > * { opacity: 1; } }

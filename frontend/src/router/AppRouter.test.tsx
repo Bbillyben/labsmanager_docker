@@ -121,7 +121,7 @@ describe('AppRouter', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(authenticatedUser))
     renderAt('/app/')
 
-    expect(await screen.findByText('Home', { selector: 'span' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Home' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'User menu : Ada' }))
     expect(await screen.findByRole('menuitem', { name: 'My profile' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Appearance: dark theme' })).toBeInTheDocument()
@@ -163,5 +163,65 @@ describe('AppRouter', () => {
     renderAt('/app/inconnue')
 
     expect(await screen.findByRole('heading', { name: 'Page introuvable' })).toBeInTheDocument()
+  })
+
+  it.each([['budgets', 'Budgets', 'Contributions'], ['contributions', 'Contributions', 'Budgets']])('loads the Project %s route directly', async (route, heading, other) => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
+      if (url === '/api/v1/projects/3/') return jsonResponse({
+        id: 3, name: 'Atlas', status: true, start_date: null, end_date: null,
+        funding_visible: true, capabilities: { can_change: false },
+      })
+      if (url === '/api/v1/projects/3/budgets/' || url === '/api/v1/projects/3/contributions/') {
+        return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, items: [] })
+      }
+      if (url === '/api/v1/projects/3/budgets/options/' || url === '/api/v1/projects/3/contributions/options/') {
+        return jsonResponse({ funds: [], cost_types: [], employee_types: [], contract_types: [], employees: [] })
+      }
+      throw new Error(`Unexpected ${url}`)
+    })
+    renderAt(`/app/projects/3/${route}`)
+
+    expect(await screen.findByRole('heading', { name: 'Atlas' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: other })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Page introuvable' })).not.toBeInTheDocument()
+  })
+
+  it('loads Project Contracts directly instead of the React 404', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
+      if (url === '/api/v1/projects/3/') return jsonResponse({
+        id: 3, name: 'Atlas', status: true, start_date: null, end_date: null,
+        funding_visible: true, capabilities: { can_change: false },
+      })
+      if (url === '/api/v1/projects/3/contracts/') return jsonResponse({ items: [], capabilities: { can_add: false, can_change: false, can_delete: false } })
+      throw new Error(`Unexpected ${url}`)
+    })
+    renderAt('/app/projects/3/contracts')
+    expect(await screen.findByRole('heading', { name: 'Atlas' })).toBeInTheDocument()
+    expect(await screen.findByText('Aucun contrat visible.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Page introuvable' })).not.toBeInTheDocument()
+  })
+
+  it('loads Project Calendar directly instead of the React 404', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
+      if (url === '/api/v1/projects/3/') return jsonResponse({
+        id: 3, name: 'Atlas', status: true, start_date: null, end_date: null,
+        funding_visible: true, capabilities: { can_change: false },
+      })
+      if (url.includes('/calendar/participants/')) return jsonResponse([])
+      if (url.includes('/calendar/filters/')) return jsonResponse([])
+      if (url.includes('/calendar/?')) return jsonResponse([])
+      throw new Error(`Unexpected ${url}`)
+    })
+    renderAt('/app/projects/3/calendar')
+    expect(await screen.findByRole('heading', { name: 'Atlas' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Ressources' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Page introuvable' })).not.toBeInTheDocument()
   })
 })

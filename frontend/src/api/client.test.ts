@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { apiRequest, subscribeToUnauthorized } from './client'
+import { apiFileRequest, apiRequest, subscribeToUnauthorized } from './client'
 import { jsonResponse } from '../test/fixtures'
 
 describe('apiRequest', () => {
@@ -56,5 +56,26 @@ describe('apiRequest', () => {
 
   it('rejects absolute URLs', async () => {
     await expect(apiRequest('https://example.test/api')).rejects.toThrow('relative')
+  })
+})
+
+describe('apiFileRequest', () => {
+  it('uses session/CSRF and preserves the backend download filename', async () => {
+    document.cookie = 'csrftoken=report-token'
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('file', { headers: { 'Content-Disposition': 'attachment; filename="report.docx"', 'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' } }))
+    const result = await apiFileRequest('/api/v1/reports/project/1/word/', { method: 'POST', body: '{}' })
+    expect(result.filename).toBe('report.docx')
+    expect(result.blob.size).toBe(4)
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/reports/project/1/word/', expect.objectContaining({ credentials: 'include', method: 'POST' }))
+    expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get('X-CSRFToken')).toBe('report-token')
+  })
+
+  it('keeps DRF errors and 401 notification on file responses', async () => {
+    const listener = vi.fn()
+    const unsubscribe = subscribeToUnauthorized(listener)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ detail: 'Denied' }, 401))
+    await expect(apiFileRequest('/api/v1/reports/employee/1/pdf/', { method: 'POST' })).rejects.toMatchObject({ status: 401, payload: { detail: 'Denied' } })
+    expect(listener).toHaveBeenCalledOnce()
+    unsubscribe()
   })
 })

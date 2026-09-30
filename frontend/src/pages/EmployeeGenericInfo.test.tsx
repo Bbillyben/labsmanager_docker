@@ -99,6 +99,25 @@ describe('GenericInfo mutations', () => {
     expect(writes()[0][1]?.method).toBe('PATCH')
     expect(JSON.parse(String(writes()[0][1]?.body))).toEqual({ value: 'updated' })
   })
+  it('returns focus to the canonical menu trigger after closing the edit Sheet', async () => {
+    setup()
+    await action('Modifier')
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Actions pour Badge' })).toHaveFocus())
+  })
+  it('returns focus to the canonical menu trigger after cancelling deletion', async () => {
+    const { writes } = setup()
+    await action('Supprimer')
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Annuler' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Actions pour Badge' })).toHaveFocus())
+    expect(writes()).toHaveLength(0)
+  })
+  it('falls back to the section when the deleted item has no add button', async () => {
+    setup({ capabilities: { can_add: false, can_change: true, can_delete: true } })
+    await action('Supprimer')
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Supprimer' }))
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Informations complémentaires' })).toHaveFocus())
+  })
   it('cancels without DELETE, then confirms deletion and restores focus', async () => {
     const { writes } = setup()
     await action('Supprimer')

@@ -30,7 +30,11 @@ describe('shared Employee Leave Sheet', () => {
   it('edits and cancels without mutation, then saves', async () => {
     const user = userEvent.setup()
     render(<EmployeeLeaveSheet employeeId="12" leave={leave} capabilities={capabilities} {...callbacks} />)
-    await user.click(await screen.findByRole('button', { name: 'Modifier l’absence' }))
+    const edit = await screen.findByRole('button', { name: 'Modifier l’absence' })
+    expect(edit.querySelector('svg.lucide-pencil')).toHaveAttribute('aria-hidden', 'true')
+    expect(edit).toHaveClass('bg-secondary')
+    expect(screen.getByRole('button', { name: 'Supprimer' }).querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    await user.click(edit)
     await screen.findByRole('option', { name: /RTT/ })
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
     expect(api.updateEmployeeLeave).not.toHaveBeenCalled()

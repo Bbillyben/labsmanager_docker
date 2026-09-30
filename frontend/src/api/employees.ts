@@ -1,4 +1,5 @@
 import { apiRequest } from './client'
+import { planningFilterQuery, type EmployeeMilestoneWrite, type PlanningFilters, type PlanningMilestone } from './planning'
 import { employeeFilters } from '../config/employeeFilters'
 import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../filters/url'
 
@@ -12,6 +13,7 @@ export type EmployeeListItem = EmployeeIdentity & {
   superiors: EmployeeIdentity[]
 }
 export type EmployeeDetail = EmployeeListItem & {
+  capabilities?: { can_export_word: boolean; can_export_pdf: boolean }
   birth_date: string | null
   email: string | null
   contract_quotity: string | null
@@ -45,7 +47,7 @@ export type EmployeeGenericInfo = {
 }
 export type EmployeeProjectParticipation = {
   id: number
-  project: { id: number; name: string; start_date: string | null; end_date: string | null }
+  project: { id: number; name: string; start_date: string | null; end_date: string | null; can_view: boolean }
   role: { code: string; label: string }
   start_date: string | null
   end_date: string | null
@@ -70,7 +72,7 @@ export type EmployeeContractFund = {
 }
 export type EmployeeContract = {
   id: number
-  employee: EmployeeIdentity
+  employee: EmployeeIdentity & { can_view?: boolean }
   contract_type: { id: number; name: string } | null
   fund: EmployeeContractFund
   start_date: string | null
@@ -206,28 +208,16 @@ export type ProjectWorkload = {
   range: { start: string | null; end: string | null }
   segments: ProjectWorkloadSegment[]
 }
-export type EmployeeMilestoneState = 'completed' | 'overdue' | 'due_soon' | 'planned' | 'in_progress'
-export type EmployeeMilestone = {
-  id: number
-  name: string
-  desc: string | null
-  start_date: string | null
-  end_date: string | null
-  status: boolean
-  type: 'o' | 'q'
-  quotity: string
-  display_state: EmployeeMilestoneState
-  days_to_due: number | null
-  work_kind: 'milestone' | 'task'
-  project: { id: number; name: string; can_view: boolean }
-  employees: Array<EmployeeIdentity & { can_view: boolean }>
-  dependencies: Array<{ id: number; predecessor_id: number; successor_id: number; temporally_inconsistent: boolean }>
-}
+export type { PlanningMilestone as EmployeeMilestone, PlanningMilestoneState as EmployeeMilestoneState } from './planning'
 export type EmployeeListResponse = {
   count: number
   next: string | null
   previous: string | null
   results: EmployeeListItem[]
+}
+export type EmployeeFilterOptions = {
+  statuses: Array<{ id: number; name: string }>
+  teams: Array<{ id: number; name: string }>
 }
 export const employeeSortFields = ['first_name', 'last_name', 'entry_date', 'exit_date', 'is_active'] as const
 export type EmployeeSortField = typeof employeeSortFields[number]
@@ -246,11 +236,11 @@ function integer(value: string | null, fallback: number, minimum: number) {
 }
 
 export function readEmployeeParams(query: URLSearchParams): EmployeeListParams {
-  query = withFilterDefaults(employeeFilters, query)
+  query = withFilterDefaults(employeeFilters(), query)
   const ordering = query.get('ordering') ?? ''
   return {
     search: query.get('search')?.trim() ?? '',
-    filters: readFilterQuery(employeeFilters, query),
+    filters: readFilterQuery(employeeFilters(), query),
     ordering: employeeSortFields.some((field) => ordering === field || ordering === `-${field}`) ? ordering as EmployeeOrdering : '',
     limit: Math.min(integer(query.get('limit'), 25, 1), 250),
     offset: integer(query.get('offset'), 0, 0),
@@ -260,7 +250,9 @@ export function readEmployeeParams(query: URLSearchParams): EmployeeListParams {
 export function employeeQuery(params: EmployeeListParams, forApi = false) {
   const query = new URLSearchParams()
   if (params.search) query.set('search', params.search)
+  else if (!forApi && params.filters.has('search')) query.set('search', '')
   for (const [parameter, value] of params.filters) {
+    if (parameter === 'search') continue
     if (!forApi || value !== '') query.set(parameter, value)
   }
   if (params.ordering) query.set('ordering', params.ordering)
@@ -272,6 +264,10 @@ export function employeeQuery(params: EmployeeListParams, forApi = false) {
 
 export function getEmployees(params: EmployeeListParams, signal: AbortSignal) {
   return apiRequest<EmployeeListResponse>(`/api/v1/employees/?${employeeQuery(params, true)}`, { signal })
+}
+
+export function getEmployeeFilterOptions(signal: AbortSignal) {
+  return apiRequest<EmployeeFilterOptions>('/api/v1/employees/filter-options/', { signal })
 }
 
 export function getEmployee(id: string, signal: AbortSignal) {
@@ -301,8 +297,14 @@ export function getEmployeeProjectWorkload(id: string, range: { start: string; e
   return apiRequest<ProjectWorkload>(`/api/v1/employees/${encodeURIComponent(id)}/project-workload/?${query}`, { signal })
 }
 
-export function getEmployeeMilestones(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeMilestone[]>(`/api/v1/employees/${encodeURIComponent(id)}/milestones/`, { signal })
+export function getEmployeeMilestones(id: string, signal: AbortSignal, filters?: PlanningFilters) {
+  return apiRequest<PlanningMilestone[]>(`/api/v1/employees/${encodeURIComponent(id)}/milestones/${planningFilterQuery(filters)}`, { signal })
+}
+
+export function updateEmployeeMilestone(employeeId: string, itemId: number, data: EmployeeMilestoneWrite) {
+  return apiRequest<PlanningMilestone>(`/api/v1/employees/${encodeURIComponent(employeeId)}/milestones/${itemId}/`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })
 }
 
 export function getEmployeeContracts(id: string, signal: AbortSignal) {

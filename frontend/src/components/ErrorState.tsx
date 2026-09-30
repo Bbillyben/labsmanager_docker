@@ -1,5 +1,7 @@
 import { Alert } from '../ui/Alert'
+import { useTranslation } from '../i18n/i18n'
 
 export function ErrorState() {
-  return <main className="centered-state"><h1>Application indisponible</h1><Alert tone="danger">La session n’a pas pu être vérifiée. Réessayez ultérieurement.</Alert></main>
+  const { t } = useTranslation()
+  return <main className="centered-state"><h1>{t('common.applicationUnavailable')}</h1><Alert tone="danger">{t('common.sessionCheckFailed')}</Alert></main>
 }

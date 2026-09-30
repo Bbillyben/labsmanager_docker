@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { Pencil, Trash2, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { createEmployeeLeave, deleteEmployeeLeave, getLeaveTypes, updateEmployeeLeave, type EmployeeLeave, type LeaveCapabilities, type LeaveTypeOption, type LeaveWrite } from '../api/employees'
 import { normalizeMutationError } from '../api/errors'
@@ -11,7 +11,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import styles from './EmployeeLeaveSheet.module.css'
 
-export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabilities, onClose, onSaved, onDeleted }: {
+export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabilities, onClose, onSaved, onDeleted, createLeave = createEmployeeLeave, updateLeave = updateEmployeeLeave, deleteLeave = deleteEmployeeLeave, employeeOptions, onEmployeeChange }: {
   employeeId: string
   leave: EmployeeLeave | null
   initialDates?: { start_date: string; end_date: string }
@@ -19,6 +19,11 @@ export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabiliti
   onClose: () => void
   onSaved: (leave: EmployeeLeave) => void
   onDeleted: () => void
+  createLeave?: (employeeId: string, value: LeaveWrite) => Promise<EmployeeLeave>
+  updateLeave?: (employeeId: string, leaveId: number, value: LeaveWrite) => Promise<EmployeeLeave>
+  deleteLeave?: (employeeId: string, leaveId: number) => Promise<void>
+  employeeOptions?: Array<{ id: number; title: string }>
+  onEmployeeChange?: (employeeId: string) => void
 }) {
   const { language, t } = useTranslation()
   const id = useId()
@@ -55,13 +60,13 @@ export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabiliti
   async function save(event: FormEvent) {
     event.preventDefault()
     const result = await mutation.run(() => mode === 'create'
-      ? createEmployeeLeave(employeeId, draft)
-      : updateEmployeeLeave(employeeId, current!.id, draft))
+      ? createLeave(employeeId, draft)
+      : updateLeave(employeeId, current!.id, draft))
     if (result) { setCurrent(result.data); setMode('view'); onSaved(result.data) }
   }
   async function remove() {
     if (!current) return
-    const result = await deletion.run(() => deleteEmployeeLeave(employeeId, current.id))
+    const result = await deletion.run(() => deleteLeave(employeeId, current.id))
     if (result) { setConfirming(false); onDeleted() }
   }
   const resetDraft = () => {
@@ -83,12 +88,13 @@ export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabiliti
           <div><dt>{t('leaves.comment')}</dt><dd>{current.comment || '—'}</dd></div>
         </dl>
         <div className={styles.actions}>
-          {capabilities.can_change && <Button onClick={() => setMode('edit')} size="sm">{t('leaves.edit')}</Button>}
-          {capabilities.can_delete && <Button onClick={(event) => { deleteButton.current = event.currentTarget; setConfirming(true) }} size="sm" variant="destructive">{t('genericInfo.delete')}</Button>}
+          {capabilities.can_change && <Button onClick={() => setMode('edit')} size="sm" variant="secondary"><Pencil aria-hidden="true" />{t('leaves.edit')}</Button>}
+          {capabilities.can_delete && <Button onClick={(event) => { deleteButton.current = event.currentTarget; setConfirming(true) }} size="sm" variant="destructive"><Trash2 aria-hidden="true" />{t('genericInfo.delete')}</Button>}
         </div>
       </>}
       {mode !== 'view' && <form aria-busy={mutation.pending} className={styles.form} onSubmit={(event) => void save(event)}>
         {formError && <Alert tone="danger">{formError}</Alert>}
+        {mode === 'create' && employeeOptions && <><label htmlFor={`${id}-employee`}>{t('projectCalendar.employee')}</label><select id={`${id}-employee`} onChange={(event) => onEmployeeChange?.(event.target.value)} value={employeeId}>{employeeOptions.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></>}
         <label htmlFor={`${id}-type`}>{t('leaves.type')}</label>
         {catalogueError ? <Alert tone="danger">{t('leaves.typeError')} <Button onClick={() => setCatalogueAttempt((n) => n + 1)} size="xs" variant="ghost">{t('common.retry')}</Button></Alert> : !types ? <p role="status">{t('genericInfo.loading')}</p> : <select id={`${id}-type`} required value={draft.type_id || ''} onChange={(event) => change('type_id', Number(event.target.value))}>
           <option value="">{t('leaves.chooseType')}</option>

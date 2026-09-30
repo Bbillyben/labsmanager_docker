@@ -1,7 +1,7 @@
-import type { EmployeeMilestoneState } from '../api/employees'
+import type { PlanningMilestoneState } from '../api/planning'
 import type { TranslationKey } from '../i18n/i18n'
 
-const stateKeys: Record<EmployeeMilestoneState, TranslationKey> = {
+const stateKeys: Record<PlanningMilestoneState, TranslationKey> = {
   overdue: 'employee.stateOverdue',
   due_soon: 'employee.stateDueSoon',
   in_progress: 'employee.stateInProgress',
@@ -9,6 +9,6 @@ const stateKeys: Record<EmployeeMilestoneState, TranslationKey> = {
   completed: 'employee.stateCompleted',
 }
 
-export function milestoneStateKey(state: EmployeeMilestoneState) {
+export function milestoneStateKey(state: PlanningMilestoneState) {
   return stateKeys[state]
 }

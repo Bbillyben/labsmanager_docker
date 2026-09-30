@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       proxy: {
+        '/static/django_prose_editor': { target: djangoTarget, changeOrigin: true },
         '/api': {
           target: djangoTarget,
           changeOrigin: true,
