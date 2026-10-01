@@ -1019,3 +1019,25 @@ lancement frontend combiné a connu un délai de rendu sur un test Project
 préexistant ; sa relance isolée passe. Le build conserve son avertissement
 connu de taille de chunk. Aucun changement de schéma ni dépendance. Validation
 navigateur R2.13c attendue.
+
+## R2.23 — Contract Hub
+
+Depuis `backend/`, avec PostgreSQL de test :
+
+```bash
+python3 manage.py test labsmanager.tests.test_api_v1_contract_hub labsmanager.tests.test_api_v1_contracts labsmanager.tests.test_api_v1_expenses --keepdb
+python3 manage.py check
+```
+
+Depuis `frontend/`, avec Node NVM existant :
+
+```bash
+export PATH=/home/ben/.nvm/versions/node/v24.11.1/bin:$PATH
+npx vitest run src/pages/ContractHubPage.test.tsx src/pages/EmployeeContracts.test.tsx src/router/AppRouter.test.tsx src/i18n/i18n.test.ts --maxWorkers=1 --testTimeout=20000
+npx eslint src/api/contracts.ts src/api/expenses.ts src/api/listExports.ts src/config/contractFilters.ts src/pages/ContractHubPage.tsx src/pages/ContractHubPage.test.tsx src/pages/ContractSection.tsx src/pages/ExpenseSection.tsx src/layout/Sidebar.tsx src/router/AppRouter.tsx src/router/AppRouter.test.tsx src/i18n/i18n.ts
+npm run typecheck
+```
+
+Résultats : **32 tests backend** et **38 tests frontend** réussis ; contrôle
+Django, ESLint ciblé et TypeScript réussis. Le `git diff --check` racine et
+le contrôle ciblé du backend passent. Validation navigateur R2.23 attendue.

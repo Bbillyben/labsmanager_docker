@@ -29,7 +29,7 @@ export function AppShell() {
   return (
     <div className={styles.shell} data-navigation-expanded={navigationExpanded}>
       <a className="skip-link" href="#main-content">{t('common.skipToContent')}</a>
-      <Sidebar expanded={navigationExpanded} interactive={wideViewport || navigationExpanded} user={auth.user} />
+      <Sidebar expanded={navigationExpanded} interactive={wideViewport || navigationExpanded} onRequestExpand={() => setNavigationExpanded(true)} user={auth.user} />
       {navigationExpanded && <button className={styles.backdrop} aria-label={t('common.closeNavigation')} onClick={() => setNavigationExpanded(false)} type="button" />}
       <Topbar navigationExpanded={navigationExpanded} onToggleNavigation={() => setNavigationExpanded((expanded) => !expanded)} user={auth.user} />
       <main className={styles.main} id="main-content" tabIndex={-1}>

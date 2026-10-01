@@ -115,6 +115,15 @@ function renderAt(id = 12, panel = '') {
 }
 
 describe('Employee R2 detail', () => {
+  it('places the Admin deep link after Employee exports', async () => {
+    mockApi({ detail: { ...detail, admin_url: '/admin/staff/employee/12/change/', capabilities: { can_export_word: true, can_export_pdf: true } } })
+    renderAt()
+    await userEvent.click(await screen.findByRole('button', { name: 'Actions pour Jean Dupont' }, { timeout: 8000 }))
+    const link = await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })
+    expect(link).toHaveAttribute('href', '/admin/staff/employee/12/change/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(screen.getAllByRole('separator')).toHaveLength(1)
+  })
   it('uses the shared entity menu for independent exports without an Edit action', async () => {
     mockApi({ detail: { ...detail, capabilities: { can_export_word: true, can_export_pdf: false } } })
     renderAt()

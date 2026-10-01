@@ -9,6 +9,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
 import { EntityActionMenu, type EntityActionGroup } from '../components/EntityActionMenu'
+import { ObjectPreferenceActions } from '../components/ObjectPreferenceActions'
 import { ReportExportDialog } from '../components/ReportExportDialog'
 import { StatusBadge } from '../ui/StatusBadge'
 import { EmployeeDetailContext } from './employeeDetailContext'
@@ -40,7 +41,7 @@ export function EmployeeDetailPage() {
     <Link className={styles.back} to={`/employees/${typeof location.state?.employeeListSearch === 'string' && location.state.employeeListSearch ? `?${location.state.employeeListSearch}` : ''}`}><ArrowLeft aria-hidden="true" /> {t('common.backToEmployees')}</Link>
     <PageHeader
       title={name}
-      actions={<EntityActionMenu label={t('reports.entityActions', { name })} groups={actionGroups} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => exportFormat ? false : true} />}
+      actions={<div className="flex items-center gap-2"><ObjectPreferenceActions key={employee.data.id} type="employee" objectId={employee.data.id} /><EntityActionMenu label={t('reports.entityActions', { name })} groups={actionGroups} adminUrl={employee.data.admin_url} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => exportFormat ? false : true} /></div>}
       meta={<div className={styles.headerMeta}>
         <StatusBadge tone={employee.data.is_active ? 'success' : 'neutral'}>{t(employee.data.is_active ? 'employee.active' : 'employee.inactive')}</StatusBadge>
         {employee.data.current_statuses.map((status) => <StatusBadge key={status.id}>{status.name || status.code}</StatusBadge>)}

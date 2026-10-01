@@ -31,8 +31,8 @@ const employee: EmployeeDetail = { id: 12, first_name: 'Jean', last_name: 'Dupon
   entry_date: null, exit_date: null, is_active: true, current_statuses: [], superiors: [], contract_quotity: '0.500',
   project_quotity: null, contribution_quotity: null, active_milestones_count: 0 }
 
-function setup(kind: 'project' | 'employee', allowed = true, offer: EmployeeEndDateSyncOffer | null = null, noteSummary = contract.notes) {
-  const rows = [{ ...contract, capabilities: allowed ? full : none, notes: { ...noteSummary } }]
+function setup(kind: 'project' | 'employee', allowed = true, offer: EmployeeEndDateSyncOffer | null = null, noteSummary = contract.notes, adminUrl: string | null = null) {
+  const rows = [{ ...contract, admin_url: adminUrl, capabilities: allowed ? full : none, notes: { ...noteSummary } }]
   const noteRows = [{ id: 9, name: 'Suivi', note: '<p>Texte</p>', visibility: 'object', creator: { id: 2, name: 'Alice' }, created_at: '2026-01-01T12:00:00Z', updated_at: '2026-01-01T12:00:00Z', capabilities: { can_change: true, can_rename: true, can_delete: true, can_change_visibility: true } }]
   const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input), method = init?.method ?? 'GET'
@@ -65,6 +65,12 @@ beforeEach(() => Object.defineProperty(window.navigator, 'languages', { configur
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear() })
 
 describe('shared Contract section', () => {
+  it('shows the backend Admin link for a Contract in the row menu', async () => {
+    setup('project', false, null, contract.notes, '/admin/expense/contract/1/change/')
+    const row = await screen.findByRole('row', { name: 'CDD Recherche' })
+    await userEvent.click(within(row).getByRole('button', { name: /Actions pour/ }))
+    expect(await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })).toHaveAttribute('href', '/admin/expense/contract/1/change/')
+  })
   it.each(['project', 'employee'] as const)('%s shows only visible note counts and opens the shared Notes Sheet without selecting the row', async (kind) => {
     const { fetchMock } = setup(kind, true, null, { visible_count: 2, can_add: true })
     const row = await screen.findByRole('row', { name: 'CDD Recherche' })

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -32,6 +32,15 @@ async function filterActivity(value: string) {
 function query() { return new URLSearchParams(window.location.search) }
 
 describe('Employee R1', () => {
+  it('adds the backend-provided Admin link to the Employee row menu', async () => {
+    mockApi(async () => jsonResponse(collection([{ ...alice, admin_url: '/admin/staff/employee/1/change/' }])))
+    renderAt()
+    await screen.findByRole('link', { name: 'Alice Martin' }, { timeout: 8000 })
+    await userEvent.click(within(row('Alice Martin')).getByRole('button', { name: 'Actions pour Alice Martin' }))
+    const link = await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })
+    expect(link).toHaveAttribute('href', '/admin/staff/employee/1/change/')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
   it('exports the full filtered list with the chosen format without changing its URL', async () => {
     const fetchMock = mockApi(async (url) => url.startsWith('/api/v1/employees/export/')
       ? new Response('file', { headers: { 'Content-Disposition': 'attachment; filename="Employee_20260930-1200.csv"' } })

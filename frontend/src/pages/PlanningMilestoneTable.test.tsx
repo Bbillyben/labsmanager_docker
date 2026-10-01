@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PlanningMilestone } from '../api/planning'
 import { I18nProvider } from '../i18n/I18nProvider'
@@ -22,6 +23,11 @@ function renderTable(data: PlanningMilestone[] | null, error: unknown = null, lo
 }
 
 describe('shared Planning milestone table', () => {
+  it('shows the Admin link for a Milestone even when the Employee view has no business actions', async () => {
+    renderTable([{ ...milestone, admin_url: '/admin/endpoints/milestones/8/change/' }])
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour Budget report' }))
+    expect(await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })).toHaveAttribute('href', '/admin/endpoints/milestones/8/change/')
+  })
   it('renders backend state, progress and compact assignees without assuming a scope', () => {
     renderTable([milestone])
     expect(screen.getByRole('button', { name: 'En retard · 1' })).toBeInTheDocument()

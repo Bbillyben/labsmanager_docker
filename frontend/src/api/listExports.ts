@@ -1,6 +1,6 @@
 import { apiFileRequest } from './client'
 
-export type ListExportEntity = 'employees' | 'projects'
+export type ListExportEntity = 'employees' | 'projects' | 'teams' | 'contracts'
 export type ListExportFormat = 'xlsx' | 'csv' | 'tsv' | 'xls'
 
 export function listExportUrl(entity: ListExportEntity, listQuery: string, format: ListExportFormat) {

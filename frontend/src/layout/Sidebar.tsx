@@ -16,13 +16,12 @@ import type { AuthenticatedUser, Capabilities } from '../auth/types'
 import { getDjangoUrl } from '../config/django'
 import { useTranslation, type TranslationKey } from '../i18n/i18n'
 import styles from './Sidebar.module.css'
+import { FavoritesMenu } from './FavoritesMenu'
 
 type Capability = keyof Capabilities
 type HistoricalItem = { label: TranslationKey; href: string; capability: Capability; icon: LucideIcon }
 
 const historicalItems: HistoricalItem[] = [
-  { label: 'navigation.teams', href: '/staff/team/', capability: 'view_team_list', icon: UsersRound },
-  { label: 'navigation.contracts', href: '/expense/', capability: 'view_contract_list', icon: FileSignature },
   { label: 'navigation.organizations', href: '/infos/', capability: 'view_organizations', icon: Building2 },
   { label: 'navigation.calendar', href: '/calendar/main', capability: 'view_calendar', icon: CalendarDays },
   { label: 'navigation.dashboard', href: '/dashboard/', capability: 'view_dashboard', icon: ChartNoAxesCombined },
@@ -30,9 +29,9 @@ const historicalItems: HistoricalItem[] = [
   { label: 'navigation.import', href: '/import/', capability: 'import_data', icon: Upload },
 ]
 
-type SidebarProps = { expanded: boolean; interactive: boolean; user: AuthenticatedUser }
+type SidebarProps = { expanded: boolean; interactive: boolean; onRequestExpand: () => void; user: AuthenticatedUser }
 
-export function Sidebar({ expanded, interactive, user }: SidebarProps) {
+export function Sidebar({ expanded, interactive, onRequestExpand, user }: SidebarProps) {
   const { t } = useTranslation()
   const visibleHistoricalItems = historicalItems.filter((item) => user.capabilities[item.capability])
 
@@ -54,6 +53,12 @@ export function Sidebar({ expanded, interactive, user }: SidebarProps) {
           </NavLink>
         )}
         {user.capabilities.view_project_list && <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/projects/" title={t('navigation.projects')}><FlaskConical aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('navigation.projects')}</span></NavLink>}
+        {user.capabilities.view_team_list && <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/teams/" title={t('navigation.teams')}><UsersRound aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('navigation.teams')}</span></NavLink>}
+        <FavoritesMenu expanded={expanded} onRequestExpand={onRequestExpand} />
+        <div className={styles.group}>
+          <p className={styles.groupTitle}>{t('navigation.tools')}</p>
+          <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/tools/contracts" title={t('navigation.contracts')}><FileSignature aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('navigation.contracts')}</span></NavLink>
+        </div>
         {visibleHistoricalItems.length > 0 && (
           <div className={styles.group}>
             <p className={styles.groupTitle}>{t('navigation.legacy')}</p>

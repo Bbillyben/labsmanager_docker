@@ -48,12 +48,12 @@ export function MilestoneDetailSheet({ milestone, onClose, onDependenciesChanged
 
   return <Sheet onOpenChange={(open) => { if (!open && !mutation.pending) onClose() }} open={milestone !== null}>
     {milestone && <SheetContent>
-      {actions && (actions.canChange || actions.canDelete) && <ItemActionMenu
+      {(actions?.canChange || actions?.canDelete || milestone.admin_url) && <ItemActionMenu
         label={t('common.actionsFor', { name: milestone.name })}
-        canChange={actions.canChange} canDelete={actions.canDelete}
-        onOpen={() => actions.onMenuOpen?.()}
-        onTrigger={actions.onTrigger} finalFocus={actions.finalFocus}
-        onEdit={() => actions.onEdit(milestone)} onDelete={() => actions.onDelete(milestone)} />}
+        canChange={actions?.canChange ?? false} canDelete={actions?.canDelete ?? false} adminUrl={milestone.admin_url}
+        onOpen={() => actions?.onMenuOpen?.()}
+        onTrigger={actions?.onTrigger} finalFocus={actions?.finalFocus}
+        onEdit={() => actions?.onEdit(milestone)} onDelete={() => actions?.onDelete(milestone)} />}
       <SheetClose aria-label={t('common.close')} className={styles.close} disabled={mutation.pending}><X aria-hidden="true" /></SheetClose>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3 pr-8">
         <SheetHeader className="mb-0 min-w-0 flex-1 pr-0">

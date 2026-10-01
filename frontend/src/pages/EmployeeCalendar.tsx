@@ -10,7 +10,7 @@ import '@fullcalendar/react/themes/classic/theme.css'
 import '@fullcalendar/react/themes/classic/palette.css'
 import { useMemo, useRef } from 'react'
 import type { CalendarEvent, LeaveWrite } from '../api/employees'
-import { toFullCalendarEvents, type LabsManagerEventProps } from '../calendar/fullCalendarAdapter'
+import { toFullCalendarEvent, type LabsManagerEventProps } from '../calendar/fullCalendarAdapter'
 import { movedLeave, resizedLeave } from '../calendar/leaveCalendarMutation'
 import { leaveDatesFromSelection } from '../calendar/leaveSelection'
 import { halfDayLabel } from '../calendar/halfDayPresentation'
@@ -18,9 +18,9 @@ import { useTranslation } from '../i18n/i18n'
 import styles from './EmployeeLeaves.module.css'
 import { projectCalendarScopes, projectDayGridViews, type ProjectCalendarScope } from './projectCalendarScopes'
 
-export function EmployeeCalendar({ anchor, events, onOpen, onCreate, onChangeDates, canCreate, canChange, projectScope, projectEmployeeNames }: { anchor: Date; events: CalendarEvent[]; onOpen: (event: CalendarEvent) => void; onCreate: (dates: { start_date: string; end_date: string }) => void; onChangeDates: (event: CalendarEvent, write: LeaveWrite) => Promise<void>; canCreate: boolean; canChange: boolean; projectScope: ProjectCalendarScope; projectEmployeeNames?: ReadonlyMap<number, string> }) {
+export function EmployeeCalendar({ anchor, events, onOpen, onCreate, onChangeDates, canCreate, canChange, canChangeEvent, projectScope, projectEmployeeNames }: { anchor: Date; events: CalendarEvent[]; onOpen: (event: CalendarEvent) => void; onCreate: (dates: { start_date: string; end_date: string }) => void; onChangeDates: (event: CalendarEvent, write: LeaveWrite) => Promise<void>; canCreate: boolean; canChange: boolean; canChangeEvent?: (event: CalendarEvent) => boolean; projectScope: ProjectCalendarScope; projectEmployeeNames?: ReadonlyMap<number, string> }) {
   const { language, t } = useTranslation()
-  const mappedEvents = useMemo(() => toFullCalendarEvents(events, canChange), [events, canChange])
+  const mappedEvents = useMemo(() => events.map((event) => toFullCalendarEvent(event, canChange && (canChangeEvent?.(event) ?? true))), [events, canChange, canChangeEvent])
   const suppressClick = useRef(false)
   const byId = new Map(events.map((event) => [event.id, event]))
   const handleClick = (info: EventClickInfo) => {
@@ -32,7 +32,7 @@ export function EmployeeCalendar({ anchor, events, onOpen, onCreate, onChangeDat
   const stopGesture = () => { window.setTimeout(() => { suppressClick.current = false }, 250) }
   const applyGesture = async (id: string, write: LeaveWrite, revert: () => void) => {
     const source = byId.get(id)
-    if (!source || !canChange || source.source !== 'core' || source.kind !== 'leave') { revert(); return }
+    if (!source || !canChange || (canChangeEvent && !canChangeEvent(source)) || source.source !== 'core' || source.kind !== 'leave') { revert(); return }
     try { await onChangeDates(source, write) } catch { revert() }
   }
   const renderEvent = (info: EventDisplayInfo) => {

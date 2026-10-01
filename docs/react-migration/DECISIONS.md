@@ -239,3 +239,26 @@
 - Les vues d'export réutilisent les vues de liste v1 pour construire le queryset visible, filtré et ordonné ; seule la liste le pagine. Les Resources métier historiques produisent les fichiers complets, sans colonnes React propres à l'export.
 - CSV, TSV, XLS et XLSX sont explicitement autorisés. Les endpoints d'export réservent `?format=` au choix du fichier, malgré l'override de renderer portant le même nom dans DRF ; leur réponse fichier a un MIME et un nom daté propres. Le Dialog de liste est partagé entre Employee et Project, distinct du Dialog de rapports Word/PDF.
 - `ProjectResource` reçoit explicitement un scope Fund. Les exports utilisateur v1 et historique réutilisent `Fund.get_instances_for_user("view", …)` et transmettent les Funds visibles préchargés ; le texte Fund et les six agrégats sont bornés au même ensemble. Le mode complet est réservé aux appels explicites de confiance et n'est pas employé par les endpoints utilisateur.
+
+## R2.20 — contexte Team
+
+- La visibilité Team conserve le prédicat historique : responsable ou TeamMate, avec la permission globale `staff.view_team` ; la composition se modifie avec `staff.change_team` selon sa sémantique existante. Une mutation Leave ne dérive jamais de ce droit Team : elle exige `staff.change_employee` sur le membre.
+- Un Project Team est retenu seulement si un membre est Participant leader ou co-leader, puis filtré par visibilité Project. Un Budget Team exige en plus la visibilité Fund et Budget ; sa présentation est en lecture seule et n'expose aucune mutation Expense.
+- `CalendarType.TEAM` ajoute uniquement la résolution des membres au producteur Leave partagé. Le panneau React Calendar Project accepte le contexte Team et conserve les quatre scopes, Resources, filtres plugins et le Sheet Leave communs.
+
+## R2.21a — préférences génériques et compatibilité
+
+- Conserver `favorite` et `subscription` comme modèles canoniques. Une migration supprime les seuls doublons éventuels en conservant le plus petit PK, puis ajoute une contrainte unique sur utilisateur/type/objet.
+- Le client définit explicitement chaque état booléen via l'API v1 ; les anciens toggles HTML restent fonctionnels mais délèguent au même service. Seuls les types déclarés et les objets visibles sont acceptés.
+- Les favoris invisibles restent enregistrés mais disparaissent des menus et des anciennes listes REST. Les abonnements restent indépendants de la navigation Favorites ; la sélection du rapport mail tient compte de la visibilité, sans modifier ses réglages ni sa fréquence.
+
+## R2.22 — Accès contextualisé à Django Admin
+
+- L’action Admin réutilise les menus métier existants, mais son autorisation est distincte : superuser ou staff ayant `user.has_perm("<app>.change_<model>", obj)`. Le backend ne publie pas de lien si le modèle n’a pas de route Admin.
+- L’API transmet une URL résolue ou `null`. React n’infère ni nom de route, ni permission, et ouvre le lien dans un nouvel onglet. Un modèle présent seulement en inline, comme TeamMate, ne reçoit pas de page de modification dédiée.
+
+## R2.23 — Contract Hub transversal
+
+- Le Hub est un outil de consultation et de modification des Contracts visibles, jamais un point de création ou de suppression de Contract, même pour un utilisateur disposant de permissions techniques supplémentaires.
+- Active (`Contract.is_active`/suivi RH), Ongoing (inclusion de la date courante dans les deux bornes) et Stale (`Contract.staleFilter()`) sont trois filtres distincts et cumulables.
+- Dans ce contexte autonome, Modifier suit `expense.change_contract` ; les droits de mutation Project ou Employee des fiches parentes ne sont pas transposés. Les Expense conservent leurs propres capacités et contrôles backend.

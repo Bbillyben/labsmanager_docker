@@ -77,6 +77,47 @@ describe('AppRouter', () => {
     expect(screen.getByRole('link', { name: 'Aller au contenu principal' })).toHaveAttribute('href', '#main-content')
   })
 
+  it('opens an empty Contract Hub from Tools without a global Contract permission', async () => {
+    const account = { ...authenticatedUser, capabilities: { ...authenticatedUser.capabilities, view_contract_list: false } }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse(account)
+      if (url === '/api/v1/contracts/filter-options/') return jsonResponse({ contract_types: [], statuses: [], funders: [], institutions: [] })
+      if (url.startsWith('/api/v1/contracts/?')) return jsonResponse({ count: 0, next: null, previous: null, results: [] })
+      throw new Error(`Unexpected ${url}`)
+    })
+    renderAt('/app/tools/contracts')
+    expect(await screen.findByRole('heading', { name: 'Contrats' })).toBeInTheDocument()
+    expect(screen.getByText('Outils')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Contrats' })).toHaveAttribute('href', '/app/tools/contracts')
+    expect(await screen.findByText('Aucun contrat visible.')).toBeInTheDocument()
+    expect(screen.queryByText('Page introuvable')).not.toBeInTheDocument()
+  })
+
+  it('shows visible Contracts in the Hub without a global Contract permission', async () => {
+    const account = { ...authenticatedUser, capabilities: { ...authenticatedUser.capabilities, view_contract_list: false } }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse(account)
+      if (url === '/api/v1/contracts/filter-options/') return jsonResponse({ contract_types: [], statuses: [], funders: [], institutions: [] })
+      if (url.startsWith('/api/v1/contracts/?')) return jsonResponse({ count: 1, next: null, previous: null, results: [{
+        id: 7, admin_url: null,
+        employee: { id: 12, first_name: 'Jean', last_name: 'Dupont', can_view: true },
+        contract_type: { id: 2, name: 'CDD Recherche' },
+        fund: { id: 20, reference: 'REF-20', project: { id: 3, name: 'Atlas', can_view: true } },
+        status: { code: 'effe', label: 'Effective' }, is_active: true,
+        start_date: '2026-01-01', end_date: '2026-12-31', quotity: '0.500', total_amount: '25.00',
+        capabilities: { can_change: false }, notes: { visible_count: 0, can_add: false },
+      }] })
+      throw new Error(`Unexpected ${url}`)
+    })
+    renderAt('/app/tools/contracts')
+    expect(await screen.findByRole('row', { name: /Jean Dupont/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Contrats' })).toHaveAttribute('href', '/app/tools/contracts')
+    expect(screen.queryByRole('button', { name: /Actions pour Jean Dupont/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('Aucun contrat visible.')).not.toBeInTheDocument()
+  })
+
   it('logs out through the API and returns to React login', async () => {
     const user = userEvent.setup()
     const fetchMock = vi.spyOn(globalThis, 'fetch')
@@ -222,6 +263,24 @@ describe('AppRouter', () => {
     renderAt('/app/projects/3/calendar')
     expect(await screen.findByRole('heading', { name: 'Atlas' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Ressources' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Page introuvable' })).not.toBeInTheDocument()
+  })
+
+  it('loads Team list and Team detail routes directly', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
+      if (url.startsWith('/api/v1/teams/?')) return jsonResponse({ count: 1, next: null, previous: null, results: [{ id: 4, name: 'Atlas', leader: { id: 7, name: 'Ada', can_view: true }, mates: [], capabilities: { can_view: true, can_change: false, can_manage_composition: false } }], capabilities: { can_add: false, can_choose_leader: false, default_leader: null } })
+      if (url === '/api/v1/teams/4/') return jsonResponse({ id: 4, name: 'Atlas', leader: { id: 7, name: 'Ada', can_view: true }, mates: [], capabilities: { can_view: true, can_change: false, can_manage_composition: false } })
+      if (url === '/api/v1/preferences/team/4/') return jsonResponse({ favorite: false, subscription: false })
+      throw new Error(`Unexpected ${url}`)
+    })
+    renderAt('/app/teams/')
+    expect(await screen.findByRole('heading', { name: 'Équipes' })).toBeInTheDocument()
+    expect(fetchMock.mock.calls.map(([input]) => String(input))).toContain('/api/v1/teams/?')
+    expect(await screen.findByRole('link', { name: 'Atlas' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('link', { name: 'Atlas' }))
+    expect(await screen.findByRole('heading', { name: 'Atlas' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Page introuvable' })).not.toBeInTheDocument()
   })
 })

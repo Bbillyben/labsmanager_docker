@@ -14,9 +14,9 @@ const budget: ProjectBudget = { id: 9, fund, cost_type: costType, desc: 'Personn
 const contribution: ProjectContribution = { id: 4, fund, cost_type: costType, desc: 'Apport partenaire', emp_type: null, employee: null, contract_types: [], quotity: '0.000', amount: '75.00', start_date: '2026-01-01', end_date: '2026-06-30', capabilities: full }
 const options = { funds: [fund], cost_types: [costType], employee_types: [], contract_types: [], employees: [] }
 
-function setup(readonly = false, language = 'fr-FR', fail = false, kind: 'budget' | 'contribution' = 'budget') {
+function setup(readonly = false, language = 'fr-FR', fail = false, kind: 'budget' | 'contribution' = 'budget', adminUrl: string | null = null) {
   Object.defineProperty(window.navigator, 'languages', { configurable: true, value: [language] })
-  const budgets = [structuredClone({ ...budget, capabilities: readonly ? none : full })]
+  const budgets = [structuredClone({ ...budget, admin_url: adminUrl, capabilities: readonly ? none : full })]
   const contributions = [structuredClone({ ...contribution, capabilities: readonly ? none : full })]
   const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input), method = init?.method ?? 'GET'
@@ -44,6 +44,12 @@ function setup(readonly = false, language = 'fr-FR', fail = false, kind: 'budget
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear() })
 
 describe('ProjectBudgetsPanel', () => {
+  it('offers the selected Budget Admin link through the standard row menu', async () => {
+    setup(false, 'fr-FR', false, 'budget', '/admin/fund/budget/9/change/')
+    const row = await screen.findByRole('row', { name: 'Personnel 2026' })
+    await userEvent.click(within(row).getByRole('button', { name: /Actions pour/ }))
+    expect(await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })).toHaveAttribute('href', '/admin/fund/budget/9/change/')
+  })
   it('selects a Budget without opening its Sheet and shows Expenses below the list', async () => {
     setup()
     const row = await screen.findByRole('row', { name: 'Personnel 2026' })

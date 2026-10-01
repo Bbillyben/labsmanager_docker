@@ -9,7 +9,7 @@ import { projectCalendarRange, projectCalendarScopes, shiftProjectCalendarAnchor
 vi.mock('@fullcalendar/react', () => ({
   default: ({ initialView, events, resources, eventClick, select, selectAllow, views }: {
     initialView: string
-    events: Array<{ id: string; title: string; resourceId?: string; resourceIds?: string[]; extendedProps?: Record<string, unknown> }>
+    events: Array<{ id: string; title: string; editable?: boolean; resourceId?: string; resourceIds?: string[]; extendedProps?: Record<string, unknown> }>
     resources?: Array<{ id: string; title: string }>
     eventClick?: (info: { event: { id: string; extendedProps?: Record<string, unknown> } }) => void
     select?: (info: { allDay: boolean; startStr: string; endStr: string; resource?: { id: string } }) => void
@@ -17,7 +17,7 @@ vi.mock('@fullcalendar/react', () => ({
     views?: Record<string, { type: string; duration?: Record<string, number> }>
   }) => <div data-testid="calendar" data-view={initialView} data-duration={JSON.stringify(views?.[initialView]?.duration ?? null)}>
     {resources?.map((resource) => <span key={resource.id}>{resource.title}</span>)}
-    {events.map((event) => <button data-resource={event.resourceId ?? event.resourceIds?.join(',')} key={event.id} onClick={() => eventClick?.({ event: { id: event.id, extendedProps: event.extendedProps } })}>{event.title}</button>)}
+    {events.map((event) => <button data-editable={String(Boolean(event.editable))} data-resource={event.resourceId ?? event.resourceIds?.join(',')} key={event.id} onClick={() => eventClick?.({ event: { id: event.id, extendedProps: event.extendedProps } })}>{event.title}</button>)}
     <button onClick={() => select?.({ allDay: true, startStr: '2026-09-20', endStr: '2026-09-22', resource: { id: '12' } })}>Select range</button>
     <button onClick={() => { const info = { allDay: false, startStr: '2026-09-20T12:00:00+02:00', endStr: '2026-09-22T12:00:00+02:00', resource: { id: '12' } }; if (selectAllow?.(info) ?? true) select?.(info) }}>Select timed range</button>
     <button onClick={() => { const info = { allDay: false, startStr: '2026-09-20T12:00:00+02:00', endStr: '2026-09-22T12:00:00+02:00', resource: { id: '13' } }; if (selectAllow?.(info) ?? true) select?.(info) }}>Select read-only resource</button>
@@ -145,5 +145,22 @@ describe('Project Calendar', () => {
     await user.click(screen.getByRole('button', { name: 'Période précédente' }))
     const current = projectCalendarRange('fifteenDays', anchor)
     await waitFor(() => expect(fetchMock.mock.calls.slice(callsBeforePrevious).some(([url]) => String(url).includes(`/calendar/?from=${current.from}&to=${current.to}`))).toBe(true))
+  })
+
+  it('reuses all calendar views and member resources for a Team', async () => {
+    const fetchMock = mockApi(true, true)
+    const user = userEvent.setup()
+    render(<I18nProvider><ProjectCalendarPanel teamId="8" /></I18nProvider>)
+    expect(await screen.findByTestId('calendar')).toHaveAttribute('data-view', 'dayGridMonthCustom')
+    expect(screen.getByRole('button', { name: 'Paid leave' })).toHaveAttribute('data-editable', 'true')
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).startsWith('/api/v1/teams/8/calendar/?'))).toBe(true))
+    await user.click(screen.getByRole('button', { name: 'Ressources' }))
+    expect(screen.getByText('Ada Reader')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Paid leave' })).toHaveAttribute('data-resource', '12')
+    expect(screen.getByRole('button', { name: 'Paid leave' })).toHaveAttribute('data-editable', 'true')
+    expect(screen.getByRole('button', { name: 'Holiday' })).toHaveAttribute('data-editable', 'false')
+    await user.click(screen.getByRole('button', { name: '2 mois' }))
+    expect(screen.getByTestId('calendar')).toHaveAttribute('data-view', 'resourceTimelineTwoMonths')
+    expect(fetchMock.mock.calls.some(([url]) => String(url).startsWith('/api/v1/projects/8/'))).toBe(false)
   })
 })

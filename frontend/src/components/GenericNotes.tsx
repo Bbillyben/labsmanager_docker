@@ -8,7 +8,8 @@ import { useEmployeeResource } from '../pages/useEmployeeResource'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { ConfirmDialog } from './common/ConfirmDialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
+import { AdminObjectAction } from './AdminObjectAction'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
 import { ProseEditor } from './ProseEditor'
 
 type Modal = 'create' | 'rename' | 'visibility' | null
@@ -154,12 +155,13 @@ export const GenericNotes = forwardRef<GenericNotesHandle, { scope: NoteScope; o
         <h2 className="text-lg font-semibold">{selected.name}</h2>
         <div className="flex items-center gap-2">
           {selected.capabilities.can_change && <Button variant="secondary" size="sm" onClick={() => editing ? void finishEditing() : beginEdit(selected)}><Pencil aria-hidden="true" />{t(editing ? 'notes.finish' : 'common.edit')}</Button>}
-          {(selected.capabilities.can_rename || selected.capabilities.can_change_visibility || selected.capabilities.can_delete) && <DropdownMenu>
+          {(selected.capabilities.can_rename || selected.capabilities.can_change_visibility || selected.capabilities.can_delete || selected.admin_url) && <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} aria-label={t('notes.actions')} onClick={(event) => { trigger.current = event.currentTarget }}><Ellipsis aria-hidden="true" /></DropdownMenuTrigger>
             <DropdownMenuContent align="end" finalFocus={() => modal || deleting ? false : true}>
               {selected.capabilities.can_rename && <DropdownMenuItem onClick={() => openModal('rename')}>{t('notes.rename')}</DropdownMenuItem>}
               {selected.capabilities.can_change_visibility && <DropdownMenuItem onClick={() => openModal('visibility')}>{t('notes.visibility')}</DropdownMenuItem>}
               {selected.capabilities.can_delete && <DropdownMenuItem onClick={() => { setError(null); setDeleting(true) }}><Trash2 aria-hidden="true" />{t('common.delete')}</DropdownMenuItem>}
+              {selected.admin_url && <>{(selected.capabilities.can_rename || selected.capabilities.can_change_visibility || selected.capabilities.can_delete) && <DropdownMenuSeparator />}<AdminObjectAction adminUrl={selected.admin_url} /></>}
             </DropdownMenuContent>
           </DropdownMenu>}
         </div>
