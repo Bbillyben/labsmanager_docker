@@ -297,7 +297,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         # fund_lines = Fund.objects.filter(project__in=proj_ids).order_by("project__name")
         
         projects = Project.get_instances_for_user('view', user).filter(pk__in = proj_ids).order_by("name")
-        fund_lines = Fund.get_instances_for_user('view', user).filter(project__in=proj_ids).order_by("project__name")
+        fund_lines = Fund.get_instances_for_user('view', user).filter(project__in=projects).order_by("project__name")
         
         self.context['projects']=projects
         self.context['funds']=fund_lines
@@ -306,7 +306,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         
         for pj in projects:
             # Fund overview by project
-            fo = get_project_fund_overviewReport_bytType(pj.pk)
+            fo = get_project_fund_overviewReport_bytType(pj.pk, fund_lines.filter(project=pj))
             self.context['fund_o_'+str(pj.name)] = fo
             
         
@@ -319,7 +319,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         
         # for active contract
         # contracts = Contract.objects.filter(employee__in=emp_ids, is_active=True)
-        contracts = Contract.get_instances_for_user('view', user).filter(employee__in=emp_ids, is_active=True)
+        contracts = Contract.get_instances_for_user('view', user).filter(employee__in=employees, is_active=True)
         
         
         
@@ -337,7 +337,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
                 ms_notif = ms_cron.get_prev(datetime.datetime)
             query = (Q(status=False)|(Q(status=True) & Q(end_date__gte = ms_notif))) & Q(end_date__lte = ms_hor )
             ms = Milestones.objects.filter(Q(project__in = projects) &  query)
-            ems = Milestones.objects.filter(Q(employee__id__in = emp_ids) & query).distinct()
+            ems = Milestones.objects.filter(Q(employee__in = employees) & query).distinct()
             #project milestones
             #ms = Milestones.objects.filter(project__in = projects)
             self.context['project_milestones'] = ms
@@ -348,7 +348,8 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         
         conttype_team = ContentType.objects.get(app_label="staff", model="team")
         team_ids  = subs.filter(content_type= conttype_team).values_list("object_id")
-        teams = Team.objects.filter(pk__in = team_ids).order_by("name")
+        from common.preferences import visible_objects
+        teams = visible_objects(user, "team", Team.objects.filter(pk__in=team_ids)).order_by("name")
         self.context['teams']=teams 
         
         if leaves_timeframe== "current":
@@ -410,6 +411,3 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
             pg_context[plugin.slug]=ctx
         
         self.context.update(pg_context)
-        
-        
-        

@@ -191,8 +191,8 @@ def get_project_fund_overview(request, pk):
 from django.db.models import Sum
 from django.db.models import F  
 
-def get_project_fund_overviewReport_bytType(pk):
-    fund=Fund.objects.filter(project=pk)
+def get_project_fund_overviewReport_bytType(pk, funds=None):
+    fund=funds if funds is not None else Fund.objects.filter(project=pk)
     a=Fund_Item.objects.filter(fund__in=fund)
     if not a:
         return None

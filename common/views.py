@@ -1,111 +1,78 @@
 from django.shortcuts import render, HttpResponse
 
-from .models import favorite, subscription
-from labsmanager.serializers import FavoriteSerialize
-from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 
 from settings.accessor import get_global_setting
 from labsmanager import settings
+from django.contrib.auth.decorators import login_required
+from django.http import Http404
+from .preferences import list_user_favorites, preference_status, resolve_preference_object, set_preference
 # Create your views here.
 
+def preference_object(request):
+    try:
+        app, model = request.POST.get('type', '').split('.')
+        from .preferences import preference_types
+        for name, spec in preference_types().items():
+            if (spec.model._meta.app_label, spec.model._meta.model_name) == (app, model):
+                return resolve_preference_object(request.user, name, request.POST.get('pk'))
+    except (ValueError, KeyError):
+        pass
+    raise Http404
+
+@login_required
 def get_user_fav_obj(request):
     if request.method != 'POST' or request.POST.get('type', None) == None:
         return HttpResponse("", 400)
-    type=request.POST.get('type', "").split('.')
-    pk=request.POST.get('pk')
+    obj = preference_object(request)
+    return render(request, 'favorite_star.html', {"fav": preference_status(request.user, obj)["favorite"]})
 
-    ct= ContentType.objects.get(app_label=type[0], model=type[1])
-    fav=favorite.objects.filter(user=request.user, content_type=ct, object_id=pk)
-    return render(request, 'favorite_star.html', {"fav":fav})
-
-from django.apps import apps
 def get_user_favorite(request):
-    fav=favorite.objects.filter(user=request.user) #.order_by("content_type")
-    fav = sorted(fav, key=lambda x: (x.content_type.name, x.content_object.__str__()))
-    data={} #'favorites':FavoriteSerialize(fav, many=True).data}
-
-    for el in fav:
-        id = apps.get_model(el.content_type.app_label, el.content_type.model)
-        id=id._meta.verbose_name.title()
-        if not id in data:
-            data[id]=[]
-        data[id].append(el)
-
-    for els in data:
-          data[els]=FavoriteSerialize(data[els], many=True).data
-
+    data = {}
+    for row in list_user_favorites(request.user):
+        data.setdefault(row["legacy_group"], []).append({
+            "object_name": row["label"], "object_url": row["legacy_url"],
+        })
     return data
 
+@login_required
 def get_nav_favorites(request):
 
     data=get_user_favorite(request)
     return render(request, 'favorite_nav.html', {"datas":data})
 
 
+@login_required
 def get_nav_favorites_accordion(request):
 
     data=get_user_favorite(request)
     return render(request, 'labmanager/index_card_favorite.html', {"datas":data})
 
+@login_required
 def toggle_favorites(request):
     if request.method != 'POST':
         return HttpResponse("", 400)
-    type=request.POST.get('type').split('.')
-    pk=request.POST.get('pk')
-
-    ct= ContentType.objects.get(app_label=type[0], model=type[1])
-    fav=favorite.objects.filter(user=request.user, content_type=ct, object_id=pk)
-
-    data={'fav':0}
-    if fav:
-        fav.delete()
-    else:
-        f=favorite(user=request.user,
-                   content_type=ct,
-                    object_id=pk
-                   )
-        f.save()
-        data={'fav':f}
-
-
-    return render(request, 'favorite_star.html', data)
+    obj = preference_object(request)
+    enabled = not preference_status(request.user, obj)["favorite"]
+    return render(request, 'favorite_star.html', {"fav": set_preference(request.user, obj, "favorite", enabled)["favorite"]})
 
 
 ##### For Subscription ####
+@login_required
 def get_user_subscription_obj(request):
     if request.method != 'POST' or request.POST.get('type', None) == None:
         return HttpResponse("", 400)
-    type=request.POST.get('type', "").split('.')
-    pk=request.POST.get('pk')
-
-    ct= ContentType.objects.get(app_label=type[0], model=type[1])
-    sub=subscription.objects.filter(user=request.user, content_type=ct, object_id=pk)
-    return render(request, 'subscription_bell.html', {"sub":sub})
+    obj = preference_object(request)
+    return render(request, 'subscription_bell.html', {"sub": preference_status(request.user, obj)["subscription"]})
 
 
+@login_required
 def toggle_subscription(request):
     if request.method != 'POST':
         return HttpResponse("", 400)
-    type=request.POST.get('type').split('.')
-    pk=request.POST.get('pk')
-
-    ct= ContentType.objects.get(app_label=type[0], model=type[1])
-    sub=subscription.objects.filter(user=request.user, content_type=ct, object_id=pk)
-
-    data={'sub':0}
-    if sub:
-        sub.delete()
-    else:
-        s=subscription(user=request.user,
-                   content_type=ct,
-                    object_id=pk
-                   )
-        s.save()
-        data={'sub':s}
-
-
-    return render(request, 'subscription_bell.html', data)
+    obj = preference_object(request)
+    enabled = not preference_status(request.user, obj)["subscription"]
+    return render(request, 'subscription_bell.html', {"sub": set_preference(request.user, obj, "subscription", enabled)["subscription"]})
 
 
 

@@ -46,6 +46,7 @@ def planning_serializer_context(user, scoped_queryset):
         "NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=user,
     )
     return {
+        "user": user,
         "today": timezone.localdate(),
         "stale_delta": timedelta(days=int(stale_days)),
         "visible_employee_ids": set(Employee.get_instances_for_user(

@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from fund.models import Fund
+from labsmanager.admin_links_v1 import get_admin_change_url
 from project.models import Participant, Project
 from staff.models import Employee
 from staff.rules import can_change_employee
@@ -161,12 +162,13 @@ class ContractContextView(APIView):
         context = {"request": self.request, "today": timezone.localdate(),
                    "visible_project_ids": self._visible_project_ids, "visible_employee_ids": self._visible_employee_ids,
                    "can_view_organizations": user.has_perm("common.display_infos")}
-        if detailed and employee:
+        if detailed:
             from .models import Contract_expense
             context["contract_expenses"] = list(Contract_expense.objects.filter(contract=contract).select_related("type").order_by("-date", "-pk"))
-        serializer = EmployeeContractDetailV1Serializer if detailed and employee else EmployeeContractV1Serializer
+        serializer = EmployeeContractDetailV1Serializer if detailed else EmployeeContractV1Serializer
         data = serializer(contract, context=context).data
         data["capabilities"] = contract_capabilities(user, contract, project=project, employee=employee)
+        data["admin_url"] = get_admin_change_url(user, contract)
         if note_counts is None:
             note_counts = visible_note_counts(user, Contract, [contract.pk])
         data["notes"] = {

@@ -1,24 +1,25 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import format_html
 
-from faicon import widgets
+# from faicon import widgets
 
-class GenericInfoTypeAdmin(admin.ModelAdmin):
-    list_display = ( 'name', 'get_icon',)
+# class GenericInfoTypeAdmin(admin.ModelAdmin):
+#     list_display = ( 'name', 'get_icon',)
     
-    @admin.display(description='Icon')
-    def get_icon(self, obj):
-        icon=widgets.parse_icon(str(obj.icon))
-        if isinstance(icon, widgets.Icon):
-            return icon.icon_html()
-        return obj.icon
-    class Media:
-        css = {
-            'all':('/static/fontawesome/css/all.css','/static/css/adminsmall.css',), 
-        }
-        js = (
-            'script/jquery-3.6.1.min.js', # jquery
-        )
+#     @admin.display(description='Icon')
+#     def get_icon(self, obj):
+#         icon=widgets.parse_icon(str(obj.icon))
+#         if isinstance(icon, widgets.Icon):
+#             return icon.icon_html()
+#         return obj.icon
+#     class Media:
+#         css = {
+#             'all':('/static/fontawesome/css/all.css','/static/css/adminsmall.css',), 
+#         }
+#         js = (
+#             'script/jquery-3.6.1.min.js', # jquery
+#         )
 
      
 from django.contrib.auth.admin import UserAdmin

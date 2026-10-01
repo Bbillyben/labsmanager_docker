@@ -7,6 +7,9 @@ from django.contrib.contenttypes.models import ContentType
 
 
 class favorite(models.Model):
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="common_favorite_user_object_unique")]
+
     user = models.ForeignKey(User, null=False, blank=False, on_delete=models.CASCADE, verbose_name=_('User'))
     content_type = models.ForeignKey(ContentType, related_name="content_type_favorite", on_delete=models.CASCADE, )
     object_id = models.PositiveIntegerField()
@@ -17,6 +20,9 @@ class favorite(models.Model):
         return f"{self.user.username} : {self.content_object.__str__()}"
 
 class subscription(models.Model):
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="common_subscription_user_object_unique")]
+
     user = models.ForeignKey(User, null=False, blank=False, on_delete=models.CASCADE, verbose_name=_('User'))
     content_type = models.ForeignKey(ContentType, related_name="content_type_subscription", on_delete=models.CASCADE, )
     object_id = models.PositiveIntegerField()

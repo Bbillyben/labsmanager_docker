@@ -1,4 +1,5 @@
 from django.urls import path
+from common.preferences_api_v1 import ObjectPreferenceV1View, FavoriteNavigationV1View
 from endpoints.api_v1 import (
     EditableProjectCandidatesV1View,
     ProjectPlanningItemsV1View,
@@ -34,6 +35,14 @@ from staff.api_v1 import (
     EmployeeProjectWorkloadV1View,
     EmployeeStatusHistoryV1View,
 )
+from staff.team_api_v1 import (
+    TeamListV1View, TeamListExportV1View, TeamDetailV1View,
+    TeamMateCollectionV1View, TeamMateDetailV1View,
+    TeamProjectsV1View, TeamBudgetsV1View,
+    TeamCalendarV1View, TeamCalendarFiltersV1View,
+    TeamCalendarParticipantsV1View, TeamCalendarLeaveCreateV1View,
+    TeamCalendarLeaveDetailV1View,
+)
 
 from .api_v1 import CurrentUserView, LoginV1View, LogoutV1View
 from project.api_v1 import ProjectCapabilitiesV1View, ProjectDetailV1View, ProjectFilterOptionsV1View, ProjectListV1View, ProjectListExportV1View, ProjectOverviewOptionsV1View, project_child_view
@@ -48,6 +57,10 @@ from expense.contracts_api_v1 import (
     ContractCollectionV1View, ContractDetailV1View, ContractOptionsV1View,
     ContractEmployeeEndDateSyncV1View, EmployeeContractCapabilitiesV1View,
 )
+from expense.contract_hub_api_v1 import (
+    ContractHubListV1View, ContractHubExportV1View, ContractHubFilterOptionsV1View,
+    ContractHubDetailV1View, ContractHubOptionsV1View, ContractHubEndDateSyncV1View,
+)
 from reports.api_v1 import ReportExportV1View
 from settings.api_v1 import ProjectSettingsV1View, ProjectSettingDetailV1View
 from infos.api_v1 import GenericNotesCollectionV1View, GenericNoteDetailV1View
@@ -56,6 +69,29 @@ from infos.api_v1 import GenericNotesCollectionV1View, GenericNoteDetailV1View
 app_name = "api_v1"
 
 urlpatterns = [
+    path("contracts/", ContractHubListV1View.as_view(), name="contract-hub-list"),
+    path("contracts/export/", ContractHubExportV1View.as_view(), name="contract-hub-export"),
+    path("contracts/filter-options/", ContractHubFilterOptionsV1View.as_view(), name="contract-hub-filter-options"),
+    path("contracts/<int:contract_id>/", ContractHubDetailV1View.as_view(), name="contract-hub-detail"),
+    path("contracts/<int:contract_id>/options/", ContractHubOptionsV1View.as_view(), name="contract-hub-options"),
+    path("contracts/<int:contract_id>/sync-employee-end-date/", ContractHubEndDateSyncV1View.as_view(), name="contract-hub-sync-employee-end-date"),
+    path("contracts/<int:hub_contract_id>/expenses/", ExpenseCollectionV1View.as_view(), name="contract-hub-expenses"),
+    path("contracts/<int:hub_contract_id>/expenses/options/", ExpenseOptionsV1View.as_view(), name="contract-hub-expense-options"),
+    path("contracts/<int:hub_contract_id>/expenses/<int:expense_id>/", ExpenseDetailV1View.as_view(), name="contract-hub-expense-detail"),
+    path("preferences/<str:type_name>/<int:object_id>/", ObjectPreferenceV1View.as_view(), name="object-preferences"),
+    path("favorites/", FavoriteNavigationV1View.as_view(), name="favorites-navigation"),
+    path('teams/', TeamListV1View.as_view(), name='teams'),
+    path('teams/export/', TeamListExportV1View.as_view(), name='team-list-export'),
+    path('teams/<int:team_id>/', TeamDetailV1View.as_view(), name='team-detail'),
+    path('teams/<int:team_id>/mates/', TeamMateCollectionV1View.as_view(), name='team-mates'),
+    path('teams/<int:team_id>/mates/<int:mate_id>/', TeamMateDetailV1View.as_view(), name='team-mate-detail'),
+    path('teams/<int:team_id>/projects/', TeamProjectsV1View.as_view(), name='team-projects'),
+    path('teams/<int:team_id>/budgets/', TeamBudgetsV1View.as_view(), name='team-budgets'),
+    path('teams/<int:team_id>/calendar/', TeamCalendarV1View.as_view(), name='team-calendar'),
+    path('teams/<int:team_id>/calendar/filters/', TeamCalendarFiltersV1View.as_view(), name='team-calendar-filters'),
+    path('teams/<int:team_id>/calendar/participants/', TeamCalendarParticipantsV1View.as_view(), name='team-calendar-participants'),
+    path('teams/<int:team_id>/calendar/leaves/', TeamCalendarLeaveCreateV1View.as_view(), name='team-calendar-leave-create'),
+    path('teams/<int:team_id>/calendar/leaves/<int:leave_id>/', TeamCalendarLeaveDetailV1View.as_view(), name='team-calendar-leave-detail'),
     path("notes/<str:scope>/<int:pk>/", GenericNotesCollectionV1View.as_view(), name="generic-notes"),
     path("notes/<str:scope>/<int:pk>/<int:note_id>/", GenericNoteDetailV1View.as_view(), name="generic-note-detail"),
     path("projects/<int:project_id>/calendar/", ProjectCalendarV1View.as_view(), name="project-calendar"),

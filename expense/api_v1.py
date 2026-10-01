@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from fund.api_v1 import cost_type_data, money
+from labsmanager.admin_links_v1 import get_admin_change_url
 from fund.models import Budget, Cost_Type, Fund
 from project.models import Project
 from settings.models import LMProjectSetting
@@ -33,7 +34,7 @@ def expense_data(expense, user):
     contract = child.contract if child else None
     budget = expense.budget_item
     return {
-        "id": expense.pk, "expense_id": expense.expense_id or "", "desc": expense.desc or "",
+        "id": expense.pk, "admin_url": get_admin_change_url(user, expense), "expense_id": expense.expense_id or "", "desc": expense.desc or "",
         "date": expense.date, "type": cost_type_data(expense.type), "amount": money(expense.amount),
         "status": expense.status,
         "contract": {"id": contract.pk, "name": str(contract.employee)} if contract else None,
@@ -171,7 +172,14 @@ class ExpenseBase(APIView):
 
     def context(self):
         if not hasattr(self, "_context"):
-            if "budget_id" in self.kwargs:
+            if "hub_contract_id" in self.kwargs:
+                from .contract_hub_api_v1 import visible_contracts
+                contract = get_object_or_404(
+                    visible_contracts(self.request.user).select_related("fund__project", "employee"),
+                    pk=self.kwargs["hub_contract_id"],
+                )
+                self._context = (contract.fund, contract)
+            elif "budget_id" in self.kwargs:
                 visible_projects = Project.get_instances_for_user("view", self.request.user, Project.objects.all())
                 project = get_object_or_404(visible_projects, pk=self.kwargs["pk"])
                 visible_funds = Fund.get_instances_for_user("view", self.request.user, Fund.objects.filter(project=project))

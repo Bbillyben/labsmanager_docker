@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from expense.models import Expense, Expense_point
+from labsmanager.admin_links_v1 import get_admin_change_url
 from project.api_v1 import project_capabilities
 from project.models import Institution, Project
 from settings.models import LMProjectSetting
@@ -68,7 +69,7 @@ def cost_type_data(item):
 
 
 def fund_data(fund, user, change_project=None):
-    return {"id": fund.pk, "funder": {"id": fund.funder_id, "short_name": fund.funder.short_name, "name": fund.funder.name},
+    return {"id": fund.pk, "admin_url": get_admin_change_url(user, fund), "funder": {"id": fund.funder_id, "short_name": fund.funder.short_name, "name": fund.funder.name},
             "institution": {"id": fund.institution_id, "short_name": fund.institution.short_name, "name": fund.institution.name},
             "ref": fund.ref, "start_date": fund.start_date, "end_date": fund.end_date,
             "amount": money(fund.amount), "expense": money(fund.expense),
@@ -76,14 +77,14 @@ def fund_data(fund, user, change_project=None):
             "is_active": fund.is_active, "capabilities": fund_capabilities(user, fund.project, fund, change_project)}
 
 
-def item_data(item):
-    return {"id": item.pk, "type": cost_type_data(item.type), "entry_date": item.entry_date,
+def item_data(item, user):
+    return {"id": item.pk, "admin_url": get_admin_change_url(user, item), "type": cost_type_data(item.type), "entry_date": item.entry_date,
             "value_date": item.value_date, "amount": money(item.amount), "expense": money(item.expense),
             "available": money(amount(item.amount) + amount(item.expense))}
 
 
-def point_data(point):
-    return {"id": point.pk, "type": cost_type_data(point.type), "entry_date": point.entry_date,
+def point_data(point, user):
+    return {"id": point.pk, "admin_url": get_admin_change_url(user, point), "type": cost_type_data(point.type), "entry_date": point.entry_date,
             "value_date": point.value_date, "amount": money(point.amount)}
 
 
@@ -276,8 +277,8 @@ class FundingFundView(FundingBase):
         points = list(Expense_point.objects.filter(fund=fund).select_related("type").order_by("type__short_name", "pk"))
         return Response({"fund": fund_data(fund, request.user), "summary": overview([fund], items)["rows"],
                          "total": {"amount": money(fund.amount), "expense": money(fund.expense), "available": money(amount(fund.amount) + amount(fund.expense))},
-                         "items": {"capabilities": fund_item_capabilities(request.user, fund), "items": [item_data(item) for item in items]},
-                         "expense_points": {"capabilities": expense_point_capabilities(request.user, fund), "items": [point_data(point) for point in points]}})
+                         "items": {"capabilities": fund_item_capabilities(request.user, fund), "items": [item_data(item, request.user) for item in items]},
+                         "expense_points": {"capabilities": expense_point_capabilities(request.user, fund), "items": [point_data(point, request.user) for point in points]}})
 
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
@@ -317,7 +318,7 @@ class FundingChildBase(FundingBase):
         self.require(self.capabilities(fund), "can_add")
         serializer = self.write_serializer(data=request.data, context={"fund": fund})
         serializer.is_valid(raise_exception=True)
-        return Response(self.read_item(serializer.save()), status=201)
+        return Response(self.read_item(serializer.save(), request.user), status=201)
 
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
@@ -326,7 +327,7 @@ class FundingChildBase(FundingBase):
         self.require(self.capabilities(fund), "can_change")
         serializer = self.write_serializer(child, data=request.data, partial=True, context={"fund": fund})
         serializer.is_valid(raise_exception=True)
-        return Response(self.read_item(serializer.save()))
+        return Response(self.read_item(serializer.save(), request.user))
 
     @transaction.atomic
     def delete(self, request, *args, **kwargs):

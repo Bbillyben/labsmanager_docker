@@ -14,6 +14,7 @@ import nh3
 from project.models import Institution, Project
 from staff.models import Employee, Team
 from expense.models import Contract
+from labsmanager.admin_links_v1 import get_admin_change_url
 
 from .models import GenericNote
 
@@ -95,7 +96,7 @@ def capabilities(user, parent, note=None):
 def serialize_note(note, user, parent):
     creator = note.creator
     return {
-        'id': note.pk, 'name': note.name, 'note': nh3.clean(note.note or ''),
+        'id': note.pk, 'admin_url': get_admin_change_url(user, note), 'name': note.name, 'note': nh3.clean(note.note or ''),
         'visibility': note.visibility,
         'creator': {'id': creator.pk, 'name': creator.get_full_name() or creator.get_username()},
         'created_at': note.created_at, 'updated_at': note.updated_at,

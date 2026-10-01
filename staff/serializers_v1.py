@@ -3,6 +3,7 @@ from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import connection, transaction
 from rest_framework import serializers
+from labsmanager.admin_links_v1 import AdminUrlSerializerMixin
 
 from expense.models import Contract, Contract_expense
 from fund.models import Budget, Contribution
@@ -30,7 +31,7 @@ class EmployeeStatusTypeV1Serializer(serializers.ModelSerializer):
         fields = ("id", "code", "name")
 
 
-class EmployeeListV1Serializer(serializers.ModelSerializer):
+class EmployeeListV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
     """Serialize the minimal contract shared by Employee list and detail.
 
     The view must attach `current_status_relations` and
@@ -46,6 +47,7 @@ class EmployeeListV1Serializer(serializers.ModelSerializer):
         model = Employee
         fields = (
             "id",
+            "admin_url",
             "first_name",
             "last_name",
             "entry_date",
@@ -680,7 +682,7 @@ class EmployeeLeaveTypeV1Serializer(serializers.ModelSerializer):
         fields = ("id", "short_name", "name", "color")
 
 
-class EmployeeLeaveV1Serializer(serializers.ModelSerializer):
+class EmployeeLeaveV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
     """Serialize one contextual Leave without autonomous Leave permissions."""
 
     type = EmployeeLeaveTypeV1Serializer(read_only=True)
@@ -690,6 +692,7 @@ class EmployeeLeaveV1Serializer(serializers.ModelSerializer):
         model = Leave
         fields = (
             "id",
+            "admin_url",
             "type",
             "start_date",
             "start_period",

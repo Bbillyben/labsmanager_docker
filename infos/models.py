@@ -7,7 +7,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 
 
-from faicon.fields import FAIconField
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
@@ -20,7 +19,7 @@ class InfoTypeClass(models.Model):
         abstract = True
         ordering = ['name']
     name = models.CharField(max_length=50, unique=True, verbose_name=_('Name'))
-    icon = FAIconField(null=True,)
+    icon = models.CharField(max_length=50, blank=True, null=True)
     type_choices=[("none",_("None")), ("tel",_("Phone Number")), ("mail", _("EMail")), ("link", _("Link")), ("addr", _("Address")),]
     type = models.CharField(
         max_length=4,

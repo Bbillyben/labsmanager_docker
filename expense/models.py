@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from fund.models import Fund, Cost_Type, Fund_Item, Budget
 from staff.models import Employee
-from django.db.models import Q, Sum
+from django.db.models import Exists, OuterRef, Q, Sum
 
 from labsmanager.models_utils import PERCENTAGE_VALIDATOR, NEGATIVE_VALIDATOR    
 from labsmanager.manager import LastInManager
@@ -188,13 +188,26 @@ class Contract(DateMixin, RightsCheckerMixin):
     
     @classmethod
     def get_instances_for_user(cls,perm, user, queryset=None):
-        from project.models import Participant
+        from project.models import Project, Participant
         from staff.models import Employee_Superior
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
         if queryset is None:
             queryset = cls.objects.all()
+
+        if perm.lower() == 'view':
+            # Match the union of the existing Employee and Project Contract scopes.
+            employees = Employee.get_instances_for_user('view', user, Employee.objects.all()).values('pk')
+            projects = Project.get_instances_for_user('view', user, Project.objects.all()).values('pk')
+            funds = Fund.get_instances_for_user('view', user, Fund.objects.filter(project_id__in=projects)).values('pk')
+            participant = Participant.objects.filter(
+                project_id=OuterRef('fund__project_id'), employee_id=OuterRef('employee_id')
+            )
+            return queryset.alias(_project_contract_participant=Exists(participant)).filter(
+                Q(employee_id__in=employees) |
+                Q(fund_id__in=funds, _project_contract_participant=True)
+            )
         
         subordinate = Employee_Superior.objects.filter(superior__user = user).values_list("employee", flat=True)
         user_team = list(subordinate)

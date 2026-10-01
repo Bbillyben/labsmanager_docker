@@ -1,6 +1,7 @@
 """Shared Planning read contract for Employee and future Project scopes."""
 
 from rest_framework import serializers
+from labsmanager.admin_links_v1 import get_admin_change_url
 from django.core.exceptions import ValidationError as DjangoValidationError
 from project.models import Participant
 from staff.models import Employee
@@ -11,6 +12,7 @@ from .models import Milestones, effective_start_date
 class PlanningMilestoneV1Serializer(serializers.ModelSerializer):
     """Serialize Planning items for an authorized contextual scope."""
 
+    admin_url = serializers.SerializerMethodField()
     display_state = serializers.SerializerMethodField()
     days_to_due = serializers.SerializerMethodField()
     work_kind = serializers.SerializerMethodField()
@@ -22,6 +24,7 @@ class PlanningMilestoneV1Serializer(serializers.ModelSerializer):
         model = Milestones
         fields = (
             "id",
+            "admin_url",
             "name",
             "desc",
             "start_date",
@@ -36,6 +39,9 @@ class PlanningMilestoneV1Serializer(serializers.ModelSerializer):
             "employees",
             "dependencies",
         )
+
+    def get_admin_url(self, milestone):
+        return get_admin_change_url(self.context.get("user"), milestone)
 
     def get_display_state(self, milestone):
         """Classify attention state using the viewer's configured threshold."""

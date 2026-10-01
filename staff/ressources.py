@@ -265,7 +265,7 @@ class EmployeeAdminResource(labResource, SkipErrorRessource):
 class TeamMateWidget(widgets.CharWidget):
     
     def render(self, value, obj=None):
-        pa=TeamMate.objects.filter(team=value)
+        pa = obj.loaded_mates if obj is not None and hasattr(obj, 'loaded_mates') else TeamMate.objects.filter(team=value).select_related('employee')
         
         li=[]
         for c in pa:

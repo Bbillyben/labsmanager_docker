@@ -8,10 +8,11 @@ from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q, Max, Sum, F
 
-from project.models import Participant
+from project.models import Participant, Project
 from settings.models import LMUserSetting
 from staff.models import Employee, Employee_Superior
 from common.models import subscription
+from common.preferences import visible_objects
 def check_enabled_notification_user(user, content_type) -> bool:
     '''
     check if a user has enabled/disabled notification for User Notificaiton on app/model 
@@ -59,7 +60,9 @@ def check_stale_milestones():
             continue
         # users employee's subscribed
         content_type = ContentType.objects.get(app_label='staff', model='employee')
-        subs_empl = subscription.objects.filter(user = user.user, content_type=content_type).values_list('object_id', flat=True)
+        subs_empl = visible_objects(user.user, 'employee', Employee.objects.filter(
+            pk__in=subscription.objects.filter(user=user.user, content_type=content_type).values('object_id')
+        )).values_list('pk', flat=True)
         stale=LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=user.user, backup_value=0)
         deadline = cdate + relativedelta(days=stale)
         milestonesE = Milestones.objects.filter(end_date__gte=cdate, end_date__lte=deadline, status= False).filter(Q(employee=emp) | Q(employee__id__in=subs_empl))
@@ -68,7 +71,9 @@ def check_stale_milestones():
         projects = Participant.objects.filter(Q(employee = emp) & (Q(status = "l") | Q(status="cl") )).values_list("project", flat=True)
         # subscribed project
         content_type = ContentType.objects.get(app_label='project', model='project')
-        subs_proj = subscription.objects.filter(user = user.user, content_type=content_type).values_list('object_id', flat=True)
+        subs_proj = visible_objects(user.user, 'project', Project.objects.filter(
+            pk__in=subscription.objects.filter(user=user.user, content_type=content_type).values('object_id')
+        )).values_list('pk', flat=True)
         milestonesP = Milestones.objects.filter(end_date__gte=cdate, end_date__lte=deadline, status= False).filter(Q(project__in = projects) | Q(project__id__in=subs_proj))
         
         milestones = milestonesE.union(milestonesP)
@@ -99,6 +104,8 @@ def check_overdue_milestones():
         # check for employee's subscription user
         employee_ids = mil.employee.values_list('pk', flat=True)
         for sub_user in subscription.objects.filter(content_type=emp_ct, object_id__in=employee_ids):
+            if not visible_objects(sub_user.user, 'employee', Employee.objects.filter(pk=sub_user.object_id)).exists():
+                continue
             notif = _add_notification(sub_user.user, mil, 'ove')
             if not notif is None:
                     count+=1
@@ -110,6 +117,8 @@ def check_overdue_milestones():
         # check in notification subscribed user
         project_ct = ContentType.objects.get_for_model(mil.project)
         for subs in subscription.objects.filter(content_type=project_ct, object_id=mil.project.id):
+            if not visible_objects(subs.user, 'project', Project.objects.filter(pk=subs.object_id)).exists():
+                continue
             notif = _add_notification(subs.user, mil, 'ove')
             if not notif is None:
                     count+=1
@@ -142,6 +151,8 @@ def check_overload_employee():
                 count+=1
                 
         for sub_user in subscription.objects.filter(content_type=emp_ct, object_id=emp['employee']):
+            if not visible_objects(sub_user.user, 'employee', Employee.objects.filter(pk=sub_user.object_id)).exists():
+                continue
             notif = _add_notification(sub_user.user, e, 'ovl', message)
             if not notif is None:
                     count+=1    

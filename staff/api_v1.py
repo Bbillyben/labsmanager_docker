@@ -318,7 +318,7 @@ class EmployeeLeaveListV1View(EmployeeLeaveQuerysetMixin, generics.ListAPIView):
         serializer = EmployeeLeaveWriteV1Serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         leave = serializer.save(employee=employee)
-        return Response(EmployeeLeaveV1Serializer(leave).data, status=201)
+        return Response(EmployeeLeaveV1Serializer(leave, context={"request": request}).data, status=201)
 
 
 class EmployeeLeaveCapabilitiesV1View(EmployeeLeaveQuerysetMixin, APIView):
@@ -343,7 +343,7 @@ class EmployeeLeaveDetailV1View(EmployeeLeaveQuerysetMixin, APIView):
             raise PermissionDenied()
         serializer = EmployeeLeaveWriteV1Serializer(leave, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        return Response(EmployeeLeaveV1Serializer(serializer.save()).data)
+        return Response(EmployeeLeaveV1Serializer(serializer.save(), context={"request": request}).data)
 
     def delete(self, request, *args, **kwargs):
         leave = self.get_leave()

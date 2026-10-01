@@ -10,17 +10,23 @@ from django_filters import rest_framework as filters
 from labsmanager import serializers 
 
 from .models import favorite, subscription
+from .preferences import visible_user_relations
 
 
 class favoriteViewSet(viewsets.ModelViewSet):
     queryset = favorite.objects.select_related('user').all()
     serializer_class = serializers.FavoriteSerialize
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ["get", "delete", "head", "options"]
+
+    def get_queryset(self):
+        ids = [relation.pk for _, relation, _ in visible_user_relations(self.request.user, favorite)]
+        return favorite.objects.filter(user=self.request.user, pk__in=ids).select_related("user", "content_type")
     
     @action(methods=['get'], detail=False, url_path='current_user', url_name='current_user')
     def genericinfotype(self, request):
         
-        sub=favorite.objects.filter(user=request.user) #.order_by("content_type")
+        sub=self.get_queryset()
         sub = sorted(sub, key=lambda x: (x.content_type.name, x.content_object.__str__()))
         return JsonResponse(serializers.FavoriteSerialize(sub, many=True).data, safe=False)
     
@@ -29,11 +35,16 @@ class subscriptionViewSet(viewsets.ModelViewSet):
     queryset = subscription.objects.select_related('user').all()
     serializer_class = serializers.FavoriteSerialize
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ["get", "delete", "head", "options"]
+
+    def get_queryset(self):
+        ids = [relation.pk for _, relation, _ in visible_user_relations(self.request.user, subscription)]
+        return subscription.objects.filter(user=self.request.user, pk__in=ids).select_related("user", "content_type")
     
     
     @action(methods=['get'], detail=False, url_path='current_user', url_name='current_user')
     def genericinfotype(self, request):
         
-        sub=subscription.objects.filter(user=request.user).order_by("content_type")
+        sub=self.get_queryset().order_by("content_type")
         sub = sorted(sub, key=lambda x: (x.content_type.name, x.content_object.__str__()))
         return JsonResponse(serializers.FavoriteSerialize(sub, many=True).data, safe=False)

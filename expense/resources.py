@@ -166,6 +166,12 @@ class ContractResource(labResource):
         attribute='total_amount', 
         widget=widgets.CharWidget(), readonly=True
         )
+
+    def dehydrate_total_amount(self, contract):
+        """Consume the Hub annotation, retaining historical standalone exports."""
+        if hasattr(contract, 'hub_total_amount'):
+            return contract.hub_total_amount
+        return contract.total_amount
     class Meta:
         """Metaclass"""
         model = Contract

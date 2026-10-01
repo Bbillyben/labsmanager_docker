@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from fund.models import Fund, Fund_Institution
+from labsmanager.admin_links_v1 import AdminUrlSerializerMixin
 from labsmanager.pagination import LabPagination
 from labsmanager.list_export_v1 import ListExportContentNegotiation, export_list_queryset
 from staff.models import Employee, Team, TeamMate
@@ -51,7 +52,7 @@ def validate_model(instance):
         raise serializers.ValidationError(getattr(error, "message_dict", None) or error.messages) from error
 
 
-class ProjectListV1Serializer(serializers.ModelSerializer):
+class ProjectListV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
     institutions = serializers.SerializerMethodField()
     participants = serializers.SerializerMethodField()
     funds = serializers.SerializerMethodField()
@@ -59,7 +60,7 @@ class ProjectListV1Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ("id", "name", "start_date", "end_date", "status", "institutions", "participants", "funds", "capabilities")
+        fields = ("id", "admin_url", "name", "start_date", "end_date", "status", "institutions", "participants", "funds", "capabilities")
 
     def get_institutions(self, project):
         return [relation.institution.short_name for relation in project.list_institutions]
@@ -81,10 +82,10 @@ class ProjectListV1Serializer(serializers.ModelSerializer):
         return project_capabilities(self.context["request"].user, project)
 
 
-class ProjectWriteV1Serializer(serializers.ModelSerializer):
+class ProjectWriteV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "start_date", "end_date", "status")
+        fields = ("id", "admin_url", "name", "start_date", "end_date", "status")
         read_only_fields = ("id",)
 
     def validate(self, attrs):
@@ -141,7 +142,7 @@ class ProjectParticipantV1Serializer(serializers.ModelSerializer):
         }
 
 
-class ProjectOverviewV1Serializer(serializers.ModelSerializer):
+class ProjectOverviewV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
     capabilities = serializers.SerializerMethodField()
     funding_visible = serializers.SerializerMethodField()
     generic_info = serializers.SerializerMethodField()
@@ -150,7 +151,7 @@ class ProjectOverviewV1Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ("id", "name", "start_date", "end_date", "status", "capabilities", "funding_visible", "generic_info", "institutions", "participants")
+        fields = ("id", "admin_url", "name", "start_date", "end_date", "status", "capabilities", "funding_visible", "generic_info", "institutions", "participants")
 
     def get_capabilities(self, project):
         user = self.context["request"].user

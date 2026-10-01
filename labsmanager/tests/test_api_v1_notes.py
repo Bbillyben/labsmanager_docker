@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from infos.models import GenericNote
@@ -39,6 +40,7 @@ class GenericNotesV1Tests(APITestCase):
 
     def test_project_author_visibility_and_collision(self):
         note = self.create(self.project_url)
+        self.assertIsNone(note['admin_url'])
         private = self.create(self.project_url, 'Private', 'creator')
         self.assertEqual(GenericNote.objects.get(pk=note['id']).creator, self.owner)
         self.assertEqual(GenericNote.objects.get(pk=note['id']).visibility, 'object')
@@ -54,7 +56,9 @@ class GenericNotesV1Tests(APITestCase):
         self.assertFalse(response.json()['capabilities']['can_add'])
         self.assertEqual(self.client.post(self.project_url, {'name': 'Denied'}, format='json').status_code, 403)
         self.client.force_login(self.admin)
-        self.assertEqual(len(self.client.get(self.project_url).json()['items']), 2)
+        admin_items = self.client.get(self.project_url).json()['items']
+        self.assertEqual(len(admin_items), 2)
+        self.assertEqual(next(item for item in admin_items if item['id'] == note['id'])['admin_url'], reverse('admin:infos_genericnote_change', args=[note['id']]))
 
     def test_private_note_global_admin_and_noncreator_editor(self):
         private = self.create(self.project_url, 'Private', 'creator')
@@ -66,6 +70,7 @@ class GenericNotesV1Tests(APITestCase):
         response = self.client.get(f'{self.project_url}{private["id"]}/')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['capabilities']['can_change_visibility'])
+        self.assertIsNone(response.json()['admin_url'])
         self.assertEqual(self.client.patch(f'{self.project_url}{private["id"]}/', {'visibility': 'object'}, format='json').status_code, 200)
 
     def test_object_note_visibility_is_creator_or_admin_only(self):

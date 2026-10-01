@@ -1,5 +1,5 @@
 from django.contrib import admin
-from labsmanager.admin import GenericInfoTypeAdmin
+# from labsmanager.admin import GenericInfoTypeAdmin
 
 from .models import OrganizationInfosType, OrganizationInfos, ContactType, ContactInfoType, Contact, ContactInfo, GenericNote
 
@@ -13,8 +13,8 @@ class ContactAdmin(admin.ModelAdmin):
     list_filter=('type' ,)
     inlines = [ContactInfoInline,] 
 
-class OrgaInfoTypeAdmin(GenericInfoTypeAdmin):
-    list_display = ( 'name', 'get_icon', "type")
+class OrgaInfoTypeAdmin(admin.ModelAdmin):
+    list_display = ( 'name', 'icon', "type")
     
     
 # for notes, try a specific filter for content type

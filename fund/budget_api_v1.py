@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from expense.models import Contract_type
+from labsmanager.admin_links_v1 import get_admin_change_url
 from project.models import Project
 from staff.models import Employee, Employee_Type
 
@@ -34,6 +35,7 @@ def budget_data(item, user, project, kind):
     """Return model-owned financial values; Contribution has no Expense UI."""
     result = {
         "id": item.pk,
+        "admin_url": get_admin_change_url(user, item),
         "fund": {"id": item.fund_id, "name": str(item.fund)},
         "cost_type": cost_type_data(item.cost_type) if item.cost_type else None,
         "desc": item.desc or "",

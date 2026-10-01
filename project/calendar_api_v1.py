@@ -100,7 +100,7 @@ class ProjectCalendarLeaveCreateV1View(ProjectCalendarBaseV1View):
         serializer = EmployeeLeaveWriteV1Serializer(data=write_data)
         serializer.is_valid(raise_exception=True)
         leave = serializer.save(employee=employee)
-        return Response(EmployeeLeaveV1Serializer(leave).data, status=201)
+        return Response(EmployeeLeaveV1Serializer(leave, context={"request": request}).data, status=201)
 
 
 class ProjectCalendarLeaveDetailV1View(ProjectCalendarBaseV1View):
@@ -120,7 +120,7 @@ class ProjectCalendarLeaveDetailV1View(ProjectCalendarBaseV1View):
             raise PermissionDenied()
         serializer = EmployeeLeaveWriteV1Serializer(leave, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        return Response(EmployeeLeaveV1Serializer(serializer.save()).data)
+        return Response(EmployeeLeaveV1Serializer(serializer.save(), context={"request": request}).data)
 
     def delete(self, request, *args, **kwargs):
         leave = self.leave()
