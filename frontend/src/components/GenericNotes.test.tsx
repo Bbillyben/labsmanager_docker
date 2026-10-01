@@ -13,9 +13,9 @@ const date = '2026-01-01T12:00:00Z'
 const first: GenericNote = { id: 1, name: 'Général', note: '<p>Hello</p>', visibility: 'object', creator: { id: 2, name: 'Alice' }, created_at: date, updated_at: date, capabilities }
 const second: GenericNote = { ...first, id: 2, name: 'Privé', note: '<p>Secret</p>', visibility: 'creator' }
 
-function setup(scope: 'project' | 'employee' = 'project', readonly = false, collision = false) {
+function setup(scope: 'project' | 'employee' = 'project', readonly = false, collision = false, adminUrl: string | null = null) {
   Object.defineProperty(navigator, 'languages', { configurable: true, value: ['fr'] })
-  const rows = structuredClone([first, second]).map((note) => readonly ? { ...note, capabilities: { ...capabilities, can_change: false, can_rename: false, can_delete: false, can_change_visibility: false } } : note)
+  const rows = structuredClone([first, second]).map((note) => readonly ? { ...note, admin_url: adminUrl, capabilities: { ...capabilities, can_change: false, can_rename: false, can_delete: false, can_change_visibility: false } } : { ...note, admin_url: adminUrl })
   const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input), method = init?.method ?? 'GET'
     if (method === 'GET') return jsonResponse({ capabilities: { can_add: !readonly }, items: rows })
@@ -40,6 +40,12 @@ function setup(scope: 'project' | 'employee' = 'project', readonly = false, coll
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear() })
 
 describe('GenericNotes', () => {
+  it('uses the common Admin action when a visible note has an Admin URL', async () => {
+    setup('project', true, false, '/admin/infos/genericnote/1/change/')
+    await screen.findByRole('tab', { name: 'Général' })
+    await userEvent.click(screen.getByRole('button', { name: 'Actions sur la note' }))
+    expect(await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })).toHaveAttribute('href', '/admin/infos/genericnote/1/change/')
+  })
   it.each(['project', 'employee'] as const)('uses the same tabs and create workflow for %s', async (scope) => {
     const { fetchMock } = setup(scope)
     expect(await screen.findByRole('tab', { name: 'Général' })).toHaveAttribute('aria-selected', 'true')

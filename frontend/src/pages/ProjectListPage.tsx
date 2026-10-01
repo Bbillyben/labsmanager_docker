@@ -5,6 +5,8 @@ import { Input } from '../components/ui/input'
 import { SelectableTableRow } from '../components/SelectableTableRow'
 import { SortableTableHeader } from '../components/SortableTableHeader'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu'
+import { DropdownMenuSeparator } from '../components/ui/dropdown-menu'
+import { AdminObjectAction } from '../components/AdminObjectAction'
 import { ConfirmDialog } from '../components/common/ConfirmDialog'
 import { LoadingState } from '../components/LoadingState'
 import { projectFilters } from '../config/projectFilters'
@@ -149,6 +151,7 @@ function ProjectResults({ params, update, filtered, reset, retry }: { params: Pr
               {project.capabilities.can_change && <DropdownMenuItem onClick={() => setEditing(project)}><Pencil aria-hidden="true" /> {t('common.edit')}</DropdownMenuItem>}
               {project.capabilities.can_delete && <DropdownMenuItem onClick={(event) => { deleteButton.current = event.currentTarget; setDeleting(project) }}><Trash2 aria-hidden="true" /> {t('common.delete')}</DropdownMenuItem>}
               <DropdownMenuItem onClick={() => { returnToRow.current = true; setSelectedId(null) }}><X /> {t('list.deselect')}</DropdownMenuItem>
+              {project.admin_url && <><DropdownMenuSeparator /><AdminObjectAction adminUrl={project.admin_url} /></>}
             </DropdownMenuContent>
           </DropdownMenu></td>
         </SelectableTableRow>)}</tbody>

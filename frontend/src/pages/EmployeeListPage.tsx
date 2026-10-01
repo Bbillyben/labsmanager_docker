@@ -2,6 +2,8 @@ import { Input } from '../components/ui/input'
 import { SelectableTableRow } from '../components/SelectableTableRow'
 import { SortableTableHeader } from '../components/SortableTableHeader'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../components/ui/dropdown-menu'
+import { DropdownMenuSeparator } from '../components/ui/dropdown-menu'
+import { AdminObjectAction } from '../components/AdminObjectAction'
 import { Download, Ellipsis, ExternalLink, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -138,6 +140,7 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
               <DropdownMenuContent align="end" className="min-w-52" finalFocus={() => returnToRow.current ? document.getElementById(`employee-row-${employee.id}`) : true}>
                 <DropdownMenuItem render={<Link to={employeeUrl(employee.id)} state={{ employeeListSearch: employeeQuery(params) }} />}><ExternalLink /> {t('list.openProfile')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => { returnToRow.current = true; setSelectedId(null) }}><X /> {t('list.deselect')}</DropdownMenuItem>
+                {employee.admin_url && <><DropdownMenuSeparator /><AdminObjectAction adminUrl={employee.admin_url} /></>}
               </DropdownMenuContent>
             </DropdownMenu>
           </td>

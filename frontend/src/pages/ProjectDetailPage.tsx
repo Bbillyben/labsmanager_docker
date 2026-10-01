@@ -10,6 +10,7 @@ import { ActivityStatusBadge } from '../ui/ActivityStatusBadge'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
 import { EntityActionMenu, type EntityActionGroup } from '../components/EntityActionMenu'
+import { ObjectPreferenceActions } from '../components/ObjectPreferenceActions'
 import { ReportExportDialog } from '../components/ReportExportDialog'
 import { SettingsSheet } from '../components/SettingsSheet'
 import { getProjectSettings, updateProjectSetting } from '../api/settings'
@@ -77,7 +78,7 @@ export function ProjectDetailPage() {
   ]
   return <>
     <Link className={styles.back} to={`/projects/${typeof location.state?.projectListSearch === 'string' && location.state.projectListSearch ? `?${location.state.projectListSearch}` : ''}`}><ArrowLeft aria-hidden="true" /> {t('project.backToProjects')}</Link>
-    <PageHeader title={project.name} meta={<div className={styles.headerMeta}><ActivityStatusBadge active={project.status} /><span>{t('project.dateRange', { start: dateLabel(project.start_date, language), end: dateLabel(project.end_date, language) })}</span></div>} actions={<EntityActionMenu label={t('reports.entityActions', { name: project.name })} groups={actionGroups} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => editing || exportFormat || settingsOpen ? false : true} />} />
+    <PageHeader title={project.name} meta={<div className={styles.headerMeta}><ActivityStatusBadge active={project.status} /><span>{t('project.dateRange', { start: dateLabel(project.start_date, language), end: dateLabel(project.end_date, language) })}</span></div>} actions={<div className="flex items-center gap-2"><ObjectPreferenceActions key={project.id} type="project" objectId={project.id} /><EntityActionMenu label={t('reports.entityActions', { name: project.name })} groups={actionGroups} adminUrl={project.admin_url} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => editing || exportFormat || settingsOpen ? false : true} /></div>} />
     <nav aria-label={t('project.navigation')} className={styles.resourceNav}>
       <div className={styles.resourceNavScroll} tabIndex={0}>
         {sections.filter((section) => section.id !== 'funds' || project.funding_visible).map((section) => section.enabled

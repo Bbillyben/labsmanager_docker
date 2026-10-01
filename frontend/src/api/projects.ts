@@ -4,6 +4,7 @@ import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../fi
 
 export type ProjectCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean; can_export_word?: boolean; can_export_pdf?: boolean; can_change_settings?: boolean }
 export type ProjectItem = {
+  admin_url?: string | null
   id: number
   name: string
   start_date: string | null
@@ -15,7 +16,7 @@ export type ProjectItem = {
   capabilities: ProjectCapabilities
 }
 export type ProjectWrite = { name: string; start_date: string | null; end_date: string | null; status: boolean }
-export type ProjectResponse = { id: number; name: string; start_date: string | null; end_date: string | null; status: boolean }
+export type ProjectResponse = { admin_url?: string | null; id: number; name: string; start_date: string | null; end_date: string | null; status: boolean }
 export type ProjectListResponse = { count: number; next: string | null; previous: string | null; results: ProjectItem[] }
 export type ProjectChildCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
 export type ProjectCollection<T> = { capabilities: ProjectChildCapabilities; items: T[] }

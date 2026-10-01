@@ -21,7 +21,7 @@ import { ExpenseSection } from './ExpenseSection'
 import { useEmployeeResource } from './useEmployeeResource'
 import styles from './ContractSection.module.css'
 
-const keyFor = (scope: ContractScope) => 'projectId' in scope ? `project:${scope.projectId}` : `employee:${scope.employeeId}`
+const keyFor = (scope: ContractScope) => 'hubContractId' in scope ? `hub:${scope.hubContractId}` : 'projectId' in scope ? `project:${scope.projectId}` : `employee:${scope.employeeId}`
 const nameOf = (item: ContractRecord) => item.contract_type?.name ?? item.fund.display_name
 
 export function ContractSection({ scope, onEmployeeEndDateChange }: { scope: ContractScope; onEmployeeEndDateChange?: () => void | Promise<unknown> }) {
@@ -85,7 +85,7 @@ export function ContractSection({ scope, onEmployeeEndDateChange }: { scope: Con
       <tbody>{resource.data.items.map((item) => <SelectableTableRow key={item.id} rowId={item.id} selectedId={selectedId} onSelect={setSelectedId} className={styles.row} aria-label={nameOf(item)}>
         <td>{nameOf(item)}</td><td>{item.employee.first_name} {item.employee.last_name}</td><td>{item.fund.project.name}</td><td>{contractPeriod(item.start_date, item.end_date, language, t)}</td><td>{contractPercent(item.quotity, language)}</td><td>{t(item.status.code === 'effe' ? 'contracts.effective' : 'contracts.provisional')}{item.requires_follow_up ? ` · ${t('contracts.followUp')}` : ''}</td>
         <td className={styles.notes}>{(item.notes?.visible_count > 0 || item.notes?.can_add) && <Button variant="ghost" size="sm" aria-label={item.notes.visible_count > 0 ? `${t('contracts.openNotes')} · ${t(item.notes.visible_count === 1 ? 'contracts.oneNote' : 'contracts.manyNotes', { count: item.notes.visible_count })}` : t('contracts.openNotes')} onClick={(event) => { notesTrigger.current = event.currentTarget; setNotesFor(item) }}><StickyNote aria-hidden="true" />{item.notes.visible_count > 0 && <span>{item.notes.visible_count}</span>}</Button>}</td>
-        <td className={styles.menu}><ItemActionMenu label={t('common.actionsFor', { name: nameOf(item) })} canChange={item.capabilities.can_change} canDelete={item.capabilities.can_delete} onOpen={() => setSelectedId(item.id)} onTrigger={(element) => { trigger.current = element }} finalFocus={() => editing || deleting ? false : true} onEdit={() => setEditing(item)} onDelete={() => setDeleting(item)} /></td>
+        <td className={styles.menu}><ItemActionMenu label={t('common.actionsFor', { name: nameOf(item) })} canChange={item.capabilities.can_change} canDelete={item.capabilities.can_delete} adminUrl={item.admin_url} onOpen={() => setSelectedId(item.id)} onTrigger={(element) => { trigger.current = element }} finalFocus={() => editing || deleting ? false : true} onEdit={() => setEditing(item)} onDelete={() => setDeleting(item)} /></td>
       </SelectableTableRow>)}</tbody>
     </table></div> : <p>{t('contracts.empty')}</p>)}
     {selected && expenseScope && <ContractSelected key={`selected:${key}:${selected.id}`} scope={context} item={selected} expenseScope={expenseScope} />}
@@ -112,7 +112,7 @@ function ContractSelected({ scope, item, expenseScope }: { scope: ContractScope;
   </div>
 }
 
-function ContractFormSheet({ scope, item, returnFocus, onClose, onSaved }: { scope: ContractScope; item: ContractRecord | null; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: (item: ContractRecord) => void }) {
+export function ContractFormSheet({ scope, item, returnFocus, onClose, onSaved }: { scope: ContractScope; item: ContractRecord | null; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: (item: ContractRecord) => void }) {
   const { t } = useTranslation()
   const loadOptions = useCallback((_id: string, signal: AbortSignal) => getContractOptions(scope, signal), [scope])
   const options = useEmployeeResource(keyFor(scope), loadOptions)

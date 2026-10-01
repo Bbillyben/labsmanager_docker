@@ -11,6 +11,14 @@ describe('EntityActionMenu', () => {
     expect(screen.queryByRole('button', { name: 'Actions' })).not.toBeInTheDocument()
   })
 
+  it('shows an Admin-only header action in a new tab', async () => {
+    render(<EntityActionMenu label="Actions" groups={[]} adminUrl="/admin/staff/employee/73/change/" />)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Actions' }))
+    const link = await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noreferrer')
+  })
+
   it('shows one action without a separator and executes it', async () => {
     const onSelect = vi.fn()
     render(<EntityActionMenu label="Actions" groups={[[], [{ id: 'word', label: 'Word', onSelect }]]} />)

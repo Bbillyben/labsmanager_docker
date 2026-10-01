@@ -5,6 +5,7 @@ export type BudgetKind = 'budget' | 'contribution'
 export type NamedId = { id: number; name: string }
 export type BudgetCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
 export type BudgetBase = {
+  admin_url?: string | null
   id: number
   fund: NamedId
   cost_type: CostType | null

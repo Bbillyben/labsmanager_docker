@@ -22,6 +22,25 @@ describe('ItemActionMenu', () => {
     expect(screen.queryByRole('button', { name: 'Actions pour Badge' })).not.toBeInTheDocument()
   })
 
+  it('shows an authorized Admin link even without business actions', async () => {
+    setup(false, false, { adminUrl: '/admin/fund/budget/12/change/' })
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour Badge' }))
+    const link = await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })
+    expect(link).toHaveAttribute('href', '/admin/fund/budget/12/change/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noreferrer')
+  })
+
+  it('keeps Edit/Delete and separates the Admin link', async () => {
+    const callbacks = setup(true, true, { adminUrl: '/admin/staff/employee/73/change/' })
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour Badge' }))
+    await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })
+    expect(screen.getAllByRole('menuitem')).toHaveLength(3)
+    expect(screen.getByRole('separator')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Modifier' }))
+    expect(callbacks.onEdit).toHaveBeenCalledOnce()
+  })
+
   it.each([
     [true, false, 'Modifier'],
     [false, true, 'Supprimer'],

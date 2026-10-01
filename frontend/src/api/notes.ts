@@ -4,7 +4,7 @@ export type NoteScope = 'project' | 'employee' | 'team' | 'institution' | 'contr
 export type NoteVisibility = 'object' | 'creator'
 export type NoteCapabilities = { can_add: boolean; can_change: boolean; can_rename: boolean; can_delete: boolean; can_change_visibility: boolean }
 export type GenericNote = {
-  id: number; name: string; note: string; visibility: NoteVisibility
+  id: number; admin_url?: string | null; name: string; note: string; visibility: NoteVisibility
   creator: { id: number; name: string }; created_at: string; updated_at: string
   capabilities: NoteCapabilities
 }

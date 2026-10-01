@@ -72,11 +72,11 @@ function MilestoneRow({ milestone, onOpen, actions }: { milestone: PlanningMiles
       {milestone.type === 'q' && <span className={styles.rowProgress}><Progress label={`${t('employee.progress')} — ${milestone.name}`} value={milestone.quotity} /></span>}
     </span>
     <span className={styles.due}>{dueText(milestone, language, t)}</span>
-  </button>{actions && (actions.canChange || actions.canDelete) && <span className={styles.rowActions}><ItemActionMenu
+  </button>{(actions?.canChange || actions?.canDelete || milestone.admin_url) && <span className={styles.rowActions}><ItemActionMenu
     label={t('common.actionsFor', { name: milestone.name })}
-    canChange={actions.canChange} canDelete={actions.canDelete} onOpen={() => actions.onMenuOpen?.()}
-    onTrigger={actions.onTrigger} finalFocus={actions.finalFocus}
-    onEdit={() => actions.onEdit(milestone)} onDelete={() => actions.onDelete(milestone)}
+    canChange={actions?.canChange ?? false} canDelete={actions?.canDelete ?? false} adminUrl={milestone.admin_url} onOpen={() => actions?.onMenuOpen?.()}
+    onTrigger={actions?.onTrigger} finalFocus={actions?.finalFocus}
+    onEdit={() => actions?.onEdit(milestone)} onDelete={() => actions?.onDelete(milestone)}
   /></span>}</div>
 }
 

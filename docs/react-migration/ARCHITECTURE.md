@@ -516,3 +516,39 @@ Contract existants et ses mutations Notes utilisent `expense.change_contract`.
 Le compteur de notes visibles est agrégé côté backend pour la liste partagée
 Project/Employee ; la ligne ouvre le même `GenericNotes` en Sheet avec sauvegarde
 finale avant fermeture.
+
+R2.20 ajoute Team comme contexte React sans nouveau moteur métier. La liste et
+l'export Team appliquent le même périmètre visible, les filtres et le tri ;
+`TeamResource` consomme les TeamMate préchargés. La fiche expose les capacités
+issues des permissions Team historiques et sert Information, Projects pilotés
+par un membre leader/co-leader, Budgets visibles en lecture seule et
+`GenericNotes(scope="team")`. Le contexte `CalendarType.TEAM` résout leader et
+TeamMate dans le producteur Leave commun ; `CalendarService` conserve les plugins.
+Le panneau FullCalendar Project est paramétré par le contexte Team sans recopier
+les vues, ressources, Sheet Leave ni interactions. Les mutations Leave gardent
+`staff.change_employee` sur l'Employee concerné.
+
+## Préférences génériques R2.21a
+
+`common.favorite` et `common.subscription` conservent le lien générique
+`user`/`content_type`/`object_id` partagé avec Django et le reporting. Le service
+`common.preferences` borne les types Project, Employee, Team et les deux
+Institutions, applique leur visibilité canonique, puis assure une persistance
+idempotente. L'API v1 expose un état combiné sur l'objet visible et une liste
+Favorites groupée et triée après filtrage ; une relation dont la visibilité est
+perdue reste en base mais n'est plus publiée. Les routes HTML historiques
+réutilisent le service et gardent leurs réponses. Les URLs de navigation React
+ou Django sont résolues côté backend. `ObjectPreferenceActions` rend les deux
+actions communes dans les entêtes Project/Employee/Team ; `FavoritesMenu` charge
+la liste en une requête lorsqu'il est ouvert. Subscription reste distinct de
+Favorite et les réglages détaillés ainsi que la fréquence mail restent legacy.
+
+## Django Admin deep links R2.22
+
+`labsmanager.admin_links_v1.get_admin_change_url(user, obj)` est l’unique producteur des liens Admin v1. Il vérifie l’identité staff et la permission `change_<model>` sur l’objet (ou le statut superuser), puis résout la route Admin ; aucune route non enregistrée n’est publiée. Les serializers et builders métier exposent `admin_url` ou `null`, sans calcul React. `AdminObjectAction` rend le lien commun dans les menus et ouvre un nouvel onglet pour préserver l’état de la SPA. Cette capacité ne modifie aucune permission métier ni le périmètre de visibilité des API.
+
+## Contract Hub R2.23
+
+La route `/app/tools/contracts` est un outil transversal sans création ni suppression de Contract. Liste, détail et export v1 reposent sur `Contract.get_instances_for_user("view", …)` ; `ContractHubFilter` applique les critères après cette portée. Active utilise `is_active`, Ongoing compare les deux bornes de dates à `timezone.localdate()` et Stale délègue à `Contract.staleFilter()`. Les options relationnelles proviennent des Contracts visibles et le statut des choices Django. Le même queryset filtré et ordonné alimente la pagination JSON et l'export non paginé via `ContractResource`. Une annotation de somme des `Contract_expense` alimente liste et Resource sans N+1 ; la propriété historique conserve son comportement pour les autres usages.
+
+Le détail et le PATCH Hub réutilisent le sérialiseur et le formulaire Contract existants, mais contrôlent `expense.change_contract` dans le contexte autonome, sans reprendre les droits Project ou Employee d'un écran parent. Les routes Expense liées au Hub réutilisent `ExpenseSection` et les contrôles de mutation Expense existants après résolution du Contract visible. Le frontend réutilise le catalogue `FilterBar`, les sources Employee/Project, `ListExportDialog`, `ContractDetail`, le Sheet Contract et `ItemActionMenu` ; les query params gardent les mêmes conventions que les autres listes.

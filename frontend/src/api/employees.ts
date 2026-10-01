@@ -6,6 +6,7 @@ import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../fi
 export type EmployeeIdentity = { id: number; first_name: string; last_name: string }
 export type EmployeeStatus = { id: number; code: string; name: string }
 export type EmployeeListItem = EmployeeIdentity & {
+  admin_url?: string | null
   entry_date: string | null
   exit_date: string | null
   is_active: boolean
@@ -71,6 +72,7 @@ export type EmployeeContractFund = {
   institution: EmployeeContractOrganization
 }
 export type EmployeeContract = {
+  admin_url?: string | null
   id: number
   employee: EmployeeIdentity & { can_view?: boolean }
   contract_type: { id: number; name: string } | null
@@ -160,6 +162,7 @@ export type LeaveWrite = {
   comment: string
 }
 export type EmployeeLeave = {
+  admin_url?: string | null
   id: number
   type: EmployeeLeaveType
   start_date: string

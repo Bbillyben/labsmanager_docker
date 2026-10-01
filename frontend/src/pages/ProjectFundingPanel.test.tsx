@@ -41,6 +41,13 @@ function setup(data: ProjectFunding = base, fundDetail: FundDetail = detail, loa
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear() })
 
 describe('ProjectFundingPanel', () => {
+  it('opens the Admin action for a Fund without replacing business actions', async () => {
+    setup({ ...base, funds: [{ ...fund, admin_url: '/admin/fund/fund/7/change/' }] })
+    await screen.findByText('Financements')
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour ANR · A-1' }))
+    expect(await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })).toHaveAttribute('href', '/admin/fund/fund/7/change/')
+    expect(screen.getByRole('menuitem', { name: 'Modifier' })).toBeInTheDocument()
+  })
   it('shows one unified financial table below the Fund list without a duplicate detail block', async () => {
     setup()
     expect(await screen.findByText('Financements')).toBeInTheDocument()

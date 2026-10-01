@@ -2,6 +2,7 @@ import { apiRequest } from './client'
 
 export type PlanningMilestoneState = 'completed' | 'overdue' | 'due_soon' | 'planned' | 'in_progress'
 export type PlanningMilestone = {
+  admin_url?: string | null
   id: number
   name: string
   desc: string | null

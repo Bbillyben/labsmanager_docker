@@ -4,6 +4,7 @@ import { createEmployeeLeave, deleteEmployeeLeave, getLeaveTypes, updateEmployee
 import { normalizeMutationError } from '../api/errors'
 import { useMutation } from '../api/useMutation'
 import { ConfirmDialog } from '../components/common/ConfirmDialog'
+import { EntityActionMenu } from '../components/EntityActionMenu'
 import { halfDayLabel } from '../calendar/halfDayPresentation'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
 import { useTranslation } from '../i18n/i18n'
@@ -88,6 +89,7 @@ export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabiliti
           <div><dt>{t('leaves.comment')}</dt><dd>{current.comment || '—'}</dd></div>
         </dl>
         <div className={styles.actions}>
+          <EntityActionMenu label={t('common.actionsFor', { name: current.type.name })} groups={[]} adminUrl={current.admin_url} />
           {capabilities.can_change && <Button onClick={() => setMode('edit')} size="sm" variant="secondary"><Pencil aria-hidden="true" />{t('leaves.edit')}</Button>}
           {capabilities.can_delete && <Button onClick={(event) => { deleteButton.current = event.currentTarget; setConfirming(true) }} size="sm" variant="destructive"><Trash2 aria-hidden="true" />{t('genericInfo.delete')}</Button>}
         </div>

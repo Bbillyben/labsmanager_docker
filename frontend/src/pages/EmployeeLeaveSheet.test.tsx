@@ -19,6 +19,11 @@ beforeEach(() => {
 })
 
 describe('shared Employee Leave Sheet', () => {
+  it('shows the backend Admin link for an existing Leave', async () => {
+    render(<EmployeeLeaveSheet employeeId="12" leave={{ ...leave, admin_url: '/admin/leave/leave/7/change/' }} capabilities={{ can_add: false, can_change: false, can_delete: false }} {...callbacks} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Actions pour Congés payés' }))
+    expect(await screen.findByRole('menuitem', { name: 'Ouvrir dans l’administration' })).toHaveAttribute('href', '/admin/leave/leave/7/change/')
+  })
   it('is read-only without capabilities', async () => {
     render(<EmployeeLeaveSheet employeeId="12" leave={leave} capabilities={{ can_add: false, can_change: false, can_delete: false }} {...callbacks} />)
     const dialog = await screen.findByRole('dialog')
