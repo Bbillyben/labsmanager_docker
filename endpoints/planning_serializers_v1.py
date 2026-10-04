@@ -9,6 +9,9 @@ from staff.models import Employee
 from .models import Milestones, effective_start_date
 
 
+PLANNING_DISPLAY_STATES = ("completed", "overdue", "due_soon", "planned", "in_progress")
+
+
 class PlanningMilestoneV1Serializer(serializers.ModelSerializer):
     """Serialize Planning items for an authorized contextual scope."""
 

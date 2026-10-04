@@ -50,7 +50,7 @@ def leave_to_calendar_event(leave, user=None):
     )
 
 
-def produce_leave_calendar_events(context, service):
+def produce_leave_calendar_events(context, service, employee_queryset=None):
     """Produce bounded Leave core events for Employee, Project or Team calendars."""
     if context.calendar_type == CalendarType.EMPLOYEE:
         queryset = Leave.objects.filter(employee_id=context.employee_id)
@@ -61,9 +61,11 @@ def produce_leave_calendar_events(context, service):
         members = TeamMate.objects.filter(team_id=context.team_id).values("employee_id")
         leader = Team.objects.filter(pk=context.team_id).values("leader_id")
         queryset = Leave.objects.filter(Q(employee_id__in=members) | Q(employee_id__in=leader))
+    elif context.calendar_type == CalendarType.MAIN and employee_queryset is not None:
+        queryset = Leave.objects.filter(employee__in=employee_queryset)
     else:
         return []
-    queryset = queryset.select_related("type")
+    queryset = queryset.select_related("type", "employee")
     if context.start:
         queryset = queryset.filter(end_date__gte=context.start)
     if context.end:
@@ -75,4 +77,12 @@ def produce_leave_calendar_events(context, service):
         except (TypeError, ValueError) as exc:
             raise ValidationError({"type": "Expected a Leave type id."}) from exc
     queryset = service.filter_calendar_queryset(queryset, context)
-    return [leave_to_calendar_event(leave, context.user) for leave in queryset.order_by("start_date", "start_period", "end_date", "pk")]
+    if context.calendar_type == CalendarType.MAIN and employee_queryset is not None:
+        # A plugin may narrow the scope, but cannot broaden the authenticated
+        # Employee scope or the requested window of the global calendar.
+        queryset = queryset.filter(employee__in=employee_queryset)
+        if context.start:
+            queryset = queryset.filter(end_date__gte=context.start)
+        if context.end:
+            queryset = queryset.filter(start_date__lte=context.end)
+    return [leave_to_calendar_event(leave, context.user) for leave in queryset.select_related("type", "employee").order_by("start_date", "start_period", "end_date", "pk")]

@@ -123,6 +123,7 @@ INSTALLED_APPS = [
     'infos.apps.InfosConfig',
     'plugin.apps.PluginConfig',
     'notification.apps.NotificationConfig',
+    'dashboard.apps.DashboardConfig',
         
 ]
 

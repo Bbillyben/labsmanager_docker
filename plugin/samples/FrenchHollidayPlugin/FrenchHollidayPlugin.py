@@ -1,9 +1,12 @@
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from django.utils.formats import date_format
 
-from common.calendar import CalendarType, LabsManagerCalendarEvent
+from common.calendar import CalendarContext, CalendarType, LabsManagerCalendarEvent
+from dashboard.registry import DataSource
 
 from plugin import LabManagerPlugin
-from plugin.mixins import SettingsMixin, ScheduleMixin, CalendarEventMixin
+from plugin.mixins import SettingsMixin, ScheduleMixin, CalendarEventMixin, DashboardPluginMixin
 
 from labsmanager.validators import RGBColorValidator
 from labsmanager import settings
@@ -20,7 +23,7 @@ def FHP_get_vac_z(*args, **kwargs):
     ''' function to load inderctly the list of choices from files '''
     return FrenchHollidayPlugin.get_vacation_zones_choices()
 
-class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, LabManagerPlugin):
+class FrenchHollidayPlugin(DashboardPluginMixin, CalendarEventMixin, SettingsMixin, ScheduleMixin, LabManagerPlugin):
     NAME = 'FrenchHollidayPlugin'
     SLUG = 'frenchholliday'
     TITLE = _('French Hollyday Agenda')
@@ -64,6 +67,48 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
             "default":"get_default_zone",
         }
     }
+
+    def get_dashboard_sources(self, context):
+        """Expose the existing local calendar data without refreshing it."""
+        return (DataSource(
+            key="frenchholliday.upcoming-holidays",
+            label=_("Upcoming holidays"),
+            description=_("Next public and school holidays for the configured zone."),
+            category="General",
+            supported_scopes=("user", "project"),
+            compatible_renderers=("kpi", "compact-list"),
+            default_renderer="kpi",
+            provider=self.get_dashboard_holidays,
+            allow_multiple=True,
+            config_fields={
+                "horizon_days": {"type": "integer", "label": _("Horizon (days)"), "min": 1, "max": 365, "default": 180},
+                "limit": {"type": "integer", "label": _("Maximum items"), "min": 1, "max": 12, "default": 5},
+            },
+        ),)
+
+    def get_dashboard_holidays(self, context, config):
+        today = timezone.localdate()
+        horizon = config.get("horizon_days", 180)
+        limit = config.get("limit", 5)
+        calendar_context = CalendarContext(
+            CalendarType.MAIN, user=context.user, start=today,
+            end=today + datetime.timedelta(days=horizon), filters={},
+        )
+        events = sorted(
+            (event for event in self.get_vacation_events(calendar_context)
+             if event.start >= today),
+            key=lambda event: (event.start, event.description, event.id),
+        )[:limit]
+        items = [{"key": event.id, "label": event.description,
+                  "date": event.start.isoformat()} for event in events]
+        if events:
+            first = events[0]
+            days = (first.start - today).days
+            kpi = {"value": date_format(first.start, "j M"), "label": first.description,
+                   "context": _("Today") if days == 0 else _("In %(days)d days") % {"days": days}}
+        else:
+            kpi = {"value": "—", "label": _("No upcoming holidays")}
+        return {"__renderers__": {"kpi": kpi, "compact-list": {"items": items}}}
 
 
     def activate(self):
@@ -165,6 +210,7 @@ class FrenchHollidayPlugin(CalendarEventMixin, SettingsMixin, ScheduleMixin, Lab
 
     @classmethod
     def get_calendar_events(cls, context):
+        print(f'###################>>>>>>>>>>>>>>>>>>>>>>>>>>><  get_calendar_events : {context.calendar_type}')
         if context.calendar_type in (
             CalendarType.PROJECT_ALL,
             # CalendarType.PROJECT,

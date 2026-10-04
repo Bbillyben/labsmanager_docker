@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .preferences import list_user_favorites, preference_status, resolve_preference_object, set_preference
+from .preferences import list_user_favorites, list_user_subscriptions, preference_status, resolve_preference_object, set_preference
 
 
 class ObjectPreferenceV1View(APIView):
@@ -39,3 +39,11 @@ class FavoriteNavigationV1View(APIView):
     def get(self, request):
         return Response([{key: row[key] for key in ("type", "group", "id", "label", "url", "legacy")}
                          for row in list_user_favorites(request.user)])
+
+
+class SubscriptionNavigationV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        return Response([{key: row[key] for key in ("type", "group", "id", "label", "url", "legacy")}
+                         for row in list_user_subscriptions(request.user)])

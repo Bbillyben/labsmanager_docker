@@ -32,31 +32,65 @@ def ensure_dir(path: Path) -> None:
         path.mkdir(parents=True, exist_ok=True)
 
 
-def get_config_file(create=True) -> Path:
-    """Returns the path of the LABSMANAGER configuration file.
+# def get_config_file(create=True) -> Path:
+#     """Returns the path of the LABSMANAGER configuration file.
 
-    Note: It will be created it if does not already exist!
-    """
+#     Note: It will be created it if does not already exist!
+#     """
+#     base_dir = get_base_dir()
+
+#     cfg_filename = os.getenv('LABSMANAGER_CONFIG_FILE')
+
+#     if cfg_filename:
+#         cfg_filename = Path(cfg_filename.strip()).resolve()
+#     else:
+#         # Config file is *not* specified - use the default
+#         cfg_filename = base_dir.joinpath('config.yaml').resolve()
+
+#     if not cfg_filename.exists() and create:
+#         print("LABSMANAGER configuration file 'config.yaml' not found - creating default file")
+#         ensure_dir(cfg_filename.parent)
+
+#         cfg_template = base_dir.joinpath("config_template.yaml")
+#         shutil.copyfile(cfg_template, cfg_filename)
+#         print(f"Created config file {cfg_filename}")
+
+#     return cfg_filename
+def get_config_file(create=True) -> Path:
+    """Returns the path of the LABSMANAGER configuration file."""
+
     base_dir = get_base_dir()
 
+    # Explicit path always has priority
     cfg_filename = os.getenv('LABSMANAGER_CONFIG_FILE')
 
     if cfg_filename:
         cfg_filename = Path(cfg_filename.strip()).resolve()
+
     else:
-        # Config file is *not* specified - use the default
-        cfg_filename = base_dir.joinpath('config.yaml').resolve()
+        # Optional configuration profile
+        profile = os.getenv('LABSMANAGER_CONFIG_PROFILE')
+
+        if profile:
+            cfg_filename = base_dir.joinpath(
+                f'config.{profile.strip()}.yaml'
+            ).resolve()
+        else:
+            cfg_filename = base_dir.joinpath('config.yaml').resolve()
 
     if not cfg_filename.exists() and create:
-        print("LABSMANAGER configuration file 'config.yaml' not found - creating default file")
+        print(
+            f"LABSMANAGER configuration file '{cfg_filename.name}' "
+            "not found - creating default file"
+        )
         ensure_dir(cfg_filename.parent)
 
         cfg_template = base_dir.joinpath("config_template.yaml")
         shutil.copyfile(cfg_template, cfg_filename)
+
         print(f"Created config file {cfg_filename}")
 
     return cfg_filename
-
 
 def load_config_data() -> map:
     """Load configuration data from the config file."""

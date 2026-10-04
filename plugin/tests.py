@@ -28,9 +28,11 @@ class FrenchHolidayCalendarTests(SimpleTestCase):
         self.assertEqual(events[1].description, "Fête d'Automne")
         self.assertNotIn("&#x27;", events[0].description)
 
-    def test_excludes_project_calendars(self):
+    @patch.object(FrenchHollidayPlugin, "get_vacation_events", return_value=[])
+    def test_project_calendar_uses_existing_events(self, get_events):
         context = CalendarContext(CalendarType.PROJECT, user=object())
         self.assertEqual(FrenchHollidayPlugin.get_calendar_events(context), [])
+        get_events.assert_called_once_with(context)
 
     @patch.object(FrenchHollidayPlugin, "get_vacation_events", return_value=[])
     def test_employee_gantt_is_an_applicable_event_context(self, get_events):

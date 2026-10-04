@@ -14,12 +14,13 @@ import nh3
 from project.models import Institution, Project
 from staff.models import Employee, Team
 from expense.models import Contract
+from fund.models import Fund_Institution
 from labsmanager.admin_links_v1 import get_admin_change_url
 
 from .models import GenericNote
 
 
-PARENTS = {'project': Project, 'employee': Employee, 'team': Team, 'institution': Institution, 'contract': Contract}
+PARENTS = {'project': Project, 'employee': Employee, 'team': Team, 'institution': Institution, 'funder': Fund_Institution, 'contract': Contract}
 
 
 def parent_for(user, scope, pk):
@@ -45,6 +46,8 @@ def parent_for(user, scope, pk):
     obj = get_object_or_404(model, pk=pk)
     if model is Team:
         visible = user.has_perm('staff.view_team') or user.has_perm('staff.view_team', obj) or user.has_perm('staff.change_team', obj)
+    elif model is Fund_Institution:
+        visible = user.has_perm('common.display_infos')
     else:
         visible = user.has_perm('common.display_infos') or user.has_perm('project.view_institution')
     if not visible:
@@ -66,6 +69,8 @@ def parent_change(user, parent):
         return user.has_perm('project.change_project') or user.has_perm('project.change_project', parent)
     if isinstance(parent, Team):
         return user.has_perm('staff.change_team') or user.has_perm('staff.change_team', parent)
+    if isinstance(parent, Fund_Institution):
+        return user.has_perm('fund.change_fund_institution') or user.has_perm('fund.change_fund_institution', parent)
     return user.has_perm('project.change_institution')
 
 

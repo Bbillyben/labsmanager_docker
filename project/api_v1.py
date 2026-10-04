@@ -310,15 +310,19 @@ class ProjectListV1Filter(django_filters.FilterSet):
         return queryset.filter(Project.staleFilter()) if value else queryset.exclude(Project.staleFilter())
 
 
+def project_list_queryset(user):
+    visible = Project.get_instances_for_user("view", user, Project.objects.all())
+    visible_funds = Fund.get_instances_for_user("view", user, Fund.objects.all())
+    return visible.prefetch_related(
+        Prefetch("institution_participant_set", queryset=Institution_Participant.objects.select_related("institution").order_by("institution__short_name", "pk"), to_attr="list_institutions"),
+        Prefetch("participant_project", queryset=Participant.objects.select_related("employee").filter(employee__is_active=True).order_by("employee__last_name", "employee__first_name", "pk"), to_attr="list_participants"),
+        Prefetch("fund_set", queryset=visible_funds.select_related("funder", "institution").order_by("funder__short_name", "ref", "pk"), to_attr="list_funds"),
+    )
+
+
 class ProjectV1QuerysetMixin:
     def get_queryset(self):
-        visible = Project.get_instances_for_user("view", self.request.user, Project.objects.all())
-        visible_funds = Fund.get_instances_for_user("view", self.request.user, Fund.objects.all())
-        return visible.prefetch_related(
-            Prefetch("institution_participant_set", queryset=Institution_Participant.objects.select_related("institution").order_by("institution__short_name", "pk"), to_attr="list_institutions"),
-            Prefetch("participant_project", queryset=Participant.objects.select_related("employee").filter(employee__is_active=True).order_by("employee__last_name", "employee__first_name", "pk"), to_attr="list_participants"),
-            Prefetch("fund_set", queryset=visible_funds.select_related("funder", "institution").order_by("funder__short_name", "ref", "pk"), to_attr="list_funds"),
-        )
+        return project_list_queryset(self.request.user)
 
 
 class ProjectListV1View(ProjectV1QuerysetMixin, generics.ListCreateAPIView):

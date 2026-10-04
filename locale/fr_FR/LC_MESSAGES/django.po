@@ -3998,3 +3998,31 @@ msgstr "Options"
 
 #~ msgid "Fund Amout Total"
 #~ msgstr "Montant Total Fonds"
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
+msgid "Upcoming holidays"
+msgstr "Jours fériés et vacances à venir"
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
+msgid "Next public and school holidays for the configured zone."
+msgstr "Prochains jours fériés et vacances scolaires de la zone configurée."
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
+msgid "Horizon (days)"
+msgstr "Horizon (jours)"
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
+msgid "Maximum items"
+msgstr "Nombre maximal d’éléments"
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
+msgid "No upcoming holidays"
+msgstr "Aucun jour férié ou congé scolaire à venir"
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
+msgid "In %(days)d days"
+msgstr "Dans %(days)d jours"
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
+msgid "Today"
+msgstr "Aujourd’hui"

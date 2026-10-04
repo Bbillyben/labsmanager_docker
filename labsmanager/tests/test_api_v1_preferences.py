@@ -8,6 +8,7 @@ from django.db import IntegrityError, transaction
 from rest_framework.test import APITestCase
 
 from common.models import favorite, subscription
+from common.preferences import list_user_favorites
 from fund.models import Cost_Type, Fund, Fund_Institution, Fund_Item
 from project.models import Institution, Participant, Project
 from project.views import get_project_fund_overviewReport_bytType
@@ -82,6 +83,13 @@ class ObjectPreferenceV1Tests(APITestCase):
         self.assertEqual(self.client.get("/api/v1/favorites/").data, [])
         self.assertEqual(favorite.objects.filter(user=self.user).count(), 1)
 
+    def test_subscription_navigation_reuses_object_visibility(self):
+        subscription.objects.create(user=self.user, content_type=ContentType.objects.get_for_model(Project), object_id=self.project.pk)
+        subscription.objects.create(user=self.user, content_type=ContentType.objects.get_for_model(Project), object_id=self.hidden_project.pk)
+        response = self.client.get("/api/v1/subscriptions/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([(row["type"], row["id"]) for row in response.data], [("project", self.project.pk)])
+
     def test_navigation_groups_sorts_and_links_react_and_legacy(self):
         self.user.user_permissions.add(Permission.objects.get(codename="display_infos", content_type__app_label="common"))
         self.user = get_user_model().objects.get(pk=self.user.pk)
@@ -99,9 +107,12 @@ class ObjectPreferenceV1Tests(APITestCase):
             f"/projects/{self.project.pk}", f"/projects/{second.pk}",
             f"/employees/{self.employee.pk}", f"/teams/{self.team.pk}",
         ])
-        self.assertTrue(data[-1]["legacy"])
-        self.assertIn(f"/fund/fund_institution/{self.funder.pk}", data[-2]["url"])
-        self.assertIn(f"/project/institution/{self.institution.pk}", data[-1]["url"])
+        self.assertFalse(data[-1]["legacy"])
+        self.assertEqual(data[-2]["url"], f"/organizations/funders/{self.funder.pk}")
+        self.assertEqual(data[-1]["url"], f"/organizations/institutions/{self.institution.pk}")
+        legacy_rows = list_user_favorites(self.user)
+        self.assertIn(f"/fund/fund_institution/{self.funder.pk}", legacy_rows[-2]["legacy_url"])
+        self.assertIn(f"/project/institution/{self.institution.pk}", legacy_rows[-1]["legacy_url"])
         self.assertContains(self.client.get("/common/nav/"), "Alpha")
 
     def test_mail_financial_overview_uses_supplied_fund_scope(self):

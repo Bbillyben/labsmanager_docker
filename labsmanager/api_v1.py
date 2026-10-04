@@ -2,6 +2,8 @@ from allauth.account.forms import LoginForm
 from allauth.core import ratelimit
 from allauth.core.exceptions import ImmediateHttpResponse
 from django.contrib.auth import logout
+from django.contrib import admin
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.views.decorators.debug import sensitive_post_parameters
@@ -92,6 +94,8 @@ class CurrentUserView(APIView):
                 "is_superuser": user.is_superuser,
                 "employee": employee,
                 "capabilities": get_user_capabilities(user),
+                "can_access_admin": admin.site.has_permission(request),
+                "admin_url": reverse("admin:index") if admin.site.has_permission(request) else None,
             }
         )
 

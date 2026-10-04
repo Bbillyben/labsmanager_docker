@@ -29,8 +29,8 @@ def preference_types():
         "project": PreferenceType(Project, "projects", "/projects/{id}"),
         "employee": PreferenceType(Employee, "employees", "/employees/{id}"),
         "team": PreferenceType(Team, "teams", "/teams/{id}"),
-        "institution": PreferenceType(Institution, "institutions"),
-        "fund_institution": PreferenceType(Fund_Institution, "institutions"),
+        "institution": PreferenceType(Institution, "institutions", "/organizations/institutions/{id}"),
+        "fund_institution": PreferenceType(Fund_Institution, "institutions", "/organizations/funders/{id}"),
     }
 
 
@@ -94,8 +94,17 @@ def legacy_object_url(type_name, object_id):
 
 def list_user_favorites(user):
     """Resolve each supported type in one scoped query; retain hidden relations."""
+    return _list_user_relations(user, favorite)
+
+
+def list_user_subscriptions(user):
+    """Expose visible subscriptions through the same R2.21 scope and URLs."""
+    return _list_user_relations(user, subscription)
+
+
+def _list_user_relations(user, model):
     specs = preference_types()
-    visible = visible_user_relations(user, favorite)
+    visible = visible_user_relations(user, model)
     result = []
     for name, _relation, obj in visible:
         spec = specs[name]

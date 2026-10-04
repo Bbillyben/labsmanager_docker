@@ -31,6 +31,27 @@ def visible_contracts(user):
     return Contract.get_instances_for_user("view", user, Contract.objects.all())
 
 
+def contract_hub_queryset(user):
+    totals = (Contract_expense.objects.filter(contract_id=OuterRef("pk"))
+              .values("contract_id").annotate(total=Sum("amount")).values("total")[:1])
+    money = DecimalField(max_digits=14, decimal_places=2)
+    return (visible_contracts(user)
+            .select_related("employee", "contract_type", "fund__project", "fund__funder", "fund__institution")
+            .annotate(hub_total_amount=Coalesce(Subquery(totals, output_field=money), Value(Decimal("0.00"), output_field=money))))
+
+
+def contract_hub_serializer_context(request, note_counts):
+    user = request.user
+    return {
+        "request": request,
+        "today": timezone.localdate(),
+        "visible_employee_ids": set(Employee.get_instances_for_user("view", user, Employee.objects.all()).values_list("pk", flat=True)),
+        "visible_project_ids": set(Project.get_instances_for_user("view", user, Project.objects.all()).values_list("pk", flat=True)),
+        "can_view_organizations": user.has_perm("common.display_infos"),
+        "note_counts": note_counts,
+    }
+
+
 class ContractHubFilter(django_filters.FilterSet):
     active = django_filters.BooleanFilter(field_name="is_active")
     ongoing = django_filters.BooleanFilter(method="by_ongoing")
@@ -99,23 +120,11 @@ class ContractHubListV1View(generics.ListAPIView):
         return page
 
     def get_queryset(self):
-        totals = (Contract_expense.objects.filter(contract_id=OuterRef("pk"))
-                  .values("contract_id").annotate(total=Sum("amount")).values("total")[:1])
-        money = DecimalField(max_digits=14, decimal_places=2)
-        return (visible_contracts(self.request.user)
-                .select_related("employee", "contract_type", "fund__project", "fund__funder", "fund__institution")
-                .annotate(hub_total_amount=Coalesce(Subquery(totals, output_field=money), Value(Decimal("0.00"), output_field=money))))
+        return contract_hub_queryset(self.request.user)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        user = self.request.user
-        context.update({
-            "today": timezone.localdate(),
-            "visible_employee_ids": set(Employee.get_instances_for_user("view", user, Employee.objects.all()).values_list("pk", flat=True)),
-            "visible_project_ids": set(Project.get_instances_for_user("view", user, Project.objects.all()).values_list("pk", flat=True)),
-            "can_view_organizations": user.has_perm("common.display_infos"),
-            "note_counts": self.note_counts,
-        })
+        context.update(contract_hub_serializer_context(self.request, self.note_counts))
         return context
 
 

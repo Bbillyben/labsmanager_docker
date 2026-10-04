@@ -1,5 +1,7 @@
 from django.urls import path
-from common.preferences_api_v1 import ObjectPreferenceV1View, FavoriteNavigationV1View
+from importlib import import_module
+from common.preferences_api_v1 import ObjectPreferenceV1View, FavoriteNavigationV1View, SubscriptionNavigationV1View
+from common.global_calendar_api_v1 import GlobalEmployeeCalendar, GlobalProjectPlanning, GlobalCalendarFilters
 from endpoints.api_v1 import (
     EditableProjectCandidatesV1View,
     ProjectPlanningItemsV1View,
@@ -35,6 +37,7 @@ from staff.api_v1 import (
     EmployeeProjectWorkloadV1View,
     EmployeeStatusHistoryV1View,
 )
+from staff.organization_chart_v1 import OrganizationChartV1View
 from staff.team_api_v1 import (
     TeamListV1View, TeamListExportV1View, TeamDetailV1View,
     TeamMateCollectionV1View, TeamMateDetailV1View,
@@ -45,9 +48,17 @@ from staff.team_api_v1 import (
 )
 
 from .api_v1 import CurrentUserView, LoginV1View, LogoutV1View
+from dashboard.api_v1 import (DashboardCollection, DashboardDetail, DashboardDefault,
+    DashboardDuplicate, DashboardReorder, DashboardCatalog, DashboardWidgets,
+    DashboardWidgetDetail, DashboardLayout, ProjectDashboard, ProjectDashboardCatalog)
+from global_search.api_v1 import SearchV1View, SearchSchemaV1View, SearchAutocompleteV1View
 from project.api_v1 import ProjectCapabilitiesV1View, ProjectDetailV1View, ProjectFilterOptionsV1View, ProjectListV1View, ProjectListExportV1View, ProjectOverviewOptionsV1View, project_child_view
 from project.calendar_api_v1 import ProjectCalendarV1View, ProjectCalendarFiltersV1View, ProjectCalendarParticipantsV1View, ProjectCalendarLeaveCreateV1View, ProjectCalendarLeaveDetailV1View
 from fund.api_v1 import ProjectFundingView, FundingOptionsView, FundingFundView, FundItemView, ExpensePointView
+from fund.financial_tools_api_v1 import (
+    FundItemList, FundItemExport, FundItemContracts, BudgetList, BudgetExport,
+    ExpenseList, ExpenseExport, FinancialOptions, FinancialOrganizations,
+)
 from fund.budget_api_v1 import (
     ProjectBudgetCollection, ProjectBudgetDetail, ProjectBudgetOptions,
     ProjectContributionCollection, ProjectContributionDetail, ProjectContributionOptions,
@@ -63,12 +74,86 @@ from expense.contract_hub_api_v1 import (
 )
 from reports.api_v1 import ReportExportV1View
 from settings.api_v1 import ProjectSettingsV1View, ProjectSettingDetailV1View
+from settings.user_api_v1 import UserSettingsV1View, UserSettingDetailV1View
+from settings.admin_api_v1 import (
+    AdminSettings, AdminSettingDetail, AdminUsers, AdminUserEmployee,
+    AdminEmployeeOptions, AdminNotifications, AdminNotificationAction,
+    AdminPlugins, AdminPluginReload, AdminPluginDetail, AdminPluginSetting,
+    AdminInvitations, AdminRemoveExpiredInvitations,
+)
+from settings.account_api_v1 import UserAccountV1View, UserPasswordV1View, UserEmailsV1View, UserEmailDetailV1View
+from settings.mutable_lists_api_v1 import MutableListsRegistryV1View, MutableListCollectionV1View, MutableListDetailV1View
 from infos.api_v1 import GenericNotesCollectionV1View, GenericNoteDetailV1View
+from infos.organization_api_v1 import (
+    OrganizationList, OrganizationDetail, OrganizationOptions, OrganizationChildren,
+    OrganizationChildDetail, ContactInfos, ContactInfoDetail, OrganizationProjects,
+    OrganizationContracts, OrganizationSummary,
+)
 
 
 app_name = "api_v1"
 
+import_api = import_module("import.api_v1")
+
 urlpatterns = [
+    path("search/", SearchV1View.as_view(), name="search"),
+    path("search/schema/", SearchSchemaV1View.as_view(), name="search-schema"),
+    path("search/autocomplete/", SearchAutocompleteV1View.as_view(), name="search-autocomplete"),
+    path("dashboards/", DashboardCollection.as_view(), name="dashboards"),
+    path("projects/<int:project_id>/dashboard/", ProjectDashboard.as_view(), name="project-dashboard"),
+    path("projects/<int:project_id>/dashboard/catalog/", ProjectDashboardCatalog.as_view(), name="project-dashboard-catalog"),
+    path("dashboards/catalog/", DashboardCatalog.as_view(), name="dashboard-catalog"),
+    path("dashboards/reorder/", DashboardReorder.as_view(), name="dashboard-reorder"),
+    path("dashboards/<int:pk>/", DashboardDetail.as_view(), name="dashboard-detail"),
+    path("dashboards/<int:pk>/default/", DashboardDefault.as_view(), name="dashboard-default"),
+    path("dashboards/<int:pk>/duplicate/", DashboardDuplicate.as_view(), name="dashboard-duplicate"),
+    path("dashboards/<int:pk>/layout/", DashboardLayout.as_view(), name="dashboard-layout"),
+    path("dashboards/<int:pk>/widgets/", DashboardWidgets.as_view(), name="dashboard-widgets"),
+    path("dashboards/<int:pk>/widgets/<uuid:widget_id>/", DashboardWidgetDetail.as_view(), name="dashboard-widget-detail"),
+    path("settings/admin/<str:section>/settings/", AdminSettings.as_view(), name="admin-settings"),
+    path("settings/admin/<str:section>/settings/<str:key>/", AdminSettingDetail.as_view(), name="admin-setting-detail"),
+    path("settings/admin/users/", AdminUsers.as_view(), name="admin-users"),
+    path("settings/admin/invitations/", AdminInvitations.as_view(), name="admin-invitations"),
+    path("settings/admin/invitations/remove-expired/", AdminRemoveExpiredInvitations.as_view(), name="admin-invitations-remove-expired"),
+    path("settings/admin/users/employee-options/", AdminEmployeeOptions.as_view(), name="admin-employee-options"),
+    path("settings/admin/users/<int:pk>/employee/", AdminUserEmployee.as_view(), name="admin-user-employee"),
+    path("settings/admin/notifications/", AdminNotifications.as_view(), name="admin-notifications"),
+    path("settings/admin/notifications/<str:action>/", AdminNotificationAction.as_view(), name="admin-notification-action"),
+    path("settings/admin/plugins/", AdminPlugins.as_view(), name="admin-plugins"),
+    path("settings/admin/plugins/reload/", AdminPluginReload.as_view(), name="admin-plugin-reload"),
+    path("settings/admin/plugins/<str:key>/", AdminPluginDetail.as_view(), name="admin-plugin-detail"),
+    path("settings/admin/plugins/<str:key>/settings/<str:setting_key>/", AdminPluginSetting.as_view(), name="admin-plugin-setting"),
+    path("calendars/employees/", GlobalEmployeeCalendar.as_view(), name="global-employee-calendar"),
+    path("calendars/projects/", GlobalProjectPlanning.as_view(), name="global-project-planning"),
+    path("calendars/<str:scope>/filters/", GlobalCalendarFilters.as_view(), name="global-calendar-filters"),
+    path("imports/profiles/", import_api.ImportProfiles.as_view(), name="import-profiles"),
+    path("imports/<str:profile>/template/", import_api.ImportTemplate.as_view(), name="import-template"),
+    path("imports/<str:profile>/upload/", import_api.ImportUpload.as_view(), name="import-upload"),
+    path("imports/<str:profile>/preview/", import_api.ImportPreview.as_view(), name="import-preview"),
+    path("imports/<str:profile>/commit/", import_api.ImportCommit.as_view(), name="import-commit"),
+    path("imports/<str:profile>/errors/", import_api.ImportErrors.as_view(), name="import-errors"),
+    path("organization-chart/", OrganizationChartV1View.as_view(), name="organization-chart"),
+    path("fund-items/", FundItemList.as_view(), name="financial-fund-items"),
+    path("fund-items/export/", FundItemExport.as_view(), name="financial-fund-items-export"),
+    path("fund-items/<int:item_id>/contracts/", FundItemContracts.as_view(), name="financial-fund-item-contracts"),
+    path("budgets/", BudgetList.as_view(), name="financial-budgets"),
+    path("budgets/export/", BudgetExport.as_view(), name="financial-budgets-export"),
+    path("expenses/", ExpenseList.as_view(), name="financial-expenses"),
+    path("expenses/export/", ExpenseExport.as_view(), name="financial-expenses-export"),
+    path("financial/filter-options/", FinancialOptions.as_view(), name="financial-filter-options"),
+    path("financial/organizations/", FinancialOrganizations.as_view(), name="financial-organizations"),
+    path("organizations/<str:kind>/", OrganizationList.as_view(), name="organizations"),
+    path("organizations/<str:kind>/<int:pk>/", OrganizationDetail.as_view(), name="organization-detail"),
+    path("organizations/<str:kind>/<int:pk>/options/", OrganizationOptions.as_view(), name="organization-options"),
+    path("organizations/<str:kind>/<int:pk>/summary/", OrganizationSummary.as_view(), name="organization-summary"),
+    path("organizations/<str:kind>/<int:pk>/projects/", OrganizationProjects.as_view(), name="organization-projects"),
+    path("organizations/<str:kind>/<int:pk>/contracts/", OrganizationContracts.as_view(), name="organization-contracts"),
+    path("organizations/<str:kind>/<int:pk>/infos/", OrganizationChildren.as_view(), {"collection": "infos"}, name="organization-infos"),
+    path("organizations/<str:kind>/<int:pk>/infos/<int:item_id>/", OrganizationChildDetail.as_view(), {"collection": "infos"}, name="organization-info-detail"),
+    path("organizations/<str:kind>/<int:pk>/contacts/", OrganizationChildren.as_view(), {"collection": "contacts"}, name="organization-contacts"),
+    path("organizations/<str:kind>/<int:pk>/contacts/<int:item_id>/", OrganizationChildDetail.as_view(), {"collection": "contacts"}, name="organization-contact-detail"),
+    path("organizations/<str:kind>/<int:pk>/contacts/<int:contact_id>/infos/", ContactInfos.as_view(), name="organization-contact-infos"),
+    path("organizations/<str:kind>/<int:pk>/contacts/<int:contact_id>/infos/<int:item_id>/", ContactInfoDetail.as_view(), name="organization-contact-info-detail"),
     path("contracts/", ContractHubListV1View.as_view(), name="contract-hub-list"),
     path("contracts/export/", ContractHubExportV1View.as_view(), name="contract-hub-export"),
     path("contracts/filter-options/", ContractHubFilterOptionsV1View.as_view(), name="contract-hub-filter-options"),
@@ -80,6 +165,16 @@ urlpatterns = [
     path("contracts/<int:hub_contract_id>/expenses/<int:expense_id>/", ExpenseDetailV1View.as_view(), name="contract-hub-expense-detail"),
     path("preferences/<str:type_name>/<int:object_id>/", ObjectPreferenceV1View.as_view(), name="object-preferences"),
     path("favorites/", FavoriteNavigationV1View.as_view(), name="favorites-navigation"),
+    path("subscriptions/", SubscriptionNavigationV1View.as_view(), name="subscriptions-navigation"),
+    path("settings/account/", UserAccountV1View.as_view(), name="user-account"),
+    path("settings/account/password/", UserPasswordV1View.as_view(), name="user-password"),
+    path("settings/account/emails/", UserEmailsV1View.as_view(), name="user-emails"),
+    path("settings/account/emails/<int:email_id>/", UserEmailDetailV1View.as_view(), name="user-email-detail"),
+    path("settings/user/<str:section>/", UserSettingsV1View.as_view(), name="user-settings"),
+    path("settings/user/<str:section>/<str:key>/", UserSettingDetailV1View.as_view(), name="user-setting-detail"),
+    path("settings/lists/", MutableListsRegistryV1View.as_view(), name="mutable-lists"),
+    path("settings/lists/<str:list_key>/", MutableListCollectionV1View.as_view(), name="mutable-list"),
+    path("settings/lists/<str:list_key>/<int:item_id>/", MutableListDetailV1View.as_view(), name="mutable-list-detail"),
     path('teams/', TeamListV1View.as_view(), name='teams'),
     path('teams/export/', TeamListExportV1View.as_view(), name='team-list-export'),
     path('teams/<int:team_id>/', TeamDetailV1View.as_view(), name='team-detail'),
