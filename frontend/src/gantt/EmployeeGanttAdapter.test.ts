@@ -29,6 +29,26 @@ describe('Employee Gantt adaptation', () => {
     expect(data.items[1]).toMatchObject({ kind: 'task', state: 'overdue' })
   })
 
+  it('retains visible Project rows without work in the global Planning scope', () => {
+    const data = adaptPlanningGantt(work, [], [
+      { id: 7, name: 'Atlas', start_date: '2026-01-01', end_date: '2026-12-31' },
+      { id: 12, name: 'Empty project', start_date: '2026-02-01', end_date: '2026-09-30' },
+    ])
+    expect(data.items.map((item) => item.key)).toEqual(['project:7', 'work:8', 'work:9', 'work:10', 'project:12'])
+    expect(data.items.at(-1)).toMatchObject({ kind: 'group', identity: { kind: 'project', id: '12' } })
+    const mapped = toSvarTasks(data, [], { from: '2026-01-01', to: '2026-12-31', months: 12 })
+    expect(mapped.tasks.find((task) => task.id === 'project:7')?.open).toBe(true)
+    expect(mapped.tasks.find((task) => task.id === 'project:12')?.open).toBe(false)
+  })
+
+  it('keeps a Project summary closed when all its work is undated and omitted', () => {
+    const undated = { ...work[0], id: 30, start_date: null, end_date: null }
+    const mapped = toSvarTasks(adaptPlanningGantt([undated], [], [
+      { id: 7, name: 'Atlas', start_date: '2026-01-01', end_date: '2026-12-31' },
+    ]), [], { from: '2026-01-01', to: '2026-12-31', months: 12 })
+    expect(mapped.tasks).toMatchObject([{ id: 'project:7', open: false }])
+  })
+
   it('maps scoped dependencies without inventing missing endpoints', () => {
     const scoped = work.map((item) => ({ ...item, dependencies: item.id === 9 ? [
       { id: 51, predecessor_id: 8, successor_id: 9, temporally_inconsistent: false },

@@ -38,9 +38,15 @@ function setup(data: ProjectFunding = base, fundDetail: FundDetail = detail, loa
   return { ...view, fetchMock }
 }
 
-afterEach(() => { vi.restoreAllMocks(); localStorage.clear() })
+afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); window.history.replaceState({}, '', window.location.pathname) })
 
 describe('ProjectFundingPanel', () => {
+  it('selects the Fund addressed by a Global Search result URL', async () => {
+    window.history.replaceState({}, '', '/app/projects/3/funding#fund-row-7')
+    setup()
+    expect(await screen.findByRole('heading', { name: 'Dépenses individuelles' })).toBeInTheDocument()
+    expect(screen.getByRole('row', { name: /ANR.*UL.*A-1/ })).toHaveAttribute('aria-selected', 'true')
+  })
   it('opens the Admin action for a Fund without replacing business actions', async () => {
     setup({ ...base, funds: [{ ...fund, admin_url: '/admin/fund/fund/7/change/' }] })
     await screen.findByText('Financements')

@@ -1041,3 +1041,132 @@ npm run typecheck
 Résultats : **32 tests backend** et **38 tests frontend** réussis ; contrôle
 Django, ESLint ciblé et TypeScript réussis. Le `git diff --check` racine et
 le contrôle ciblé du backend passent. Validation navigateur R2.23 attendue.
+
+## R2.24b — Organisations
+
+### VM de développement
+
+Aucune nouvelle migration ni dépendance. `infos.0017` était déjà appliquée en développement selon la confirmation utilisateur.
+
+### Vérifications ciblées
+
+Depuis `backend/` :
+
+```bash
+python3 manage.py check
+python3 manage.py test labsmanager.tests.test_api_v1_preferences labsmanager.tests.test_api_v1_notes labsmanager.tests.test_api_v1_organizations --keepdb --verbosity 1
+```
+
+Depuis `frontend/`, avec Node 24.11.1 via NVM :
+
+```bash
+npx vitest run src/layout/FavoritesMenu.test.tsx src/pages/OrganizationPages.test.tsx src/pages/genericInfoIcons.test.ts src/components/typedInfoLinks.test.ts --testTimeout 12000
+npx vitest run src/router/AppRouter.test.tsx -t 'loads the' --testTimeout 12000
+npx vitest run src/pages/EmployeeContracts.test.tsx --testTimeout 15000
+npx vitest run src/i18n/i18n.test.ts src/pages/genericInfoIcons.test.ts --testTimeout 10000
+npm run typecheck
+npm run build
+npx eslint src/api/organizations.ts src/components/TypedInfoValue.tsx src/components/typedInfoLinks.ts src/pages/OrganizationListPage.tsx src/pages/OrganizationDetailPage.tsx src/pages/OrganizationSheets.tsx src/pages/ContractDetail.tsx src/layout/Sidebar.tsx src/router/AppRouter.tsx
+```
+
+Contrôler enfin `git diff --check` dans le dépôt racine et le sous-module backend. La validation navigateur des deux fiches reste distincte de ces contrôles.
+
+## R2.25 — Outils financiers
+
+Depuis `backend/` : `python3 manage.py check` puis `python3 manage.py test labsmanager.tests.test_api_v1_financial_tools --keepdb --verbosity 1`.
+
+Depuis `frontend/` avec Node 24.11.1 via NVM : `npx vitest run src/pages/FinancialToolPage.test.tsx src/pages/ProjectBudgetsPanel.test.tsx src/pages/ExpenseSection.test.tsx src/filters/FilterBar.test.tsx --testTimeout 15000` et `npx vitest run src/router/AppRouter.test.tsx -t 'financial tool'`, puis `npm run typecheck`, `npm run build` et ESLint ciblé sur les fichiers modifiés. Vérifier `git diff --check` dans le dépôt racine et le sous-module backend. La validation navigateur est distincte.
+
+## R2.26a — Organigramme
+
+Depuis `backend/` : `python3 manage.py test labsmanager.tests.test_api_v1_organization_chart --keepdb --verbosity 1`.
+
+Depuis `frontend/` avec Node 24.11.1 via NVM : `npx vitest run src/pages/organizationGraph.test.ts src/pages/organizationLayout.test.ts src/pages/OrganizationChartPage.test.tsx src/router/AppRouter.test.tsx`, puis `npm run typecheck`, ESLint ciblé et `npm run build`. Vérifier `git diff --check` dans le dépôt racine et le sous-module backend. Le contrôle navigateur du graphe et l'impression R2.26b restent distincts.
+
+## R2.27 — Import Hub
+
+Aucune migration ni nouvelle dépendance. Depuis `backend/`, exécuter `python3 manage.py test labsmanager.tests.test_api_v1_imports --keepdb` puis `python3 manage.py check`. Depuis `frontend/`, utiliser Node 24.11.1 via NVM et lancer `npx vitest run src/pages/ImportPage.test.tsx src/router/AppRouter.test.tsx`, `npm run typecheck` et ESLint ciblé. Terminer par `git diff --check` dans les deux dépôts. Vérifier au navigateur Expense, Employee et Expense Timepoint avec leurs réglages Project respectifs, les feuilles Excel, la correction d'erreurs et le résultat réel ; la validation navigateur reste distincte.
+
+Pour R2.27-fix-1, contrôler dans la preview Expense et le résultat final l'ordre des colonnes déclarées par `ImportProfile.preview_columns`, les labels de la Resource, les valeurs Project/Fund/Funder/Institution et la date ; vérifier qu'une ligne en erreur conserve la valeur brute du fichier. Employee et Expense Timepoint conservent le tableau générique.
+
+## R2.28 — Calendriers globaux
+
+Depuis `backend/` : `python3 manage.py test labsmanager.tests.test_api_v1_global_calendars --keepdb`, puis `python3 manage.py check`. Depuis `frontend/`, avec Node 24.11.1 via NVM : `npx vitest run src/pages/GlobalCalendarsPage.test.tsx src/router/AppRouter.test.tsx src/gantt/EmployeeGanttAdapter.test.ts`, `npm run typecheck` et ESLint ciblé sur les fichiers modifiés. Vérifier `git diff --check` dans les deux dépôts.
+
+Au navigateur, ouvrir directement `/app/calendars`, vérifier les deux onglets, les bornes et filtres cumulés conservés après rafraîchissement, les Leave et liens Employee, puis les lignes Project et détails Task/Milestone en lecture seule. Tester un utilisateur ne voyant qu'une partie des Employees/Projects et les filtres plugins actifs. La validation navigateur reste distincte des tests automatisés.
+
+Pour R2.28-fix-1 : `python3 manage.py test labsmanager.tests.test_api_v1_global_calendars --keepdb` couvre le contexte FrenchHoliday Zone B ; depuis `frontend/`, `npx vitest run src/pages/GlobalCalendarsPage.test.tsx src/gantt/EmployeeGanttAdapter.test.ts src/gantt/SvarGanttAdapter.test.tsx src/calendar/fullCalendarAdapter.test.ts` couvre la query plugin et un Project sans tâche. Au navigateur, contrôler un Gantt global avec Project sans tâche, puis le calendrier général du 01/12/2026 au 31/01/2027 en Zone B : la requête doit porter `frenchholliday-zone=Zone B` et « Vacances de Noël » doit apparaître en fond.
+
+## R2.29a — Settings Hub utilisateur
+
+Depuis `backend/` : `python3 manage.py test labsmanager.tests.test_api_v1_user_settings labsmanager.tests.test_api_v1_preferences --keepdb`, puis `python3 manage.py check`. Depuis `frontend/`, avec Node 24.11.1 via NVM : `npx vitest run src/router/AppRouter.test.tsx`, `npm run typecheck` et ESLint ciblé sur le Settings Hub, le routeur, la topbar, les clients API et l'i18n. Terminer par `git diff --check` dans les deux dépôts. Au navigateur, vérifier l'accès par le menu utilisateur, les cinq sous-routes et leur rechargement, le mot de passe et les e-mails, les choix/validations des réglages, le retrait de favoris/abonnements, FR/EN et largeur réduite. Le Dashboard Settings et les groupes futurs restent hors de R2.29a.
+
+Pour R2.29a-fix-1, relancer les tests API Settings ciblés et `src/router/AppRouter.test.tsx`, puis TypeScript, ESLint ciblé et `git diff --check`. Au navigateur : vérifier l'absence de pile de cards, la Sheet de mot de passe et sa fermeture, les deux badges d'état et le menu de chaque e-mail actionnable, le refus API de suppression Primary, le changement de Primary et le renvoi de vérification. Tester l'autosave switch/select/entier, erreur et retour de valeur, puis les deux colonnes Favoris/Abonnements sur desktop et leur empilement sur mobile. R2.29a reste à valider.
+
+## R2.29b — listes mutables Settings
+
+Depuis `backend/` : `python3 manage.py test labsmanager.tests.test_api_v1_mutable_lists --keepdb`, puis `python3 manage.py check`. Depuis `frontend/` avec Node 24.11.1 via NVM : `npx vitest run src/pages/MutableListPage.test.tsx src/router/AppRouter.test.tsx`, `npm run typecheck` et ESLint ciblé sur le composant, son client API, le shell, le routeur et l'i18n. Vérifier `git diff --check` dans les deux dépôts. Au navigateur, parcourir les six groupes, vérifier lecture seule et permissions de création/modification, les champs relation/choix, les erreurs de validation, le rechargement direct, FR/EN et largeur réduite. Les neuf listes historiques actives ne proposent pas Delete.
+
+### R2.29b-fix-1 — hiérarchie MPTT
+
+Relancer uniquement `python3 manage.py test labsmanager.tests.test_api_v1_mutable_lists --keepdb` depuis `backend/`, puis `npx vitest run src/pages/MutableListPage.test.tsx` depuis `frontend/` avec Node NVM. Vérifier TypeScript, ESLint ciblé et `git diff --check`. Au navigateur, contrôler Cost Type et Leave Type sur trois niveaux : ordre parent/enfant, indentation et préfixe, colonne voisine inchangée, sélection Parent et Sheet inchangés, puis une liste non MPTT et une largeur réduite. R2.29b a été validé fonctionnellement.
+
+## R2.29c — Administration Settings
+
+Depuis `backend/` : `python3 manage.py test labsmanager.tests.test_api_v1_admin_settings --keepdb` puis `python3 manage.py check`. Depuis `frontend/` avec Node NVM : `npx vitest run src/pages/AdminSettingsPage.test.tsx`, `npm run typecheck` et ESLint ciblé sur Settings Admin, routeur et i18n. Terminer par `git diff --check` sur les fichiers du lot. Au navigateur, vérifier les quatre routes Admin avec compte staff et non-staff, les cinq réglages généraux et les quatre interrupteurs Plugins, lien/changement/déliaison Employee, Notifications pending/check/send, reload/errors et détails des plugins avec leurs sections selon les mixins. R2.29c reste à valider fonctionnellement.
+
+### R2.29c-fix-1 — Invitations Admin Users
+
+Relancer `python3 manage.py test labsmanager.tests.test_api_v1_admin_settings --keepdb` depuis `backend/`, puis `npx vitest run src/pages/AdminSettingsPage.test.tsx`, TypeScript et ESLint ciblé depuis `frontend/` avec Node NVM. Terminer par `git diff --check`. Au navigateur, vérifier les colonnes et statuts des invitations, l'envoi réussi et l'erreur de doublon dans la Sheet, puis la confirmation « Remove expired » et le maintien d'une invitation active ; tester un compte non-staff. R2.29c reste à valider.
+
+## R3.1 — Dashboard Foundation
+
+Dans `backend/`, appliquer `python3 manage.py migrate dashboard` sur l'environnement cible, puis lancer `python3 manage.py test dashboard.tests --keepdb --noinput` et `python3 manage.py check`. Dans `frontend/`, activer Node 24.11.1 via NVM puis lancer `npx vitest run src/dashboard/DashboardPage.test.tsx src/dashboard/DashboardGrid.test.tsx`, `npm run typecheck` et ESLint ciblé. `npm install react-grid-layout@^2 --save` a ajouté le moteur et mis à jour le lockfile. Terminer par `git diff --check` dans le dépôt racine et le sous-module backend. Au navigateur, contrôler onboarding sans sélection implicite, quatre templates, plusieurs tableaux, default/reload, ordre, duplication, suppression, drag/resize/reload, définition manquante, largeur étroite et FR/EN.
+
+## R3.2 — Dashboard Core
+
+Dans `backend/`, appliquer `python3 manage.py migrate dashboard` sur chaque environnement cible (incluant `dashboard.0002_widget_source`), puis lancer `python3 manage.py test dashboard.tests --keepdb --noinput`. Dans `frontend/`, avec Node 24.11.1 via NVM, lancer `npx vitest run src/dashboard/DashboardPage.test.tsx src/dashboard/DashboardGrid.test.tsx src/dashboard/CoreRenderers.test.tsx`, `npm run typecheck` et ESLint ciblé sur Dashboard/API/i18n. Terminer par `git diff --check` dans les deux dépôts. Au navigateur : ajouter deux `core.projects` en KPI/liste, configurer `active_only` et `limit`, changer renderer et titre sans nouvelle instance, vérifier le refus de doublon Liens rapides, resize compact/standard/expanded, reload, menu et confirmation, largeur étroite et FR/EN. L'impression et la présentation Dashboard restent futures.
+
+## R3.3 — Dashboard Business Sources
+
+Dans `backend/`, lancer `python3 manage.py test dashboard.tests --keepdb --noinput` puis `python3 manage.py check`. Dans `frontend/`, avec Node 24.11.1 via NVM, lancer `npx vitest run src/dashboard/DashboardPage.test.tsx src/dashboard/DashboardGrid.test.tsx src/dashboard/CoreRenderers.test.tsx`, `npm run typecheck` et ESLint ciblé sur Dashboard/i18n. Terminer par `git diff --check` dans les deux dépôts. Au navigateur, créer successivement Employee, Leader et Lab Manager, vérifier les 5/7/7 widgets, données et liens selon les droits, les Fonds et leur progression, les échéances Contract et RH, les tâches affectées, les listes vides, les filtres du catalogue, le changement de renderer, le resize, FR/EN et écran étroit. Vérifier qu'un ancien dashboard et le template Blank restent inchangés.
+
+## R3.4 — Dashboard Print et présentation
+
+Dans `frontend/` avec Node 24.11.1 via NVM : `npx vitest run src/dashboard/DashboardPage.test.tsx src/dashboard/DashboardGrid.test.tsx src/dashboard/DashboardPrintView.test.tsx src/dashboard/DashboardPresentation.test.tsx src/router/AppRouter.test.tsx`, puis `npm run typecheck`, ESLint ciblé et `npm run build` pour la route et le renderer chargés à la demande. Terminer par `git diff --check` dans le dépôt racine. Au navigateur : vérifier Employee, Leader et Lab Manager en présentation et en aperçu A4 paysage, les actions masquées, l'ordre logique, les sauts de page, les couleurs, les liens et le retour au tableau sélectionné. La validation fonctionnelle reste distincte des contrôles automatisés.
+
+## R3.5 — Dataset synthétique
+
+Depuis `backend/`, sur une **base de démonstration dédiée et non productive** : `python3 manage.py generate_demo_data --reference-date 2026-10-04 --seed 42`. Pour reconstruire cette base : `python3 manage.py generate_demo_data --reference-date 2026-10-04 --seed 42 --reset`. **Ne jamais exécuter `--reset` sur une base de production.** Les comptes et scénarios sont détaillés dans `docs/demo-data/DATASET.md`. Tests ciblés : `python3 manage.py test labsmanager.demo_data.tests --keepdb --noinput`, puis `python3 manage.py check`. Vérifier `git diff --check` sur les documents et fichiers suivis, puis les tableaux Employee/Leader/Lab Manager et les listes associées au navigateur. La base de développement n'est pas réinitialisée par cette procédure documentaire.
+
+## R3.6 — Dashboard Project
+
+Depuis `backend/`, appliquer `python3 manage.py migrate dashboard` sur l’environnement cible avant d’ouvrir le Dashboard Project. `dashboard.0003_project_dashboard` est déjà appliquée dans l’environnement signalé par l’utilisateur ; la migration corrective R3.6a `dashboard.0004_generic_dashboard_context` reste à appliquer. Vérifier avec `python3 manage.py test dashboard.tests dashboard.tests_r36 dashboard.tests_r36a_migration labsmanager.demo_data.tests.DemoDatasetTests.test_generation_scenarios_permissions_and_dashboard_sources --keepdb --noinput` et `python3 manage.py check`. Depuis `frontend/`, avec Node NVM 24.11.1, lancer les tests ciblés Dashboard/routeur, `npm run typecheck`, ESLint ciblé et le build Vite pour la nouvelle route chargée à la demande. Contrôler `git diff --check` dans les deux dépôts. Pour voir les nouvelles séries demo, reconstruire uniquement la base de démonstration dédiée avec la procédure R3.5 ; aucune commande de génération n’est exécutée sur la base de développement courante.
+
+## R3.6a — Contexte générique Dashboard
+
+Depuis `backend/`, appliquer sur l’environnement cible `python3 manage.py migrate dashboard 0004_generic_dashboard_context` après sauvegarde habituelle de la base. `0003` reste historique et n’est pas réécrite ; `0004` préserve les Dashboard Project existants. Avant validation navigateur, exécuter `python3 manage.py test dashboard.tests dashboard.tests_r36 dashboard.tests_r36a_migration --keepdb --noinput`, `python3 manage.py makemigrations dashboard --check --dry-run --noinput` et `python3 manage.py check`. Vérifier `git diff --check` sur les fichiers du lot. Au navigateur, retrouver le même Dashboard Project, ses widgets, son édition, les courbes/KPI et Print/Presentation, puis vérifier un Dashboard personnel. Aucun build frontend requis pour ce correctif backend.
+
+## R3.7 — FrenchHollidayPlugin Dashboard
+
+Depuis `backend/` : `python3 manage.py test dashboard.tests_r37 plugin.tests.FrenchHolidayCalendarTests --keepdb --noinput`, puis `python3 manage.py check`. Les fichiers `vac.json` et `dayoff.json` sont normalement alimentés par l'activation du plugin et sa tâche hebdomadaire `FHP_PULL`. Pour préparer volontairement une base de démonstration dont les fichiers manquent ou sont anciens, utiliser la commande existante `python3 manage.py shell -c "from plugin.samples.FrenchHollidayPlugin.FrenchHollidayPlugin import FrenchHollidayPlugin; FrenchHollidayPlugin.FHP_pull()"` ; elle contacte les sources externes, contrairement au rendu Dashboard. Depuis `frontend/`, exécuter seulement les tests génériques Dashboard pertinents (catalogue, renderers, placeholder). Contrôler `git diff --check`. Au navigateur, ajouter la source en KPI et liste sur Dashboard personnel et Project ; vérifier zone, dates, horizon, plugin off/on, puis présentation et impression. R3.7 reste à valider au navigateur.
+
+## R3.8 — Global Search infrastructure
+
+Depuis `backend/` : `python3 manage.py test global_search.tests --keepdb --noinput` puis `python3 manage.py check`. Après authentification, vérifier `GET /api/v1/search/schema/`, `GET /api/v1/search/?q=dupont`, `GET /api/v1/search/?q=preci`, `GET /api/v1/search/?provider=project&q=preci` et `GET /api/v1/search/?q=preci&limit=8&per_provider=3` : seules les fiches Employee/Project visibles doivent apparaître, avec titre, URL React et raison du match. Le faux provider plugin est couvert par le test automatisé, sans plugin métier à installer. Vérifier `git diff --check` sur les fichiers du lot. Aucune migration ni commande frontend pour R3.8.
+
+## R3.9 — Global Search UI
+
+Depuis `frontend/` avec Node NVM : `npx vitest run src/api/globalSearch.test.ts src/search/GlobalSearch.test.tsx --maxWorkers=1`, puis `npm run typecheck`, ESLint ciblé sur Search/API/Topbar/routeur/i18n et `git diff --check` sur les fichiers du lot. Au navigateur : ouvrir l'icône Topbar, rechercher Employee/Project, vérifier groupes et URLs, `/`, flèches/Entrée/Échap, clic extérieur, puis `/app/search?q=...`, onglet provider, actualisation et retour navigateur. Comparer deux comptes aux visibilités différentes ; un objet invisible ne doit jamais paraître. Le provider `publication` est simulé en test frontend pour vérifier le rendu générique, sans installer de plugin réel.
+
+## R3.10 — Global Search métier
+
+Depuis `backend/` : `python3 manage.py test global_search.tests global_search.tests_r310 --keepdb --noinput`, puis `python3 manage.py check`. Depuis `frontend/` avec Node NVM : `npx vitest run src/pages/ProjectFundingPanel.test.tsx src/search/GlobalSearch.test.tsx src/api/globalSearch.test.ts src/pages/genericInfoIcons.test.ts --maxWorkers=1`, `npm run typecheck` et ESLint ciblé sur Search/API/icônes/Project Funding. Vérifier `git diff --check` sur les fichiers du lot. Au navigateur : Employee (nom, email, statut, ORCID), Project (nom, leader, co-leader, participant, institution, GenericInfo), Fund (`ref`, financeur, gestionnaire ; nom Project seul exclu), Contract (Employee, email visible, type), Team (nom, leader, membre), `counts` des onglets et destinations. Comparer deux comptes : aucun objet ni GenericInfo inaccessible ne doit apparaître. Aucun migrate requis.
+
+## R3.11 — Langage avancé Global Search
+
+Depuis `backend/` : `python3 manage.py test global_search.tests global_search.tests_r310 global_search.tests_r311 --keepdb --noinput`, puis `python3 manage.py check`. Depuis `frontend/` avec Node NVM : `npx vitest run src/search/GlobalSearch.test.tsx src/api/globalSearch.test.ts`, `npm run typecheck` et ESLint ciblé sur Search/i18n. Vérifier `git diff --check` sur les fichiers du lot. Au navigateur, tester `Dupont`, `"Jean Dupont"`, `project:PreciseIT`, `employee:Dupont`, `leader:Dupont`, `participant:Dupont`, `institution:Inserm`, `funder:ANR`, puis `leader:Dupont AND institution:Inserm`, `project:PreciseIT OR project:BariBoul`, `(project:PreciseIT OR project:BariBoul) AND leader:Dupont`, `project:PreciseIT AND NOT leader:Dupont`, `info:"ORCID"="..."`. Vérifier `project:`, `(project:Foo` et `unknown:bar` en erreur contrôlée, l'aperçu, les comptes, la navigation, les permissions et le retour navigateur. Aucun migrate requis.
+
+## R3.12 — Autocomplétion Global Search
+
+Depuis `backend/` : `python3 manage.py test global_search.tests global_search.tests_r310 global_search.tests_r311 global_search.tests_r312 --keepdb --noinput`, puis `python3 manage.py check`. Depuis `frontend/` avec Node NVM : `npx vitest run src/search/GlobalSearch.test.tsx src/search/SearchAutocompleteInput.test.tsx src/api/globalSearch.test.ts --maxWorkers=1`, `npm run typecheck` et ESLint ciblé sur Search/API/i18n. Vérifier `git diff --check` sur les fichiers du lot. Au navigateur : `pro` → `project:`, `lea` → `leader:`, `leader:dup` → Employee visible, espace après condition → AND/OR, `info:mat` → `info:"Matricule CHU"=`, édition au milieu, flèches/Entrée/Tab/Échap/clic, aperçu des résultats après fermeture des suggestions, comptes et navigation. Comparer deux utilisateurs pour vérifier l'absence de valeurs invisibles. Aucun migrate requis.

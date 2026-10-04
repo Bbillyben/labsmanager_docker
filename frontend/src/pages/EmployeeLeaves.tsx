@@ -16,12 +16,14 @@ import { normalizeMutationError } from '../api/errors'
 import { CalendarPluginFilters, effectiveCalendarFilterValues, type CalendarFilterValues } from '../calendar/CalendarPluginFilters'
 import { halfDayLabel } from '../calendar/halfDayPresentation'
 import { useTranslation } from '../i18n/i18n'
+import { PrintButton } from '../print/PrintButton'
+import type { CalendarPrintState } from '../print/CalendarPrintView'
 import { Button } from '../ui/Button'
 import { useEmployeeDetail } from './employeeDetailContext'
 import { EmployeeCalendar } from './EmployeeCalendar'
 import { EmployeeLeaveSheet } from './EmployeeLeaveSheet'
 import { leaveFromEvent, rangeLabel, typeFromEvent, uniqueTypes } from './leaveCalendarPresentation'
-import { projectCalendarRange, projectCalendarScopeOrder, projectCalendarScopes, shiftProjectCalendarAnchor, type ProjectCalendarScope } from './projectCalendarScopes'
+import { projectCalendarRange, projectCalendarScopeOrder, projectCalendarScopes, projectCalendarViewDefinition, shiftProjectCalendarAnchor, type ProjectCalendarScope } from './projectCalendarScopes'
 import styles from './EmployeeLeaves.module.css'
 
 type DisplayMode = 'calendar' | 'table'
@@ -30,7 +32,7 @@ const modeKey = 'labsmanager:employee:leaves-display'
 const viewKey = 'labsmanager:employee:leaves-calendar-view'
 
 export function EmployeeLeaves() {
-  const { employeeId } = useEmployeeDetail()
+  const { employeeId, employee } = useEmployeeDetail()
   const { language, t } = useTranslation()
   const [mode, setModeState] = useState<DisplayMode>(() => localStorage.getItem(modeKey) === 'table' ? 'table' : 'calendar')
   const [scope, setScopeState] = useState<ProjectCalendarScope>(() => {
@@ -101,6 +103,7 @@ export function EmployeeLeaves() {
         <Button aria-pressed={mode === 'table'} onClick={() => setMode('table')} size="sm" variant={mode === 'table' ? 'default' : 'ghost'}>{t('leaves.table')}</Button>
       </div>
       <LeaveFilters filters={filters} onChange={setFilters} types={knownTypes} />
+      {mode === 'calendar' && resource.data && <PrintButton createRequest={() => ({ renderer: 'calendar', title: `${t('employee.navLeaves')} — ${employee.first_name} ${employee.last_name}`, state: { scope, viewType: projectCalendarViewDefinition(scope, 'calendar').key, mode: 'calendar', range: calendarBounds, events: resource.data as CalendarEvent[], filters: { ...filters, ...effectiveCalendarFilters }, selectedId: selected ? String(selected.id) : null } satisfies CalendarPrintState })} />}
       {capabilities.data?.can_add && <Button onClick={() => openCreate()} size="sm"><Plus aria-hidden="true" />{t('leaves.add')}</Button>}
       {Boolean(capabilities.error) && <div className={styles.error} role="alert">{t('leaves.capabilitiesError')} <Button onClick={capabilities.retry} size="xs" variant="ghost">{t('common.retry')}</Button></div>}
     </div>

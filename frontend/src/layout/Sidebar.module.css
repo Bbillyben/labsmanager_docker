@@ -37,3 +37,32 @@
   .sidebar[data-expanded='false'] .externalMarker { width: auto; opacity: 1; }
   .sidebar[data-expanded='false'] .link { justify-content: flex-start; }
 }
+.sidebarGroup {
+}
+
+.sidebarGroupTitle {
+}
+
+.sidebarGroupToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  padding: 0;
+  border: 0;
+  background: none;
+
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sidebarGroupChevron {
+  transition: transform 0.2s ease;
+  transform: rotate(-90deg);
+}
+
+.sidebarGroupChevronOpen {
+  transform: rotate(0deg);
+}

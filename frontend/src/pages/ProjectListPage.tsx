@@ -1,9 +1,7 @@
 import { Download, Ellipsis, ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Input } from '../components/ui/input'
-import { SelectableTableRow } from '../components/SelectableTableRow'
-import { SortableTableHeader } from '../components/SortableTableHeader'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu'
 import { DropdownMenuSeparator } from '../components/ui/dropdown-menu'
 import { AdminObjectAction } from '../components/AdminObjectAction'
@@ -15,27 +13,20 @@ import { FilterBar } from '../filters/FilterBar'
 import { filterDefaultsMarker } from '../filters/url'
 import type { FilterOption } from '../filters/types'
 import { ApiError, normalizeMutationError } from '../api/errors'
-import { deleteProject, getProjectCapabilities, getProjectFilterOptions, getProjects, projectQuery, readProjectParams, type ProjectCapabilities, type ProjectFilterOptions, type ProjectItem, type ProjectListParams, type ProjectListResponse, type ProjectSortField } from '../api/projects'
+import { deleteProject, getProjectCapabilities, getProjectFilterOptions, getProjects, projectQuery, readProjectParams, type ProjectCapabilities, type ProjectFilterOptions, type ProjectItem, type ProjectListParams, type ProjectListResponse } from '../api/projects'
 import { useMutation } from '../api/useMutation'
 import { Alert } from '../ui/Alert'
-import { ActivityStatusBadge } from '../ui/ActivityStatusBadge'
 import { Button } from '../ui/Button'
 import { EmptyState } from '../ui/EmptyState'
 import { PageHeader } from '../ui/PageHeader'
 import { ProjectSheet } from './ProjectSheet'
+import { ProjectListTable } from './ProjectListTable'
 import { ListExportDialog } from '../components/ListExportDialog'
 import styles from './EmployeeListPage.module.css'
 import { useTranslation } from '../i18n/i18n'
 
 const projectUrl = (id: number) => `/projects/${id}`
-const dateLabel = (value: string | null, language: string) => value ? new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : '—'
 type UpdateParams = (patch: Partial<ProjectListParams>) => void
-
-function CompactList({ values }: { values: string[] }) {
-  if (!values.length) return <>—</>
-  const shown = values.slice(0, 2).join(', ')
-  return <span title={values.join(', ')} aria-label={values.join(', ')} tabIndex={values.length > 2 ? 0 : undefined}>{shown}{values.length > 2 ? ` +${values.length - 2}` : ''}</span>
-}
 
 export function ProjectListPage() {
   const { t } = useTranslation()
@@ -90,7 +81,7 @@ export function ProjectListPage() {
 }
 
 function ProjectResults({ params, update, filtered, reset, retry }: { params: ProjectListParams; update: UpdateParams; filtered: boolean; reset: () => void; retry: () => void }) {
-  const { t, language } = useTranslation()
+  const { t } = useTranslation()
   const [result, setResult] = useState<ProjectListResponse | null>(null)
   const [error, setError] = useState<unknown>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -127,24 +118,12 @@ function ProjectResults({ params, update, filtered, reset, retry }: { params: Pr
     const result = await deletion.run(() => deleteProject(deleting.id))
     if (result) { setDeleting(null); setResult((current) => current && ({ ...current, count: current.count - 1, results: current.results.filter((item) => item.id !== deleting.id) })); retry() }
   }
-  function sortable(label: string, field: ProjectSortField) {
-    return <SortableTableHeader label={label} field={field} ordering={params.ordering} onSort={(ordering) => update({ ordering })} />
-  }
   const deletionError = deletion.error ? normalizeMutationError(deletion.error) : null
 
   return <section aria-label={t('project.listLabel')}>
     <p className={styles.summary} role="status">{t(result.count === 1 ? 'project.countOne' : 'project.countMany', { count: result.count })}{result.results.length > 0 && ` · ${params.offset + 1}–${params.offset + result.results.length}`}</p>
     <p className="sr-only" role="status">{selected ? t('list.selected', { name: selected.name }) : t('list.noneSelected')}</p>
-    {result.results.length > 0 ? <div className={styles.scroll} role="region" aria-label={t('project.tableScroll')} tabIndex={0}>
-      <table className={styles.table}>
-        <caption className={styles.caption}>{t('project.tableHelp')}</caption>
-        <thead><tr>{sortable(t('employee.project'), 'name')}{sortable(t('project.columnStart'), 'start_date')}{sortable(t('project.columnEnd'), 'end_date')}<th scope="col">{t('project.institutions')}</th><th scope="col">{t('project.participants')}</th><th scope="col">{t('project.columnFunds')}</th>{sortable(t('project.columnStatus'), 'status')}<th scope="col"><span className="sr-only">{t('list.menu')}</span></th></tr></thead>
-        <tbody>{result.results.map((project) => <SelectableTableRow key={project.id} id={`project-row-${project.id}`} rowId={project.id} selectedId={selectedId} onSelect={setSelectedId}>
-          <th scope="row"><span className={styles.selectionMark} aria-hidden="true">{selectedId === project.id ? '✓' : ''}</span><Link to={projectUrl(project.id)} state={{ projectListSearch: projectQuery(params) }}>{project.name}</Link></th>
-          <td className={styles.date}>{dateLabel(project.start_date, language)}</td><td className={styles.date}>{dateLabel(project.end_date, language)}</td>
-          <td><CompactList values={project.institutions} /></td><td><CompactList values={project.participants} /></td><td><CompactList values={project.funds} /></td>
-          <td><ActivityStatusBadge active={project.status} /></td>
-          <td className={styles.actions}><DropdownMenu onOpenChange={(open) => { if (open) { returnToRow.current = false; setSelectedId(project.id) } }}>
+    {result.results.length > 0 ? <ProjectListTable projects={result.results} selectedId={selectedId} onSelect={setSelectedId} ordering={params.ordering} onSort={(ordering) => update({ ordering })} linkState={{ projectListSearch: projectQuery(params) }} renderActions={(project) => <DropdownMenu onOpenChange={(open) => { if (open) { returnToRow.current = false; setSelectedId(project.id) } }}>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className={styles.rowMenu} />} aria-label={t('common.actionsFor', { name: project.name })}><Ellipsis /></DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-52" finalFocus={() => returnToRow.current ? document.getElementById(`project-row-${project.id}`) : true}>
               <DropdownMenuItem onClick={() => navigate(projectUrl(project.id), { state: { projectListSearch: projectQuery(params) } })}><ExternalLink /> {t('list.openProfile')}</DropdownMenuItem>
@@ -153,10 +132,7 @@ function ProjectResults({ params, update, filtered, reset, retry }: { params: Pr
               <DropdownMenuItem onClick={() => { returnToRow.current = true; setSelectedId(null) }}><X /> {t('list.deselect')}</DropdownMenuItem>
               {project.admin_url && <><DropdownMenuSeparator /><AdminObjectAction adminUrl={project.admin_url} /></>}
             </DropdownMenuContent>
-          </DropdownMenu></td>
-        </SelectableTableRow>)}</tbody>
-      </table>
-    </div> : params.offset > 0 ? <EmptyState title={t('list.emptyPage')} description={t('list.emptyPageDescription')} /> : <EmptyState title={filtered ? t('list.noResults') : t('project.noAccessible')} description={filtered ? t('list.adjustFilters') : t('project.noneInScope')} />}
+          </DropdownMenu>} /> : params.offset > 0 ? <EmptyState title={t('list.emptyPage')} description={t('list.emptyPageDescription')} /> : <EmptyState title={filtered ? t('list.noResults') : t('project.noAccessible')} description={filtered ? t('list.adjustFilters') : t('project.noneInScope')} />}
     {result.results.length === 0 && (params.offset > 0 ? <Button variant="ghost" onClick={() => update({ offset: 0 })}>{t('list.firstPage')}</Button> : filtered && <Button variant="ghost" onClick={reset}>{t('list.clearCriteria')}</Button>)}
     <nav className={styles.pagination} aria-label={t('project.pagination')}><Button variant="ghost" disabled={!result.previous} onClick={() => update({ offset: Math.max(0, params.offset - params.limit) })}>{t('common.previous')}</Button><span>{t('common.pageOf', { page, pages })}</span><Button variant="ghost" disabled={!result.next} onClick={() => update({ offset: params.offset + params.limit })}>{t('common.next')}</Button></nav>
     {editing && <ProjectSheet project={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); retry() }} />}

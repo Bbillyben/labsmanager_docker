@@ -95,7 +95,7 @@ function BudgetSection({ projectId, kind }: { projectId: string; kind: BudgetKin
 function BudgetDetailSheet({ projectId, kind, item, initialEdit, options, optionsError, retryOptions, returnFocus, onClose, onSaved }: {
   projectId: string; kind: BudgetKind; item: BudgetBase; initialEdit: boolean; options: BudgetOptions | null; optionsError: boolean; retryOptions: () => void; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: () => Promise<void>
 }) {
-  const { t, language } = useTranslation()
+  const { t } = useTranslation()
   const [editing, setEditing] = useState(initialEdit)
   const load = useCallback((_id: string, signal: AbortSignal) => getProjectBudgetDetail(projectId, kind, item.id, signal), [projectId, kind, item.id])
   const resource = useEmployeeResource(`${projectId}:${kind}:${item.id}`, load)
@@ -103,8 +103,13 @@ function BudgetDetailSheet({ projectId, kind, item, initialEdit, options, option
   return <Sheet open onOpenChange={(open) => { if (!open) onClose() }}><SheetContent finalFocus={returnFocus}>
     <SheetHeader><SheetTitle>{t(kind === 'budget' ? 'projectBudgets.budgetDetails' : 'projectBudgets.contributionDetails')}</SheetTitle><SheetDescription>{current.desc || current.cost_type?.name || current.fund.name}</SheetDescription></SheetHeader>
     {Boolean(resource.error) && <Alert tone="danger">{t('projectBudgets.loadError')} <Button variant="ghost" onClick={resource.retry}>{t('common.retry')}</Button></Alert>}
-    {editing ? <BudgetForm projectId={projectId} kind={kind} item={current} options={options} optionsError={optionsError} retryOptions={retryOptions} onCancel={() => setEditing(false)} onSaved={async () => { setEditing(false); await resource.refresh(); await onSaved() }} /> : <>
-      <dl className={styles.details}>
+    {editing ? <BudgetForm projectId={projectId} kind={kind} item={current} options={options} optionsError={optionsError} retryOptions={retryOptions} onCancel={() => setEditing(false)} onSaved={async () => { setEditing(false); await resource.refresh(); await onSaved() }} /> : <BudgetReadOnlyDetails item={current} kind={kind} />}
+  </SheetContent></Sheet>
+}
+
+export function BudgetReadOnlyDetails({ item: current, kind }: { item: BudgetBase; kind: BudgetKind }) {
+  const { t, language } = useTranslation()
+  return <dl className={styles.details}>
         <Detail label={t('projectBudgets.fund')}>{current.fund.name}</Detail>
         <Detail label={t('funding.costType')}>{current.cost_type?.name ?? '—'}</Detail>
         <Detail label={t('projectBudgets.description')}>{current.desc || '—'}</Detail>
@@ -114,9 +119,7 @@ function BudgetDetailSheet({ projectId, kind, item, initialEdit, options, option
         <Detail label={t('projectBudgets.quotity')}>{percent(current.quotity, language)}</Detail>
         <Detail label={t('funding.amount')}>{money(current.amount, language)}</Detail>
         {kind === 'budget' ? <><Detail label={t('funding.consumed')}>{money((current as ProjectBudget).expense, language)}</Detail><Detail label={t('funding.available')}>{money((current as ProjectBudget).available, language)}</Detail></> : <><Detail label={t('projectBudgets.startDate')}>{date((current as ProjectContribution).start_date, language)}</Detail><Detail label={t('projectBudgets.endDate')}>{date((current as ProjectContribution).end_date, language)}</Detail></>}
-      </dl>
-    </>}
-  </SheetContent></Sheet>
+  </dl>
 }
 
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {

@@ -88,7 +88,7 @@
 
 - La temporalité d'un Contract est déterminée par `start_date` et `end_date`. `Contract.is_active` indique qu'un suivi ou une action RH reste à prévoir, notamment à l'échéance ou pour un renouvellement ; il ne doit pas produire un libellé temporel « Actif/Inactif » dans le nouveau frontend.
 - Un Contract est lié à un Fund. `Fund_Institution` est le financeur ; l'Institution gestionnaire est `project.Institution` via `Fund.institution` et constitue une information essentielle de la lecture RH.
-- La visibilité contextuelle du Fund ou de l'Institution n'autorise pas leur navigation. Le lien Institution utilise le parcours Django Organization `/infos/project/institution/<id>` seulement avec la permission indépendante `common.display_infos`; aucune route React fictive n'est créée.
+- La visibilité contextuelle du Fund ou de l'Institution n'autorise pas leur navigation. Un lien Institution exige la permission indépendante `common.display_infos` ; le parcours Django historique demeure. Depuis R2.24b, les fiches Institution et Financeur possèdent des routes React réelles pour ces liens visibles.
 - Le panneau présente une liste synthétique des contrats courants, futurs et historiques. Un `ContractDetailSheet` latéral réunit les détails utiles et une synthèse des `Contract_expense` associés.
 - Les dépenses du contrat sont chargées à la demande lors de l'ouverture du détail, et non avec toute la liste. Cette synthèse ne mensualise pas artificiellement les dépenses, ne projette pas de valeurs et ne crée ni graphique financier ni dashboard comptable.
 - `Expense.status` (`Engaged`, `Realised`, `Projected`) n'est pas utilisé fonctionnellement dans cette interface prévue et ne doit créer aucune dépendance React. Son éventuelle suppression future reste indécise ; aucune suppression de modèle n'est décidée ici.
@@ -262,3 +262,82 @@
 - Le Hub est un outil de consultation et de modification des Contracts visibles, jamais un point de création ou de suppression de Contract, même pour un utilisateur disposant de permissions techniques supplémentaires.
 - Active (`Contract.is_active`/suivi RH), Ongoing (inclusion de la date courante dans les deux bornes) et Stale (`Contract.staleFilter()`) sont trois filtres distincts et cumulables.
 - Dans ce contexte autonome, Modifier suit `expense.change_contract` ; les droits de mutation Project ou Employee des fiches parentes ne sont pas transposés. Les Expense conservent leurs propres capacités et contrôles backend.
+
+## R2.27 — imports React
+
+- Les profils d'import déclarent chacun leur Resource et leur permission ; les trois profils initiaux conservent `common.import` du workflow historique. Le frontend reste ignorant des classes et validations métier.
+- Dry-run et commit relisent le même fichier temporaire et la même feuille via un token signé lié à l'utilisateur et au profil. La transaction globale existante est conservée ; les erreurs transformées en `skip` par la Resource autorisent toujours un résultat partiel.
+
+## R2.29b — listes mutables Settings
+
+- Les neuf listes actives du legacy sont définies par un registre backend fermé ; React consomme ses métadonnées et ne connaît ni modèles ni formulaires Django.
+- La lecture suit l'accès Settings authentifié historique ; les mutations vérifient les permissions globales du modèle. Les formulaires historiques déterminent les champs modifiables. Aucune suppression n'est activée, conformément aux panneaux Settings actifs et à leurs relations potentiellement en cascade.
+
+## R2.30 — impression statique enregistrée
+
+- Un aperçu React dédié reçoit une capture des données et de l'état courant ; il n'imprime pas le DOM de FullCalendar, SVAR ou React Flow, dont le viewport, le scroll et les transforms peuvent tronquer le résultat.
+- Les renderers sont enregistrés par clé dans un registre frontend indépendant des métiers. Un futur plugin pourra ajouter son renderer frontend sans changer le shell ; aucun code plugin distant n'est chargé dans ce lot.
+- L'aperçu recouvre la SPA sans démonter la vue source afin que Retour retrouve exactement son état. L'impression navigateur n'est proposée qu'après le signal de disponibilité du renderer.
+
+## R3.1 — Dashboard Foundation
+
+- Plusieurs Dashboards personnels par utilisateur ; une contrainte DB conditionnelle et des transactions sur la ligne User garantissent un seul default au maximum. Le premier dashboard créé est default. Après suppression du default, le premier restant dans l'ordre utilisateur devient default ; après suppression du dernier, l'onboarding revient.
+- Le modèle Employee/Leader/Lab manager/Blank est toujours choisi explicitement. Un template est copié en instances à la création et n'est jamais lié au Dashboard vivant.
+- DataSource, renderer, WidgetDefinition et WidgetInstance restent distincts. Les définitions core/plugins ne sont pas persistées ; les instances enregistrent des clés stables et une config validée.
+- Le contexte Dashboard vient de la route et du backend authentifié. Seul `user` est actif en R3.1 ; `project` et `employee` sont préparés sans `GenericForeignKey` anticipé. Un Dashboard n'accorde aucune permission métier supplémentaire.
+- Le registre Dashboard agrège le core et les plugins actifs découverts par le registre plugin existant. `DashboardPluginMixin` est le point d'extension ; aucun bundle React distant n'est exécuté.
+- React Grid Layout v2 est retenu avec React 19 et TypeScript ; un layout desktop est persisté par lot, tandis que le mobile suit l'ordre logique. La route React canonique est `/app/dashboard` ; le Django legacy reste disponible séparément.
+
+## R3.2 — Source, renderer et configuration Dashboard
+
+- Une instance possède une source et un renderer distincts. Une même DataSource peut fournir plusieurs payloads normalisés, sélectionnés par le renderer compatible ; les renderers React ne connaissent aucun modèle métier.
+- La configuration est déclarée par source, éventuellement complétée par le renderer ou une ancienne définition, dans un JSON plat aux clés distinctes. L’API applique les défauts et refuse types, choix, bornes et clés inconnues invalides. Les sources core et plugin traversent le même pipeline ; les plugins n’exécutent pas de bundle React distant.
+- La variante de rendu compact/standard/expanded est calculée une seule fois depuis la taille de grille. Duplicate Widget est différé ; le détail Dashboard continue de fournir les données des widgets en une réponse batch.
+
+## R3.4 — présentation et impression Dashboard
+
+- Présentation et impression sont deux modes du Dashboard existant. La présentation est une route authentifiée sans chrome global ; l'impression reprend l'instantané déjà chargé par le `PrintRegistry` central.
+- Le papier utilise `logical_order` et une grille A4 paysage indépendante des coordonnées RGL. Aucun champ `print_order` ou contrôle de réordonnancement n'est ajouté.
+- Une définition `printable=false` est omise ; une définition indisponible reste lisible par placeholder. Un renderer peut fournir un composant print local optionnel, avec repli sur son rendu normal.
+
+## R3.5 — Dataset synthétique dédié
+
+Le générateur de démonstration opère sur une base dédiée, refuse une génération incrémentale en présence de données opérationnelles et ne marque pas les lignes métier. Son `--reset` est transactionnel et réservé à DEBUG ou à une base de test ; il recrée le jeu entier en conservant les catalogues techniques et les groupes issus de la fixture existante. T0 et la seed sont explicites pour rendre les scénarios reproductibles. Cette décision évite d'introduire une logique demo dans les APIs ou les modèles de production.
+
+## R3.6 — Dashboard Project et historique financier
+
+- Le Dashboard Project conserve le modèle, les WidgetInstances et le registre R3.1–R3.4. La relation Project optionnelle introduite par `dashboard.0003` est historique ; R3.6a la remplace par un contexte générique sans changer la propriété de l’instance ni l’unicité par owner/contexte.
+- L’évolution des dépenses utilise l’historique métier `AmountHistory` des `Expense_point`, après filtrage des Funds visibles, plutôt qu’une nouvelle table de séries ou des Expenses recalculées dans React. Les périodes demo supplémentaires passent par les signaux existants.
+- `line-chart` est un renderer core générique SVG sans dépendance graphique. Les sources plugins peuvent l’utiliser en déclarant le scope Project ; aucune dépendance core vers un plugin ni code frontend plugin distant n’est introduit.
+
+## R3.6a — Ownership et contexte métier séparés
+
+- `owner` identifie toujours le configurateur ; deux champs de contexte nuls identifient le Dashboard personnel. Un contexte non nul utilise `ContentType` et l’identifiant d’objet, avec unicité owner/type/id. Seuls user et Project sont résolus par l’API aujourd’hui ; le stockage est indépendant du modèle métier.
+- `dashboard.0004` migre les valeurs Project après `0003` déjà appliquée, puis supprime la FK spécifique. Le reverse restaure les Project et refuse les contextes non Project. Un signal Project `post_delete` restitue la cascade de l’ancienne FK ; aucun orphelin Project n’est laissé.
+- Les sources/plugins continuent à recevoir le seul `DashboardContext` résolu et ses noms de scope existants. Le frontend ne connaît ni `ContentType` ni le stockage ORM.
+
+## R3.7 — Plugin Dashboard concret
+
+- `FrenchHollidayPlugin` sert de référence pour une contribution Dashboard autonome : une seule source à deux renderers core (KPI et liste compacte) sur les contextes `user` et `project`. Le plugin réutilise son setting de zone et ses fichiers JSON locaux ; le rendu ne synchronise jamais les données. Aucun renderer React spécifique ni import plugin dans le cœur Dashboard.
+
+## R3.8 — Fondation Global Search
+
+- Le registre `global_search` est l'unique source des providers core et des contributions des plugins actifs via `SearchPluginMixin`. Aucun modèle métier n'hérite d'un mixin Search ; chaque provider possède son périmètre visible, son type de résultat et sa destination React.
+- Le moteur v1 reçoit `SearchQuery` structuré, applique un matching ORM simple et produit des `SearchResult` comparables avec raison du match. Le schéma machine-readable expose les champs/capacités actifs ; l'interface et la grammaire avancée sont différées.
+- `GenericInfoType` ne reçoit aucun flag de recherche. Le schéma R3.8/R3.9 n'annonçait pas encore les GenericInfo Employee/Project ; leur inclusion automatique arrive en R3.10. L'opérateur stable `info:` reste réservé à un lot ultérieur.
+
+## R3.10 — Providers métier Global Search
+
+- Les axes relationnels restent explicites par provider : tous les participants Project sont recherchables ; un Fund ne matche jamais par le seul nom de son Project. Les GenericInfo Employee/Project visibles suivent automatiquement la visibilité du parent, sans configuration des types.
+- Le moteur conserve le contrat `SearchResult` et ajoute des poids aux axes déclarés ainsi que des `counts` exacts issus des querysets visibles, indépendants des limites de résultats. Les plugins gardent un poids par défaut et le même contrat de recherche.
+- Les destinations utilisent les routes existantes : ligne Fund dans Project Funding et Hub Contract filtré sur l'Employee. La création d'un deep-link Contract unique est différée ; aucun droit de lecture n'est inféré de la seule relation.
+
+## R3.11 — Langage Global Search
+
+- Les mots-clés AND/OR/NOT sont insensibles à la casse et ont la priorité NOT > AND > OR ; les espaces seuls conservent la recherche libre multi-termes R3.10. Les clés provider/field sont déclarées par le registre actif, avec priorité au provider en cas de collision. Une clé inconnue est une erreur 400 structurée ; un type GenericInfo inconnu est une requête valide sans résultat.
+- `info:"TYPE"="value"` compare exactement, sans tenir compte de la casse, le nom de type et la valeur. Le provider applique sa visibilité canonique avant toute condition, y compris négative ; un champ non déclaré rend la branche inapplicable à ce provider. L'AST reste interne au backend, sans nouvelle dépendance ni endpoint public.
+
+## R3.12 — Autocomplétion Global Search
+
+- Le contexte d'autocomplétion est calculé côté backend depuis le tokenizer R3.11 en mode tolérant ; la recherche exécutée garde son parser strict. L'endpoint renvoie contexte, plage de remplacement et texte à insérer. React partage le même contrôle Topbar/page et ne contient aucune grammaire métier.
+- Les suggestions de valeurs proviennent uniquement des querysets visibles des providers actifs, avec projection bornée ; les champs et valeurs plugins suivent le même contrat. Les types GenericInfo reprennent les catalogues visibles, sans exposer de valeurs GenericInfo. Aucun opérateur de recherche supplémentaire n'est ajouté.

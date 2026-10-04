@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { getEmployeeCalendar, getEmployeeCalendarFilters, type CalendarEvent, type CalendarFilter, type EmployeeMilestone, type EmployeeProjectParticipation } from '../api/employees'
 import { CalendarPluginFilters, effectiveCalendarFilterValues, type CalendarFilterValues } from '../calendar/CalendarPluginFilters'
 import { useTranslation } from '../i18n/i18n'
+import { PrintButton } from '../print/PrintButton'
+import type { GanttPrintState } from '../print/GanttPrintView'
 import { Button } from '../ui/Button'
 import { adaptEmployeeGantt } from './EmployeeGanttAdapter'
 import { LabsManagerGantt } from './LabsManagerGantt'
@@ -17,9 +19,10 @@ function bounds(anchor: Date, months: 6 | 12 | 24 | 60 | 120): GanttWindow {
   return { from: iso(from), to: iso(to), months }
 }
 
-export function EmployeeGanttPanel({ active, employeeId, participations, work, projectError, workError, onRetryProjects, onRetryWork, onOpen }: {
+export function EmployeeGanttPanel({ active, employeeId, contextName, participations, work, projectError, workError, onRetryProjects, onRetryWork, onOpen }: {
   active: boolean
   employeeId: string
+  contextName?: string
   participations: EmployeeProjectParticipation[] | null
   work: EmployeeMilestone[] | null
   projectError: boolean
@@ -40,6 +43,7 @@ export function EmployeeGanttPanel({ active, employeeId, participations, work, p
   const [eventError, setEventError] = useState(false)
   const [eventRetry, setEventRetry] = useState(0)
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
+  const [closedKeys, setClosedKeys] = useState<Set<string>>(() => new Set())
   const window = useMemo(() => bounds(anchor, months), [anchor, months])
   const filters = useMemo(() => effectiveCalendarFilterValues(definitions ?? [], values), [definitions, values])
   const serializedFilters = JSON.stringify(filters)
@@ -99,6 +103,7 @@ export function EmployeeGanttPanel({ active, employeeId, participations, work, p
       <div aria-label={t('gantt.period')} className={styles.group} role="group">
         {([6, 12, 24, 60, 120] as const).map((value) => <Button aria-pressed={months === value} key={value} onClick={() => setMonths(value)} size="sm" variant={months === value ? 'secondary' : 'ghost'}>{t(`gantt.months${value}`)}</Button>)}
       </div>
+      {participations !== null && work !== null && events !== null && <PrintButton createRequest={() => ({ renderer: 'gantt', title: `${t('gantt.title')} — ${contextName ?? employeeId}`, state: { data, events, window, filters, closedKeys: [...closedKeys] } satisfies GanttPrintState })} />}
     </div>
     {filterError && <div role="alert">{t('gantt.filtersError')} <Button onClick={() => setFilterRetry((value) => value + 1)} size="xs" variant="ghost">{t('common.retry')}</Button></div>}
     <CalendarPluginFilters definitions={definitions ?? []} onChange={setValues} values={values} />
@@ -106,6 +111,6 @@ export function EmployeeGanttPanel({ active, employeeId, participations, work, p
     {projectError && <div role="alert">{t('employee.secondaryError')} <Button onClick={onRetryProjects} size="xs" variant="ghost">{t('common.retry')}</Button></div>}
     {workError && <div role="alert">{t('employee.secondaryError')} <Button onClick={onRetryWork} size="xs" variant="ghost">{t('common.retry')}</Button></div>}
     {(participations === null || work === null || definitions === null || events === null) && !eventError && !projectError && !workError && !filterError && <p role="status">{t('gantt.loading')}</p>}
-    {participations !== null && work !== null && events !== null && <LabsManagerGantt data={data} dark={dark} events={events} onSelect={select} window={window} />}
+    {participations !== null && work !== null && events !== null && <LabsManagerGantt data={data} dark={dark} events={events} onSelect={select} window={window} closedKeys={closedKeys} onOpenChange={(key, open) => setClosedKeys((previous) => { const next = new Set(previous); if (open) next.delete(key); else next.add(key); return next })} />}
   </section>
 }

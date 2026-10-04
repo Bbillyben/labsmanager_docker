@@ -2,7 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../i18n/I18nProvider'
+import { PrintProvider } from '../print/PrintProvider'
 import { jsonResponse } from '../test/fixtures'
+import { localToday } from '../calendar/resourceVisibility'
 import { ProjectCalendarPanel } from './ProjectCalendarPanel'
 import { projectCalendarRange, projectCalendarScopes, shiftProjectCalendarAnchor, type ProjectCalendarScope } from './projectCalendarScopes'
 
@@ -24,11 +26,15 @@ vi.mock('@fullcalendar/react', () => ({
   </div>,
 }))
 
+const date = localToday()
+const tomorrow = new Date(`${date}T12:00:00`)
+tomorrow.setDate(tomorrow.getDate() + 1)
+const nextDate = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
 const leave = {
-  id: 'leave:7', title: 'Paid leave', start: '2026-09-10', end: '2026-09-12', source: 'core', kind: 'leave', all_day: true, color: '#336699', description: 'Family', display: 'auto',
-  metadata: { leave_id: 7, employee_id: 12, leave_type_id: 3, leave_type_short_name: 'CP', leave_type_color: '#336699', start_date: '2026-09-10', end_date: '2026-09-11', start_period: 'ST', end_period: 'EN', day_count: 2 },
+  id: 'leave:7', title: 'Paid leave', start: date, end: nextDate, source: 'core', kind: 'leave', all_day: true, color: '#336699', description: 'Family', display: 'auto',
+  metadata: { leave_id: 7, employee_id: 12, leave_type_id: 3, leave_type_short_name: 'CP', leave_type_color: '#336699', start_date: date, end_date: date, start_period: 'ST', end_period: 'EN', day_count: 1 },
 }
-const holiday = { id: 'holiday:1', title: 'Holiday', start: '2026-09-15', end: '2026-09-16', source: 'plugin', kind: 'holiday', all_day: true, color: '#aaaaaa', description: null, display: 'background', metadata: {} }
+const holiday = { id: 'holiday:1', title: 'Holiday', start: date, end: nextDate, source: 'plugin', kind: 'holiday', all_day: true, color: '#aaaaaa', description: null, display: 'background', metadata: {} }
 
 function mockApi(canAdd: boolean, withReadOnlyParticipant = false) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
@@ -44,6 +50,53 @@ function mockApi(canAdd: boolean, withReadOnlyParticipant = false) {
 describe('Project Calendar', () => {
   beforeEach(() => { Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] }) })
   afterEach(() => vi.restoreAllMocks())
+
+  it('prints the current month and already loaded filtered events in a static preview', async () => {
+    mockApi(false)
+    const user = userEvent.setup()
+    render(<I18nProvider><PrintProvider><ProjectCalendarPanel projectId="4" contextName="Project Atlas" /></PrintProvider></I18nProvider>)
+    await screen.findByTestId('calendar')
+    await user.click(screen.getByRole('button', { name: 'Période précédente' }))
+    await user.click(screen.getByRole('button', { name: 'Imprimer' }))
+    const preview = await screen.findByRole('dialog', { name: 'Calendrier — Project Atlas' }, { timeout: 5000 })
+    expect(preview.querySelector('[data-testid="calendar"]')).toHaveAttribute('data-view', 'dayGridMonthCustom')
+    expect(preview).toHaveTextContent('Holiday')
+    expect(preview).toHaveTextContent('Mois')
+  })
+
+  it('keeps Resource Year and its Employee rows in the print preview', async () => {
+    mockApi(false, true)
+    const user = userEvent.setup()
+    render(<I18nProvider><PrintProvider><ProjectCalendarPanel projectId="4" contextName="Project Atlas" /></PrintProvider></I18nProvider>)
+    await screen.findByTestId('calendar')
+    await user.click(screen.getByRole('button', { name: 'Ressources' }))
+    await user.click(screen.getByRole('button', { name: 'Année' }))
+    expect(screen.getByTestId('calendar')).toHaveAttribute('data-view', 'resourceTimelineYearCustom')
+    expect(screen.getByTestId('calendar').parentElement).toHaveTextContent('Ada Reader')
+    expect(screen.getByTestId('calendar').parentElement).not.toHaveTextContent('Grace Viewer')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Ressources' }), 'all')
+    expect(screen.getByTestId('calendar').parentElement).toHaveTextContent('Grace Viewer')
+    await user.click(screen.getByRole('button', { name: 'Imprimer' }))
+    const preview = await screen.findByRole('dialog', { name: 'Calendrier — Project Atlas' }, { timeout: 5000 })
+    expect(preview.querySelector('[data-testid="calendar"]')).toHaveAttribute('data-view', 'resourceTimelineYearCustom')
+    expect(preview).toHaveTextContent('Ada Reader')
+    expect(preview).toHaveTextContent('Grace Viewer')
+    expect(preview.querySelector('[data-resource="12"]')).toBeInTheDocument()
+  })
+
+  it('loads today through the existing Project endpoint when another year is displayed', async () => {
+    const fetch = mockApi(false)
+    const user = userEvent.setup()
+    render(<I18nProvider><ProjectCalendarPanel projectId="4" /></I18nProvider>)
+    await screen.findByTestId('calendar')
+    await user.click(screen.getByRole('button', { name: 'Ressources' }))
+    await user.click(screen.getByRole('button', { name: 'Année' }))
+    await user.click(screen.getByRole('button', { name: 'Période précédente' }))
+    expect(screen.getByTestId('calendar').parentElement).not.toHaveTextContent('Ada Reader')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Ressources' }), 'today')
+    await waitFor(() => expect(fetch.mock.calls.some(([input]) => String(input).includes(`/calendar/?from=${localToday()}&to=${localToday()}`))).toBe(true))
+    await waitFor(() => expect(screen.getByTestId('calendar').parentElement).toHaveTextContent('Ada Reader'))
+  })
 
   it('uses the same events for Calendar, List and resourceTimeline Participants', async () => {
     mockApi(false)

@@ -14,3 +14,7 @@
 .form { display: grid; gap: .85rem; padding: 1rem 0; overflow-y: auto; }
 @media (max-width: 55rem) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 30rem) { .filters { grid-template-columns: 1fr; } }
+.details { display: grid; gap: var(--space-3); margin-block: var(--space-4); }
+.details div { display: grid; grid-template-columns: minmax(8rem, 35%) 1fr; gap: var(--space-2); }
+.details dt { color: var(--color-text-muted); }
+.details dd { margin: 0; }

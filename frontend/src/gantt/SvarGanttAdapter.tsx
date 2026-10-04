@@ -3,6 +3,7 @@ import { Gantt, Willow, WillowDark, type IApi, type ILink, type ITask } from '@s
 import '@svar-ui/react-gantt/all.css'
 import type { CalendarEvent } from '../api/employees'
 import type { GanttIdentity, LabsManagerGanttData, LabsManagerGanttItem } from './model'
+import { ganttScales } from './timeScale'
 import styles from './LabsManagerGantt.module.css'
 
 export type GanttWindow = { from: string; to: string; months: 6 | 12 | 24 | 60 | 120 }
@@ -13,7 +14,7 @@ function valid(value: string | null): value is string { return Boolean(value && 
 
 // Kept beside the renderer so SVAR-specific mapping stays inside its adapter.
 // eslint-disable-next-line react-refresh/only-export-components
-export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[], window: GanttWindow): { tasks: ITask[]; links: ILink[]; identities: Map<string, GanttIdentity>; omitted: number } {
+export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[], window: GanttWindow, closedKeys: ReadonlySet<string> = new Set()): { tasks: ITask[]; links: ILink[]; identities: Map<string, GanttIdentity>; omitted: number } {
   const tasks: ITask[] = []
   const identities = new Map<string, GanttIdentity>()
   let omitted = 0
@@ -32,7 +33,8 @@ export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[],
     starts.sort()
     ends.sort()
     if (!starts.length || !ends.length || starts[0] > ends[ends.length - 1]) { omitted += 1 + children.length; continue }
-    tasks.push({ id: group.key, text: group.label, type: 'summary', start: date(starts[0]), end: date(ends[ends.length - 1]), open: true })
+    tasks.push({ id: group.key, text: group.label, type: 'summary', start: date(starts[0]), end: date(ends[ends.length - 1]), open: !closedKeys.has(group.key) })
+    const groupIndex = tasks.length - 1
     identities.set(group.key, group.identity)
     for (const item of children) {
       const start = item.kind === 'milestone' ? item.end : item.start ?? (item.kind === 'participation' ? window.from : null)
@@ -46,6 +48,9 @@ export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[],
       })
       identities.set(item.key, item.identity)
     }
+    // SVAR's tree has null children for a summary without rendered tasks.
+    // Only open a summary when at least one child survived date validation.
+    if (tasks.length === groupIndex + 1) tasks[groupIndex].open = false
   }
   for (const event of events) {
     if (event.display === 'background') continue
@@ -67,22 +72,27 @@ export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[],
   return { tasks, links, identities, omitted }
 }
 
-export function SvarGanttAdapter({ data, events, window, onSelect, dark, language }: {
+export function SvarGanttAdapter({ data, events, window, onSelect, onOpenChange, closedKeys, dark, language }: {
   data: LabsManagerGanttData
   events: CalendarEvent[]
   window: GanttWindow
   onSelect: (identity: GanttIdentity) => void
+  onOpenChange?: (key: string, open: boolean) => void
+  closedKeys?: ReadonlySet<string>
   dark: boolean
   language: string
 }) {
-  const { tasks, links, identities } = toSvarTasks(data, events, window)
+  const { tasks, links, identities } = toSvarTasks(data, events, window, closedKeys)
   const selection = useRef({ identities, onSelect })
+  const openChange = useRef(onOpenChange)
+  useLayoutEffect(() => { openChange.current = onOpenChange }, [onOpenChange])
   useLayoutEffect(() => { selection.current = { identities, onSelect } }, [identities, onSelect])
   const init = useCallback((api: IApi) => {
     api.on('select-task', ({ id }) => {
       const identity = selection.current.identities.get(String(id))
       if (identity) selection.current.onSelect(identity)
     })
+    api.on('open-task', ({ id, mode }) => openChange.current?.(String(id), mode))
   }, [])
   const Wrapper = dark ? WillowDark : Willow
   let width 
@@ -97,34 +107,7 @@ export function SvarGanttAdapter({ data, events, window, onSelect, dark, languag
   }  else if (window.months === 120) {
     width = 0.5
   }
-  const scales = window.months === 120  ? [
-      {
-        unit: 'year', step: 1, format: (value: Date) => new Intl.DateTimeFormat(language, { year: 'numeric' }).format(value),
-      },
-       {
-        unit: 'quarter',
-        step: 2,
-        format: (value: Date) =>
-          value.getMonth() < 6 ? 'S1' : 'S2',
-      },
-    ]
-  : window.months === 60  ? [
-      {
-        unit: 'year', step: 1, format: (value: Date) => new Intl.DateTimeFormat(language, { year: 'numeric' }).format(value),
-      },
-      {
-        unit: 'quarter', step: 1, format: (value: Date) => `Q${Math.floor(value.getMonth() / 3) + 1}`,
-      },
-    ]
-  : window.months === 24 ? 
-      [
-          { unit: 'year', step: 1, format: (value: Date) => new Intl.DateTimeFormat(language, { year: 'numeric' }).format(value) }, 
-          { unit: 'month', step: 1, format: (value: Date) => new Intl.DateTimeFormat(language, { month: 'short' }).format(value) }
-      ]
-    : [
-        { unit: 'month', step: 1, format: (value: Date) => new Intl.DateTimeFormat(language, { month: 'short', year: 'numeric' }).format(value) }, 
-        { unit: 'week', step: 1, format: (value: Date) => new Intl.DateTimeFormat(language, { day: 'numeric', month: 'short' }).format(value) }
-      ]
+  const scales = ganttScales(window.months, language)
     
 
   return <div className={styles.chart}>

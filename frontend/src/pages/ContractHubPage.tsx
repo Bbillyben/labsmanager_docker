@@ -1,41 +1,34 @@
-import { Download, StickyNote } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import { getContract, getContractHub, getContractHubOptions, contractHubQuery, readContractHubParams, type ContractHubItem, type ContractHubListResponse, type ContractHubOptions, type ContractHubOrdering, type ContractRecord } from '../api/contracts'
+import { useSearchParams } from 'react-router-dom'
+import { getContract, getContractHub, getContractHubOptions, contractHubQuery, readContractHubParams, type ContractHubListResponse, type ContractHubOptions, type ContractRecord } from '../api/contracts'
 import { ApiError, normalizeMutationError } from '../api/errors'
 import { syncEmployeeEndDate } from '../api/contracts'
 import { useMutation } from '../api/useMutation'
 import { ListExportDialog } from '../components/ListExportDialog'
-import { ItemActionMenu } from '../components/ItemActionMenu'
 import { LoadingState } from '../components/LoadingState'
-import { SelectableTableRow } from '../components/SelectableTableRow'
-import { SortableTableHeader } from '../components/SortableTableHeader'
 import { ConfirmDialog } from '../components/common/ConfirmDialog'
-import { GenericNotes, type GenericNotesHandle } from '../components/GenericNotes'
 import { contractFilters } from '../config/contractFilters'
 import { employeeFilterSources } from '../config/employeeFilterSources'
 import { projectFilterSources } from '../config/projectFilterSources'
 import { FilterBar } from '../filters/FilterBar'
 import type { FilterOption } from '../filters/types'
 import { useTranslation } from '../i18n/i18n'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
 import { ContractDetail } from './ContractDetail'
 import { ContractFormSheet } from './ContractSection'
-import { contractPercent } from './contractPresentation'
+import { ContractHubTable } from './ContractHubTable'
 import { ExpenseSection } from './ExpenseSection'
 import { useEmployeeResource } from './useEmployeeResource'
-import contractStyles from './ContractSection.module.css'
 import styles from './EmployeeListPage.module.css'
 
 const sources = { ...employeeFilterSources, ...projectFilterSources }
 const dateLabel = (value: string | null, language: string) => value ? new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) : '—'
-const moneyLabel = (value: string, language: string) => new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(Number(value))
 
 export function ContractHubPage() {
-  const { t, language } = useTranslation()
+  const { t } = useTranslation()
   const [query, setQuery] = useSearchParams()
   const params = readContractHubParams(query)
   const canonical = contractHubQuery(params)
@@ -47,10 +40,6 @@ export function ContractHubPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
-  const [notesFor, setNotesFor] = useState<ContractHubItem | null>(null)
-  const notesHandle = useRef<GenericNotesHandle | null>(null)
-  const notesTrigger = useRef<HTMLElement | null>(null)
-  const closingNotes = useRef(false)
   const exportTrigger = useRef<HTMLButtonElement | null>(null)
   const actionTrigger = useRef<HTMLElement | null>(null)
 
@@ -88,17 +77,6 @@ export function ContractHubPage() {
     funders: options.funders.map((item) => ({ value: String(item.id), label: item.short_name })),
     institutions: options.institutions.map((item) => ({ value: String(item.id), label: item.short_name })),
   } : {}
-  const sortable = (label: string, field: ContractHubOrdering) => <SortableTableHeader label={label} field={field} ordering={params.ordering} onSort={(ordering) => update({ ordering: ordering as ContractHubOrdering })} />
-  async function closeNotes() {
-    if (closingNotes.current) return
-    closingNotes.current = true
-    try {
-      if (await notesHandle.current?.savePending() !== false) {
-        setNotesFor(null)
-        setRetry((value) => value + 1)
-      }
-    } finally { closingNotes.current = false }
-  }
 
   return <>
     <PageHeader title={t('navigation.contracts')} />
@@ -109,22 +87,7 @@ export function ContractHubPage() {
     {!error && !result && <LoadingState message={t('contractHub.loading')} />}
     {!error && result && <section aria-label={t('navigation.contracts')}>
       <p className={styles.summary} role="status">{t('contractHub.count', { count: result.count })}</p>
-      <div className={styles.scroll} role="region" aria-label={t('contractHub.table')} tabIndex={0}>
-        <table className={styles.table}><thead><tr>
-          {sortable(t('employee.identity'), 'employee__last_name')}
-          {sortable(t('contracts.contractType'), 'contract_type__name')}
-          {sortable(t('contractHub.status'), 'status')}
-          <th scope="col">{t('contracts.followUp')}</th>
-          {sortable(t('projectBudgets.startDate'), 'start_date')}
-          {sortable(t('projectBudgets.endDate'), 'end_date')}
-          <th scope="col">{t('employee.quotity')}</th>
-          {sortable(t('employee.project'), 'fund__project__name')}
-          <th scope="col">{t('contracts.reference')}</th>
-          {sortable(t('contracts.total'), 'hub_total_amount')}
-          <th scope="col"><span className="sr-only">{t('contracts.notes')}</span></th>
-          <th scope="col"><span className="sr-only">{t('list.menu')}</span></th>
-        </tr></thead><tbody>{result.results.map((item) => <ContractHubRow key={item.id} item={item} selectedId={selectedId} onSelect={setSelectedId} onEdit={() => { setSelectedId(item.id); setEditingId(item.id) }} onNotes={(element) => { notesTrigger.current = element; setNotesFor(item) }} onTrigger={(element) => { actionTrigger.current = element }} editing={editingId === item.id} language={language} />)}</tbody></table>
-      </div>
+      <ContractHubTable items={result.results} selectedId={selectedId} onSelect={setSelectedId} onNotesClosed={() => setRetry((value) => value + 1)} onEdit={(item) => { setSelectedId(item.id); setEditingId(item.id) }} onActionTrigger={(element) => { actionTrigger.current = element }} editingId={editingId} ordering={params.ordering} onSort={(ordering) => update({ ordering })} />
       {!result.count && <p>{t('contractHub.empty')}</p>}
       <nav className={styles.pagination} aria-label={t('contractHub.pagination')}>
         <Button variant="ghost" disabled={!result.previous} onClick={() => update({ offset: Math.max(0, params.offset - params.limit) })}>{t('common.previous')}</Button>
@@ -133,36 +96,8 @@ export function ContractHubPage() {
       </nav>
     </section>}
     {selectedId !== null && <ContractHubSelected key={selectedId} id={selectedId} editing={editingId === selectedId} onCloseEdit={() => setEditingId(null)} onChanged={() => setRetry((value) => value + 1)} returnFocus={actionTrigger} />}
-    {notesFor && <Sheet open onOpenChange={(open) => { if (!open) void closeNotes() }}><SheetContent finalFocus={notesTrigger}>
-      <SheetHeader><SheetTitle>{t('contracts.notes')}</SheetTitle><SheetDescription>{notesFor.contract_type?.name ?? notesFor.fund.display_name}</SheetDescription></SheetHeader>
-      <GenericNotes ref={notesHandle} scope="contract" objectId={String(notesFor.id)} />
-      <div className={contractStyles.notesClose}><Button variant="secondary" onClick={() => void closeNotes()}>{t('common.close')}</Button></div>
-    </SheetContent></Sheet>}
     {exportOpen && <ListExportDialog entity="contracts" listQuery={canonical} returnFocus={exportTrigger} onClose={() => setExportOpen(false)} />}
   </>
-}
-
-function ContractHubRow({ item, selectedId, onSelect, onEdit, onNotes, onTrigger, editing, language }: {
-  item: ContractHubItem; selectedId: number | null; onSelect: (id: number | null) => void
-  onEdit: () => void; onNotes: (element: HTMLElement) => void; onTrigger: (element: HTMLElement) => void; editing: boolean; language: string
-}) {
-  const { t } = useTranslation()
-  const employee = `${item.employee.first_name} ${item.employee.last_name}`
-  const project = item.fund.project
-  return <SelectableTableRow rowId={item.id} selectedId={selectedId} onSelect={onSelect} aria-label={t('common.actionsFor', { name: employee })}>
-    <th scope="row">{item.employee.can_view ? <Link to={`/employees/${item.employee.id}`}>{employee}</Link> : employee}</th>
-    <td>{item.contract_type?.name ?? '—'}</td>
-    <td>{t(item.status.code === 'effe' ? 'contracts.effective' : 'contracts.provisional')}</td>
-    <td>{t(item.is_active ? 'filters.yes' : 'filters.no')}</td>
-    <td className={styles.date}>{dateLabel(item.start_date, language)}</td>
-    <td className={styles.date}>{dateLabel(item.end_date, language)}</td>
-    <td>{contractPercent(item.quotity, language)}</td>
-    <td>{project.can_view ? <Link to={`/projects/${project.id}`}>{project.name}</Link> : project.name}</td>
-    <td>{item.fund.reference ?? '—'}</td>
-    <td>{moneyLabel(item.total_amount, language)}</td>
-    <td className={contractStyles.notes}>{(item.notes?.visible_count > 0 || item.notes?.can_add) && <Button variant="ghost" size="sm" aria-label={item.notes.visible_count > 0 ? `${t('contracts.openNotes')} · ${t(item.notes.visible_count === 1 ? 'contracts.oneNote' : 'contracts.manyNotes', { count: item.notes.visible_count })}` : t('contracts.openNotes')} onClick={(event) => onNotes(event.currentTarget)}><StickyNote aria-hidden="true" />{item.notes.visible_count > 0 && <span>{item.notes.visible_count}</span>}</Button>}</td>
-    <td className={styles.actions}><span className={styles.rowMenu}><ItemActionMenu label={t('common.actionsFor', { name: employee })} canChange={item.capabilities.can_change} canDelete={false} adminUrl={item.admin_url} onOpen={() => onSelect(item.id)} onTrigger={onTrigger} finalFocus={() => editing ? false : true} onEdit={onEdit} onDelete={() => {}} /></span></td>
-  </SelectableTableRow>
 }
 
 function ContractHubSelected({ id, editing, onCloseEdit, onChanged, returnFocus }: {

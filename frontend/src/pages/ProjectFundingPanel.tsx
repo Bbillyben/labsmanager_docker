@@ -25,7 +25,10 @@ export function ProjectFundingPanel({ projectId }: { projectId: string }) {
   const { t, language } = useTranslation()
   const resource = useEmployeeResource(projectId, getProjectFunding)
   const options = useEmployeeResource(projectId, getFundingOptions)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(() => {
+    const linked = window.location.hash.match(/^#fund-row-(\d+)$/)?.[1]
+    return linked ? Number(linked) : null
+  })
   const [detailVersion, setDetailVersion] = useState(0)
   const [editing, setEditing] = useState<Fund | 'new' | null>(null)
   const [deleting, setDeleting] = useState<Fund | null>(null)

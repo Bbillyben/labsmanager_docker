@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import type { ContractRecord } from '../api/contracts'
-import { getDjangoUrl } from '../config/django'
 import { useTranslation } from '../i18n/i18n'
 import { StatusBadge } from '../ui/StatusBadge'
 import { contractPercent, contractPeriod } from './contractPresentation'
@@ -11,8 +10,8 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
   return <div><dt>{label}</dt><dd>{children}</dd></div>
 }
 
-function Organization({ value }: { value: ContractRecord['fund']['funder'] }) {
-  return value.can_view && value.url ? <a href={getDjangoUrl(value.url)}>{value.name}</a> : value.name
+function Organization({ value, kind }: { value: ContractRecord['fund']['funder']; kind: 'funders' | 'institutions' }) {
+  return value.can_view ? <Link to={`/organizations/${kind}/${value.id}`}>{value.name}</Link> : value.name
 }
 
 export function ContractDetail({ contract }: { contract: ContractRecord }) {
@@ -25,8 +24,8 @@ export function ContractDetail({ contract }: { contract: ContractRecord }) {
       <Detail label={t('contracts.contractType')}>{contract.contract_type?.name ?? '—'}</Detail>
       <Detail label={t('employee.identity')}>{contract.employee.can_view ? <Link to={`/employees/${contract.employee.id}`}>{employeeName}</Link> : employeeName}</Detail>
       <Detail label={t('employee.project')}>{project.can_view ? <Link to={`/projects/${project.id}`}>{project.name}</Link> : project.name}</Detail>
-      <Detail label={t('contracts.funder')}><Organization value={contract.fund.funder} /></Detail>
-      <Detail label={t('contracts.institution')}><Organization value={contract.fund.institution} /></Detail>
+      <Detail label={t('contracts.funder')}><Organization value={contract.fund.funder} kind="funders" /></Detail>
+      <Detail label={t('contracts.institution')}><Organization value={contract.fund.institution} kind="institutions" /></Detail>
       <Detail label={t('contracts.fund')}>{project.can_view ? <Link to={`/projects/${project.id}/funding`}>{contract.fund.display_name}</Link> : contract.fund.display_name}</Detail>
       {contract.fund.reference && <Detail label={t('contracts.reference')}>{contract.fund.reference}</Detail>}
       <Detail label={t('employee.period')}>{contractPeriod(contract.start_date, contract.end_date, language, t)}</Detail>

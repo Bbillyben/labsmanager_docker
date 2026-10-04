@@ -13,12 +13,13 @@ describe('FavoritesMenu', () => {
   beforeEach(() => { Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] }) })
   afterEach(() => vi.restoreAllMocks())
 
-  it('opens grouped links and keeps Institutions on the Django route', async () => {
+  it('opens grouped links including both React Organization routes', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse([
       { type: 'project', group: 'projects', id: 1, label: 'Alpha', url: '/projects/1', legacy: false },
       { type: 'employee', group: 'employees', id: 2, label: 'Ada Reader', url: '/employees/2', legacy: false },
       { type: 'team', group: 'teams', id: 3, label: 'Readers', url: '/teams/3', legacy: false },
-      { type: 'institution', group: 'institutions', id: 4, label: 'UNI', url: '/infos/project/institution/4', legacy: true },
+      { type: 'institution', group: 'institutions', id: 4, label: 'UNI', url: '/organizations/institutions/4', legacy: false },
+      { type: 'fund_institution', group: 'institutions', id: 5, label: 'ANR', url: '/organizations/funders/5', legacy: false },
     ]))
     mount()
     await userEvent.click(screen.getByRole('button', { name: 'Favoris' }))
@@ -26,7 +27,8 @@ describe('FavoritesMenu', () => {
     expect(await screen.findByRole('link', { name: 'Alpha' })).toHaveAttribute('href', '/projects/1')
     expect(screen.getByRole('link', { name: 'Ada Reader' })).toHaveAttribute('href', '/employees/2')
     expect(screen.getByRole('link', { name: 'Readers' })).toHaveAttribute('href', '/teams/3')
-    expect(screen.getByRole('link', { name: 'UNI' }).getAttribute('href')).toContain('/infos/project/institution/4')
+    expect(screen.getByRole('link', { name: 'UNI' })).toHaveAttribute('href', '/organizations/institutions/4')
+    expect(screen.getByRole('link', { name: 'ANR' })).toHaveAttribute('href', '/organizations/funders/5')
     expect(screen.getByText('Institutions')).toBeInTheDocument()
   })
 

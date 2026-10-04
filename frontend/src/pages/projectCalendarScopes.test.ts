@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { projectCalendarRange, shiftProjectCalendarAnchor, type ProjectCalendarScope } from './projectCalendarScopes'
+import { projectCalendarRange, projectCalendarViewDefinition, shiftProjectCalendarAnchor, type ProjectCalendarScope } from './projectCalendarScopes'
 
 describe('Project Calendar temporal scopes', () => {
   const anchor = new Date(2028, 0, 31)
@@ -12,5 +12,18 @@ describe('Project Calendar temporal scopes', () => {
     expect(projectCalendarRange(scope, anchor)).toEqual(range)
     expect(projectCalendarRange('fifteenDays', shiftProjectCalendarAnchor(anchor, scope, 1)).from).toBe(next)
     expect(projectCalendarRange('fifteenDays', shiftProjectCalendarAnchor(anchor, scope, -1)).from).toBe(previous)
+  })
+
+  it.each([
+    ['fifteenDays', 'calendar', 'dayGridFifteenDays', 'dayGrid'],
+    ['month', 'calendar', 'dayGridMonthCustom', 'dayGrid'],
+    ['twoMonths', 'calendar', 'dayGridTwoMonths', 'timeline'],
+    ['year', 'calendar', 'dayGridYearCustom', 'timeline'],
+    ['fifteenDays', 'resources', 'resourceTimelineFifteenDays', 'timeline'],
+    ['month', 'resources', 'resourceTimelineMonthCustom', 'timeline'],
+    ['twoMonths', 'resources', 'resourceTimelineTwoMonths', 'timeline'],
+    ['year', 'resources', 'resourceTimelineYearCustom', 'timeline'],
+  ] as Array<[ProjectCalendarScope, 'calendar' | 'resources', string, string]>)('%s %s shares %s with print', (scope, mode, key, kind) => {
+    expect(projectCalendarViewDefinition(scope, mode)).toMatchObject({ key, kind })
   })
 })

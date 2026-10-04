@@ -9,7 +9,7 @@ type PlanningParticipationRow = {
   end_date: string | null
 }
 
-export function adaptPlanningGantt(work: PlanningMilestone[], participations: PlanningParticipationRow[] = []): LabsManagerGanttData {
+export function adaptPlanningGantt(work: PlanningMilestone[], participations: PlanningParticipationRow[] = [], projects: Array<{ id: number; name: string; start_date?: string | null; end_date?: string | null }> = []): LabsManagerGanttData {
   const groups = new Map<number, LabsManagerGanttItem>()
   const children = new Map<number, LabsManagerGanttItem[]>()
   const ensure = (project: { id: number; name: string; start_date?: string | null; end_date?: string | null }) => {
@@ -20,6 +20,7 @@ export function adaptPlanningGantt(work: PlanningMilestone[], participations: Pl
     })
     if (!children.has(project.id)) children.set(project.id, [])
   }
+  projects.forEach(ensure)
   for (const participation of participations) {
     ensure(participation.project)
     children.get(participation.project.id)!.push({

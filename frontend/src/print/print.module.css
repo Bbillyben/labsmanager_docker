@@ -1,0 +1,14 @@
+.shell { position: fixed; inset: 0; z-index: 1000; overflow: auto; background: white; color: #17202a; padding: 20px; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 20px; }
+.header { border-bottom: 1px solid #bcc4cc; margin-bottom: 16px; padding-bottom: 8px; }
+.header h1 { font-size: 1.4rem; font-weight: 700; }
+.header p { font-size: .9rem; color: #455363; }
+.content h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; }
+.gantt, .organization { width: 100%; height: auto; display: block; }
+.backgroundHidden { visibility: hidden; }
+@media print {
+  .backgroundHidden, .actions { display: none !important; }
+  .shell { position: static; overflow: visible; padding: 0; }
+  .header { break-after: avoid; }
+  .gantt { print-color-adjust: exact; }
+}

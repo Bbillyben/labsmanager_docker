@@ -18,7 +18,7 @@ export type EntityFilter = Base & Single & {
   type: 'entity-search'; parameter: string; source: string; idFormat?: 'positive-integer'
 }
 export type ChoiceFilter = Base & Single & { type: 'dynamic-choice'; parameter: string; source: string }
-export type InputFilter = Base & Single & { type: 'text' | 'date'; parameter: string }
+export type InputFilter = Base & Single & { type: 'text' | 'date' | 'number'; parameter: string }
 // Only these controls are renderable today. Future definitions cannot accidentally
 // enter a live catalogue before their controls and server contracts are supplied.
 export type SupportedFilter = StaticChoiceFilter | EntityFilter | ChoiceFilter | InputFilter

@@ -1,5 +1,6 @@
 import { Pencil, Trash2, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { createEmployeeLeave, deleteEmployeeLeave, getLeaveTypes, updateEmployeeLeave, type EmployeeLeave, type LeaveCapabilities, type LeaveTypeOption, type LeaveWrite } from '../api/employees'
 import { normalizeMutationError } from '../api/errors'
 import { useMutation } from '../api/useMutation'
@@ -12,8 +13,9 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import styles from './EmployeeLeaveSheet.module.css'
 
-export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabilities, onClose, onSaved, onDeleted, createLeave = createEmployeeLeave, updateLeave = updateEmployeeLeave, deleteLeave = deleteEmployeeLeave, employeeOptions, onEmployeeChange }: {
+export function EmployeeLeaveSheet({ employeeId, employeeName, leave, initialDates, capabilities, onClose, onSaved, onDeleted, createLeave = createEmployeeLeave, updateLeave = updateEmployeeLeave, deleteLeave = deleteEmployeeLeave, employeeOptions, onEmployeeChange }: {
   employeeId: string
+  employeeName?: string
   leave: EmployeeLeave | null
   initialDates?: { start_date: string; end_date: string }
   capabilities: LeaveCapabilities
@@ -82,6 +84,7 @@ export function EmployeeLeaveSheet({ employeeId, leave, initialDates, capabiliti
       <SheetHeader><SheetTitle>{t(mode === 'create' ? 'leaves.add' : mode === 'edit' ? 'leaves.edit' : 'leaves.details')}</SheetTitle><SheetDescription>{current?.type.name ?? t('leaves.formDescription')}</SheetDescription></SheetHeader>
       {mode === 'view' && current && <>
         <dl className={styles.details}>
+          {employeeName && <div><dt>{t('calendars.employee')}</dt><dd><Link to={`/employees/${employeeId}`} onClick={onClose}>{employeeName}</Link></dd></div>}
           <div><dt>{t('leaves.type')}</dt><dd>{current.type.name}</dd></div>
           <div><dt>{t('leaves.start')}</dt><dd>{formatDate(current.start_date, language)} · {t(current.start_period === 'ST' ? 'leaves.startOfDay' : 'leaves.midday')}</dd></div>
           <div><dt>{t('leaves.end')}</dt><dd>{formatDate(current.end_date, language)} · {t(current.end_period === 'MI' ? 'leaves.midday' : 'leaves.endOfDay')}</dd></div>

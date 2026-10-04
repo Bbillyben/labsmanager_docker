@@ -1,6 +1,7 @@
 import type { ViewOptions } from '@fullcalendar/react'
 
 export type ProjectCalendarScope = 'fifteenDays' | 'month' | 'twoMonths' | 'year'
+export type CalendarViewMode = 'calendar' | 'resources'
 
 export const projectCalendarScopeOrder: ProjectCalendarScope[] = ['fifteenDays', 'month', 'twoMonths', 'year']
 
@@ -10,6 +11,7 @@ export const projectCalendarScopes = {
   twoMonths: { label: 'projectCalendar.twoMonths', calendarView: 'dayGridTwoMonths', resourceView: 'resourceTimelineTwoMonths', duration: { months: 2 } },
   year: { label: 'leaves.year', calendarView: 'dayGridYearCustom', resourceView: 'resourceTimelineYearCustom', duration: { years: 1 } },
 } as const
+export type CalendarViewKey = (typeof projectCalendarScopes)[ProjectCalendarScope]['calendarView' | 'resourceView']
 
 export const projectDayGridViews: Record<string, ViewOptions> = {
   dayGridFifteenDays: {
@@ -153,6 +155,15 @@ export const projectResourceViews: Record<string, ViewOptions> = {
     ],
   },
 }
+
+/** The interactive view definitions are also the print renderer's source of truth. */
+export function projectCalendarViewDefinition(scope: ProjectCalendarScope, mode: CalendarViewMode) {
+  const key = mode === 'resources' ? projectCalendarScopes[scope].resourceView : projectCalendarScopes[scope].calendarView
+  const options = mode === 'resources' ? projectResourceViews[key] : projectDayGridViews[key]
+  if (!options || !['dayGrid', 'timeline', 'resourceTimeline'].includes(String(options.type))) throw new Error(`Unknown Calendar view: ${key}`)
+  return { key, label: projectCalendarScopes[scope].label, options, kind: options.type === 'dayGrid' ? 'dayGrid' as const : 'timeline' as const }
+}
+export type CalendarViewDefinition = ReturnType<typeof projectCalendarViewDefinition>
 
 function isoDate(value: Date) {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`

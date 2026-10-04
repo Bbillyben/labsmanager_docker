@@ -1,5 +1,6 @@
 import type { EventInput } from '@fullcalendar/react'
 import type { CalendarEvent } from '../api/employees'
+import { calendarEventResourceIds } from './resourceVisibility'
 
 export type LabsManagerEventProps = {
   description: string | null
@@ -11,6 +12,7 @@ export type LabsManagerEventProps = {
 export function toFullCalendarEvent(event: CalendarEvent, canChange = false): EventInput {
   const leaveId = Number(event.metadata.leave_id)
   const isLeave = event.source === 'core' && event.kind === 'leave' && Number.isInteger(leaveId) && leaveId > 0 && event.display !== 'background'
+  const resourceIds = calendarEventResourceIds(event)
   return {
     id: event.id,
     title: event.title,
@@ -21,7 +23,8 @@ export function toFullCalendarEvent(event: CalendarEvent, canChange = false): Ev
     display: event.display || 'auto',
     interactive: isLeave,
     editable: isLeave && canChange,
-    resourceId: isLeave && event.metadata.employee_id ? String(event.metadata.employee_id) : undefined,
+    resourceId: resourceIds.length === 1 ? resourceIds[0] : undefined,
+    resourceIds: resourceIds.length > 1 ? resourceIds : undefined,
     extendedProps: {
       description: event.description,
       source: event.source,

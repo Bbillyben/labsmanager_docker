@@ -1,6 +1,6 @@
 import { apiRequest } from './client'
 
-export type PreferenceType = 'project' | 'employee' | 'team'
+export type PreferenceType = 'project' | 'employee' | 'team' | 'institution' | 'fund_institution'
 export type PreferenceStatus = { favorite: boolean; subscription: boolean }
 export type FavoriteItem = { type: string; group: 'projects' | 'employees' | 'teams' | 'institutions'; id: number; label: string; url: string; legacy: boolean }
 export const favoritesChangedEvent = 'labsmanager:favorites-changed'
@@ -13,3 +13,4 @@ export async function setObjectPreference(type: PreferenceType, id: string | num
   return saved
 }
 export const getFavorites = (signal: AbortSignal) => apiRequest<FavoriteItem[]>('/api/v1/favorites/', { signal })
+export const getSubscriptions = (signal: AbortSignal) => apiRequest<FavoriteItem[]>('/api/v1/subscriptions/', { signal })

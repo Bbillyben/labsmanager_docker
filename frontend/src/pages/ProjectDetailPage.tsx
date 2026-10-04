@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { useTranslation } from '../i18n/i18n'
 import { ArrowLeft, FileDown, FileText, Pencil, Settings2 } from 'lucide-react'
 import { Link, NavLink, useLocation, useParams } from 'react-router-dom'
@@ -33,9 +33,11 @@ const sections = [
   { id: 'budgets', label: 'projectBudgets.budgets', enabled: true },
   { id: 'contributions', label: 'projectBudgets.contributions', enabled: true },
   { id: 'contracts', label: 'project.contracts', enabled: true },
-  { id: 'dashboard', label: 'project.dashboard', enabled: false },
+  { id: 'dashboard', label: 'project.dashboard', enabled: true },
   { id: 'notes', label: 'project.notes', enabled: true },
 ] as const
+
+const DashboardPage = lazy(() => import('../dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 
 function dateLabel(value: string | null, language: string) { return value ? new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : '—' }
 
@@ -50,6 +52,7 @@ export function ProjectDetailPage() {
   const showContracts = location.pathname.endsWith('/contracts')
   const showCalendar = location.pathname.endsWith('/calendar')
   const showNotes = location.pathname.endsWith('/notes')
+  const showDashboard = location.pathname.endsWith('/dashboard')
   const resource = useEmployeeResource(projectId, getProject)
   const [editing, setEditing] = useState(false)
   const [exportFormat, setExportFormat] = useState<'word' | 'pdf' | null>(null)
@@ -82,11 +85,11 @@ export function ProjectDetailPage() {
     <nav aria-label={t('project.navigation')} className={styles.resourceNav}>
       <div className={styles.resourceNavScroll} tabIndex={0}>
         {sections.filter((section) => section.id !== 'funds' || project.funding_visible).map((section) => section.enabled
-          ? <NavLink className={({ isActive }) => `${styles.resourceLink} ${isActive ? styles.resourceLinkActive : ''}`} end key={section.id} to={section.id === 'tasks' ? `${base}/tasks` : section.id === 'calendar' ? `${base}/calendar` : section.id === 'funds' ? `${base}/funding` : section.id === 'budgets' ? `${base}/budgets` : section.id === 'contributions' ? `${base}/contributions` : section.id === 'contracts' ? `${base}/contracts` : section.id === 'notes' ? `${base}/notes` : base} state={location.state}>{t(section.label)}</NavLink>
+          ? <NavLink className={({ isActive }) => `${styles.resourceLink} ${isActive ? styles.resourceLinkActive : ''}`} end key={section.id} to={section.id === 'tasks' ? `${base}/tasks` : section.id === 'calendar' ? `${base}/calendar` : section.id === 'funds' ? `${base}/funding` : section.id === 'budgets' ? `${base}/budgets` : section.id === 'contributions' ? `${base}/contributions` : section.id === 'contracts' ? `${base}/contracts` : section.id === 'dashboard' ? `${base}/dashboard` : section.id === 'notes' ? `${base}/notes` : base} state={location.state}>{t(section.label)}</NavLink>
           : <button disabled aria-disabled="true" className={styles.resourceLink} key={section.id} title={t('project.unavailableSection')} type="button">{t(section.label)}</button>)}
       </div>
     </nav>
-    <div className={styles.panel}>{showPlanning ? <ProjectPlanningPanel key={contextVersion} projectId={projectId} /> : showCalendar ? <ProjectCalendarPanel key={`${contextVersion}:calendar`} projectId={projectId} /> : showFunding ? <ProjectFundingPanel key={contextVersion} projectId={projectId} /> : showBudgets ? <ProjectBudgetsPanel key={`${contextVersion}:budget`} projectId={projectId} kind="budget" /> : showContributions ? <ProjectBudgetsPanel key={`${contextVersion}:contribution`} projectId={projectId} kind="contribution" /> : showContracts ? <ContractSection key={`${contextVersion}:contracts`} scope={{ projectId }} /> : showNotes ? <GenericNotes scope="project" objectId={projectId} /> : <ProjectOverview projectId={projectId} resource={resource} />}</div>
+    <div className={styles.panel}>{showPlanning ? <ProjectPlanningPanel key={contextVersion} projectId={projectId} contextName={project.name} /> : showCalendar ? <ProjectCalendarPanel key={`${contextVersion}:calendar`} projectId={projectId} contextName={project.name} /> : showFunding ? <ProjectFundingPanel key={contextVersion} projectId={projectId} /> : showBudgets ? <ProjectBudgetsPanel key={`${contextVersion}:budget`} projectId={projectId} kind="budget" /> : showContributions ? <ProjectBudgetsPanel key={`${contextVersion}:contribution`} projectId={projectId} kind="contribution" /> : showContracts ? <ContractSection key={`${contextVersion}:contracts`} scope={{ projectId }} /> : showDashboard ? <Suspense fallback={<LoadingState message={t('common.loading')} />}><DashboardPage projectId={projectId} /></Suspense> : showNotes ? <GenericNotes scope="project" objectId={projectId} /> : <ProjectOverview projectId={projectId} resource={resource} />}</div>
     {editing && <ProjectSheet project={project} returnFocus={actionTrigger} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); void resource.refresh() }} />}
     {exportFormat && <ReportExportDialog entity="project" id={project.id} format={exportFormat} title={t('reports.projectTitle', { format: t(exportFormat === 'word' ? 'reports.word' : 'reports.pdf') })} timeframe={false} returnFocus={actionTrigger} onClose={() => setExportFormat(null)} />}
     {settingsOpen && <SettingsSheet title={t('project.settings')} description={t('settings.sheetDescription')} load={(signal) => getProjectSettings(projectId, signal)} save={(key, value) => updateProjectSetting(projectId, key, value)} returnFocus={actionTrigger} onClose={(changed) => { setSettingsOpen(false); if (changed) { setContextVersion((value) => value + 1); void resource.refresh() } }} />}

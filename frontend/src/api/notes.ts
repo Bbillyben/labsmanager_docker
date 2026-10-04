@@ -1,6 +1,6 @@
 import { apiRequest } from './client'
 
-export type NoteScope = 'project' | 'employee' | 'team' | 'institution' | 'contract'
+export type NoteScope = 'project' | 'employee' | 'team' | 'institution' | 'funder' | 'contract'
 export type NoteVisibility = 'object' | 'creator'
 export type NoteCapabilities = { can_add: boolean; can_change: boolean; can_rename: boolean; can_delete: boolean; can_change_visibility: boolean }
 export type GenericNote = {

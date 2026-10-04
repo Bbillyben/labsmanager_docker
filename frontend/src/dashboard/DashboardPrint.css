@@ -1,0 +1,13 @@
+.dashboard-print-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
+.dashboard-print-item[data-wide="true"] { grid-column: 1 / -1; }
+.dashboard-print-item .dashboard-widget-frame { height: auto; overflow: visible; }
+.dashboard-print-item .dashboard-list-label a, .dashboard-print-item .dashboard-list-label span { white-space: normal; overflow: visible; }
+@media (max-width: 640px) { .dashboard-print-grid { grid-template-columns: 1fr; } }
+@media print {
+  .dashboard-print, .dashboard-print-item, .dashboard-widget-frame { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .dashboard-print-grid { gap: 4mm; }
+  .dashboard-print-item { min-width: 0; break-inside: avoid; page-break-inside: avoid; }
+  .dashboard-print-item[data-renderer="compact-list"], .dashboard-print-item[data-renderer="alert-list"], .dashboard-print-item[data-renderer="progress-list"] { break-inside: auto; page-break-inside: auto; }
+  .dashboard-print-item .dashboard-list li { break-inside: avoid; page-break-inside: avoid; }
+  .dashboard-print-item .dashboard-kpi { font-size: 2rem; }
+}

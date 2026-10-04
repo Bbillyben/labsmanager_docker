@@ -15,7 +15,7 @@ import { EmployeeProjectWorkload } from './EmployeeProjectWorkload'
 import { useEmployeeResource, type EmployeeResource } from './useEmployeeResource'
 
 export function EmployeeProjects() {
-  const { employeeId } = useEmployeeDetail()
+  const { employeeId, employee } = useEmployeeDetail()
   const { t } = useTranslation()
   const milestones = useEmployeeResource(employeeId, getEmployeeMilestones)
   const projects = useEmployeeResource(employeeId, getEmployeeProjectParticipations)
@@ -47,7 +47,7 @@ export function EmployeeProjects() {
       </div> : <p className={styles.muted}>{t('employee.noProjects')}</p>}</SecondaryResource>
     </PersistentCollapsibleSection>
     </>}
-    <EmployeeGanttPanel active={mode === 'gantt'} employeeId={employeeId} key={employeeId} participations={projects.data} work={milestones.data} projectError={Boolean(projects.error)} workError={Boolean(milestones.error)} onRetryProjects={projects.retry} onRetryWork={milestones.retry} onOpen={setSelected} />
+    <EmployeeGanttPanel active={mode === 'gantt'} employeeId={employeeId} contextName={`${employee.first_name} ${employee.last_name}`} key={employeeId} participations={projects.data} work={milestones.data} projectError={Boolean(projects.error)} workError={Boolean(milestones.error)} onRetryProjects={projects.retry} onRetryWork={milestones.retry} onOpen={setSelected} />
     <MilestoneDetailSheet key={selected?.id ?? 'closed'} milestone={selected} onClose={() => setSelected(null)} onDependenciesChanged={milestones.retry} employeeEdit={selected ? { canChange: !!selected.can_change, onSave: saveMilestone } : undefined} />
   </>
 }

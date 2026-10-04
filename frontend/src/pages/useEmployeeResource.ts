@@ -7,7 +7,7 @@ export type EmployeeResource<T> = {
 }
 export type EmployeeLoader<T> = (id: string, signal: AbortSignal) => Promise<T>
 
-export function useEmployeeResource<T>(id: string, loader: EmployeeLoader<T>): EmployeeResource<T> {
+export function useEmployeeResource<T>(id: string, loader: EmployeeLoader<T>, enabled = true): EmployeeResource<T> {
   const [attempt, setAttempt] = useState(0)
   const key = `${id}:${attempt}`
   const [state, setState] = useState<{ key: string; data: T | null; error: unknown; refreshing: boolean; refreshError: unknown }>({ key, data: null, error: null, refreshing: false, refreshError: null })
@@ -32,9 +32,10 @@ export function useEmployeeResource<T>(id: string, loader: EmployeeLoader<T>): E
   }, [id, key, loader])
 
   useEffect(() => {
+    if (!enabled) return
     void read(false)
     return () => request.current?.abort()
-  }, [read])
+  }, [enabled, read])
 
   const refresh = useCallback(() => {
     setState((previous) => previous.key === key ? { ...previous, refreshing: true, refreshError: null } : previous)
@@ -47,5 +48,5 @@ export function useEmployeeResource<T>(id: string, loader: EmployeeLoader<T>): E
       ? { ...previous, data: update(previous.data), refreshing: false, refreshError: null } : previous)
   }, [key])
   const current = state.key === key ? state : { data: null, error: null, refreshing: false, refreshError: null }
-  return { ...current, loading: current.data === null && !current.error, retry: () => setAttempt((value) => value + 1), refresh, updateData }
+  return { ...current, loading: enabled && current.data === null && !current.error, retry: () => setAttempt((value) => value + 1), refresh, updateData }
 }

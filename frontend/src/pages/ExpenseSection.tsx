@@ -18,6 +18,18 @@ const initialFilters: ExpenseFilters = { search: '', type: '', date_from: '', da
 const dateLabel = (value: string, language: string) => new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
 const amountLabel = (value: string, language: string) => new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(Number(value))
 
+export function ExpenseReadOnlyDetails({ item }: { item: Pick<Expense, 'expense_id' | 'desc' | 'date' | 'type' | 'amount' | 'status'> }) {
+  const { t, language } = useTranslation()
+  return <dl className={styles.details}>
+    <div><dt>{t('expenses.reference')}</dt><dd>{item.expense_id || '—'}</dd></div>
+    <div><dt>{t('expenses.description')}</dt><dd>{item.desc || '—'}</dd></div>
+    <div><dt>{t('expenses.date')}</dt><dd>{dateLabel(item.date, language)}</dd></div>
+    <div><dt>{t('funding.costType')}</dt><dd>{item.type.name}</dd></div>
+    <div><dt>{t('expenses.status')}</dt><dd>{t(`expenses.status.${item.status}`)}</dd></div>
+    <div><dt>{t('funding.amount')}</dt><dd>{amountLabel(item.amount, language)}</dd></div>
+  </dl>
+}
+
 export function ExpenseSection({ scope, onFinancialChange, title }: { scope: ExpenseScope; onFinancialChange?: () => void | Promise<unknown>; title?: string }) {
   const { t, language } = useTranslation()
   const sectionTitle = title ?? t('expenses.title')

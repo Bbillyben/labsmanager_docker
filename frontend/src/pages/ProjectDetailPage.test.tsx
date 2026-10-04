@@ -51,6 +51,8 @@ function mockApi(initial: ProjectOverview = base, detailStatus = 200, options: {
     if (method !== 'GET' && options.writeError) return jsonResponse({ detail: 'Refus serveur' }, 400)
     if (method !== 'GET') writes++
     if (url === '/api/v1/projects/3/' && method === 'GET') return options.refreshError && writes ? jsonResponse({ detail: 'Lecture impossible' }, 503) : jsonResponse(detailStatus === 200 ? state : { detail: 'Not found' }, detailStatus)
+    if (url === '/api/v1/projects/3/dashboard/' && method === 'GET') return jsonResponse({ id: 31, name: 'Project overview', scope: 'project', project_id: 3, widgets: [] })
+    if (url === '/api/v1/projects/3/dashboard/catalog/' && method === 'GET') return jsonResponse({ scope: 'project', sources: [], definitions: [], renderers: {}, project_options: [{ id: 3, name: 'Atlas' }] })
     if (url === '/api/v1/projects/3/funding/' && method === 'GET') return jsonResponse({ capabilities: { can_add: projectSettings[1].value }, project_dates: { start_date: state.start_date, end_date: state.end_date }, funds: [], overview: { rows: [], fund_totals: {}, grand_total: { amount: '0.00', expense: '0.00', available: '0.00' } } })
     if (url === '/api/v1/projects/3/funding/options/' && method === 'GET') return jsonResponse({ funders: [], institutions: [], cost_types: [], project_dates: { start_date: state.start_date, end_date: state.end_date } })
     if (url.startsWith('/api/v1/projects/3/planning/') && method === 'GET') return jsonResponse({ capabilities: state.capabilities, participants: [{ id: 7, first_name: 'Marie', last_name: 'Curie' }], items: [planningItem] })
@@ -86,6 +88,13 @@ function mockApi(initial: ProjectOverview = base, detailStatus = 200, options: {
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear() })
 
 describe('ProjectSingle Overview', () => {
+  it('opens the Project Dashboard through its own tab and direct route', async () => {
+    const { fetchMock } = mockApi(base)
+    mount('/app/projects/3/dashboard')
+    expect(await screen.findByText('Aucun widget. Ajoutez-en un en mode personnalisation.')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Tableau de bord' }).some((link) => link.getAttribute('href') === '/app/projects/3/dashboard')).toBe(true)
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/v1/projects/3/dashboard/')).toBe(true)
+  })
   it('places Project Settings after Edit and refreshes the active Planning panel on close', async () => {
     const { fetchMock } = mockApi({ ...base, capabilities: { ...full, can_change_settings: true, can_export_word: true, can_export_pdf: true } })
     mount('/app/projects/3/tasks')

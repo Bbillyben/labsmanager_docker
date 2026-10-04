@@ -1,9 +1,10 @@
-import { ChevronDown, IdCard, LogOut, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-react'
+import { ChevronDown, IdCard, LogOut, PanelLeftClose, PanelLeftOpen, Settings, Shield, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuth } from '../auth/AuthContext'
 import type { AuthenticatedUser } from '../auth/types'
+import { getDjangoUrl } from '../config/django'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ import { Button } from '../ui/Button'
 import { ThemeMenuItem } from '../ui/ThemeToggle'
 import { IconButton } from '../ui/IconButton'
 import { getPageContext } from './pageContext'
+import { GlobalSearch } from '../search/GlobalSearch'
 import styles from './Topbar.module.css'
 
 type TopbarProps = { navigationExpanded: boolean; onToggleNavigation: () => void; user: AuthenticatedUser }
@@ -57,6 +59,7 @@ export function Topbar({ navigationExpanded, onToggleNavigation, user }: TopbarP
         {pageContext && <span className={styles.context}>{t(pageContext.label)}</span>}
       </div>
       <div className={styles.account}>
+        <GlobalSearch />
         {logoutError && <span className={styles.logoutError} role="alert">{t('user.logoutError')}</span>}
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -74,6 +77,8 @@ export function Topbar({ navigationExpanded, onToggleNavigation, user }: TopbarP
             {user.employee && <DropdownMenuItem render={<Link to={`/employees/${user.employee.id}`} />}>
               <IdCard aria-hidden="true" /> {t('user.profile')}
             </DropdownMenuItem>}
+            <DropdownMenuItem render={<Link to="/settings/user" />}><Settings aria-hidden="true" /> {t('userSettings.title')}</DropdownMenuItem>
+            {user.can_access_admin && user.admin_url && <DropdownMenuItem render={<a href={getDjangoUrl(user.admin_url)} />}><Shield aria-hidden="true" /> {t('user.admin')}</DropdownMenuItem>}
             <ThemeMenuItem />
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={loggingOut} onClick={() => void handleLogout()}>

@@ -141,7 +141,7 @@ describe('shared Contract section', () => {
     expect(await screen.findByRole('region', { name: 'Détail du contrat' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Jean Dupont' })).toHaveAttribute('href', '/employees/12')
     expect(screen.getByRole('link', { name: 'Atlas' })).toHaveAttribute('href', '/projects/3')
-    expect(screen.getByRole('link', { name: 'Université de Lille' })).toHaveAttribute('href', '/infos/project/institution/40')
+    expect(screen.getByRole('link', { name: 'Université de Lille' })).toHaveAttribute('href', '/organizations/institutions/40')
     expect(screen.getAllByText('Suivi RH').length).toBeGreaterThan(0)
     expect(await screen.findByRole('heading', { name: 'Dépenses liées' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ajouter une dépense' })).toBeInTheDocument()
