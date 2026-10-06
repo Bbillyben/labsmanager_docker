@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .contracts import SearchField, SearchProvider, SearchResult
 from .helpers import matching_parent_ids, person_values
+from .destinations import fund_url, contract_url, team_url
 
 
 class FundSearchProvider(SearchProvider):
@@ -34,7 +35,7 @@ class FundSearchProvider(SearchProvider):
     def make_result(self, obj, *, score, match_reason):
         title = obj.ref or f"{obj.funder.short_name} → {obj.institution.short_name}"
         return SearchResult(self.key, str(obj.pk), title, obj.project.name,
-                            f"/app/projects/{obj.project_id}/funding#fund-row-{obj.pk}", score, self.icon, match_reason)
+                            fund_url(obj), score, self.icon, match_reason)
 
 
 class ContractSearchProvider(SearchProvider):
@@ -94,7 +95,7 @@ class ContractSearchProvider(SearchProvider):
     def make_result(self, obj, *, score, match_reason):
         title = f"{obj.employee} — {obj.contract_type.name if obj.contract_type else obj.get_status_display()}"
         return SearchResult(self.key, str(obj.pk), title, obj.fund.project.name,
-                            f"/app/tools/contracts?employee={obj.employee_id}", score, self.icon, match_reason)
+                            contract_url(obj), score, self.icon, match_reason)
 
 
 class TeamSearchProvider(SearchProvider):
@@ -146,4 +147,4 @@ class TeamSearchProvider(SearchProvider):
 
     def make_result(self, obj, *, score, match_reason):
         return SearchResult(self.key, str(obj.pk), obj.name, "",
-                            f"/app/teams/{obj.pk}", score, self.icon, match_reason)
+                            team_url(obj), score, self.icon, match_reason)

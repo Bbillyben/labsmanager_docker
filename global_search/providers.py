@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .contracts import SearchField, SearchProvider, SearchResult
 from .helpers import matching_parent_ids, person_values
+from .destinations import employee_url, project_url
 
 
 class EmployeeSearchProvider(SearchProvider):
@@ -69,7 +70,7 @@ class EmployeeSearchProvider(SearchProvider):
 
     def make_result(self, obj, *, score, match_reason):
         return SearchResult(self.key, str(obj.pk), str(obj), obj.email or "",
-                            f"/app/employees/{obj.pk}", score, self.icon, match_reason)
+                            employee_url(obj), score, self.icon, match_reason)
 
 
 class ProjectSearchProvider(SearchProvider):
@@ -144,7 +145,7 @@ class ProjectSearchProvider(SearchProvider):
 
     def make_result(self, obj, *, score, match_reason):
         return SearchResult(self.key, str(obj.pk), obj.name, "",
-                            f"/app/projects/{obj.pk}", score, self.icon, match_reason)
+                            project_url(obj), score, self.icon, match_reason)
 
 
 from .business_providers import FundSearchProvider, ContractSearchProvider, TeamSearchProvider  # noqa: E402

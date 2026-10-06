@@ -12,7 +12,7 @@ from .models import LMUserSetting
 
 USER_SETTING_GROUPS = {
     "interface": (
-        "REDIRECT_LOGGING", "SHOW_PAST_ORG", "MAP_PROVIDER",
+        "REDIRECT_LOGGING", "SHOW_PAST_ORG", "MAP_PROVIDER", "LAB_THEME",
     ),
     "notifications": (
         "NOTIFCATION_STATUS", "NOTIFCATION_REPORT_LANGUAGE",

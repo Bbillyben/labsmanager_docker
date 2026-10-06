@@ -3,6 +3,8 @@ from rest_framework.test import APITestCase
 
 from allauth.account.models import EmailAddress
 from settings.models import LMUserSetting
+from django.apps import apps
+from importlib import import_module
 
 
 class UserSettingsV1Tests(APITestCase):
@@ -46,6 +48,24 @@ class UserSettingsV1Tests(APITestCase):
             self.assertEqual(response.data["value"], value)
         self.assertEqual(self.client.patch(f"/api/v1/settings/user/interface/{boolean['key']}/", {"value": "true"}, format="json").status_code, 400)
         self.assertEqual(self.client.patch(f"/api/v1/settings/user/interface/{choice['key']}/", {"value": "invalid"}, format="json").status_code, 400)
+
+    def test_theme_is_a_two_choice_user_setting_and_me_uses_it(self):
+        setting = next(row for row in self.client.get("/api/v1/settings/user/interface/").data["settings"] if row["key"] == "LAB_THEME")
+        self.assertEqual(setting["value"], "light")
+        self.assertEqual([choice["value"] for choice in setting["choices"]], ["light", "dark"])
+        url = "/api/v1/settings/user/interface/LAB_THEME/"
+        self.assertEqual(self.client.patch(url, {"value": "dark"}, format="json").status_code, 200)
+        self.assertEqual(self.client.get("/api/v1/me/").data["theme"], "dark")
+        self.assertEqual(self.client.patch(url, {"value": "default"}, format="json").status_code, 400)
+
+    def test_theme_data_migration_deletes_only_theme_preferences(self):
+        theme = LMUserSetting.objects.create(user=self.user, key="LAB_THEME", value="dark")
+        other = LMUserSetting.objects.create(user=self.user, key="MAP_PROVIDER", value="gmap")
+        migration = import_module("settings.migrations.0009_reset_lab_theme")
+        migration.reset_lab_theme(apps, None)
+        self.assertFalse(LMUserSetting.objects.filter(pk=theme.pk).exists())
+        self.assertTrue(LMUserSetting.objects.filter(pk=other.pk).exists())
+        self.assertEqual(LMUserSetting.get_setting("LAB_THEME", user=self.user, create=False), "light")
 
     def test_notification_preference_uses_existing_model_hook(self):
         url = "/api/v1/settings/user/notifications/NOTIFCATION_FREQ/"

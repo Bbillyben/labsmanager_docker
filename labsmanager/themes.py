@@ -1,31 +1,16 @@
-from labsmanager import settings
-import os
 from django.utils.translation import gettext_lazy as _
 class LabTheme():
-    default_color_theme = ('default', _('Default'))
-    
+    default_color_theme = ('light', _('Light'))
+
     @classmethod
     def get_themes_choices(cls):
-        """ Get all color themes from static folder """
-
-        # Get files list from css/color-themes/ folder
-        files_list = []
-        for file in os.listdir("/"+settings.STATIC_COLOR_THEMES_DIR):
-            files_list.append(os.path.splitext(file))
-
-        # Get color themes choices (CSS sheets)
-        choices = [(file_name.lower(), _(file_name.replace('-', ' ').title()))
-                   for file_name, file_ext in files_list
-                   if file_ext == '.css' and file_name.lower() != 'default']
-
-        # Add default option as empty option
-        choices.insert(0, cls.default_color_theme)
-
-        return choices
+        """Themes supported by the React interface."""
+        return [('light', _('Light')), ('dark', _('Dark'))]
 
     @classmethod
     def get_theme(cls, themeName):
+        """Keep the legacy template on its existing stylesheet for React theme IDs."""
         for ct in cls.get_themes_choices():
             if themeName == ct[0]:
-                return themeName   
-        return cls.default_color_theme[0]
+                return 'default'
+        return 'default'

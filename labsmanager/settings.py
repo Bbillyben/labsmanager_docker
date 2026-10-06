@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
 import os
 from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir
@@ -36,10 +37,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_setting('SECRET_KEY', 'secret_key', 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq')  
+DEMO_SECRET_KEYS = {
+    'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq',
+    '12345678910abcdefghijklmnopqrstuvwxyz@django_secretkey',
+}
+SECRET_KEY = get_setting('SECRET_KEY', 'secret_key', 'django-insecure,klsdh0989è_çà$*ùùjkoijç_015.BHh_dq')
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = get_boolean_setting("DEBUG", "debug", default_value=False)  
+if not DEBUG and SECRET_KEY in DEMO_SECRET_KEYS:
+    raise ImproperlyConfigured('Set a unique SECRET_KEY before running in production')
 
 
 
@@ -305,6 +312,7 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_DEFAULT_HTTP_PROTOCOL=get_setting('ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'lab_default_http_protocol', 'http')
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE=False
 ACCOUNT_CONFIRM_EMAIL_ON_GET=False
+REACT_PUBLIC_URL = get_setting('REACT_PUBLIC_URL', 'react_public_url', '')
 
 # allauth config
 ACCOUNT_AUTHENTICATION_METHOD  = 'username_email'
@@ -448,7 +456,7 @@ ACCOUNT_FORMS = {
     'signup': 'common.forms.LabSignupForm'       
     }
 # Session 
-SESSION_COOKIE_AGE = get_setting('LAB_SESSION_COOKIE_AGE', 'session_cookie_age', 6400)
+SESSION_COOKIE_AGE = get_setting('LAB_SESSION_COOKIE_AGE', 'session_cookie_age', 6400, typecast=int, )
 # SESSION_COOKIE_NAME = '__Secure-sessionid'
 # CSRF_COOKIE_NAME = '__Secure-csrftoken'
 
@@ -485,8 +493,11 @@ SESSION_COOKIE_SECURE = get_boolean_setting('SESSION_COOKIE_SECURE', 'session_co
 SECURE_BROWSER_XSS_FILTER = get_boolean_setting('SECURE_BROWSER_XSS_FILTER', 'secure_browser_xss_filter', True)
 SECURE_CONTENT_TYPE_NOSNIFF = get_boolean_setting('SECURE_CONTENT_TYPE_NOSNIFF', 'secure_content_type_nosniff', True)
 SECURE_SSL_REDIRECT =  get_boolean_setting('SECURE_SSL_REDIRECT', 'secure_ssl_redirect', True)
+if get_boolean_setting('LAB_TRUST_PROXY_SSL_HEADER', 'trust_proxy_ssl_header', False):
+    # Enable only when Django is reachable exclusively through the controlled nginx proxy.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 X_FRAME_OPTIONS =  get_setting('X_FRAME_OPTIONS', 'x_frame_options', 'DENY')
-SECURE_HSTS_SECONDS = get_setting('SECURE_HSTS_SECONDS', 'secure_hsts_seconds', 300)
+SECURE_HSTS_SECONDS = get_setting('SECURE_HSTS_SECONDS', 'secure_hsts_seconds', 300,  typecast=int)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = get_boolean_setting('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'secure_hsts_include_subdomains', True)
 SECURE_HSTS_PRELOAD = get_boolean_setting('SECURE_HSTS_PRELOAD', 'secure_hsts_preload', True)
 

@@ -5,7 +5,7 @@ from django.apps import AppConfig
 
 # from maintenance_mode.core import set_maintenance_mode
 
-from labsmanager.ready import canAppAccessDatabase, isInMainThread, isInWorkerThread
+from labsmanager.ready import canAppAccessDatabase, isInMainThread, isInWorkerThread, isRunningMigrations
 from .registry import registry
 
 
@@ -22,6 +22,11 @@ class PluginConfig(AppConfig):
         # skip loading if we run in a background thread
         logger.debug("...... Start Pulgin Initialisation  .....")
         if not isInMainThread() and not isInWorkerThread():
+            return
+
+        # Migration commands must not initialize plugins against an incomplete schema.
+        if isRunningMigrations():
+            logger.info('Skipping plugin loading during migrations')
             return
 
         if not canAppAccessDatabase(

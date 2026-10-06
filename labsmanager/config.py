@@ -124,15 +124,18 @@ def get_setting(env_var=None, config_key=None, default_value=None, typecast=None
             # Try to typecast the value
             try:
                 return typecast(value)
-            except Exception as error:
-                logger.error(f"Failed to typecast '{env_var}' with value '{value}' to type '{typecast}' with error {error}")
+            except (TypeError, ValueError) as error:
+                from django.core.exceptions import ImproperlyConfigured
+                raise ImproperlyConfigured(
+                    f"Invalid value for {env_var or config_key}: expected {typecast.__name__}"
+                ) from error
         return value
 
     # First, try to load from the environment variables
     if env_var is not None:
         val = os.getenv(env_var, None)
 
-        if val is not None:
+        if val is not None and (typecast is None or val.strip()):
             return try_typecasting(val)
 
     # Next, try to load from configuration file
@@ -151,7 +154,7 @@ def get_setting(env_var=None, config_key=None, default_value=None, typecast=None
             result = cfg_data[key]
             cfg_data = cfg_data[key]
 
-        if result is not None:
+        if result is not None and (typecast is None or str(result).strip()):
             return try_typecasting(result)
 
     # Finally, return the default value

@@ -1,7 +1,15 @@
 from allauth.account.forms import LoginForm
+from allauth.account.forms import ResetPasswordForm, ResetPasswordKeyForm, UserTokenForm
+from allauth.account import app_settings
+from allauth.account.internal import flows
+from allauth.utils import get_form_class
 from allauth.core import ratelimit
 from allauth.core.exceptions import ImmediateHttpResponse
 from django.contrib.auth import logout
+from django.conf import settings
+from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -13,6 +21,25 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from staff.models import Employee
+from settings.models import LMUserSetting
+
+RESET_SESSION_UID = "react_password_reset_uid"
+RESET_SESSION_KEY = "react_password_reset_key"
+
+
+def _reset_token_form(uid, key):
+    """Use the configured allauth token form for both bridge and confirmation."""
+    form_class = get_form_class(app_settings.FORMS, "user_token", UserTokenForm)
+    return form_class(data={"uidb36": uid, "key": key})
+
+
+def _reset_user(request, uid):
+    """Resolve a session-bound reset token without exposing the user to React."""
+    key = request.session.get(RESET_SESSION_KEY, "")
+    if request.session.get(RESET_SESSION_UID) != uid or not key:
+        return None
+    form = _reset_token_form(uid, key)
+    return form.reset_user if form.is_valid() else None
 
 
 CAPABILITY_PERMISSIONS = {
@@ -96,6 +123,7 @@ class CurrentUserView(APIView):
                 "capabilities": get_user_capabilities(user),
                 "can_access_admin": admin.site.has_permission(request),
                 "admin_url": reverse("admin:index") if admin.site.has_permission(request) else None,
+                "theme": LMUserSetting.get_setting("LAB_THEME", user=user, create=False),
             }
         )
 
@@ -205,3 +233,83 @@ class LogoutV1View(APIView):
         """
         logout(request._request)
         return Response({"is_authenticated": False})
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class PasswordResetRequestV1View(APIView):
+    """Request an allauth email without disclosing account existence."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        if not settings.REACT_PUBLIC_URL.strip():
+            return Response({"detail": "React public URL is not configured."}, status=503)
+        email = request.data.get("email") if isinstance(request.data, dict) else None
+        if not isinstance(email, str):
+            return Response({"email": ["A valid email address is required."]}, status=400)
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response({"email": ["A valid email address is required."]}, status=400)
+        form_class = get_form_class(app_settings.FORMS, "reset_password", ResetPasswordForm)
+        form = form_class(data=request.data)
+        if not form.is_valid():
+            # Do not disclose whether the address belongs to an account.
+            return Response({"sent": True})
+        if not ratelimit.consume(request._request, action="reset_password", key=form.cleaned_data["email"].lower()):
+            return Response({"detail": "Too many requests."}, status=429)
+        request._request.react_password_reset = True
+        form.save(request._request)
+        return Response({"sent": True})
+
+
+class PasswordResetBridgeV1View(APIView):
+    """Exchange an emailed token for session-bound reset state."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, key):
+        if not ratelimit.consume(request._request, action="reset_password_from_key"):
+            return Response({"detail": "Too many requests."}, status=429)
+        uid, separator, token = key.partition("-")
+        user = None
+        if separator:
+            form = _reset_token_form(uid, token)
+            if form.is_valid():
+                user = form.reset_user
+        if user:
+            if request.user.is_authenticated and request.user.pk != user.pk:
+                logout(request._request)
+            request.session[RESET_SESSION_UID] = uid
+            request.session[RESET_SESSION_KEY] = token
+            return Response({"valid": True, "uid": uid}, headers={"Cache-Control": "no-store"})
+        else:
+            request.session.pop(RESET_SESSION_UID, None)
+            request.session.pop(RESET_SESSION_KEY, None)
+            return Response({"valid": False}, status=400, headers={"Cache-Control": "no-store"})
+
+
+class PasswordResetConfirmV1View(APIView):
+    """Expose validator hints and save through the configured allauth reset form."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, uid):
+        if not ratelimit.consume(request._request, action="reset_password_from_key"):
+            return Response({"detail": "Too many requests."}, status=429)
+        if not _reset_user(request, uid):
+            return Response({"valid": False}, status=400)
+        return Response({"valid": True, "password_hints": password_validation.password_validators_help_texts()})
+
+    def post(self, request, uid):
+        user = _reset_user(request, uid)
+        if user is None:
+            return Response({"valid": False}, status=400)
+        if not ratelimit.consume(request._request, action="reset_password_from_key"):
+            return Response({"detail": "Too many requests."}, status=429)
+        form_class = get_form_class(app_settings.FORMS, "reset_password_from_key", ResetPasswordKeyForm)
+        form = form_class(data=request.data, user=user, temp_key=request.session[RESET_SESSION_KEY])
+        if not form.is_valid():
+            return Response(form.errors, status=400)
+        form.save()
+        flows.password_reset.finalize_password_reset(request._request, user)
+        request.session.pop(RESET_SESSION_UID, None)
+        request.session.pop(RESET_SESSION_KEY, None)
+        return Response({"saved": True})

@@ -2,6 +2,7 @@ from django.urls import path
 from importlib import import_module
 from common.preferences_api_v1 import ObjectPreferenceV1View, FavoriteNavigationV1View, SubscriptionNavigationV1View
 from common.global_calendar_api_v1 import GlobalEmployeeCalendar, GlobalProjectPlanning, GlobalCalendarFilters
+from common.recent_api_v1 import RecentItemsV1View
 from endpoints.api_v1 import (
     EditableProjectCandidatesV1View,
     ProjectPlanningItemsV1View,
@@ -47,7 +48,7 @@ from staff.team_api_v1 import (
     TeamCalendarLeaveDetailV1View,
 )
 
-from .api_v1 import CurrentUserView, LoginV1View, LogoutV1View
+from .api_v1 import CurrentUserView, LoginV1View, LogoutV1View, PasswordResetRequestV1View, PasswordResetBridgeV1View, PasswordResetConfirmV1View
 from dashboard.api_v1 import (DashboardCollection, DashboardDetail, DashboardDefault,
     DashboardDuplicate, DashboardReorder, DashboardCatalog, DashboardWidgets,
     DashboardWidgetDetail, DashboardLayout, ProjectDashboard, ProjectDashboardCatalog)
@@ -96,6 +97,7 @@ app_name = "api_v1"
 import_api = import_module("import.api_v1")
 
 urlpatterns = [
+    path("recent-items/", RecentItemsV1View.as_view(), name="recent-items"),
     path("search/", SearchV1View.as_view(), name="search"),
     path("search/schema/", SearchSchemaV1View.as_view(), name="search-schema"),
     path("search/autocomplete/", SearchAutocompleteV1View.as_view(), name="search-autocomplete"),
@@ -256,6 +258,9 @@ urlpatterns = [
     path("me/", CurrentUserView.as_view(), name="me"),
     path("auth/login/", LoginV1View.as_view(), name="login"),
     path("auth/logout/", LogoutV1View.as_view(), name="logout"),
+    path("auth/password/reset/", PasswordResetRequestV1View.as_view(), name="password-reset"),
+    path("auth/password/reset/bridge/<str:key>/", PasswordResetBridgeV1View.as_view(), name="password-reset-bridge"),
+    path("auth/password/reset/<str:uid>/", PasswordResetConfirmV1View.as_view(), name="password-reset-confirm"),
     path("employees/", EmployeeListV1View.as_view(), name="employees"),
     path("employees/export/", EmployeeListExportV1View.as_view(), name="employee-list-export"),
     path("employees/filter-options/", EmployeeListFilterOptionsV1View.as_view(), name="employee-filter-options"),

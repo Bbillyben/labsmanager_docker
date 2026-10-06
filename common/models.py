@@ -30,6 +30,22 @@ class subscription(models.Model):
     
     def __str__(self):
         return f"{self.user.username} : {self.content_object.__str__()}"
+
+
+class RecentItem(models.Model):
+    """A destination actually opened by a user, without cached display data."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="recent_items")
+    url_id = models.CharField(max_length=40)
+    obj_id = models.PositiveBigIntegerField(null=True, blank=True)
+    last_viewed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "url_id", "obj_id"], condition=models.Q(obj_id__isnull=False), name="common_recent_object_unique"),
+            models.UniqueConstraint(fields=["user", "url_id"], condition=models.Q(obj_id__isnull=True), name="common_recent_page_unique"),
+        ]
+        ordering = ("-last_viewed_at", "-pk")
     
     
     
