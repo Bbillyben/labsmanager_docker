@@ -1,0 +1,3810 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-03 18:19+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: common/forms.py:19 common/forms.py:27
+msgid "New Password"
+msgstr ""
+
+#: common/models.py:10 common/models.py:20
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:257
+#: data/media/report/report_template/employee/employee_pdf_report.html:569
+#: data/media/report/report_template/project/project_pdf_report.html:675
+#: notification/models.py:86 notification/models.py:87 settings/models.py:1248
+#: settings/models.py:1249 settings/views.py:382 settings/views.py:458
+#: staff/models.py:36 staff/ressources.py:231
+#: templates/staff/employee_desc_table.html:68
+msgid "User"
+msgstr ""
+
+#: common/tasks.py:86
+#, python-format
+msgid "No Primary Email for user %(user)s verified "
+msgstr ""
+
+#: common/tasks.py:97
+msgid "Mail Send"
+msgstr ""
+
+#: common/views_modal.py:33
+msgid "Your password has been changed"
+msgstr ""
+
+#: dashboard/views.py:29 settings/models.py:994
+#: templates/dashboard/global_dashboard.html:22
+#: templates/labmanager/index.html:112 templates/navbar.html:100
+#: templates/project/project_sidebar.html:36
+#: templates/settings/dashboard_settings.html:7
+msgid "Dashboard"
+msgstr ""
+
+#: dashboard/views.py:55 dashboard/views.py:69
+msgid "Project Loss Overview"
+msgstr ""
+
+#: dashboard/views.py:89
+msgid "Stale Fund"
+msgstr ""
+
+#: dashboard/views.py:91 dashboard/views.py:117 labsmanager/serializers.py:370
+#: project/models.py:39
+msgid "project"
+msgstr ""
+
+#: dashboard/views.py:92 dashboard/views.py:118 fund/resources.py:27
+#: fund/resources.py:136 fund/resources.py:324
+#: templates/fund/fund_finder.html:59
+msgid "funder"
+msgstr ""
+
+#: dashboard/views.py:93 dashboard/views.py:119 dashboard/views.py:155
+#: data/media/report/report_template/employee/employee_pdf_report.html:341
+#: data/media/report/report_template/project/project_pdf_report.html:240
+#: data/media/report/report_template/project/project_pdf_report.html:469
+#: data/media/report/report_template/project/project_pdf_report.html:568
+#: expense/resources.py:82 expense/resources.py:147 fund/admin.py:36
+#: fund/admin.py:174 fund/resources.py:260 project/models.py:204
+#: project/resources.py:82 settings/views.py:142
+#: templates/email/notification_email.html:247
+#: templates/email/notification_email.html:352
+#: templates/expense/contract_fund_modal.html:7
+#: templates/expense/contract_table.html:55 templates/fund/fund_finder.html:62
+#: templates/fund/fund_table.html:16
+#: templates/organization/institution_single.html:164
+#: templates/project/project_base.html:63
+msgid "Institution"
+msgstr ""
+
+#: dashboard/views.py:94 dashboard/views.py:123 dashboard/views.py:157
+#: dashboard/views.py:210
+msgid "end date"
+msgstr ""
+
+#: dashboard/views.py:95 dashboard/views.py:126
+msgid "Availability"
+msgstr ""
+
+#: dashboard/views.py:96
+msgid "Availability Focus"
+msgstr ""
+
+#: dashboard/views.py:115
+msgid "No-Consumption Fund"
+msgstr ""
+
+#: dashboard/views.py:120
+msgid "Consumption Ratio"
+msgstr ""
+
+#: dashboard/views.py:121 fund/resources.py:345
+msgid "Time Ratio"
+msgstr ""
+
+#: dashboard/views.py:122 dashboard/views.py:209
+msgid "start date"
+msgstr ""
+
+#: dashboard/views.py:124 project/resources.py:92
+#: templates/project/project_base.html:72
+msgid "Total Fund"
+msgstr ""
+
+#: dashboard/views.py:125 project/resources.py:97
+#: templates/fund/fund_table.html:32 templates/project/project_base.html:75
+msgid "Total Expense"
+msgstr ""
+
+#: dashboard/views.py:151
+msgid "Stale Contract"
+msgstr ""
+
+#: dashboard/views.py:153 dashboard/views.py:208
+#: data/media/report/report_template/project/project_pdf_report.html:270
+#: data/media/report/report_template/project/project_pdf_report.html:359
+#: data/media/report/report_template/project/project_pdf_report.html:412
+#: data/media/report/report_template/project/project_pdf_report.html:465
+#: expense/admin.py:127 expense/models.py:141 expense/resources.py:132
+#: fund/resources.py:275 leave/models.py:49 leave/resources.py:85
+#: project/models.py:221 settings/views.py:385 staff/models.py:29
+#: staff/models.py:30 staff/models.py:159 staff/models.py:210
+#: staff/models.py:260 staff/models.py:299 staff/views.py:35 staff/views.py:73
+#: staff/views.py:76 templates/dashboard/dashboard_sidebar.html:13
+#: templates/dashboard/global_dashboard.html:134
+#: templates/email/notification_email.html:349
+#: templates/email/notification_email.html:526
+#: templates/email/notification_email.html:571
+#: templates/email/notification_email.html:602
+#: templates/email/usernotification_email.html:219
+#: templates/employee/employee_single.html:39
+#: templates/expense/contract_fund_modal.html:74
+#: templates/expense/contract_table.html:34
+#: templates/expense/contract_table.html:42 templates/fund/budget_table.html:49
+#: templates/fund/contrib_table.html:48 templates/labmanager/index.html:51
+#: templates/navbar.html:24 templates/project/project_single.html:157
+#: templates/project/project_single.html:459
+msgid "Employee"
+msgstr ""
+
+#: dashboard/views.py:154 dashboard/views.py:182
+#: data/media/report/report_template/employee/employee_pdf_report.html:337
+#: data/media/report/report_template/employee/employee_pdf_report.html:390
+#: data/media/report/report_template/employee/employee_pdf_report.html:459
+#: endpoints/admin.py:22 endpoints/admin.py:53 endpoints/models.py:51
+#: endpoints/resources.py:40 expense/admin.py:80 expense/resources.py:72
+#: expense/resources.py:137 fund/admin.py:25 fund/admin.py:46
+#: fund/resources.py:22 fund/resources.py:130 fund/resources.py:319
+#: project/models.py:203 project/models.py:220 project/models.py:284
+#: project/views.py:30 project/views.py:69
+#: templates/calendar/filter_project_items.html:26
+#: templates/email/notification_email.html:180
+#: templates/email/notification_email.html:303
+#: templates/email/notification_email.html:350
+#: templates/email/notification_email.html:389
+#: templates/email/usernotification_email.html:145
+#: templates/email/usernotification_email.html:189
+#: templates/employee/employee_sidebar.html:21
+#: templates/employee/employee_single.html:420
+#: templates/endpoints/milestones_table.html:24
+#: templates/expense/contract_fund_modal.html:5
+#: templates/expense/contract_table.html:29
+#: templates/expense/contract_table.html:39 templates/fund/budget_table.html:23
+#: templates/fund/contrib_table.html:24 templates/fund/fund_finder.html:56
+#: templates/labmanager/index.html:83
+#: templates/organization/institution_single.html:155
+#: templates/organization/orga_desc_table.html:52
+#: templates/project/project_base.html:54
+#: templates/project/project_single.html:33 templates/settings/sidebar.html:47
+#: templates/team/team_single.html:180
+msgid "Project"
+msgstr ""
+
+#: dashboard/views.py:156
+#: data/media/report/report_template/employee/employee_pdf_report.html:342
+#: data/media/report/report_template/employee/employee_pdf_report.html:467
+#: data/media/report/report_template/project/project_pdf_report.html:358
+#: data/media/report/report_template/project/project_pdf_report.html:411
+#: data/media/report/report_template/project/project_pdf_report.html:470
+#: expense/models.py:122 expense/models.py:144 fund/resources.py:286
+#: settings/views.py:87 templates/expense/contract_fund_modal.html:75
+#: templates/expense/contract_table.html:58 templates/fund/budget_table.html:42
+#: templates/fund/contrib_table.html:41
+msgid "Contract Type"
+msgstr ""
+
+#: dashboard/views.py:180
+msgid "Stale Milestones"
+msgstr ""
+
+#: dashboard/views.py:183
+#: data/media/report/report_template/employee/employee_pdf_report.html:275
+#: data/media/report/report_template/employee/employee_pdf_report.html:306
+#: data/media/report/report_template/project/project_pdf_report.html:160
+#: data/media/report/report_template/project/project_pdf_report.html:310
+#: endpoints/resources.py:35 infos/models.py:21 infos/models.py:81
+#: infos/models.py:149 plugin/models.py:54 project/models.py:272
+#: reports/models.py:119 staff/models.py:222 staff/models.py:287
+#: templates/endpoints/milestones_table.html:28
+#: templates/organization/orga_base.html:51
+#: templates/organization/orga_base.html:98 templates/settings/plugin.html:22
+#: templates/settings/plugin/schedule.html:12
+#: templates/settings/plugin/urls.html:13
+#: templates/settings/plugins_settings.html:100
+msgid "Name"
+msgstr ""
+
+#: dashboard/views.py:184
+#: data/media/report/report_template/employee/employee_pdf_report.html:465
+#: data/media/report/report_template/project/project_pdf_report.html:312
+#: data/media/report/report_template/project/project_pdf_report.html:356
+#: data/media/report/report_template/project/project_pdf_report.html:409
+#: expense/admin.py:117 expense/models.py:32 expense/resources.py:87
+#: fund/models.py:271 reports/models.py:132
+#: templates/expense/expense_list.html:44 templates/fund/budget_table.html:36
+#: templates/settings/plugin.html:27
+#: templates/settings/plugins_settings.html:64
+msgid "Description"
+msgstr ""
+
+#: dashboard/views.py:185
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:211
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:223
+#: data/media/report/report_template/employee/employee_pdf_report.html:242
+#: data/media/report/report_template/employee/employee_pdf_report.html:460
+#: data/media/report/report_template/employee/employee_pdf_report.html:524
+#: data/media/report/report_template/project/project_pdf_report.html:313
+#: data/media/report/report_template/project/project_pdf_report.html:353
+#: data/media/report/report_template/project/project_pdf_report.html:404
+#: data/media/report/report_template/project/project_pdf_report.html:523
+#: data/media/report/report_template/project/project_pdf_report.html:597
+#: data/media/report/report_template/project/project_pdf_report.html:626
+#: endpoints/models.py:22 fund/admin.py:247 fund/models.py:264
+#: infos/models.py:29 labsmanager/mixin.py:148 leave/models.py:48
+#: settings/views.py:254 settings/views.py:281 settings/views.py:331
+#: settings/views.py:355 staff/models.py:158
+#: templates/email/notification_email.html:447
+#: templates/email/notification_email.html:574
+#: templates/employee/employee_single.html:566
+#: templates/endpoints/milestones_table.html:20
+#: templates/expense/contract_item_expense.html:28
+#: templates/expense/contract_item_expense.html:31
+#: templates/expense/expense_list.html:47
+#: templates/expense/expense_timepoint.html:36
+#: templates/fund/fund_finder.html:71 templates/fund/fund_item_table.html:31
+#: templates/fund/fund_overview_type.html:8
+#: templates/project/project_single.html:468
+msgid "Type"
+msgstr ""
+
+#: dashboard/views.py:186
+#: data/media/report/report_template/employee/employee_pdf_report.html:343
+#: data/media/report/report_template/project/project_pdf_report.html:471
+#: templates/email/notification_email.html:306
+#: templates/email/notification_email.html:355
+#: templates/email/notification_email.html:392
+#: templates/employee/employee_single.html:441
+#: templates/endpoints/milestones_table.html:37
+#: templates/expense/contract_fund_modal.html:76
+#: templates/expense/contract_table.html:64 templates/fund/budget_table.html:53
+#: templates/fund/contrib_table.html:52
+#: templates/project/project_single.html:163
+msgid "Quotity"
+msgstr ""
+
+#: dashboard/views.py:187
+#: data/media/report/report_template/project/project_pdf_report.html:311
+#: templates/email/notification_email.html:305
+#: templates/email/notification_email.html:391
+msgid "Deadline"
+msgstr ""
+
+#: dashboard/views.py:188 endpoints/admin.py:8 endpoints/admin.py:58
+#: templates/endpoints/milestones_table.html:46
+msgid "Attribution"
+msgstr ""
+
+#: dashboard/views.py:206 templates/email/notification_email.html:520
+msgid "Incomming Employee"
+msgstr ""
+
+#: dashboard/views.py:211
+msgid "superior"
+msgstr ""
+
+#: dashboard/views.py:212
+msgid "status"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:164
+#: data/media/report/report_template/employee/employee_pdf_report.html:152
+#: data/media/report/report_template/project/project_pdf_report.html:153
+msgid "General Information"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:171
+#: data/media/report/report_template/employee/employee_pdf_report.html:159
+#: infos/models.py:104 staff/admin.py:66 staff/models.py:34
+#: staff/ressources.py:88 staff/ressources.py:195
+#: templates/organization/contact_table.html:18
+msgid "First Name"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:177
+#: data/media/report/report_template/employee/employee_pdf_report.html:165
+#: infos/models.py:105 staff/models.py:35 staff/ressources.py:94
+#: staff/ressources.py:201 templates/organization/contact_table.html:21
+msgid "Last Name"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:185
+#: leave/models.py:52
+msgid "Start Period"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:191
+#: leave/models.py:58
+msgid "End Period"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:207
+#: data/media/report/report_template/employee/employee_pdf_report.html:520
+#: templates/calendar/calendar_sidebar.html:4
+#: templates/employee/employee_single.html:528
+#: templates/project/project_sidebar.html:30 templates/settings/sidebar.html:44
+msgid "Leaves"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:212
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:224
+#: data/media/report/report_template/employee/employee_pdf_report.html:240
+#: data/media/report/report_template/employee/employee_pdf_report.html:276
+#: data/media/report/report_template/employee/employee_pdf_report.html:307
+#: data/media/report/report_template/employee/employee_pdf_report.html:339
+#: data/media/report/report_template/employee/employee_pdf_report.html:461
+#: data/media/report/report_template/employee/employee_pdf_report.html:525
+#: data/media/report/report_template/project/project_pdf_report.html:168
+#: data/media/report/report_template/project/project_pdf_report.html:406
+#: data/media/report/report_template/project/project_pdf_report.html:467
+#: endpoints/models.py:48 fund/resources.py:37 fund/resources.py:148
+#: labsmanager/mixin.py:157 templates/email/notification_email.html:181
+#: templates/email/notification_email.html:249
+#: templates/email/notification_email.html:353
+#: templates/email/notification_email.html:445
+#: templates/email/notification_email.html:527
+#: templates/email/notification_email.html:572
+#: templates/employee/employee_single.html:119
+#: templates/employee/employee_single.html:180
+#: templates/employee/employee_single.html:216
+#: templates/employee/employee_single.html:432
+#: templates/employee/employee_single.html:569
+#: templates/endpoints/milestones_table.html:31
+#: templates/expense/contract_fund_modal.html:77
+#: templates/expense/contract_table.html:49 templates/fund/budget_table.html:30
+#: templates/fund/contrib_table.html:31 templates/fund/fund_finder.html:65
+#: templates/fund/fund_table.html:20
+#: templates/organization/institution_single.html:158
+#: templates/project/project_base.html:57
+#: templates/project/project_desc_table.html:21
+#: templates/project/project_single.html:166
+msgid "Start Date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:213
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:225
+#: data/media/report/report_template/employee/employee_pdf_report.html:241
+#: data/media/report/report_template/employee/employee_pdf_report.html:277
+#: data/media/report/report_template/employee/employee_pdf_report.html:308
+#: data/media/report/report_template/employee/employee_pdf_report.html:340
+#: data/media/report/report_template/employee/employee_pdf_report.html:462
+#: data/media/report/report_template/employee/employee_pdf_report.html:526
+#: data/media/report/report_template/project/project_pdf_report.html:174
+#: data/media/report/report_template/project/project_pdf_report.html:407
+#: data/media/report/report_template/project/project_pdf_report.html:468
+#: fund/resources.py:43 fund/resources.py:154 labsmanager/mixin.py:158
+#: templates/email/notification_email.html:182
+#: templates/email/notification_email.html:250
+#: templates/email/notification_email.html:354
+#: templates/email/notification_email.html:446
+#: templates/email/notification_email.html:528
+#: templates/email/notification_email.html:573
+#: templates/employee/employee_single.html:122
+#: templates/employee/employee_single.html:183
+#: templates/employee/employee_single.html:219
+#: templates/employee/employee_single.html:435
+#: templates/employee/employee_single.html:572
+#: templates/endpoints/milestones_table.html:34
+#: templates/expense/contract_fund_modal.html:78
+#: templates/expense/contract_table.html:52 templates/fund/budget_table.html:33
+#: templates/fund/contrib_table.html:34 templates/fund/fund_finder.html:68
+#: templates/fund/fund_table.html:23
+#: templates/organization/institution_single.html:161
+#: templates/project/project_base.html:60
+#: templates/project/project_desc_table.html:26
+#: templates/project/project_single.html:169
+msgid "End Date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:214
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:227
+#: data/media/report/report_template/employee/employee_pdf_report.html:527
+msgid "Comment"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:226
+msgid "Half Day"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:257
+#: data/media/report/report_template/employee/employee_pdf_report.html:569
+#: data/media/report/report_template/project/project_pdf_report.html:601
+#: data/media/report/report_template/project/project_pdf_report.html:624
+#: data/media/report/report_template/project/project_pdf_report.html:675
+#: fund/models.py:329 templates/expense/expense_list.html:41
+#: templates/settings/plugin.html:37
+msgid "Date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_leave_report.html:257
+#: data/media/report/report_template/employee/employee_pdf_report.html:569
+#: data/media/report/report_template/project/project_pdf_report.html:675
+msgid "template"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:173
+#: staff/models.py:37 staff/ressources.py:100 staff/ressources.py:207
+#: templates/staff/employee_desc_table.html:16
+msgid "Birth Date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:181
+#: expense/models.py:73 expense/resources.py:219 fund/models.py:62
+#: fund/resources.py:179 staff/models.py:38 staff/ressources.py:106
+#: staff/ressources.py:213 templates/employee/employee_base.html:69
+msgid "Entry Date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:187
+#: staff/models.py:39 staff/ressources.py:112 staff/ressources.py:219
+#: templates/employee/employee_base.html:72
+#: templates/staff/employee_desc_table.html:35
+msgid "Exit Date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:195
+msgid "email"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:209
+#: data/media/report/report_template/project/project_pdf_report.html:210
+msgid "Generic Informations"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:234
+#: data/media/report/report_template/employee/employee_pdf_report.html:239
+#: data/media/report/report_template/employee/employee_pdf_report.html:394
+#: data/media/report/report_template/project/project_pdf_report.html:241
+#: data/media/report/report_template/project/project_pdf_report.html:271
+#: data/media/report/report_template/project/project_pdf_report.html:315
+#: expense/admin.py:118 expense/models.py:44 expense/models.py:153
+#: expense/resources.py:63 notification/models.py:72 project/models.py:211
+#: project/models.py:228 staff/models.py:154 staff/models.py:155
+#: staff/ressources.py:119 templates/email/notification_email.html:530
+#: templates/employee/employee_base.html:75
+#: templates/employee/employee_single.html:93
+#: templates/employee/employee_single.html:113
+#: templates/employee/employee_single.html:438
+#: templates/endpoints/milestones_table.html:40
+#: templates/expense/contract_fund_modal.html:81
+#: templates/expense/contract_item_expense.html:34
+#: templates/expense/expense_list.html:50
+#: templates/organization/institution_single.html:174
+#: templates/project/project_base.html:93
+#: templates/project/project_single.html:121
+#: templates/project/project_single.html:160
+msgid "Status"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:270
+#: staff/models.py:178 staff/models.py:211 staff/ressources.py:179
+#: templates/email/notification_email.html:529
+#: templates/employee/employee_base.html:95
+#: templates/employee/employee_single.html:177
+msgid "Superior"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:301
+#: templates/employee/employee_single.html:213
+msgid "Subordinate"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:333
+#: data/media/report/report_template/project/project_pdf_report.html:461
+#: expense/views.py:18 templates/dashboard/dashboard_sidebar.html:10
+#: templates/employee/employee_base.html:83
+#: templates/employee/employee_single.html:258 templates/navbar.html:40
+#: templates/project/project_sidebar.html:23
+#: templates/project/project_single.html:528
+msgid "Contracts"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:338
+#: data/media/report/report_template/project/project_pdf_report.html:466
+#: data/media/report/report_template/project/project_pdf_report.html:562
+#: expense/admin.py:86 expense/resources.py:77 expense/resources.py:142
+#: fund/admin.py:31 fund/admin.py:51 fund/admin.py:198 fund/resources.py:255
+#: templates/email/notification_email.html:246
+#: templates/email/notification_email.html:351
+#: templates/expense/contract_table.html:46 templates/fund/fund_table.html:13
+msgid "Funder"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:344
+#: data/media/report/report_template/project/project_pdf_report.html:472
+#: expense/resources.py:164 templates/expense/contract_fund_modal.html:79
+#: templates/expense/contract_table.html:61 templates/fund/fund_table.html:29
+#: templates/organization/orga_desc_table.html:53
+msgid "Total Amount"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:386
+#: fund/admin.py:149 templates/calendar/calendar_sidebar.html:7
+#: templates/employee/employee_base.html:89 templates/navbar.html:49
+#: templates/organization/institution_single.html:129
+#: templates/organization/orga_single_sidebar.html:16
+#: templates/team/team_sidebar.html:8
+msgid "Projects"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:392
+#: data/media/report/report_template/project/project_pdf_report.html:272
+msgid "Start date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:393
+#: data/media/report/report_template/project/project_pdf_report.html:273
+msgid "End date"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:395
+#: data/media/report/report_template/employee/employee_pdf_report.html:468
+#: data/media/report/report_template/project/project_pdf_report.html:274
+#: data/media/report/report_template/project/project_pdf_report.html:314
+#: data/media/report/report_template/project/project_pdf_report.html:360
+#: data/media/report/report_template/project/project_pdf_report.html:413
+#: fund/models.py:270
+msgid "quotity"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:428
+#: staff/views.py:274 templates/employee/employee_single.html:475
+#: templates/navbar.html:32
+msgid "Teams"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:432
+#: staff/models.py:231 staff/models.py:259 staff/views.py:292
+#: templates/employee/employee_sidebar.html:24
+#: templates/labmanager/index.html:69 templates/team/team_single.html:28
+msgid "Team"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:433
+#: project/models.py:222 project/resources.py:72 staff/ressources.py:288
+#: templates/employee/employee_single.html:501 templates/team/team_base.html:66
+msgid "Leader"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:455
+#: data/media/report/report_template/project/project_pdf_report.html:400
+msgid "Contributions"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:463
+#: data/media/report/report_template/project/project_pdf_report.html:354
+#: data/media/report/report_template/project/project_pdf_report.html:405
+#: expense/admin.py:17 fund/models.py:91 project/resources.py:87
+#: settings/models.py:1313 settings/models.py:1314
+#: templates/calendar/filter_project_items.html:32
+#: templates/expense/contract_fund_modal.html:15
+#: templates/fund/budget_table.html:27 templates/fund/contrib_table.html:28
+#: templates/organization/institution_single.html:170
+#: templates/project/project_base.html:69
+#: templates/project/project_single.html:284 templates/settings/sidebar.html:38
+msgid "Fund"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:464
+#: data/media/report/report_template/project/project_pdf_report.html:355
+#: data/media/report/report_template/project/project_pdf_report.html:408
+#: data/media/report/report_template/project/project_pdf_report.html:576
+#: expense/models.py:35 expense/models.py:77 expense/resources.py:57
+#: fund/models.py:327 labsmanager/mixin.py:101
+#: templates/expense/contract_item_expense.html:37
+#: templates/expense/expense_list.html:53
+#: templates/expense/expense_timepoint.html:39
+#: templates/fund/budget_table.html:56 templates/fund/contrib_table.html:55
+#: templates/fund/fund_finder.html:78 templates/fund/fund_item_table.html:34
+#: templates/fund/fund_overview_type.html:10
+msgid "Amount"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:466
+#: data/media/report/report_template/project/project_pdf_report.html:357
+#: data/media/report/report_template/project/project_pdf_report.html:410
+#: fund/resources.py:270 settings/views.py:170 staff/models.py:218
+msgid "Employee Type"
+msgstr ""
+
+#: data/media/report/report_template/employee/employee_pdf_report.html:554
+#: data/media/report/report_template/project/project_pdf_report.html:660
+#: templates/employee/employee_sidebar.html:30
+#: templates/notes/note_panel.html:14
+#: templates/organization/orga_single_sidebar.html:25
+#: templates/project/project_sidebar.html:39
+#: templates/team/team_sidebar.html:15
+msgid "Notes"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:182
+#: fund/models.py:316 fund/resources.py:161
+#: templates/email/notification_email.html:183
+#: templates/email/notification_email.html:251
+#: templates/expense/expense_list.html:59
+#: templates/project/project_desc_table.html:38
+msgid "Budget"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:188
+#: data/media/report/report_template/project/project_pdf_report.html:525
+#: data/media/report/report_template/project/project_pdf_report.html:582
+#: data/media/report/report_template/project/project_pdf_report.html:599
+#: expense/models.py:29 labsmanager/mixin.py:102
+#: templates/email/notification_email.html:184
+#: templates/email/notification_email.html:252
+#: templates/fund/budget_table.html:59 templates/fund/fund_finder.html:81
+#: templates/fund/fund_overview_type.html:11
+#: templates/project/project_desc_table.html:39
+msgid "Expense"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:194
+#: data/media/report/report_template/project/project_pdf_report.html:526
+#: data/media/report/report_template/project/project_pdf_report.html:600
+#: templates/email/notification_email.html:185
+#: templates/email/notification_email.html:253
+#: templates/expense/contract_fund_modal.html:50
+#: templates/fund/fund_finder.html:84 templates/fund/fund_overview_type.html:12
+#: templates/fund/fund_table.html:35
+#: templates/project/project_desc_table.html:40
+msgid "Available"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:235
+#: templates/organization/orga_base.html:27
+#: templates/organization/orga_base_sidebar.html:5
+#: templates/project/project_single.html:98
+#: templates/project/project_single.html:118
+msgid "Institutions"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:266
+#: project/models.py:235
+msgid "Participants"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:306
+#: endpoints/models.py:57 templates/dashboard/dashboard_sidebar.html:4
+#: templates/dashboard/global_dashboard.html:111
+#: templates/email/usernotification_email.html:146
+msgid "Milestones"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:349
+#: templates/employee/employee_sidebar.html:14
+#: templates/employee/employee_single.html:302
+#: templates/fund/fund_finder_sidebar.html:7
+#: templates/project/project_sidebar.html:15
+#: templates/team/team_sidebar.html:11 templates/team/team_single.html:111
+msgid "Budgets"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:516
+#: templates/dashboard/dashboard_sidebar.html:7
+#: templates/fund/fund_finder_sidebar.html:4
+#: templates/project/project_sidebar.html:10
+#: templates/project/project_single.html:274
+msgid "Funds"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:519
+msgid "Overview"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:524
+#: data/media/report/report_template/project/project_pdf_report.html:628
+msgid "Amout"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:549
+msgid "Liste"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:557
+msgid "Fund  "
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:593
+#: templates/expense/contract_funditem_list.html:20
+msgid "Items"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:598
+msgid "Amount "
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:620
+msgid "Expenses"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:625
+msgid "Description "
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:627
+msgid "Statut"
+msgstr ""
+
+#: data/media/report/report_template/project/project_pdf_report.html:629
+#: expense/models.py:138 templates/dashboard/global_dashboard.html:88
+#: templates/employee/employee_sidebar.html:9
+#: templates/expense/contract_fund_modal.html:16
+#: templates/expense/contract_fund_modal.html:65
+#: templates/expense/expense_list.html:56 templates/labmanager/index.html:75
+#: templates/organization/institution_single.html:192
+#: templates/organization/orga_desc_table.html:86
+#: templates/organization/orga_single_sidebar.html:21
+#: templates/project/project_single.html:539 templates/settings/sidebar.html:41
+msgid "Contract"
+msgstr ""
+
+#: endpoints/forms.py:14 expense/forms.py:24 fund/forms.py:111
+#: fund/forms.py:173 project/forms.py:62
+msgid "Quotity(%)"
+msgstr ""
+
+#: endpoints/forms.py:19 expense/forms.py:29 fund/forms.py:116
+#: fund/forms.py:178 project/forms.py:67
+msgid "Involvment percentage"
+msgstr ""
+
+#: endpoints/forms.py:101
+msgid "Quantity"
+msgstr ""
+
+#: endpoints/forms.py:103
+msgid "number of day to add to current date"
+msgstr ""
+
+#: endpoints/models.py:12
+msgid "endpoint Name"
+msgstr ""
+
+#: endpoints/models.py:13
+msgid "endpoint desc"
+msgstr ""
+
+#: endpoints/models.py:14
+msgid "Deadline Date"
+msgstr ""
+
+#: endpoints/models.py:16
+msgid "one-time"
+msgstr ""
+
+#: endpoints/models.py:16
+msgid "quantifiable"
+msgstr ""
+
+#: endpoints/models.py:24
+msgid "Completion quotity"
+msgstr ""
+
+#: endpoints/models.py:26
+msgid "Endpoints Status"
+msgstr ""
+
+#: endpoints/models.py:49
+msgid "Leave it empty to define as milestone"
+msgstr ""
+
+#: endpoints/models.py:56 templates/calendar/filter_project_items.html:44
+#: templates/email/notification_email.html:304
+#: templates/email/notification_email.html:390
+msgid "Milestone"
+msgstr ""
+
+#: endpoints/resources.py:45
+msgid "Qutotity"
+msgstr ""
+
+#: endpoints/resources.py:50
+msgid "Employees"
+msgstr ""
+
+#: expense/forms.py:35
+msgid "Update Employee end date"
+msgstr ""
+
+#: expense/forms.py:110
+#, python-format
+msgid "Exit Date (%s) should be later than entry date (%s) "
+msgstr ""
+
+#: expense/forms.py:115
+msgid "If A Contract is turn inactive, it should have a end Date"
+msgstr ""
+
+#: expense/forms.py:154
+msgid "Expense on budget has to match the fund"
+msgstr ""
+
+#: expense/forms.py:162
+msgid "Expense type must match budget type or be in its hierarchy tree"
+msgstr ""
+
+#: expense/forms.py:290
+msgid "Expense linked to a contract should be of type in human resources type"
+msgstr ""
+
+#: expense/models.py:31 expense/resources.py:48
+#: templates/expense/expense_list.html:38
+msgid "Expense Id"
+msgstr ""
+
+#: expense/models.py:33
+msgid "Expense Date"
+msgstr ""
+
+#: expense/models.py:36
+msgid "Engaged"
+msgstr ""
+
+#: expense/models.py:37
+msgid "Realised"
+msgstr ""
+
+#: expense/models.py:38
+msgid "Projected"
+msgstr ""
+
+#: expense/models.py:46 expense/models.py:75 expense/models.py:143
+#: fund/models.py:65
+msgid "Related Fund"
+msgstr ""
+
+#: expense/models.py:47
+msgid "Related Budget"
+msgstr ""
+
+#: expense/models.py:64
+msgid "Contract Expense"
+msgstr ""
+
+#: expense/models.py:65
+msgid "Related Contract"
+msgstr ""
+
+#: expense/models.py:70
+msgid "Total Expense Timepoint"
+msgstr ""
+
+#: expense/models.py:74 fund/models.py:63
+msgid "value Date"
+msgstr ""
+
+#: expense/models.py:124 fund/models.py:37 leave/models.py:28
+msgid "Type name"
+msgstr ""
+
+#: expense/models.py:142 project/models.py:230
+msgid "Time quotity"
+msgstr ""
+
+#: expense/models.py:145 templates/employee/employee_base.html:106
+msgid "is Active"
+msgstr ""
+
+#: expense/models.py:147 templates/expense/contract_fund_modal.html:19
+msgid "Effective"
+msgstr ""
+
+#: expense/models.py:147 templates/expense/contract_fund_modal.html:20
+msgid "Provisionnal"
+msgstr ""
+
+#: expense/resources.py:43
+#, python-format
+msgid ""
+"The project %(proj)s is not configured to accept '%(imp_class)s' import "
+"(setting value : '%(set_val)s')"
+msgstr ""
+
+#: expense/resources.py:52 fund/resources.py:17 fund/resources.py:124
+#: leave/resources.py:35 leave/resources.py:79
+#: templates/organization/contact_table.html:25
+msgid "type"
+msgstr ""
+
+#: expense/resources.py:67 fund/resources.py:49 fund/resources.py:118
+#: fund/resources.py:265 templates/email/notification_email.html:248
+#: templates/fund/fund_finder.html:74
+msgid "Ref"
+msgstr ""
+
+#: expense/resources.py:93
+msgid "Single Expense Import"
+msgstr ""
+
+#: expense/resources.py:152
+msgid "fund ref"
+msgstr ""
+
+#: expense/resources.py:158
+msgid "Contract type"
+msgstr ""
+
+#: expense/resources.py:213 fund/resources.py:167
+msgid "expense"
+msgstr ""
+
+#: expense/resources.py:225 fund/models.py:330 fund/resources.py:185
+#: templates/expense/expense_timepoint.html:33
+#: templates/fund/fund_item_table.html:28
+msgid "Value Date"
+msgstr ""
+
+#: expense/resources.py:259
+msgid "Global Expense by type Import"
+msgstr ""
+
+#: expense/views.py:29 fund/views.py:79
+msgid "Project Expense"
+msgstr ""
+
+#: expense/views.py:33 fund/views.py:83
+msgid "Project Not Found"
+msgstr ""
+
+#: expense/views.py:39
+msgid "No expense found for that project"
+msgstr ""
+
+#: expense/views.py:84
+msgid "Project Expense Overview"
+msgstr ""
+
+#: expense/views_modal.py:145
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr ""
+
+#: expense/views_modal.py:205
+msgid "Syncing All singles expense and timepoint"
+msgstr ""
+
+#: fund/admin.py:56
+msgid "Manager"
+msgstr ""
+
+#: fund/admin.py:222 fund/models.py:29 fund/resources.py:249
+#: settings/views.py:31 templates/fund/budget_table.html:39
+#: templates/fund/contrib_table.html:38
+msgid "Cost Type"
+msgstr ""
+
+#: fund/forms.py:50
+msgid "Update project end date"
+msgstr ""
+
+#: fund/forms.py:100
+#, python-format
+msgid "Exit Date (%s) should be later than entry date (%s)"
+msgstr ""
+
+#: fund/forms.py:105
+msgid "If A Contract is turn inactive, it should have a end Dat "
+msgstr ""
+
+#: fund/models.py:36 leave/models.py:27 staff/models.py:221
+#: templates/organization/orga_base.html:48
+#: templates/organization/orga_base.html:95
+msgid "Abbreviation"
+msgstr ""
+
+#: fund/models.py:38 settings/views.py:35
+#: templates/fund/fund_overview_type.html:9
+msgid "In Focus"
+msgstr ""
+
+#: fund/models.py:39
+msgid "Is Human Resources"
+msgstr ""
+
+#: fund/models.py:47
+msgid "Funder Institution"
+msgstr ""
+
+#: fund/models.py:50
+msgid "Funder abbreviation"
+msgstr ""
+
+#: fund/models.py:51
+msgid "Funder Name"
+msgstr ""
+
+#: fund/models.py:59
+msgid "Fund Line"
+msgstr ""
+
+#: fund/models.py:96 labsmanager/mixin.py:203
+msgid "End Date should be greater than start date"
+msgstr ""
+
+#: fund/models.py:99
+msgid "Funded Project"
+msgstr ""
+
+#: fund/models.py:100
+msgid "Fund Instituition"
+msgstr ""
+
+#: fund/models.py:101
+msgid "Manager Institution"
+msgstr ""
+
+#: fund/models.py:102 templates/fund/fund_table.html:26
+msgid "Reference"
+msgstr ""
+
+#: fund/models.py:200 project/forms.py:56 project/forms.py:129
+#: staff/forms.py:55
+#, python-format
+msgid "Exit Date (%(end)s) should be later than entry date (%(start)s) "
+msgstr ""
+
+#: fund/models.py:261
+msgid "BudgetAbstract"
+msgstr ""
+
+#: fund/models.py:266 labsmanager/serializers.py:429
+msgid "fund"
+msgstr ""
+
+#: fund/models.py:267
+msgid "employee type"
+msgstr ""
+
+#: fund/models.py:269 staff/views.py:35
+msgid "employee"
+msgstr ""
+
+#: fund/models.py:281
+msgid ""
+"Employee Type, Contract Type and employee can not be defined if Cost Type is "
+"not of RH or descendant "
+msgstr ""
+
+#: fund/models.py:320 templates/employee/employee_sidebar.html:18
+#: templates/project/project_sidebar.html:19
+msgid "Contribution"
+msgstr ""
+
+#: fund/models.py:328
+msgid "Delta"
+msgstr ""
+
+#: fund/models.py:334
+msgid "Amount History"
+msgstr ""
+
+#: fund/resources.py:12 project/resources.py:102
+#: templates/project/project_base.html:78
+msgid "Total Available"
+msgstr ""
+
+#: fund/resources.py:32 fund/resources.py:142 fund/resources.py:330
+msgid "institution"
+msgstr ""
+
+#: fund/resources.py:173 fund/resources.py:335
+msgid "available"
+msgstr ""
+
+#: fund/resources.py:223
+msgid "Overall Fund Item and global expense"
+msgstr ""
+
+#: fund/resources.py:281 plugin/models.py:59
+#: templates/employee/employee_single.html:128
+#: templates/employee/employee_single.html:186
+#: templates/employee/employee_single.html:222
+#: templates/fund/fund_table.html:38
+#: templates/organization/orga_desc_table.html:104
+#: templates/project/project_desc_table.html:78
+#: templates/staff/employee_desc_table.html:60
+msgid "Active"
+msgstr ""
+
+#: fund/resources.py:340
+msgid "Consumption Ration"
+msgstr ""
+
+#: fund/resources.py:373
+msgid "content_app"
+msgstr ""
+
+#: fund/resources.py:379
+msgid "content_model"
+msgstr ""
+
+#: fund/resources.py:385
+msgid "content_type"
+msgstr ""
+
+#: fund/resources.py:391
+msgid "content_funder"
+msgstr ""
+
+#: fund/resources.py:397
+msgid "content_institution"
+msgstr ""
+
+#: fund/resources.py:403
+msgid "content_project"
+msgstr ""
+
+#: fund/views.py:62 project/views.py:161 project/views.py:175
+msgid "No Matching Fund Item"
+msgstr ""
+
+#: fund/views.py:89
+msgid "No Fund found for that project"
+msgstr ""
+
+#: fund/views.py:133
+msgid "Project Fund Overview"
+msgstr ""
+
+#: fund/views.py:145 templates/fund/fund_finder.html:25
+#: templates/labmanager/index_card_tools.html:20
+msgid "Fund Finder"
+msgstr ""
+
+#: import/api_views.py:15
+#, python-format
+msgid "Resource Id (%s) and export format (%s) should be set"
+msgstr ""
+
+#: import/api_views.py:21
+msgid "ResourceNot Found"
+msgstr ""
+
+#: import/mixin.py:183 templates/import/import.html:49
+#: templates/import/import_base.html:32
+#: templates/labmanager/index_card_tools.html:26 templates/navbar.html:72
+msgid "Import"
+msgstr ""
+
+#: import/views.py:13
+msgid "import"
+msgstr ""
+
+#: infos/models.py:23 templates/settings/user_settings.html:37
+msgid "None"
+msgstr ""
+
+#: infos/models.py:23
+msgid "Phone Number"
+msgstr ""
+
+#: infos/models.py:23
+msgid "EMail"
+msgstr ""
+
+#: infos/models.py:23
+msgid "Link"
+msgstr ""
+
+#: infos/models.py:23
+msgid "Address"
+msgstr ""
+
+#: infos/models.py:39
+msgid "Type of Organization Info"
+msgstr ""
+
+#: infos/models.py:49
+msgid "Organization Info"
+msgstr ""
+
+#: infos/models.py:56 project/models.py:285 staff/models.py:300
+msgid "Info Type"
+msgstr ""
+
+#: infos/models.py:57 infos/models.py:120 project/models.py:286
+#: staff/models.py:301
+msgid "Info Value"
+msgstr ""
+
+#: infos/models.py:58 infos/models.py:107 infos/models.py:121
+msgid "comment"
+msgstr ""
+
+#: infos/models.py:78
+msgid "Type of Contact"
+msgstr ""
+
+#: infos/models.py:89
+msgid "Type of Contact Info"
+msgstr ""
+
+#: infos/models.py:97
+msgid "Organization's Contact"
+msgstr ""
+
+#: infos/models.py:106
+msgid "Contact Type"
+msgstr ""
+
+#: infos/models.py:116
+msgid "Contact Info"
+msgstr ""
+
+#: infos/models.py:118 templates/organization/orga_single_sidebar.html:12
+msgid "Contact"
+msgstr ""
+
+#: infos/models.py:119
+msgid "Contact Info Type"
+msgstr ""
+
+#: infos/models.py:140
+msgid "Generic Notes"
+msgstr ""
+
+#: infos/models.py:149 templates/settings/general_settings.html:7
+#: templates/settings/sidebar.html:62
+msgid "General"
+msgstr ""
+
+#: infos/models.py:159
+msgid "note"
+msgstr ""
+
+#: infos/views.py:25 infos/views.py:55 templates/labmanager/index.html:92
+#: templates/organization/institution_single.html:30
+#: templates/settings/sidebar.html:53
+msgid "Organization"
+msgstr ""
+
+#: labsmanager/admin.py:37
+msgid "Personal info"
+msgstr ""
+
+#: labsmanager/admin.py:38
+msgid "Permissions"
+msgstr ""
+
+#: labsmanager/admin.py:41
+msgid "User Permissions"
+msgstr ""
+
+#: labsmanager/admin.py:45
+msgid "Important dates"
+msgstr ""
+
+#: labsmanager/admin.py:57
+msgid "Current Content Type "
+msgstr ""
+
+#: labsmanager/mixin.py:126
+msgid "Focus Amount"
+msgstr ""
+
+#: labsmanager/mixin.py:127
+msgid "Focus Expense"
+msgstr ""
+
+#: labsmanager/serializers.py:394
+msgid "participants"
+msgstr ""
+
+#: labsmanager/serializers.py:415
+msgid "milestones"
+msgstr ""
+
+#: labsmanager/settings.py:576
+msgid "Documentation"
+msgstr ""
+
+#: labsmanager/settings.py:580
+msgid "Issues"
+msgstr ""
+
+#: labsmanager/themes.py:5
+msgid "Default"
+msgstr ""
+
+#: labsmanager/validators.py:23
+msgid "The color provided is invalid. Use #RRGGBB or #AARRGGBB."
+msgstr ""
+
+#: leave/models.py:20 settings/views.py:113
+msgid "Leave Type"
+msgstr ""
+
+#: leave/models.py:36 templates/employee/employee_sidebar.html:27
+#: templates/team/team_sidebar.html:5
+msgid "Leave"
+msgstr ""
+
+#: leave/models.py:39
+msgid "start"
+msgstr ""
+
+#: leave/models.py:40 leave/models.py:43
+msgid "midday"
+msgstr ""
+
+#: leave/models.py:44
+msgid "end"
+msgstr ""
+
+#: leave/models.py:89
+msgid "On the same day leave can not start and end at the same period"
+msgstr ""
+
+#: leave/resources.py:24
+msgid "first_name"
+msgstr ""
+
+#: leave/resources.py:29
+msgid "last_name"
+msgstr ""
+
+#: notification/models.py:57
+msgid "Add"
+msgstr ""
+
+#: notification/models.py:58
+msgid "Remove"
+msgstr ""
+
+#: notification/models.py:59
+msgid "Stale"
+msgstr ""
+
+#: notification/models.py:60
+msgid "Overdue"
+msgstr ""
+
+#: notification/models.py:61
+msgid "Complete"
+msgstr ""
+
+#: notification/models.py:62 templates/form_delete_base.html:27
+#: templates/import/import_result.html:109
+msgid "Delete"
+msgstr ""
+
+#: notification/models.py:63
+msgid "Reschedule"
+msgstr ""
+
+#: notification/models.py:64
+msgid "Overload"
+msgstr ""
+
+#: notification/models.py:80
+msgid "Notification"
+msgstr ""
+
+#: notification/signals.py:46
+#, python-format
+msgid "Reschedule from %(old)s to %(new)s"
+msgstr ""
+
+#: notification/utils.py:138
+#, python-format
+msgid "overloaded up to %s"
+msgstr ""
+
+#: notification/views.py:16
+msgid "No Notification added"
+msgstr ""
+
+#: notification/views.py:22
+#, python-format
+msgid "%(miln)s stale milestones \n"
+msgstr ""
+
+#: notification/views.py:24
+#, python-format
+msgid "%(miln)s overdue milestones \n"
+msgstr ""
+
+#: notification/views.py:26
+#, python-format
+msgid "%(miln)s overload employee \n"
+msgstr ""
+
+#: notification/views.py:37
+#, python-format
+msgid "%s Notification have been sent"
+msgstr ""
+
+#: plugin/models.py:39
+msgid "Plugin Configuration"
+msgstr ""
+
+#: plugin/models.py:40
+msgid "Plugin Configurations"
+msgstr ""
+
+#: plugin/models.py:46
+msgid "Key"
+msgstr ""
+
+#: plugin/models.py:47
+msgid "Key of plugin"
+msgstr ""
+
+#: plugin/models.py:55
+msgid "PluginName of the plugin"
+msgstr ""
+
+#: plugin/models.py:59
+msgid "Is the plugin active"
+msgstr ""
+
+#: plugin/models.py:150
+msgid "Installed"
+msgstr ""
+
+#: plugin/models.py:159
+msgid "Sample plugin"
+msgstr ""
+
+#: plugin/models.py:167
+msgid "Builtin Plugin"
+msgstr ""
+
+#: plugin/models.py:175
+msgid "Package Plugin"
+msgstr ""
+
+#: plugin/models.py:212 templates/settings/plugin.html:9
+#: templates/settings/plugins_settings.html:61
+msgid "Plugin"
+msgstr ""
+
+#: plugin/plugin.py:261
+msgid "No author found"
+msgstr ""
+
+#: plugin/registry.py:540
+#, python-brace-format
+msgid "Plugin '{p}' is not compatible with the current labsmanager version {v}"
+msgstr ""
+
+#: plugin/registry.py:543
+#, python-brace-format
+msgid "Plugin requires at least version {v}"
+msgstr ""
+
+#: plugin/registry.py:545
+#, python-brace-format
+msgid "Plugin requires at most version {v}"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:23
+msgid "French Hollyday Agenda"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:24
+msgid "LabsManager contributors/Bbillyben"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:25
+msgid "Display french vacation in agenda view"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:29
+msgid "Background Color"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:30
+msgid "background color of events"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:35
+msgid "Add Leave Title"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:36
+msgid "add the name of the day off"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:41
+msgid "French Vacation Zone"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:42
+msgid "one of the zone defined for french vacation"
+msgstr ""
+
+#: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py:58
+msgid "Vacation Zone Choice"
+msgstr ""
+
+#: plugin/serializers.py:58
+msgid "Full reload"
+msgstr ""
+
+#: plugin/serializers.py:59
+msgid "Perform a full reload of the plugin registry"
+msgstr ""
+
+#: plugin/serializers.py:65
+msgid "Force reload"
+msgstr ""
+
+#: plugin/serializers.py:67
+msgid "Force a reload of the plugin registry, even if it is already loaded"
+msgstr ""
+
+#: plugin/serializers.py:74
+msgid "Collect plugins"
+msgstr ""
+
+#: plugin/serializers.py:75
+msgid "Collect plugins and add them to the registry"
+msgstr ""
+
+#: plugin/serializers.py:101
+msgid "Activate Plugin"
+msgstr ""
+
+#: plugin/serializers.py:102
+msgid "Activate this plugin"
+msgstr ""
+
+#: project/forms.py:22
+msgid "Update active fund end date"
+msgstr ""
+
+#: project/models.py:23
+msgid "Lab Institution"
+msgstr ""
+
+#: project/models.py:46 templates/project/project_desc_table.html:16
+msgid "Project Name"
+msgstr ""
+
+#: project/models.py:47 templates/team/team_single.html:193
+msgid "Project Status"
+msgstr ""
+
+#: project/models.py:200
+msgid "Partner Institution"
+msgstr ""
+
+#: project/models.py:205
+msgid "Coordinator"
+msgstr ""
+
+#: project/models.py:205 project/models.py:222 project/models.py:234
+#: templates/calendar/filter_project_items.html:38
+#: templates/organization/institution_single.html:167
+#: templates/project/project_base.html:66
+#: templates/project/project_single.html:138
+#: templates/team/team_single.html:190
+msgid "Participant"
+msgstr ""
+
+#: project/models.py:222
+msgid "Co Leader"
+msgstr ""
+
+#: project/models.py:248 staff/models.py:276
+msgid "Already in Team"
+msgstr ""
+
+#: project/models.py:258
+msgid "Already in Team At That Date"
+msgstr ""
+
+#: project/models.py:270 staff/models.py:285
+msgid "Type of Generic Info"
+msgstr ""
+
+#: project/models.py:282 staff/models.py:297
+msgid "Generic Info"
+msgstr ""
+
+#: project/resources.py:77
+msgid "participant"
+msgstr ""
+
+#: project/resources.py:107 templates/project/project_base.html:83
+msgid "Total Fund Focus"
+msgstr ""
+
+#: project/resources.py:112 templates/project/project_base.html:86
+msgid "Total Expense Focus"
+msgstr ""
+
+#: project/resources.py:117 templates/project/project_base.html:89
+msgid "Total Available Focus"
+msgstr ""
+
+#: project/resources.py:122 staff/ressources.py:143
+#: templates/employee/employee_base.html:79
+msgid "Infos"
+msgstr ""
+
+#: reports/forms.py:47
+#, python-format
+msgid "End Date (%s) should be later than start date (%s) "
+msgstr ""
+
+#: reports/models.py:120
+msgid "Template name"
+msgstr ""
+
+#: reports/models.py:125 reports/models.py:217
+msgid "Template"
+msgstr ""
+
+#: reports/models.py:126 reports/models.py:218
+msgid "Report template file"
+msgstr ""
+
+#: reports/models.py:133
+msgid "Report template description"
+msgstr ""
+
+#: reports/models.py:138
+msgid "Revision"
+msgstr ""
+
+#: reports/models.py:139
+msgid "Report revision number (auto-increments)"
+msgstr ""
+
+#: reports/models.py:199
+msgid "No file"
+msgstr ""
+
+#: reports/models.py:201
+msgid "Template Report Link"
+msgstr ""
+
+#: reports/models.py:205
+msgid "Filename Pattern"
+msgstr ""
+
+#: reports/models.py:206
+msgid "Pattern for generating report filenames"
+msgstr ""
+
+#: reports/models.py:212
+msgid "Enabled"
+msgstr ""
+
+#: reports/models.py:213
+msgid "Report template is enabled"
+msgstr ""
+
+#: settings/models.py:526 settings/models.py:1241 settings/models.py:1306
+msgid "Settings key (must be unique - case insensitive)"
+msgstr ""
+
+#: settings/models.py:528
+msgid "Settings value"
+msgstr ""
+
+#: settings/models.py:569
+msgid "Chosen value is not a valid option"
+msgstr ""
+
+#: settings/models.py:586
+msgid "Value must be a boolean value"
+msgstr ""
+
+#: settings/models.py:597
+msgid "Value must be an integer value"
+msgstr ""
+
+#: settings/models.py:605
+msgid "Value must be an Decimal value"
+msgstr ""
+
+#: settings/models.py:652
+msgid "Key string must be unique"
+msgstr ""
+
+#: settings/models.py:875
+msgid "No group"
+msgstr ""
+
+#: settings/models.py:896
+msgid "Mail Object Prefix"
+msgstr ""
+
+#: settings/models.py:898
+msgid "String added as prefix to mail object"
+msgstr ""
+
+#: settings/models.py:902
+msgid "Employee can edit subordinate"
+msgstr ""
+
+#: settings/models.py:903
+msgid "define wether an employee can edit their subordinate employees"
+msgstr ""
+
+#: settings/models.py:908
+msgid "Co Leader can edit project"
+msgstr ""
+
+#: settings/models.py:909
+msgid "define wether a co-leader can edit project"
+msgstr ""
+
+#: settings/models.py:914
+msgid "Audit Log Retention"
+msgstr ""
+
+#: settings/models.py:915
+msgid "Number of day to retain AudiLog history"
+msgstr ""
+
+#: settings/models.py:916
+msgid "Days"
+msgstr ""
+
+#: settings/models.py:924
+msgid "Force Upper Case"
+msgstr ""
+
+#: settings/models.py:925
+msgid "Force Upper Case for new employee'name"
+msgstr ""
+
+#: settings/models.py:931
+msgid "Enable schedule integration"
+msgstr ""
+
+#: settings/models.py:932
+msgid "Enable plugins to run scheduled tasks"
+msgstr ""
+
+#: settings/models.py:938
+msgid "Enable URL integration"
+msgstr ""
+
+#: settings/models.py:939
+msgid "Enable plugins to add URL routes"
+msgstr ""
+
+#: settings/models.py:945
+msgid "Enable Custom Calendar Event"
+msgstr ""
+
+#: settings/models.py:946
+msgid "Enable plugins to add event to calendar"
+msgstr ""
+
+#: settings/models.py:952
+msgid "Enable Subscription Plugin"
+msgstr ""
+
+#: settings/models.py:953
+msgid "enable plugin to add custom template to subscription"
+msgstr ""
+
+#: settings/models.py:959
+msgid "Enable Setting Plugin"
+msgstr ""
+
+#: settings/models.py:960
+msgid "enable plugin to add custom settings"
+msgstr ""
+
+#: settings/models.py:975
+msgid "Settings key (must be unique - case insensitive"
+msgstr ""
+
+#: settings/models.py:989
+msgid "Hub"
+msgstr ""
+
+#: settings/models.py:996 templates/calendar/main_calendar.html:45
+#: templates/calendar/main_calendar.html:81 templates/labmanager/index.html:104
+#: templates/navbar.html:92 templates/project/project_sidebar.html:33
+msgid "Calendar"
+msgstr ""
+
+#: settings/models.py:1000 templates/navbar.html:118
+msgid "My Employee"
+msgstr ""
+
+#: settings/models.py:1008
+msgid "Dashboard Stale From Calculation"
+msgstr ""
+
+#: settings/models.py:1009
+msgid "Number of previous month to get in stale scope from now"
+msgstr ""
+
+#: settings/models.py:1014
+msgid "Dashboard Stale To Calculation"
+msgstr ""
+
+#: settings/models.py:1015 settings/models.py:1021 settings/models.py:1027
+#: settings/models.py:1034 settings/models.py:1040
+msgid "Number of month to get in stale scope from now"
+msgstr ""
+
+#: settings/models.py:1020
+msgid "Contract Stale month"
+msgstr ""
+
+#: settings/models.py:1026
+msgid "Project Stale month"
+msgstr ""
+
+#: settings/models.py:1033
+msgid "Milestones Stale to month"
+msgstr ""
+
+#: settings/models.py:1039
+msgid "Milestones Stale from month"
+msgstr ""
+
+#: settings/models.py:1046
+msgid "Fund ratio consumption report type"
+msgstr ""
+
+#: settings/models.py:1047 settings/models.py:1057
+msgid "Fund ratio consumption to report project in dahsboard"
+msgstr ""
+
+#: settings/models.py:1056
+msgid "Fund ratio consumption threshold"
+msgstr ""
+
+#: settings/models.py:1062
+msgid "Use project Stale period for Consumption"
+msgstr ""
+
+#: settings/models.py:1063
+msgid "use Project Stale month scope period for under consommation calculation"
+msgstr ""
+
+#: settings/models.py:1068
+msgid "Margin to detect linear ratio"
+msgstr ""
+
+#: settings/models.py:1069
+msgid ""
+"margin in % to identifyed deviation in budget consumption from linear ratio"
+msgstr ""
+
+#: settings/models.py:1074
+msgid "E-Mail Notification"
+msgstr ""
+
+#: settings/models.py:1075
+msgid "enable automatic mail notification"
+msgstr ""
+
+#: settings/models.py:1081
+msgid "Notification frequency"
+msgstr ""
+
+#: settings/models.py:1082
+msgid "frequency wanted for notice transmission"
+msgstr ""
+
+#: settings/models.py:1085
+msgid "dayli"
+msgstr ""
+
+#: settings/models.py:1086
+msgid "weekly"
+msgstr ""
+
+#: settings/models.py:1087
+msgid "fortnightly"
+msgstr ""
+
+#: settings/models.py:1088
+msgid "monthly"
+msgstr ""
+
+#: settings/models.py:1093
+msgid "Notification Incomming Employee"
+msgstr ""
+
+#: settings/models.py:1094
+msgid "report all incomming employee"
+msgstr ""
+
+#: settings/models.py:1099
+msgid "Notification Leaves"
+msgstr ""
+
+#: settings/models.py:1100
+msgid "report all leaves of current month"
+msgstr ""
+
+#: settings/models.py:1105
+msgid "Notification Leaves Format"
+msgstr ""
+
+#: settings/models.py:1106
+msgid "choose to report by calendar or list view for leaves"
+msgstr ""
+
+#: settings/models.py:1109
+msgid "calendar"
+msgstr ""
+
+#: settings/models.py:1110
+msgid "list"
+msgstr ""
+
+#: settings/models.py:1114
+msgid "Notification Report Employee without leaves in calendar"
+msgstr ""
+
+#: settings/models.py:1115
+msgid "report all employee even without leaves in calendar views"
+msgstr ""
+
+#: settings/models.py:1120
+msgid "Notification Leaves Timeframe"
+msgstr ""
+
+#: settings/models.py:1121
+msgid "choose which timeframe to report (current month or 31 days timeframe)"
+msgstr ""
+
+#: settings/models.py:1124
+msgid "current month"
+msgstr ""
+
+#: settings/models.py:1125
+msgid "31 days Timeframe"
+msgstr ""
+
+#: settings/models.py:1129
+msgid "Notification Report language"
+msgstr ""
+
+#: settings/models.py:1130
+msgid "choose the language for reports"
+msgstr ""
+
+#: settings/models.py:1135
+msgid "Milestones Reports"
+msgstr ""
+
+#: settings/models.py:1136
+msgid "Report Milestones of subscribed items"
+msgstr ""
+
+#: settings/models.py:1142
+msgid "Milestones notification"
+msgstr ""
+
+#: settings/models.py:1143
+msgid "enable automatic mail notification on milestones event"
+msgstr ""
+
+#: settings/models.py:1149
+msgid "Milestones Stale status from ... days"
+msgstr ""
+
+#: settings/models.py:1150
+msgid "Number of days to get in stale scope from now"
+msgstr ""
+
+#: settings/models.py:1155
+msgid "Milestones Notfication repeat frequency"
+msgstr ""
+
+#: settings/models.py:1156
+msgid ""
+"Frequency in days to repeat Milestones notification (0 to disable repeat)"
+msgstr ""
+
+#: settings/models.py:1161
+msgid "Validated Milestones repeat"
+msgstr ""
+
+#: settings/models.py:1162
+msgid "Number of reports where validated milestones will be repeated"
+msgstr ""
+
+#: settings/models.py:1167
+msgid "Milestones Notfication horizon"
+msgstr ""
+
+#: settings/models.py:1168
+msgid "Number of days for incomming milestones"
+msgstr ""
+
+#: settings/models.py:1173
+msgid "Project Participation notification"
+msgstr ""
+
+#: settings/models.py:1174
+msgid "enable automatic mail notification on participation event"
+msgstr ""
+
+#: settings/models.py:1181
+msgid "Employee notification"
+msgstr ""
+
+#: settings/models.py:1182
+msgid "enable automatic mail notification on employee event"
+msgstr ""
+
+#: settings/models.py:1189
+msgid "Fixed Navbar"
+msgstr ""
+
+#: settings/models.py:1190
+msgid "navbar position fixed to the top of the screen"
+msgstr ""
+
+#: settings/models.py:1195
+msgid "Logging Page"
+msgstr ""
+
+#: settings/models.py:1196
+msgid "choose where you will be redirected after logging"
+msgstr ""
+
+#: settings/models.py:1201
+msgid "Print Full Background colors"
+msgstr ""
+
+#: settings/models.py:1202
+msgid "When printing, use displayed backgrounds instead of bordered boxew"
+msgstr ""
+
+#: settings/models.py:1207
+msgid "Display Only Current Organisation"
+msgstr ""
+
+#: settings/models.py:1208
+msgid "show/hide past hierarchical links"
+msgstr ""
+
+#: settings/models.py:1213
+msgid "Theme"
+msgstr ""
+
+#: settings/models.py:1214
+msgid "Color theme for LabsManager"
+msgstr ""
+
+#: settings/models.py:1219
+msgid "Map provider for location link"
+msgstr ""
+
+#: settings/models.py:1220
+msgid "choose a map provider for link pointing to location"
+msgstr ""
+
+#: settings/models.py:1223
+msgid "Google Map"
+msgstr ""
+
+#: settings/models.py:1224
+msgid "Openstreetmap"
+msgstr ""
+
+#: settings/models.py:1270
+msgid "Expense calculation mode"
+msgstr "Expense calculation mode"
+
+#: settings/models.py:1271
+msgid "Defines the source used to calculate fund expenses."
+msgstr "Defines the source used to calculate fund expenses."
+
+#: settings/models.py:1280
+msgid "Project leader can edit funding"
+msgstr "Project leader can edit funding"
+
+#: settings/models.py:1281
+msgid "Allows the project leader to edit project funding."
+msgstr "Allows the project leader to edit project funding."
+
+#: settings/models.py:1286
+msgid "Employees can edit assigned milestones"
+msgstr "Employees can edit assigned milestones"
+
+#: settings/models.py:1287
+msgid "Allows an employee to edit a milestone assigned to them."
+msgstr "Allows an employee to edit a milestone assigned to them."
+
+#: settings/models.py:1274
+msgid "Simple"
+msgstr "Simple"
+
+#: settings/models.py:1275
+msgid "Individual expenses"
+msgstr "Individual expenses"
+
+#: settings/models.py:1276
+msgid "Hybrid"
+msgstr "Hybrid"
+
+#: settings/views.py:21 templates/labmanager/index.html:124
+#: templates/navbar.html:112 templates/settings/modal_project_settings.html:4
+#: templates/settings/plugin/settings.html:5
+#: templates/settings/settings.html:19 templates/settings/sidebar.html:10
+msgid "Settings"
+msgstr ""
+
+#: settings/views.py:33 settings/views.py:62 settings/views.py:89
+#: settings/views.py:115 settings/views.py:144 settings/views.py:172
+#: settings/views.py:198 settings/views.py:224 settings/views.py:252
+#: settings/views.py:279 settings/views.py:305
+msgid "name"
+msgstr ""
+
+#: settings/views.py:34 settings/views.py:63 settings/views.py:116
+#: settings/views.py:145 settings/views.py:173
+msgid "Short name"
+msgstr ""
+
+#: settings/views.py:36
+msgid "Is HR"
+msgstr ""
+
+#: settings/views.py:60
+msgid "Fund Institution"
+msgstr ""
+
+#: settings/views.py:117
+msgid "Color"
+msgstr ""
+
+#: settings/views.py:196
+msgid "Generic Info Employee"
+msgstr ""
+
+#: settings/views.py:199 settings/views.py:225 settings/views.py:253
+#: settings/views.py:280
+msgid "Icon"
+msgstr ""
+
+#: settings/views.py:222
+msgid "Generic Info Project"
+msgstr ""
+
+#: settings/views.py:250
+msgid "Organization's info type"
+msgstr ""
+
+#: settings/views.py:277
+msgid "Contact's info type"
+msgstr ""
+
+#: settings/views.py:303
+msgid "Contact type"
+msgstr ""
+
+#: settings/views.py:328
+msgid "Subscriptions"
+msgstr ""
+
+#: settings/views.py:332 settings/views.py:356
+msgid "Item"
+msgstr ""
+
+#: settings/views.py:352 templates/favorite_nav.html:5
+#: templates/labmanager/index_card_favorite.html:13
+msgid "Favorites"
+msgstr ""
+
+#: settings/views.py:379
+msgid "Users"
+msgstr ""
+
+#: settings/views.py:383 templates/settings/user_settings.html:43
+msgid "Last Login"
+msgstr ""
+
+#: settings/views.py:384
+msgid "Groups"
+msgstr ""
+
+#: settings/views.py:386
+msgid "Is active"
+msgstr ""
+
+#: settings/views.py:409
+msgid "Invitations"
+msgstr ""
+
+#: settings/views.py:412 staff/models.py:40 staff/ressources.py:225
+#: templates/settings/user_settings.html:61
+#: templates/staff/employee_desc_table.html:21
+msgid "Email"
+msgstr ""
+
+#: settings/views.py:413
+msgid "Date Created"
+msgstr ""
+
+#: settings/views.py:414
+msgid "Date Sent"
+msgstr ""
+
+#: settings/views.py:415
+msgid "Accepted"
+msgstr ""
+
+#: settings/views.py:416
+msgid "Key Expired"
+msgstr ""
+
+#: settings/views.py:417
+msgid "Inviter"
+msgstr ""
+
+#: settings/views.py:426
+msgid "Remove Expired"
+msgstr ""
+
+#: settings/views.py:456
+msgid "Pending Notifications"
+msgstr ""
+
+#: settings/views.py:459
+msgid "Content TYpe "
+msgstr ""
+
+#: settings/views.py:460
+msgid "Action_type"
+msgstr ""
+
+#: settings/views.py:461
+msgid "Object"
+msgstr ""
+
+#: settings/views.py:462
+msgid "Created"
+msgstr ""
+
+#: settings/views.py:500
+msgid "Remove Expired Invitations"
+msgstr ""
+
+#: staff/admin.py:61
+msgid "User Attached"
+msgstr ""
+
+#: staff/forms.py:101 staff/forms.py:118
+#, python-format
+msgid "End Date (%(end)s) should be later than start date (%(start)s) "
+msgstr ""
+
+#: staff/forms.py:126
+#, python-format
+msgid ""
+"\"%(sub)s\" can not be a subordinate as \"%(sup)s\" is in superior hierarchy "
+"line"
+msgstr ""
+
+#: staff/models.py:41 templates/expense/contract_table.html:67
+#: templates/fund/budget_table.html:62 templates/fund/contrib_table.html:58
+#: templates/fund/fund_finder.html:87
+msgid "Is Active"
+msgstr ""
+
+#: staff/models.py:160
+msgid "Contractual"
+msgstr ""
+
+#: staff/models.py:161
+msgid "Statutory"
+msgstr ""
+
+#: staff/models.py:167
+msgid "Is Contractual"
+msgstr ""
+
+#: staff/models.py:179
+msgid "Superiors"
+msgstr ""
+
+#: staff/models.py:184
+msgid "Employee and Superior can not be the same person"
+msgstr ""
+
+#: staff/models.py:233 staff/ressources.py:283
+#: templates/employee/employee_single.html:498 templates/team/team_base.html:63
+#: templates/team/team_desc_table.html:11
+msgid "Team Name"
+msgstr ""
+
+#: staff/models.py:234 templates/team/team_desc_table.html:16
+msgid "Team Leader"
+msgstr ""
+
+#: staff/models.py:257
+msgid "TeamMate"
+msgstr ""
+
+#: staff/models.py:279
+msgid "Is Team leader"
+msgstr ""
+
+#: staff/ressources.py:125
+msgid "Status Start Date"
+msgstr ""
+
+#: staff/ressources.py:131
+msgid "Status End Date"
+msgstr ""
+
+#: staff/ressources.py:137
+msgid "All Status"
+msgstr ""
+
+#: staff/ressources.py:149
+msgid "Status Contract Type"
+msgstr ""
+
+#: staff/ressources.py:161
+msgid "contracts quotity"
+msgstr ""
+
+#: staff/ressources.py:173
+msgid "projects quotity"
+msgstr ""
+
+#: staff/ressources.py:258
+msgid "Employee Import"
+msgstr ""
+
+#: staff/ressources.py:293 templates/email/notification_email.html:444
+#: templates/email/notification_email.html:485
+#: templates/employee/employee_single.html:504 templates/team/team_base.html:69
+msgid "Team Mate"
+msgstr ""
+
+#: staff/views.py:341
+msgid "Organisation Chart"
+msgstr ""
+
+#: templates/account/account_inactive.html:7
+#: templates/account/account_inactive.html:9
+msgid "Account Inactive"
+msgstr ""
+
+#: templates/account/account_inactive.html:11
+msgid ""
+"\n"
+"Your account has been deactivated.</br>\n"
+"Contact the administrators of the site\n"
+msgstr ""
+
+#: templates/account/account_inactive.html:17
+#: templates/account/password_reset_complete.html:15
+#: templates/account/password_reset_done.html:17
+#: templates/account/password_reset_from_key_done.html:15
+#: templates/registration/password_reset_complete.html:15
+#: templates/registration/password_reset_done.html:17
+msgid "Back to login page"
+msgstr ""
+
+#: templates/account/change_password_form.html:38
+#: templates/account/signup.html:46 templates/form_base.html:8
+#: templates/form_confirm_action_base.html:8 templates/form_confirm_base.html:8
+#: templates/form_delete_base.html:8 templates/form_validate_base.html:8
+#: templates/staff/employee_add.html:9
+msgid "Form errors exist"
+msgstr ""
+
+#: templates/account/change_password_form.html:46
+#: templates/account/password_reset_from_key.html:54
+#: templates/account/signup.html:54
+msgid "Hints"
+msgstr ""
+
+#: templates/account/change_password_form.html:56 templates/form_base.html:16
+#: templates/form_confirm_action_base.html:26
+#: templates/form_confirm_base.html:19 templates/form_delete_base.html:26
+#: templates/form_validate_base.html:23 templates/modals.html:14
+#: templates/staff/employee_add.html:17
+msgid "Close"
+msgstr ""
+
+#: templates/account/change_password_form.html:57 templates/form_base.html:17
+#: templates/form_validate_base.html:24 templates/staff/employee_add.html:18
+msgid "Submit"
+msgstr ""
+
+#: templates/account/email_confirm.html:6
+#: templates/account/email_confirm.html:10
+msgid "Confirm E-mail Address"
+msgstr ""
+
+#: templates/account/email_confirm.html:17
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr ""
+
+#: templates/account/email_confirm.html:23
+msgid "Confirm"
+msgstr ""
+
+#: templates/account/email_confirm.html:33
+#, python-format
+msgid ""
+"This e-mail confirmation link expired or is invalid. Please <a href="
+"\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+msgstr ""
+
+#: templates/account/email_list.html:17
+msgid "Verified"
+msgstr ""
+
+#: templates/account/email_list.html:19
+msgid "Unverified"
+msgstr ""
+
+#: templates/account/email_list.html:21
+msgid "Primary"
+msgstr ""
+
+#: templates/account/email_list.html:47
+msgid "Add Email"
+msgstr ""
+
+#: templates/account/email_list.html:70
+msgid "set as Primary"
+msgstr ""
+
+#: templates/account/email_list.html:74
+msgid "Verification eMail sent to"
+msgstr ""
+
+#: templates/account/email_list.html:78
+msgid "eMail deleted"
+msgstr ""
+
+#: templates/account/email_list.html:83
+msgid "eMail added"
+msgstr ""
+
+#: templates/account/login.html:7 templates/account/login.html:9
+#: templates/account/logout.html:7 templates/account/logout.html:9
+#: templates/account/password_reset.html:7
+#: templates/account/password_reset_confirm.html:7
+#: templates/account/password_reset_confirm.html:9
+#: templates/account/password_reset_done.html:7
+#: templates/account/password_reset_from_key.html:7
+#: templates/registration/login.html:7 templates/registration/login.html:9
+#: templates/registration/password_reset_confirm.html:7
+#: templates/registration/password_reset_confirm.html:9
+#: templates/registration/password_reset_done.html:7
+#: templates/registration/password_reset_form.html:7
+msgid "Sign In"
+msgstr ""
+
+#: templates/account/login.html:16 templates/registration/login.html:16
+msgid "Connexion"
+msgstr ""
+
+#: templates/account/logout.html:10
+msgid "Are you sure you want to sign out?"
+msgstr ""
+
+#: templates/account/logout.html:20
+msgid "Sign out"
+msgstr ""
+
+#: templates/account/password_change.html:7
+#: templates/account/password_change.html:9
+#: templates/account/password_change.html:15 templates/account/signup.html:41
+#: templates/account/signup.html:43
+msgid "Set Password"
+msgstr ""
+
+#: templates/account/password_change.html:18
+#: templates/registration/login.html:19
+msgid "Forgot Password?"
+msgstr ""
+
+#: templates/account/password_reset.html:9
+#: templates/registration/password_reset_form.html:9
+msgid "Forgot Your Password ?"
+msgstr ""
+
+#: templates/account/password_reset.html:18
+#: templates/registration/password_reset_form.html:15
+msgid "send mail"
+msgstr ""
+
+#: templates/account/password_reset.html:24
+#: templates/account/password_reset_from_key.html:71
+msgid "Back to login"
+msgstr ""
+
+#: templates/account/password_reset_complete.html:7
+#: templates/account/password_reset_from_key_done.html:7
+#: templates/registration/password_reset_complete.html:7
+msgid "Password reset"
+msgstr ""
+
+#: templates/account/password_reset_complete.html:9
+#: templates/account/password_reset_from_key_done.html:9
+#: templates/registration/password_reset_complete.html:9
+msgid "Password reset Complete"
+msgstr ""
+
+#: templates/account/password_reset_complete.html:10
+#: templates/account/password_reset_from_key_done.html:10
+#: templates/registration/password_reset_complete.html:10
+msgid ""
+"\n"
+"    Your password has been set. You may go ahead and log in now.    \n"
+"  "
+msgstr ""
+
+#: templates/account/password_reset_confirm.html:15
+#: templates/account/password_reset_from_key.html:64
+#: templates/registration/password_reset_confirm.html:15
+msgid "Reset Password"
+msgstr ""
+
+#: templates/account/password_reset_done.html:9
+#: templates/registration/password_reset_done.html:9
+msgid "Password reset done ?"
+msgstr ""
+
+#: templates/account/password_reset_done.html:10
+#: templates/registration/password_reset_done.html:10
+msgid ""
+"\n"
+"        We've emailed you instructions for setting your password, if an "
+"account exists with the email you entered.\n"
+"        You should receive them shortly.<br>If you don't receive an email, "
+"please make sure you've entered the address you registered with, and check "
+"your spam folder.\n"
+"  "
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:42
+msgid "Bad Token"
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:42
+#: templates/settings/user_settings.html:55
+#: templates/settings/user_settings.html:82
+msgid "Change Password"
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:46
+#, python-format
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</"
+"a>."
+msgstr ""
+
+#: templates/account/signup.html:63
+msgid "Signup"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:11
+msgid "Leave Type Filter"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:14
+msgid "Employee Status Filter"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:17
+#: templates/calendar/calendar_project_filters.html:21
+msgid "Employee team Filter"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:26
+msgid "Resource event Filter"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:37
+#: templates/calendar/filter_select.html:23
+#: templates/calendar/filter_select_milestones.html:23
+#: templates/calendar/filter_select_project.html:23
+msgid "All"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:41
+msgid "Show Only Resource with event"
+msgstr ""
+
+#: templates/calendar/calendar_filters.html:45
+msgid "Show Only Resource with event today"
+msgstr ""
+
+#: templates/calendar/calendar_project_filters.html:15
+msgid "Items Status Filter"
+msgstr ""
+
+#: templates/calendar/calendar_project_filters.html:18
+msgid "Milestones status"
+msgstr ""
+
+#: templates/calendar/calendar_project_filters.html:25
+msgid "Institution Filter"
+msgstr ""
+
+#: templates/calendar/calendar_project_filters.html:29
+msgid "Funder Filter"
+msgstr ""
+
+#: templates/calendar/filter_select_milestones.html:24
+msgid "Ongoing"
+msgstr ""
+
+#: templates/calendar/filter_select_milestones.html:25
+msgid "Completed"
+msgstr ""
+
+#: templates/calendar/filter_select_milestones.html:26
+msgid "Delayed"
+msgstr ""
+
+#: templates/calendar/main_calendar.html:9
+#: templates/calendar/main_calendar_print.html:20
+msgid "LabManager Calendar"
+msgstr ""
+
+#: templates/calendar/main_calendar.html:25
+msgid "Leaves Calendar"
+msgstr ""
+
+#: templates/calendar/main_calendar.html:31
+#: templates/employee/employee_base.html:38
+msgid "Add Employee"
+msgstr ""
+
+#: templates/calendar/main_calendar.html:54
+msgid "Add Leave"
+msgstr ""
+
+#: templates/calendar/main_calendar.html:69
+msgid "Projects Calendar"
+msgstr ""
+
+#: templates/calendar/main_calendar_print.html:20
+#: templates/calendar/project_calendar_print.html:20
+msgid "Print"
+msgstr ""
+
+#: templates/calendar/project_calendar_print.html:20
+msgid "LabManager Project Calendar"
+msgstr ""
+
+#: templates/dashboard/dasboard_loss_card.html:8
+#: templates/project/amount_graph.html:9
+msgid "by Type"
+msgstr ""
+
+#: templates/dashboard/dasboard_loss_card.html:10
+msgid "by Project"
+msgstr ""
+
+#: templates/dashboard/dasboard_loss_card.html:12
+#: templates/project/amount_graph.html:11
+msgid "by Funder"
+msgstr ""
+
+#: templates/dashboard/dasboard_loss_card.html:14
+#: templates/project/amount_graph.html:15
+msgid "by Institution"
+msgstr ""
+
+#: templates/dashboard/global_dashboard.html:6
+msgid "LabManager Dashboard"
+msgstr ""
+
+#: templates/dashboard/global_dashboard.html:39
+msgid "Fund Consumption"
+msgstr ""
+
+#: templates/dashboard/global_dashboard.html:60
+msgid "Fund Loss"
+msgstr ""
+
+#: templates/email/notification_email.html:163
+#, python-format
+msgid ""
+"Dear %(username)s,\n"
+"    Please find below the report from your <a href='%(scheme)s://"
+"%(base_url)s'>labsmanager</a> subscriptions.\n"
+"    "
+msgstr ""
+
+#: templates/email/notification_email.html:174
+msgid "Project overview"
+msgstr ""
+
+#: templates/email/notification_email.html:186
+#: templates/email/notification_email.html:254
+msgid "Available in focus"
+msgstr ""
+
+#: templates/email/notification_email.html:187
+#: templates/email/notification_email.html:255
+msgid "Consumption ratio"
+msgstr ""
+
+#: templates/email/notification_email.html:188
+#: templates/email/notification_email.html:256
+msgid "Consumption Advancement"
+msgstr ""
+
+#: templates/email/notification_email.html:241
+msgid "Project Fund overview :"
+msgstr ""
+
+#: templates/email/notification_email.html:297
+msgid "Project Milestones"
+msgstr ""
+
+#: templates/email/notification_email.html:307
+#: templates/email/notification_email.html:388
+#: templates/email/usernotification_email.html:147
+msgid "Assignation"
+msgstr ""
+
+#: templates/email/notification_email.html:324
+msgid "Not assigned"
+msgstr ""
+
+#: templates/email/notification_email.html:343
+msgid "Employee overview"
+msgstr ""
+
+#: templates/email/notification_email.html:382
+msgid "Employees Milestones"
+msgstr ""
+
+#: templates/email/notification_email.html:439
+#: templates/email/notification_email.html:479
+msgid "Team Leaves :"
+msgstr ""
+
+#: templates/email/notification_email.html:462
+#: templates/email/notification_email.html:504
+msgid "No leaves planned for team :"
+msgstr ""
+
+#: templates/email/notification_email.html:565
+#: templates/email/notification_email.html:597
+msgid "Current Leaves"
+msgstr ""
+
+#: templates/email/notification_email.html:640
+msgid " Your subscription parameters :"
+msgstr ""
+
+#: templates/email/notification_email.html:642
+#: templates/email/usernotification_email.html:252
+msgid "User Name"
+msgstr ""
+
+#: templates/email/notification_email.html:643
+msgid "Notification activated"
+msgstr ""
+
+#: templates/email/notification_email.html:643
+#: templates/email/notification_email.html:644
+#: templates/email/usernotification_email.html:253
+#: templates/email/usernotification_email.html:254
+#: templates/email/usernotification_email.html:257
+#: templates/email/usernotification_email.html:258
+msgid "Yes"
+msgstr ""
+
+#: templates/email/notification_email.html:643
+#: templates/email/notification_email.html:644
+#: templates/email/usernotification_email.html:253
+#: templates/email/usernotification_email.html:254
+#: templates/email/usernotification_email.html:257
+#: templates/email/usernotification_email.html:258
+msgid "No"
+msgstr ""
+
+#: templates/email/notification_email.html:644
+msgid "Report Leaves"
+msgstr ""
+
+#: templates/email/notification_email.html:645
+msgid "frequency"
+msgstr ""
+
+#: templates/email/notification_email.html:646
+msgid "Next report"
+msgstr ""
+
+#: templates/email/notification_email.html:647
+msgid "Current Date"
+msgstr ""
+
+#: templates/email/usernotification_email.html:130
+#, python-format
+msgid ""
+"Dear %(username)s,\n"
+"        Please find below your <a href='%(scheme)s://"
+"%(base_url)s'>labsmanager</a>'s notifications.\n"
+"        "
+msgstr ""
+
+#: templates/email/usernotification_email.html:139
+msgid "Milestones Notification"
+msgstr ""
+
+#: templates/email/usernotification_email.html:148
+msgid "Due Date"
+msgstr ""
+
+#: templates/email/usernotification_email.html:149
+#: templates/email/usernotification_email.html:190
+#: templates/email/usernotification_email.html:220
+#: templates/employee/employee_base.html:114
+#: templates/employee/employee_single.html:136
+#: templates/employee/employee_single.html:194
+#: templates/employee/employee_single.html:230
+#: templates/employee/employee_single.html:448
+#: templates/employee/employee_single.html:583
+#: templates/endpoints/milestones_table.html:52
+#: templates/expense/contract_item_expense.html:44
+#: templates/expense/contract_table.html:74
+#: templates/expense/expense_list.html:66
+#: templates/expense/expense_timepoint.html:47
+#: templates/fund/budget_table.html:70 templates/fund/contrib_table.html:66
+#: templates/fund/fund_item_table.html:41 templates/fund/fund_table.html:45
+#: templates/organization/contact_table.html:32
+#: templates/organization/orga_base.html:60
+#: templates/organization/orga_base.html:107
+#: templates/project/project_base.html:102
+#: templates/project/project_single.html:179
+#: templates/settings/plugins_settings.html:76
+#: templates/settings/setting_table.html:39 templates/team/team_base.html:78
+msgid "Action"
+msgstr ""
+
+#: templates/email/usernotification_email.html:150
+#: templates/email/usernotification_email.html:191
+#: templates/email/usernotification_email.html:221
+#: templates/settings/plugins_settings.html:101
+msgid "Message"
+msgstr ""
+
+#: templates/email/usernotification_email.html:163
+msgid "No assigned employees"
+msgstr ""
+
+#: templates/email/usernotification_email.html:183
+msgid "Project Notification"
+msgstr ""
+
+#: templates/email/usernotification_email.html:213
+msgid "Employee Notification"
+msgstr ""
+
+#: templates/email/usernotification_email.html:250
+msgid " Your notification parameters :"
+msgstr ""
+
+#: templates/email/usernotification_email.html:253
+msgid "General Notification activated"
+msgstr ""
+
+#: templates/email/usernotification_email.html:254
+msgid "Milestones Notification activated"
+msgstr ""
+
+#: templates/email/usernotification_email.html:255
+msgid "Milestones Stales delay"
+msgstr ""
+
+#: templates/email/usernotification_email.html:256
+msgid "Milestones Repeat delay"
+msgstr ""
+
+#: templates/email/usernotification_email.html:257
+msgid "Project Participant Notification activated"
+msgstr ""
+
+#: templates/email/usernotification_email.html:258
+msgid "Employee Notification activated"
+msgstr ""
+
+#: templates/employee/employee_base.html:8
+#: templates/employee/employee_single.html:10
+#: templates/employee/organization_chart.html:7
+msgid "LabManager Employee"
+msgstr ""
+
+#: templates/employee/employee_base.html:32
+msgid "Employee List"
+msgstr ""
+
+#: templates/employee/employee_base.html:66
+msgid "User Id"
+msgstr ""
+
+#: templates/employee/employee_base.html:86
+msgid "Contracts Quotity"
+msgstr ""
+
+#: templates/employee/employee_base.html:92
+msgid "Projects Quotity"
+msgstr ""
+
+#: templates/employee/employee_info_table.html:37
+#: templates/organization/contact_info_table.html:39
+#: templates/organization/orga_info_table.html:42
+#: templates/project/project_info_table.html:39
+msgid "Add Info"
+msgstr ""
+
+#: templates/employee/employee_single.html:59
+msgid "Edit Employee"
+msgstr ""
+
+#: templates/employee/employee_single.html:65
+#: templates/project/project_single.html:61
+msgid "Export Word"
+msgstr ""
+
+#: templates/employee/employee_single.html:70
+#: templates/project/project_single.html:66
+msgid "Export PDF"
+msgstr ""
+
+#: templates/employee/employee_single.html:116
+msgid "Status abb"
+msgstr ""
+
+#: templates/employee/employee_single.html:125
+msgid "Job type"
+msgstr ""
+
+#: templates/employee/employee_single.html:152
+msgid "Employee's Organization Chart"
+msgstr ""
+
+#: templates/employee/employee_single.html:341
+msgid "Employee Contributions"
+msgstr ""
+
+#: templates/employee/employee_single.html:375
+msgid "Projects Milestones"
+msgstr ""
+
+#: templates/employee/employee_single.html:394
+msgid "Projects Participation"
+msgstr ""
+
+#: templates/employee/employee_single.html:423
+#: templates/team/team_single.html:183
+msgid "Project Start Date"
+msgstr ""
+
+#: templates/employee/employee_single.html:426
+#: templates/team/team_single.html:186
+msgid "Project End Date"
+msgstr ""
+
+#: templates/employee/employee_single.html:429
+msgid "Participant Status"
+msgstr ""
+
+#: templates/employee/employee_single.html:575
+msgid "Nb Days"
+msgstr ""
+
+#: templates/employee/organization_chart.html:29
+#: templates/labmanager/index_card_tools.html:31 templates/navbar.html:75
+msgid "Organization Chart"
+msgstr ""
+
+#: templates/employee/organization_chart.html:40
+msgid "Search Tools"
+msgstr ""
+
+#: templates/employee/organization_chart.html:44
+msgid "Highlight Employee"
+msgstr ""
+
+#: templates/endpoints/milestones_table.html:43
+msgid "Desc"
+msgstr ""
+
+#: templates/expense/contract_base.html:7
+msgid "LabManager Contracts"
+msgstr ""
+
+#: templates/expense/contract_base.html:33
+msgid "Contract List"
+msgstr ""
+
+#: templates/expense/contract_base.html:39
+msgid "Add Contract"
+msgstr ""
+
+#: templates/expense/contract_base.html:61
+msgid "Contract Prospective Imputation"
+msgstr ""
+
+#: templates/expense/contract_fund_modal.html:25
+#: templates/expense/contract_fund_modal.html:49
+#: templates/import/import_out.html:16
+#: templates/organization/orga_desc_table.html:60
+#: templates/organization/orga_desc_table.html:91
+msgid "Total"
+msgstr ""
+
+#: templates/expense/contract_fund_modal.html:31
+msgid "Left"
+msgstr ""
+
+#: templates/expense/contract_fund_modal.html:38
+msgid "Total Left Amount"
+msgstr ""
+
+#: templates/expense/contract_fund_modal.html:41
+msgid "Fund overview"
+msgstr ""
+
+#: templates/expense/contract_fund_modal.html:80
+msgid "Left Amount"
+msgstr ""
+
+#: templates/expense/contract_item_expense.html:6
+msgid "Contract Expenses"
+msgstr ""
+
+#: templates/expense/contract_sidebar.html:4
+msgid "List"
+msgstr ""
+
+#: templates/expense/contract_sidebar.html:8
+msgid "Prospective"
+msgstr ""
+
+#: templates/expense/expense_list.html:8
+msgid "Expenses List"
+msgstr ""
+
+#: templates/expense/expense_timepoint.html:8
+msgid "Expense Timepoint"
+msgstr ""
+
+#: templates/form_confirm_action_base.html:11
+#: templates/form_confirm_base.html:11
+msgid "Confirm Action"
+msgstr ""
+
+#: templates/form_confirm_action_base.html:27
+#: templates/form_confirm_base.html:20
+msgid "Validate"
+msgstr ""
+
+#: templates/form_delete_base.html:11
+msgid "Are you sure you want to delete"
+msgstr ""
+
+#: templates/fund/budget_table.html:45 templates/fund/contrib_table.html:44
+msgid "Employee Status"
+msgstr ""
+
+#: templates/fund/fund_finder.html:7
+msgid "LabManager Fund Finder"
+msgstr ""
+
+#: templates/fund/fund_finder.html:112
+msgid "Budgets Finder"
+msgstr ""
+
+#: templates/fund/fund_item_table.html:6
+msgid "Fund Items"
+msgstr ""
+
+#: templates/import/import.html:28
+msgid ""
+"Below is a preview of data to be imported. If you are satisfied with the "
+"results, click 'Confirm import'"
+msgstr ""
+
+#: templates/import/import.html:31
+msgid "Confirm import"
+msgstr ""
+
+#: templates/import/import.html:32
+msgid "Back To File Selection"
+msgstr ""
+
+#: templates/import/import.html:55
+msgid "Get Import Template"
+msgstr ""
+
+#: templates/import/import_base.html:9
+msgid "LabManager Import"
+msgstr ""
+
+#: templates/import/import_out.html:9
+msgid "Import Summary"
+msgstr ""
+
+#: templates/import/import_out.html:20 templates/import/import_result.html:105
+msgid "New"
+msgstr ""
+
+#: templates/import/import_out.html:24
+msgid "Updated"
+msgstr ""
+
+#: templates/import/import_out.html:28
+msgid "Deleted"
+msgstr ""
+
+#: templates/import/import_out.html:32 templates/import/import_result.html:107
+msgid "Skipped"
+msgstr ""
+
+#: templates/import/import_out.html:36
+msgid "In Error"
+msgstr ""
+
+#: templates/import/import_out.html:40
+msgid "Invalid"
+msgstr ""
+
+#: templates/import/import_out.html:47
+msgid "Back To File Import"
+msgstr ""
+
+#: templates/import/import_result.html:10
+#: templates/import/import_result.html:41
+msgid "Errors"
+msgstr ""
+
+#: templates/import/import_result.html:21
+msgid "Line number"
+msgstr ""
+
+#: templates/import/import_result.html:33
+msgid "Some rows failed to validate"
+msgstr ""
+
+#: templates/import/import_result.html:35
+msgid ""
+"Please correct these errors in your data where possible, then reupload it "
+"using the form above."
+msgstr ""
+
+#: templates/import/import_result.html:40
+msgid "Row"
+msgstr ""
+
+#: templates/import/import_result.html:67
+msgid "Non field specific"
+msgstr ""
+
+#: templates/import/import_result.html:90
+msgid "Preview"
+msgstr ""
+
+#: templates/import/import_result.html:111
+msgid "Update"
+msgstr ""
+
+#: templates/invitations/email/email_invite_message.html:8
+#, python-format
+msgid ""
+"\n"
+"Hello,\n"
+"<p>You (%(email)s) have been invited to join %(site_name)s.</p>\n"
+"\n"
+"<p>If you'd like to join, please follow <a href=\"%(invite_url)s\" > this "
+"link </a>.</p>\n"
+"<p><i>This link will expire in %(expiration_days)s days.<i></p>\n"
+"<p>Best regards,</p>\n"
+"<p>labsmanager team</p>\n"
+msgstr ""
+
+#: templates/labmanager/index.html:33 templates/labmanager/index.html:35
+msgid "Welcome"
+msgstr ""
+
+#: templates/labmanager/index.html:38 templates/navbar.html:121
+msgid "Logout"
+msgstr ""
+
+#: templates/labmanager/index.html:131 templates/navbar.html:114
+msgid "Admin"
+msgstr ""
+
+#: templates/labmanager/index.html:148
+msgid "LabsManager version"
+msgstr ""
+
+#: templates/labmanager/index_card_tools.html:13 templates/navbar.html:64
+msgid "Tools"
+msgstr ""
+
+#: templates/navbar.html:57
+msgid "Organizations"
+msgstr ""
+
+#: templates/navbar.html:69
+msgid "Funds Finder"
+msgstr ""
+
+#: templates/navbar.html:123
+msgid "Login"
+msgstr ""
+
+#: templates/organization/institution_single.html:9
+msgid "LabManager Organisation"
+msgstr ""
+
+#: templates/organization/institution_single.html:49
+msgid "Edit Orga"
+msgstr ""
+
+#: templates/organization/institution_single.html:74
+msgid "Informations"
+msgstr ""
+
+#: templates/organization/institution_single.html:97
+msgid "Contacts"
+msgstr ""
+
+#: templates/organization/institution_single.html:104
+msgid "Add Contact"
+msgstr ""
+
+#: templates/organization/orga_base.html:7
+msgid "LabManager Organizations"
+msgstr ""
+
+#: templates/organization/orga_base.html:33
+msgid "Add Institution"
+msgstr ""
+
+#: templates/organization/orga_base.html:74
+#: templates/organization/orga_base_sidebar.html:8
+msgid "Funders"
+msgstr ""
+
+#: templates/organization/orga_base.html:80
+msgid "Add Funder"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:19
+msgid "Organization Name"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:24
+msgid "Organization Short Name"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:47
+msgid "Project Involvement"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:54
+msgid "Available Amount"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:55
+msgid "Available Amount focus"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:67
+msgid "Open"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:92
+msgid "Current"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:93
+msgid "Man Month"
+msgstr ""
+
+#: templates/organization/orga_desc_table.html:98
+msgid "Number"
+msgstr ""
+
+#: templates/organization/orga_single_sidebar.html:9
+msgid "Information"
+msgstr ""
+
+#: templates/project/amount_graph.html:13
+msgid "by Fund"
+msgstr ""
+
+#: templates/project/amount_graph.html:19
+msgid "Stacked"
+msgstr ""
+
+#: templates/project/amount_graph.html:21
+msgid "Line"
+msgstr ""
+
+#: templates/project/project_base.html:8
+#: templates/project/project_single.html:10
+msgid "LabManager Project"
+msgstr ""
+
+#: templates/project/project_base.html:27
+msgid "Project List"
+msgstr ""
+
+#: templates/project/project_base.html:33
+msgid "Add Project"
+msgstr ""
+
+#: templates/project/project_desc_table.html:45
+msgid "global"
+msgstr ""
+
+#: templates/project/project_desc_table.html:51
+msgid "focus"
+msgstr ""
+
+#: templates/project/project_desc_table.html:63
+msgid "Total Contribution Amount"
+msgstr ""
+
+#: templates/project/project_desc_table.html:68
+msgid "Total Participant Quotity"
+msgstr ""
+
+#: templates/project/project_desc_table.html:73
+msgid "Total Contract Quotity"
+msgstr ""
+
+#: templates/project/project_sidebar.html:27
+#: templates/project/project_single.html:209
+msgid "Tasks & Milestones"
+msgstr ""
+
+#: templates/project/project_single.html:55
+msgid "Edit Project"
+msgstr ""
+
+#: templates/project/project_single.html:72
+msgid "Project Settings"
+msgstr ""
+
+#: templates/project/project_single.html:172
+msgid "Employee Active"
+msgstr ""
+
+#: templates/project/project_single.html:220
+msgid "Delay Milestones"
+msgstr ""
+
+#: templates/project/project_single.html:223
+msgid "Validate Milestones"
+msgstr ""
+
+#: templates/project/project_single.html:254
+msgid "project Funds Overview"
+msgstr ""
+
+#: templates/project/project_single.html:348
+msgid "Project Budgets"
+msgstr ""
+
+#: templates/project/project_single.html:384
+msgid "Project Contributions"
+msgstr ""
+
+#: templates/project/project_single.html:418 templates/team/team_single.html:80
+msgid "TeamMate leaves"
+msgstr ""
+
+#: templates/project/project_single.html:439
+msgid "Leaves Lists"
+msgstr ""
+
+#: templates/project/project_single.html:462
+msgid "Start"
+msgstr ""
+
+#: templates/project/project_single.html:465
+msgid "End"
+msgstr ""
+
+#: templates/project/project_single.html:492
+msgid "project Dashboard"
+msgstr ""
+
+#: templates/project/project_single.html:577
+#: templates/settings/notification_settings.html:43
+msgid "Project\\"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:4
+msgid ""
+"You're receiving this e-mail because you requested a password reset for your "
+"user account at"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+msgid "Please go to the following page and choose a new password"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:11
+msgid "Your username, in case you've forgotten"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:12
+msgid "Or you can log in with your email"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:14
+#, python-format
+msgid "The %(site)s team."
+msgstr ""
+
+#: templates/settings/auditlog_settings.html:7
+#: templates/settings/sidebar.html:71
+msgid "Audit Log"
+msgstr ""
+
+#: templates/settings/common_settings.html:9 templates/settings/sidebar.html:23
+msgid "Favorites and Subscriptions"
+msgstr ""
+
+#: templates/settings/interface_setting.html:10
+#: templates/settings/sidebar.html:17
+msgid "Interface Settings"
+msgstr ""
+
+#: templates/settings/interface_setting.html:28
+msgid "Printing Setting"
+msgstr ""
+
+#: templates/settings/interface_setting.html:36
+#: templates/settings/list_setting_panel_orga.html:14
+msgid "Organization Setting"
+msgstr ""
+
+#: templates/settings/interface_setting.html:45
+msgid "General Setting"
+msgstr ""
+
+#: templates/settings/list_setting_panel_contract.html:8
+msgid "List Settings - Contract"
+msgstr ""
+
+#: templates/settings/list_setting_panel_fund.html:8
+msgid "List Settings - Fund"
+msgstr ""
+
+#: templates/settings/list_setting_panel_leave.html:8
+msgid "List Settings - Leaves"
+msgstr ""
+
+#: templates/settings/list_setting_panel_orga.html:8
+msgid "List Settings - Organization"
+msgstr ""
+
+#: templates/settings/list_setting_panel_orga.html:21
+msgid "Contact Setting"
+msgstr ""
+
+#: templates/settings/list_setting_panel_project.html:8
+msgid "List Settings - Project"
+msgstr ""
+
+#: templates/settings/list_setting_panel_staff.html:8
+msgid "List Settings - Staff"
+msgstr ""
+
+#: templates/settings/mail_settings.html:7
+msgid "Mail"
+msgstr ""
+
+#: templates/settings/notification_admin_settings.html:9
+#: templates/settings/notification_settings.html:9
+#: templates/settings/sidebar.html:20 templates/settings/sidebar.html:68
+msgid "Notifications"
+msgstr ""
+
+#: templates/settings/notification_admin_settings.html:17
+msgid "Launch Notifications"
+msgstr ""
+
+#: templates/settings/notification_admin_settings.html:20
+msgid "Check Notification"
+msgstr ""
+
+#: templates/settings/notification_admin_settings.html:21
+msgid "Send Pending"
+msgstr ""
+
+#: templates/settings/notification_settings.html:17
+msgid "General Settings"
+msgstr ""
+
+#: templates/settings/notification_settings.html:29
+msgid "Milestone\\"
+msgstr ""
+
+#: templates/settings/notification_settings.html:54
+msgid "Employee\\"
+msgstr ""
+
+#: templates/settings/notification_settings.html:65
+msgid "Subscription\\"
+msgstr ""
+
+#: templates/settings/notification_settings.html:81
+msgid "Send Test Mail"
+msgstr ""
+
+#: templates/settings/notification_settings.html:83
+msgid "Sending"
+msgstr ""
+
+#: templates/settings/notification_settings.html:86
+msgid "Open Test Mail"
+msgstr ""
+
+#: templates/settings/notification_settings.html:88
+msgid "Opening"
+msgstr ""
+
+#: templates/settings/plugin.html:16
+msgid "Plugin information"
+msgstr ""
+
+#: templates/settings/plugin.html:32
+#: templates/settings/plugins_settings.html:73
+msgid "Author"
+msgstr ""
+
+#: templates/settings/plugin.html:42
+#: templates/settings/plugins_settings.html:70
+msgid "Version"
+msgstr ""
+
+#: templates/settings/plugin.html:47
+msgid "no version information supplied"
+msgstr ""
+
+#: templates/settings/plugin.html:54
+msgid "Website"
+msgstr ""
+
+#: templates/settings/plugin.html:61
+msgid "License"
+msgstr ""
+
+#: templates/settings/plugin.html:67
+msgid "Mixin"
+msgstr ""
+
+#: templates/settings/plugin/schedule.html:6
+msgid "Schedules"
+msgstr ""
+
+#: templates/settings/plugin/schedule.html:13
+msgid "Function"
+msgstr ""
+
+#: templates/settings/plugin/schedule.html:14
+msgid "Schedule Type"
+msgstr ""
+
+#: templates/settings/plugin/schedule.html:15
+msgid "Repeat"
+msgstr ""
+
+#: templates/settings/plugin/schedule.html:16
+msgid "Next Run"
+msgstr ""
+
+#: templates/settings/plugin/schedule.html:17
+msgid "Success"
+msgstr ""
+
+#: templates/settings/plugin/urls.html:5
+msgid "URLs"
+msgstr ""
+
+#: templates/settings/plugin/urls.html:8
+#, python-format
+msgid ""
+"The Base-URL for this plugin is <a href=\"/%(base)s\" target=\"_blank"
+"\"><strong>%(base)s</strong></a>."
+msgstr ""
+
+#: templates/settings/plugin/urls.html:14
+msgid "URL"
+msgstr ""
+
+#: templates/settings/plugin/urls.html:23
+msgid "Open in new tab"
+msgstr ""
+
+#: templates/settings/plugins_settings.html:8
+#: templates/settings/plugins_settings.html:37
+#: templates/settings/sidebar.html:78
+msgid "Plugins"
+msgstr ""
+
+#: templates/settings/plugins_settings.html:16
+msgid "External plugins are not enabled for this LabsManager installation"
+msgstr ""
+
+#: templates/settings/plugins_settings.html:43
+#: templates/settings/plugins_settings.html:44
+msgid "Reload Plugins"
+msgstr ""
+
+#: templates/settings/plugins_settings.html:67
+msgid "mixins"
+msgstr ""
+
+#: templates/settings/plugins_settings.html:90
+msgid "Plugin Error Stack"
+msgstr ""
+
+#: templates/settings/plugins_settings.html:99
+msgid "Stage"
+msgstr ""
+
+#: templates/settings/setting.html:39
+msgid "No value set"
+msgstr ""
+
+#: templates/settings/setting.html:46
+msgid "Edit setting"
+msgstr ""
+
+#: templates/settings/settings.html:8
+msgid "LabManager Settings"
+msgstr ""
+
+#: templates/settings/sidebar.html:13 templates/settings/user_settings.html:10
+msgid "User Settings"
+msgstr ""
+
+#: templates/settings/sidebar.html:26
+msgid "Dashboard Settings"
+msgstr ""
+
+#: templates/settings/sidebar.html:29
+msgid "Stale Settings"
+msgstr ""
+
+#: templates/settings/sidebar.html:34
+msgid "LabsManager Lists"
+msgstr ""
+
+#: templates/settings/sidebar.html:50
+msgid "Staff"
+msgstr ""
+
+#: templates/settings/sidebar.html:59
+msgid "LabsManager Settings"
+msgstr ""
+
+#: templates/settings/sidebar.html:65
+msgid "Mails"
+msgstr ""
+
+#: templates/settings/sidebar.html:75
+msgid "Users Management"
+msgstr ""
+
+#: templates/settings/sidebar.html:83
+msgid "Plugin Lists"
+msgstr ""
+
+#: templates/settings/stale_calculation_settings.html:7
+msgid "Stale Alert"
+msgstr ""
+
+#: templates/settings/user_settings.html:25
+msgid "LabsManager User"
+msgstr ""
+
+#: templates/settings/user_settings.html:33
+msgid "User's Employee"
+msgstr ""
+
+#: templates/settings/user_settings.html:74
+msgid "Password Saved"
+msgstr ""
+
+#: templates/settings/users_setting_panel.html:10
+msgid "Admin User"
+msgstr ""
+
+#: templates/staff/employee_desc_table.html:11
+msgid "Employee Id"
+msgstr ""
+
+#: templates/staff/employee_desc_table.html:30
+msgid "Entree Date"
+msgstr ""
+
+#: templates/staff/employee_desc_table.html:40
+msgid "Contract Quotity"
+msgstr ""
+
+#: templates/staff/employee_desc_table.html:45
+msgid "Project Quotity"
+msgstr ""
+
+#: templates/staff/employee_desc_table.html:50
+msgid "Contribution Quotity"
+msgstr ""
+
+#: templates/staff/employee_desc_table.html:55
+msgid "Ongoing Milestones"
+msgstr ""
+
+#: templates/team/team_base.html:8 templates/team/team_single.html:8
+msgid "LabManager Team"
+msgstr ""
+
+#: templates/team/team_base.html:28
+msgid "Team List"
+msgstr ""
+
+#: templates/team/team_base.html:34
+msgid "Add Team"
+msgstr ""
+
+#: templates/team/team_mate_table.html:16
+msgid "Mate"
+msgstr ""
+
+#: templates/team/team_mate_table.html:51
+msgid "Add TeamMate"
+msgstr ""
+
+#: templates/team/team_single.html:112 templates/team/team_single.html:160
+msgid "For team mate as leader or co-leader"
+msgstr ""
+
+#: templates/team/team_single.html:159
+msgid "TeamMate Projects"
+msgstr ""
+
+#: templates/widgets/checkbox_custom.html:4
+msgid "Options"
+msgstr ""

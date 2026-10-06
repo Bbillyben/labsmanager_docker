@@ -1,0 +1,52 @@
+<div class="card mb-2">
+    <div class="row" id="employee_team_lead"></div>
+    </div>  
+</div>
+
+
+<script>
+    // for Organizational Chart
+function update_emp_team_list(emp_pk){
+        
+        var urlOC = Urls['api:employee-emp_team_lead'](emp_pk)
+        $.ajax({
+            url: urlOC,
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json',
+            accepts: {
+                json: 'application/json',
+            },
+            success: function(response){build_team_list(response);},
+            error: function(xhr) {
+                // TODO: Handle error
+                console.error(`Error in update_organization_chart at '${urlOC}'`);
+            }
+        });
+
+    }
+    function build_team_list(datas){
+        html='';
+
+        for (var i in datas){
+            team=datas[i];
+            html+="<div class='row'>"
+            html+="<a href='"+team.url+"' style='margin: 0.5em !important;'>"
+            if(team.is_leader){
+                html+='<i class="fas fa-crown icon-spaced" style="color: coral; margin-right:0.2em;" title="team leader"></i>';
+            }else{
+                html+='<i class="fas fa-user-friends" style="color: cadetblue; margin-right:0.2em;" title="team mate"></i>'
+            }
+                
+            html+=team.name+"</a></div>"
+        }
+        $('#employee_team_lead').empty().html("<div class='col' id='teamlist_cont'>"+html+"</div>")
+    }
+
+
+    $(document).ready(function () {
+        employee_idA = '{{ employeePK }}';
+        update_emp_team_list(employee_idA);
+
+    });
+</script>

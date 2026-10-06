@@ -1,0 +1,16 @@
+{% load i18n %}
+{% load static %}
+
+{% trans "Milestones" as text %}
+{% include "sidebar_item.html" with label="dash-milestone" text=text icon="fa-location-dot" %}
+
+{% trans "Funds" as text %}
+{% include "sidebar_item.html" with label="dash-fund" text=text icon="fa-money-bills" %}
+
+{% trans "Contracts" as text %}
+{% include "sidebar_item.html" with label="dash-contract" text=text icon="fa-file-signature" %}
+
+{% trans "Employee" as text %}
+{% include "sidebar_item.html" with label="dash-employee" text=text icon="fa-user" %}
+
+{% include "sidebar_toggle.html" with text="" target='sidebar' %}

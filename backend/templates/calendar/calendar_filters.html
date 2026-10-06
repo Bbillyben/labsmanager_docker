@@ -1,0 +1,57 @@
+
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load mptt_tags %} 
+{% load plugin_tags %} 
+
+
+<div id="calendar-filter" class="row">
+    <!-- --------------------    leave type filter    --------------------  -->
+    {% trans 'Leave Type Filter' as title%}
+    {% include "calendar/filter_treebox.html" with title=title slug="type" options=leave_type %}
+    <!-- --------------------    Employee status filter    --------------------  -->
+    {% trans 'Employee Status Filter' as title%}
+    {% include "calendar/filter_select.html" with title=title slug="emp_status" options=emp_types add_all_option=True  %}
+    <!-- --------------------    Employee Team    --------------------  -->
+    {% trans 'Employee team Filter' as title%}
+    {% include "calendar/filter_select.html" with title=title slug="team" options=team add_all_option=True  %}
+    <!-- --------------------    Ressource with event filter    --------------------  -->
+    <div class="col-auto" id="lase">
+        <div class="d-flex flex-wrap ">
+        
+            <div class="card mr-2" >
+                <div class="row-header">                                  
+                    <div class="d-flex flex-wrap subheading" role="button" data-bs-toggle="collapse" data-bs-target="#resource_event_filters">
+                        <h4><i class="fas fa-filter"></i>  {% trans 'Resource event Filter' %}</h4> 
+                    </div>
+                
+                </div>
+                <div class="row">
+                    <div id="resource_event_filters" class="collapse">
+                        <div id="resource_event" class="in-card d-flex flex-wrap" style="margin-left:1em;">
+                            <div class="col-auto" >
+                                <form id = "ressource_event_radio_box" class="filter-cont calendar-filter" data-filter-id="showResEventRadio">
+                                    <div>
+                                        <input class="form-check-input" type="radio" id="ress_evt_all" name="ressource_event_radio" value="false">
+                                        <label class="form-check-label" for="All">{% trans 'All' %}</label>
+                                    </div>
+                                    <div>
+                                        <input class="form-check-input" type="radio" id="ress_evt_evt" name="ressource_event_radio" value="true">
+                                        <label class="form-check-label" for="with_event">{% trans 'Show Only Resource with event' %}</label>
+                                    </div>
+                                    <div>
+                                        <input class="form-check-input" type="radio" id="ress_evt_tod" name="ressource_event_radio" value="today_event">
+                                        <label class="form-check-label" for="today_event">{% trans 'Show Only Resource with event today' %}</label>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- END col -->
+    {% include "calendar/calendar_plugin_filter.html" with cal_type='main' %}
+</div>

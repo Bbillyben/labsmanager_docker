@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load mptt_tags %} 
+
+
+{% block page_title %}
+{% trans "LabManager Calendar" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'calendar/calendar_sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='New Leave' %}
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-leave" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Leaves Calendar' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                <!-- <div class="btn-group" role="group">
+                    {% if  perms.staff.add_employee %}
+                    <button type="button" class="btn btn-success" id="employee_create" title="Create New Employee">
+                        <span class='fa fa-user-plus'></span>
+                        {% trans 'Add Employee' %}
+                    </button>
+                    {% endif %}
+                </div> -->
+            </div>
+        </div>
+
+        <div class="panel-content ">
+            <div class="row">
+                {% include 'calendar/calendar_filters.html' %}
+            </div>
+            <div class="card mt-2">
+                <div class="row-header">
+                    <div class="d-flex flex-wrap subheading">
+                        <h4><i class="fas fa-calendar-days"></i>  {% trans 'Calendar' %}</h4> 
+                        <span class="flex" style="flex-grow: 1;"></span>
+                        <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-secondary" id="leave_print" title="Print" aria-expanded="false">
+                                <i class='fa fa-print'></i>
+                                </button>
+                            {% if  perms.leave.add_leave %}
+                                <button type="button" class="btn btn-success" id="leave_create" title="Create New Leave" aria-expanded="false">
+                                <i class='fa fa-user-plus'></i>
+                                {% trans 'Add Leave' %}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div id="calendar-box">
+                    <!-- where the calendar should be loaded -->
+                </div>
+            </div>
+        </div><!-- panel-content-->
+    </div> <!-- panel--> 
+    <div class="panel panel-hidden panel-visible" id="panel-project" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Projects Calendar' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+            </div>
+        </div>
+
+        <div class="panel-content ">
+            <div class="row">
+                {% include 'calendar/calendar_project_filters.html' %}
+            </div>
+             <div class="card mt-2">
+                <div class="row-header">
+                    <div class="d-flex flex-wrap subheading">
+                        <h4><i class="fas fa-calendar-days"></i>  {% trans 'Calendar' %}</h4> 
+                        <span class="flex" style="flex-grow: 1;"></span>
+                        <div class="btn-group" role="group">
+                        </div>
+                    </div>
+                </div>
+                <div id="calendar-project-box">
+                    <!-- where the calendar should be loaded -->
+                </div>
+            </div>
+
+        </div> <!-- end-panel-content--> 
+    </div><!-- end-panel--> 
+</div> <!-- detail-panel--> 
+
+{{ request.user.id|json_script:"user_id" }}
+
+
+{% endblock %}
+
+{% block css %}
+    .ui-tooltip {
+        white-space: pre-line;
+    }
+{% endblock %}
+
+{% block js %}
+
+<script type='text/javascript' src="{% static 'js/labsmanager/calendar-project.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/calendar_filter.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/main_calendar.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+
+
+
+<script>
+   
+$(document).ready(function () {
+    user_id = JSON.parse(document.getElementById('user_id').textContent);
+
+    onPanelLoad("leave", function(){
+         initCalendar(user_id);
+         // modal ajout
+        $('#leave_create').labModalForm({
+            formURL: "{% url 'add_leave' %}",
+            addModalFormFunction: calendar_refresh,
+        })
+        $('#leave_print').on("click", function(){
+            var printURL = "{% url 'calendar_print' %}";
+
+            print_main_calendar(printURL);
+        })
+    }) 
+
+   onPanelLoad("project",function(){
+        initProjectFullCalendar();
+   });
+
+    
+
+    enableSidebar('calendar');
+})
+
+</script>
+{% endblock %}

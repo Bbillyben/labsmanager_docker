@@ -1,0 +1,84 @@
+{% load i18n %}
+{% load customs_tags %}
+{% load lab_rules %}
+
+{%  has_lab_perm 'fund.view_fund' user project as can_view_fund%}
+
+
+<table class="table table-striped table-condensed table-desc" id="employee_single_table">
+    <colgroup>
+        <col width="2">
+        <col width="20%">
+    </colgroup>
+    <tbody>
+        <tr>
+            <td><i class="fas fa-id-card"></i></td>
+            <td  class="desc_title">{% trans 'Project Name' %}</td>
+            <td>{{project.name }}</td>
+        </tr>
+        <tr>
+            <td><i class="fas fa-calendar-plus"></i></td>
+            <td  class="desc_title">{% trans 'Start Date' %}</td>
+            <td>{% firstof project.start_date "-"  %}</td>
+        </tr>
+        <tr>
+            <td><i class="fas fa-calendar-minus"></i></td>
+            <td  class="desc_title">{% trans 'End Date' %}</td>
+            <td>{% firstof project.end_date "-"  %}</td>
+        </tr>
+        
+        {%if can_view_fund %}
+        <tr>
+            <td><i class="fa-solid fa-money-bills"></i></td>
+            <td colspan="2">
+                <table class="table table-sm">
+                    <thead class="thead-light">
+                        <tr>
+                            <th></th>
+                            <th>{% trans 'Budget'  %}</th>
+                            <th>{% trans 'Expense'  %}</th>
+                            <th>{% trans 'Available'  %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{% trans 'global' %}</td>
+                            <td>{% moneyFormat project.get_funds_amount %}</td>
+                            <td>{% moneyFormat project.get_funds_expense %}</td>
+                            <td>{% moneyFormat project.get_funds_available %}</td>
+                        </tr>
+                        <tr>
+                            <td>{% trans 'focus' %}</td>
+                            <td>{% moneyFormat project.get_funds_amount_f %}</td>
+                            <td>{% moneyFormat project.get_funds_expense_f %}</td>
+                            <td>{% moneyFormat project.get_funds_available_f %}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        {%endif%}
+        <tr>
+            <td><i class="fas fa-wallet"></i></td>
+            <td  class="desc_title">{% trans 'Total Contribution Amount' %}</td>
+            <td>{% moneyFormat project.contribution_amount %}</td>
+        </tr>
+        <tr>
+            <td><i class="fas fa-users"></i></td>
+            <td  class="desc_title">{% trans 'Total Participant Quotity' %}</td>
+            <td>{% etpFormat project.get_total_participant_quotity %}</td>
+        </tr>
+        <tr>
+            <td><i class="fa-solid fa-person-digging"></i></td>
+            <td  class="desc_title">{% trans 'Total Contract Quotity' %}</td>
+            <td>{% etpFormat project.get_total_contract_quotity %}</td>
+        </tr>
+        <tr>
+            <td><i class="fa-solid fa-key"></i></td>
+            <td  class="desc_title">{% trans 'Active' %}</td>
+            <td id="project_activ_th">
+               {% include 'project/active.html' %}
+            </td>
+        </tr>
+    </tbody>
+</table>

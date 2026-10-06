@@ -1,0 +1,12 @@
+{% load plugin_tags %} 
+
+{% plugin_list_mixin 'calendarevent' as plugins%}
+{% for plugin in plugins %}
+    {% plugin_calevt_getfilters plugin cal_type as filters %} <!-- get filters from templatetag DO NOT OMIT type of calendar -->
+        {% for filter, opt in filters.items%}
+            {% plugin_filter_choice_clug plugin.slug filter as pslug%}
+            {% with "plugin/filter_"|add:opt.type|add:".html" as template %}
+                {% include template with title=opt.title slug=pslug options=opt.choices default=opt.default%}
+            {% endwith %}
+        {% endfor %}    
+{%endfor%}

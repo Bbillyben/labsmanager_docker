@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load lab_rules %}
+
+{% block page_title %}
+{% trans "LabManager Project" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}
+
+
+
+{% block content %}
+{% include 'modals.html' with modal_id='create-modal' modal_title='Employee' %}
+{% has_project_add_perm user as can_add_project %}
+<div id='detail-panels'>
+    <div class="panel panel-hidden panel-visible" id="panel-stock" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Project List' %}</h4>
+                <span class="flex" style="flex-grow: 1;"></span>
+                <div class="btn-group" role="group">
+                    {% if can_add_project %}
+                    <button type="button" class="btn btn-success" id="project_create" title="Create New Project">
+                        <span class='fa fa-briefcase-medical'></span>
+                        {% trans 'Add Project' %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-content">
+            <div id='tracking-table-toolbar_project'>
+                <div class='btn-group'>
+                    {% include "filter_list.html" with id="project" %}
+                </div>
+            </div>
+            <table
+                class='table table-striped table-condensed'
+                id="project_main_table"
+                data-toolbar='#tracking-table-toolbar_project'
+                >
+                <thead class="">
+                    <tr>
+                        <th data-sortable="true"  class="th-inner sortable both" data-field="name" data-formatter="ProjectFormatterList">
+                            {% trans 'Project' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
+                            {% trans 'Start Date' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
+                            {% trans 'End Date' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="institution" data-formatter="InstitutionParticipantFormatter">
+                            {% trans 'Institution' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="participant" data-formatter="ParticipantFormatter">
+                            {% trans 'Participant' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="fund" data-formatter="FundFormatter">
+                            {% trans 'Fund' %}
+                        </th>
+                        <!-- <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_amount" data-formatter="moneyFormatter">
+                            {% trans 'Total Fund' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_expense" data-formatter="moneyFormatter">
+                            {% trans 'Total Expense' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_available" data-formatter="moneyFormatter_alert">
+                            {% trans 'Total Available' %}
+                        </th>
+                        
+
+                        <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_amount_f" data-formatter="moneyFormatter">
+                            {% trans 'Total Fund Focus' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_expense_f" data-formatter="moneyFormatter">
+                            {% trans 'Total Expense Focus' %}
+                        </th>
+                        <th data-sortable="true" class="th-inner sortable both" data-field="get_funds_available_f" data-formatter="moneyFormatter_alert">
+                            {% trans 'Total Available Focus' %}
+                        </th> -->
+
+                        <th data-sortable="true" class="th-inner sortable both" data-field="status" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle" >
+                            {% trans 'Status' %}
+                        </th>
+                        
+                        {% if perms.project.change_project or perms.project.delete_participant %}
+                        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-formatter="adminActionFormatter"
+                        data-can-change="{{ perms.project.change_project }}"
+                        data-can-delete="{{ perms.project.delete_project }}"
+                        data-is-staff="{{ request.user.is_staff }}"
+                        >
+                            {% trans 'Action' %}
+                        </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+{{ request.user.id|json_script:"user_id" }}
+{{ project.pk|json_script:"project_id" }}
+{% endblock %}
+
+
+{% block js_load %}
+<script type='text/javascript' src="{% static 'js/project_base.js' %}"></script>
+<script>
+$(document).ready(function () {
+    user_id = JSON.parse(document.getElementById('user_id').textContent);
+    project_id = JSON.parse(document.getElementById('project_id').textContent);
+    initProjectBaseView(tableurl="/api/project/", user_id, project_id);
+})
+</script>
+
+{% endblock %}

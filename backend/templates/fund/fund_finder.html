@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block page_title %}
+{% trans "LabManager Fund Finder" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+
+{% include 'fund/fund_finder_sidebar.html' %}
+
+{% endblock %}
+
+{% block content %}
+
+<div id='detail-panels'>
+    <div class="panel-hidden panel-visible" id="panel-fund" style="display: block;">
+        <div class="panel-heading">
+            <div class="d-flex flex-wrap">
+                <h4>{% trans 'Fund Finder' %}</h4>
+            </div>
+        </div>
+
+        <div class="panel-content" >
+            <!-- <div class='row' style=" padding-top: 5px;">
+                <div class='col'>
+                    row for form
+                </div>
+            </div>
+            <div class='row' style=" padding-top: 5px;">
+                <div class='col'>
+                    <div class='row-separator'></div>
+                </div>                
+            </div> -->
+            <div class='row' style=" padding-top: 5px;">
+                <div class='col'>
+                    <div id='tracking-table-toolbar_funditem'>
+                        <div class='btn-group'>
+                            {% include "filter_list.html" with id="funditem" %}
+                        </div>
+                    </div>
+                    <table
+                        class='table table-striped table-condensed'
+                        id="fund_main_table"
+                        data-toolbar='#tracking-table-toolbar_funditem'
+                        data-url="/api/funditem/"
+                        >
+                        <thead class="">
+                            <tr>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.project" data-sorter="projectNameSorter" data-formatter="ProjectFormatter">
+                                    {% trans 'Project' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.funder.short_name" data-formatter="contract_funder_formatter">
+                                    {% trans 'funder' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.institution" data-formatter="InstitutionParticipantFormatter">
+                                    {% trans 'Institution' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.start_date" data-formatter="baseDateFormatter">
+                                    {% trans 'Start Date' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.end_date" data-formatter="baseDateFormatter">
+                                    {% trans 'End Date' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="type.name" data-formatter="">
+                                    {% trans 'Type' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.ref" data-formatter="">
+                                    {% trans 'Ref' %}
+                                </th>
+
+                                <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
+                                    {% trans 'Amount' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="expense" data-formatter="moneyFormatter">
+                                    {% trans 'Expense' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="available" data-formatter="availableFundItem_alert">
+                                    {% trans 'Available' %}
+                                </th>
+                                <th data-sortable="true" class="th-inner sortable both" data-field="fund.is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
+                                    {% trans 'Is Active' %}
+                                </th>
+
+
+
+                            </tr>
+                        </thead>
+                        <tbody>
+        
+                        </tbody>
+                    </table>
+                </div>                
+            </div>
+        </div>
+    </div><!-- panel -->
+
+
+<!-- ######################################    Budget PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-budget" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-budget1" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Budgets Finder' %}</h4>
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content collapse show" id="Budget-details">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div id='tracking-table-toolbar_funditem'>
+                            <div class='btn-group'>
+                                {% include "filter_list.html" with id="budget" %}
+                            </div>
+                        </div>
+                        <div class="card" id="project_budget_table">
+                            {% url 'api:budget-search' as BudgetDataURL %}
+                            {% include "fund/budget_table.html" with datatype="search" dataURL=BudgetDataURL idTable="budget"%}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ######################################    Expense PANEL ############################################### -->
+
+<div class="panel-hidden panel-visible" id="panel-expense" style="display: block;">
+    <div id='detail-panels'> 
+        <div class="panel" id="panel-project-expense" style="display: block;">
+
+            <div class="panel-heading">
+                <div class="d-flex flex-wrap">
+                    <h4>{% trans 'Expense Explorer' %}</h4>
+                    </div> 
+                              
+                </div>
+            </div>
+            <div class="panel-content collapse show" id="expense-details">
+                <div class="row" style=" padding-top: 5px;">
+                    <div class="col">
+                        <div class="card" id="project_budget_table">
+                            {% url 'api:expense-all_expense' as ExpenseDataURL %}
+                            {% include "expense/expense_table.html" with idTable="expense_table" dataURL=ExpenseDataURL tabletype="general"%}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div><!-- detail panel-->
+        
+
+
+{{ request.user.id|json_script:"user_id" }}
+{% endblock %}
+
+
+{% block js_load %}
+<script type='text/javascript' src="{% static 'js/fund_finder.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/budget_tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/expense_table.js' %}"></script>
+
+<script>
+$(document).ready(function () {
+    user_id = JSON.parse(document.getElementById('user_id').textContent);
+    onPanelLoad("fund", function(){initFundFinder(user_id);}) 
+    onPanelLoad("budget", function(){initializeBudgetTable();}) 
+    onPanelLoad("expense", function(){initialiseExpenseList("#expense_table", "expense");}) 
+    enableSidebar('fund_finder')
+})
+</script>
+
+{% endblock %}

@@ -1,0 +1,47 @@
+footer{
+    
+    color:#808893;
+}
+footer .footer-content{
+    background-color:#9bbaaa5e;
+    display: flex;
+    line-height: 2em;
+}
+footer .left {
+    display: flex;
+    align-items: center; /* Centre verticalement */
+    margin-left: 1em;
+}
+
+footer .right {
+    display: flex;
+    margin-right: 1em;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+footer .help-circle {
+    background: var(--primary-color-alpha);
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+footer .help-circle::after{
+    content: None !important;
+
+}
+footer .fa-circle-question {
+    color: white;
+    font-size: 1em; /* Ajuste la taille de l'icône */
+}
+footer .help .dropdown-menu{
+    font-size: small;
+
+}
+footer .help .dropdown-item{
+    padding: 0rem 1rem;
+
+}

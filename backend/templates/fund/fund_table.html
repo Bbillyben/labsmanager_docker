@@ -1,0 +1,52 @@
+{% load i18n %}
+{% load customs_tags %}
+
+<table
+class='table table-striped table-condensed'
+id="project_fund_table"
+data-id-table="fundTable"
+data-url={{ dataURL }}
+>
+<thead class="">
+    <tr>
+        <th data-sortable="true" class="th-inner sortable both" data-field="funder.short_name" data-formatter="funder_formatter">
+            {% trans 'Funder' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="institution.short_name" data-formatter="institution_project_formatter">
+            {% trans 'Institution' %}
+        </th>
+
+        <th data-sortable="true" class="th-inner sortable both" data-field="start_date" data-formatter="baseDateFormatter">
+            {% trans 'Start Date' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="end_date" data-formatter="baseDateFormatter">
+            {% trans 'End Date' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="ref">
+            {% trans 'Reference' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="amount" data-formatter="moneyFormatter">
+            {% trans 'Total Amount' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="expense" data-formatter="moneyFormatter">
+            {% trans 'Total Expense' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="available" data-formatter="moneyFormatter_alert">
+            {% trans 'Available' %}
+        </th>
+        <th data-sortable="true" class="th-inner sortable both" data-field="is_active" data-formatter="basicBoolean" data-cell-style="styleAlignMiddle">
+            {% trans 'Active' %}
+        </th>
+        <th data-sortable="false" class="th-inner fit-content" data-field="admin_action" data-user="{{ request.user.id }}"  data-formatter="adminActionFund"
+        data-can-change="{{ perms.fund.change_fund }}"
+        data-can-delete="{{ perms.fund.delete_fund }}"
+        data-is-staff="{{ request.user.is_staff }}"
+        >
+            {% trans 'Action' %}
+        </th>
+    </tr>
+</thead>
+<tbody>
+
+</tbody>
+</table>

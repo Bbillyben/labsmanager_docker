@@ -1,0 +1,18 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load customs_tags %}
+
+{% block label %}mail_setting{% endblock %}
+
+{% block heading %}{% trans 'Mail' %}{% endblock %}
+
+{% block content %}
+<div class='row'>
+    <table class='table table-striped table-condensed'>
+        <tbody>
+            {% include "settings/setting.html" with key="MAIL_OBJECT_PREFIX" icon='fa-envelope-open-text' %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

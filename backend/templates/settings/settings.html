@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+{% load plugin_tags %}
+
+{% block page_title %}
+{% trans "LabManager Settings" %}
+{% endblock %}
+
+{% block breadcrumb_list %}
+{% endblock %}
+
+{% block sidebar %}
+{% include "settings/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+{% trans 'Settings' as modal_title %}
+{% include 'modals.html' with modal_id='create-modal' modal_title=modal_title %}
+
+{% include "settings/user_settings.html" %}
+
+{% include "settings/interface_setting.html" %}
+
+{% include "settings/notification_settings.html" %}
+
+{% include "settings/common_settings.html" %}
+
+
+
+
+{% include "settings/dashboard_settings.html" %}
+{% include "settings/stale_calculation_settings.html" %}
+
+
+{% include "settings/list_setting_panel_fund.html" %}
+
+{% include "settings/list_setting_panel_contract.html" %}
+{% include "settings/list_setting_panel_leave.html" %}
+{% include "settings/list_setting_panel_project.html" %}
+{% include "settings/list_setting_panel_staff.html" %}
+{% include "settings/list_setting_panel_orga.html" %}
+
+
+{% if request.user.is_staff %}
+{% include "settings/general_settings.html" %}
+{% include "settings/mail_settings.html" %}
+{% include "settings/notification_admin_settings.html" %}
+{% include "settings/auditlog_settings.html" %}
+
+{% include "settings/users_setting_panel.html" %}
+{% include "settings/plugins_settings.html" %}
+
+{% plugin_list as pl_list %}
+{% for plugin_key, plugin in pl_list.items %}
+    {% if plugin.registered_mixins %}
+        {% include "settings/plugin.html" %}
+    {% endif %}
+{% endfor %}
+{% endif %}
+
+
+
+{{ request.user.id|json_script:"user_id" }}
+{{ project.pk|json_script:"project_id" }}
+
+
+
+{% endblock %}
+
+
+{% block js_load %}
+<!--<script type="text/javascript" src="{% static 'script/jquery-3.6.1.min.js' %}"></script> -->
+
+<script type='text/javascript' src="{% static 'js/api.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/nav.js' %}"></script>
+<!-- <script type='text/javascript' src="{% static 'faicon/js/faicon.js' %}"></script> -->
+<script type='text/javascript' src="{% static 'js/settings/settings.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/settings/setting_list.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/settings/testmail.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/settings/notif_setting.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/plugin/plugin_settings.js' %}"></script>
+<script>
+
+    $(document).ready(function () {
+        user_id = JSON.parse(document.getElementById('user_id').textContent);
+
+        
+        initSettingsPage();
+        initTestMailBtn('#send_test_mail', '#open_test_mail');
+
+
+        onPanelLoad("user", function(){loadCards('user');});
+        onPanelLoad("common", function(){loadCards('common');});
+        onPanelLoad("dashboard", function(){loadCards('dashboard');});
+        onPanelLoad("stale_setting", function(){loadCards('stale_setting');});
+        onPanelLoad("fund_list", function(){loadCards('fund_list');});
+        onPanelLoad("contract_list", function(){loadCards('contract_list');});
+        onPanelLoad("leave_list", function(){loadCards('leave_list');});
+        onPanelLoad("project_list", function(){loadCards('project_list');});
+        onPanelLoad("staff_list", function(){loadCards('staff_list');});
+        onPanelLoad("orga_list", function(){loadCards('orga_list');});
+        onPanelLoad("mail_setting", function(){loadCards('mail_setting');});
+        onPanelLoad("auditlog_setting", function(){loadCards('auditlog_setting');});
+        onPanelLoad("calendar_setting", function(){loadCards('calendar_setting');});
+        onPanelLoad("users_admin", function(){loadCards('users_admin');});
+        onPanelLoad("plugin_admin", function(){initialize_plugin_list();});
+        onPanelLoad("notification_admin", function(){init_notif_admin_btn();loadCards('notification_admin');});
+
+
+
+        enableSidebar('settings');
+    })
+</script>
+{% endblock %}

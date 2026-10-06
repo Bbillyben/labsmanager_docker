@@ -1,0 +1,32 @@
+{% load i18n %}
+{% if datas %}
+<li class='nav-item dropdown'>
+    <a class='nav-link dropdown-toggle' href='#' id='favoritesMenuDropdown' role='button' data-bs-toggle='dropdown'>
+      <span class='fas fa-star'></span>{% trans "Favorites" %}
+    </a>
+    <ul class='dropdown-menu labsmanager-navbar-menu small' aria-labelledby="favoritesMenuDropdown" style="width:max-content;">    
+        {% for fM, fMS in datas.items  %}
+        <li> 
+            <a class='nav-link dropdown-item' href='#' data-bs-toggle='dropdown'>
+                {{fM}} &raquo;
+            </a> 
+            <ul class="dropdown-menu dropdown-submenu small" >
+                {% for f in fMS%}
+                <li>
+                    <a class='nav-link dropdown-item' href="{{f.object_url}}">
+                    {{f.object_name}}
+                    </a>
+                </li>
+                {%endfor%}
+            </ul>
+        </li>
+        {% if not forloop.last %}
+        <div class="dropdown-divider"></div>
+        {% endif %}
+        
+        {% endfor %}
+        
+    </ul>
+</li>
+
+{% endif %}

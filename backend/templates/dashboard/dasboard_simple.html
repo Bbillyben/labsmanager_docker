@@ -1,0 +1,49 @@
+{% extends 'dashboard/dashboard_card.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block 'dash-content' %}
+  <div class="col chart_card  mb-2" id="c_chart">
+      <canvas id="canvas">this is canvas</canvas>
+  </div>
+
+<script type='text/javascript' src="{% static 'chart/chart.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'chart/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
+
+
+<script>
+const data = {
+  labels: [{{ data.labels|join:"," }}],
+  datasets: [{
+    label: "{{ title }}",
+    data: [{{ data.values|join:"," }}],
+    fill: false,
+    borderColor: 'rgb(75, 192, 192)',
+    tension: 0.1
+  }]
+};
+
+$( document ).ready(function(){
+  
+  var ctx = document.getElementById('canvas').getContext('2d');
+  new Chart(ctx , {
+    type: "{{type}}",
+    data: data, 
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          type:'time',
+          parsing:'false',      
+        }
+      }
+    }
+  });
+})
+
+
+
+
+</script>
+
+   {% endblock %}    

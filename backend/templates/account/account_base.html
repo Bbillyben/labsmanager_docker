@@ -1,0 +1,93 @@
+{% load static %}
+{% load i18n %}
+{% load customs_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+<link rel="icon" type="image/png" href="{% static 'img/labsmanager/labsmanager_icon_fav.png' %}" />
+
+<!-- CSS -->
+<link rel="stylesheet" href="{% static 'css/labsmanager.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/brands.min.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/solid.min.css' %}">
+
+
+<link rel="stylesheet" href="{% get_color_theme_browser request %}">
+
+<!-- exemple 
+<link rel="stylesheet" href="{% static 'subfolder/css/stylesheet.css' %}">
+-->
+
+    <style>
+        {% block css %}
+        <!-- Custom CSS style goes here -->
+        {% endblock %}
+    </style>
+        {% block head %}
+        {% endblock %}
+    <title>
+        {% block page_title %}
+        {% endblock %}
+    </title>
+</head>
+
+
+<body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.png" %}); background-size: cover;'></body>
+    <div class='container-fluid'>
+        <div class='notification-area' id='alerts'>
+            <!-- Div for displayed alerts -->
+        </div>
+    </div>
+
+    <div class='main body-wrapper login-screen d-flex'>
+
+
+        <div class='login-container'>
+        <div class="row">
+            <div class='container-fluid'>
+
+                <div class='clearfix content-heading login-header d-flex flex-wrap'>
+                    <img class="pull-left" src="{% static 'img/labsmanager/labsmanager_icon.png' %}" width="60" height="60"/>
+                    {% include "spacer.html" %}
+                    <span class='float-right'><h3>LabsManager</h3></span>
+                </div>
+            </div>
+                <div class='container-fluid'>
+                    <hr>
+                    {% block content %}
+                    {% endblock %}
+                </div>
+        </div>
+        </div>
+
+        {% block extra_body %}
+        {% endblock %}
+    </div>
+
+<!-- Scripts -->
+<!-- base jquery -->
+
+<script type='text/javascript' src="{% static 'fontawesome/js/solid.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/regular.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/brands.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/fontawesome.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+{% block js_load %}
+{% endblock %}  
+
+{% block js %}
+{% endblock %}
+
+
+</body>
+</html>

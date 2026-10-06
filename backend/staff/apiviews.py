@@ -1,0 +1,565 @@
+from django.http import JsonResponse
+from django.db.models import Q, Case, When, BooleanField, Value
+
+from project.models import Participant
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from django_filters import rest_framework as filters
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
+
+from labsmanager import serializers  # UserSerializer, GroupSerializer, EmployeeSerialize, EmployeeStatusSerialize, ContractEmployeeSerializer, TeamSerializer, ParticipantSerializer, ProjectSerializer
+from staff.models import Employee, Employee_Status, Team, TeamMate, Employee_Superior
+from expense.models import  Contract
+from project.models import Participant, Project
+
+from labsmanager.utils import str2bool
+from labsmanager.helpers import DownloadFile
+
+
+
+
+from staff.filters import EmployeeFilter
+
+from .ressources import EmployeeResource, TeamResource
+
+from labsmanager.utils import clean_iso_date
+from endpoints.models import Milestones
+from fund.models import Fund
+from rest_framework.response import Response
+
+from datetime import datetime
+from django.db.models import BooleanField, Case, When, Value
+
+from settings.models import LMUserSetting
+from leave.models import Leave
+
+from labsmanager.mixin import LabPaginationMixin
+from labsmanager.pagination import LabPagination
+
+from django.db.models import Min, Subquery
+
+class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
+    """
+    API endpoint that allows Employee to be viewed or edited.
+    """
+    queryset = Employee.objects.select_related('user').all()
+    serializer_class = serializers.EmployeeSerialize
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EmployeeFilter
+    pagination_class = LabPagination
+    
+    extra_search_fields = [
+        "first_name",
+        "employee_hierarchy__employee__last_name",
+        "employee_hierarchy__superior__last_name",
+        "employee_hierarchy__employee__first_name",
+        "employee_hierarchy__superior__first_name",
+        "genericinfo__value",
+    ]
+    
+    ordering_fields = {
+        "get_status":"employee_status__type__name",
+    }
+    
+    def filter_queryset(self, queryset):
+        params = self.request.query_params
+        queryset = super().filter_queryset(queryset)
+
+        is_active = params.get('active', None)
+        if is_active:
+            queryset = queryset.filter(is_active=is_active)
+        
+        name = params.get('name', None)
+        if name:
+            queryset = queryset.filter( Q(first_name__icontains=name) | Q(last_name__icontains=name))
+            
+        sup_name = params.get('superior_name', None)
+        if sup_name:
+            empsup=Employee_Superior.current.filter(Q(superior__first_name__icontains=sup_name) | Q(superior__last_name__icontains=sup_name)).values('employee')
+            queryset = queryset.filter(pk__in=empsup)
+            
+        empStatus = params.get('status', None)
+        if empStatus:
+            inS=Employee_Status.objects.filter(type=empStatus).values('employee')
+            queryset = queryset.filter(pk__in=inS)
+            
+        current_status = params.get('current_status', None) 
+        if current_status:
+            inS=Employee_Status.current.filter(type=current_status).values('employee')
+            queryset = queryset.filter(pk__in=inS)
+        
+        team = params.get('team', None) 
+        if team:
+            leader=Team.objects.filter(pk__in=team).values('leader')
+            mates = TeamMate.current.filter(team=team).values('employee')
+            queryset = queryset.filter(Q(pk__in=leader) | Q(pk__in=mates))
+            
+        return queryset
+    
+    def get_queryset(self, *arg, **kwargs):
+
+        qset = super().get_queryset( *arg, **kwargs)
+        qset = Employee.get_instances_for_user("view", self.request.user, qset)
+        qset = qset.annotate(has_perm=Value(True))
+        
+        return qset
+    
+    def list(self, request, *args, **kwargs):
+        export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
+        if export is not None:
+            return self.download_queryset(qs, export)
+        return self.paginated_response(qs)
+    
+    def download_queryset(self, queryset, export_format):
+        """Download the filtered queryset as a data file"""
+        dataset = EmployeeResource().export(queryset=queryset)
+        filedata = dataset.export(export_format)
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Employee_{dateSuffix}.{export_format}"
+        return DownloadFile(filedata, filename)
+        # return JsonResponse('not a test', safe=False)
+    
+    @action(methods=['get'], detail=True,url_path='status', url_name='status')
+    def status(self, request, pk=None):
+        status = Employee_Status.objects.filter(employee=pk).order_by('end_date')
+        return JsonResponse(serializers.EmployeeStatusSerialize(status,many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=True,url_path='superior', url_name='superior')
+    def superior(self, request, pk=None):
+        superior = Employee_Superior.objects.filter(employee=pk).order_by('end_date')
+        # ======= Right Management
+        user=request.user
+        cont_right=[item.pk for item in superior if user.has_perm("staff.change_employee", item.superior)]
+        superior = superior.annotate(
+                        has_perm=Case(
+                            When(pk__in=cont_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        # ========================
+        return JsonResponse(serializers.EmployeeSuperiorSerialize(superior,many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=True,url_path='subordinate', url_name='subordinate')
+    def subordinate(self, request, pk=None):
+        subordinate = Employee_Superior.objects.filter(superior=pk).order_by('end_date')
+        # ======= Right Management
+        user=request.user
+        cont_right=[item.pk for item in subordinate if user.has_perm("staff.change_employee", item.employee)]
+        subordinate = subordinate.annotate(
+                        has_perm=Case(
+                            When(pk__in=cont_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        # ========================
+        return JsonResponse(serializers.EmployeeSubordinateSerialize(subordinate,many=True).data, safe=False)
+    
+    
+    @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
+    def contracts(self,request, pk=None):
+        from expense.apiviews import ContractViewSet
+        emp = self.get_object()
+        cvs = ContractViewSet() 
+        cvs.request = request
+        contract=cvs.filter_queryset(cvs.get_queryset())
+        contract= contract.filter(employee=emp.pk).order_by('end_date')
+        # ===== Management Right 
+        user=request.user
+        cont_right=[item.pk for item in contract if user.has_perm("expense.change_contract", item)]
+        contract = contract.annotate(
+                        has_perm=Case(
+                            When(pk__in=cont_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        #================
+        # Contract.objects.filter(employee=emp.pk).order_by('end_date')
+        return self.paginated_response(
+            contract, 
+            serializers.ContractSerializer
+        )
+    
+    
+    @action(methods=['get'], detail=True, url_path='teams', url_name='teams')
+    def teams(self, request, pk=None):
+        emp = self.get_object()
+        t1=Team.objects.filter(leader=emp.pk)
+        t1 = t1.annotate(has_perm=Value(True))
+        tm = TeamMate.objects.filter(employee=emp.pk).values('team')
+        t2=Team.objects.filter(pk__in=tm)
+        if self.request.user.has_perm('staff.view_team'):
+            t2 = t2.annotate(has_perm=Value(True))
+        else:    
+            t2 = t2.annotate(has_perm=Value(False))
+        
+        t=t1.union(t2)
+        
+        
+        
+        return JsonResponse(serializers.TeamSerializer(t, many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=True, url_path='projects', url_name='projects')
+    def projects(self, request, pk=None):
+        emp = self.get_object()
+        t1=Participant.objects.filter(employee=emp.pk)
+        # ========= Right Management
+        user=request.user
+        qset_right=[item.pk for item in t1 if user.has_perm("staff.change_participant", item)]
+        t1 = t1.annotate(
+                        has_perm=Case(
+                            When(pk__in=qset_right, then=Value(True)),
+                            default=Value(False),
+                            output_field=BooleanField()
+                        )
+                    )
+        
+        # =========================
+        
+        return JsonResponse(serializers.ParticipantSerializer(t1, many=True).data, safe=False)
+    @classmethod
+    def select_ressource_from_request(cls, request):
+        emp = request.data.get('employee', request.query_params.get('employee', None))
+        if emp is not None:
+            if isinstance(emp, str):
+                emp=emp.split(',')
+            elif not isinstance(emp, Iterable):
+                emp=[emp,]
+            t1=Employee.objects.filter(pk__in=emp).order_by('first_name')
+        else:
+            t1=Employee.objects.filter(is_active=True).order_by('first_name')
+            
+            
+        team = request.data.get('team', request.query_params.get('team', None))
+        if team is not None and team.isdigit():
+            tm = TeamMate.objects.filter(team=team).values('employee')
+            tl=Team.objects.filter(pk=team).values("leader")
+            t1= t1.filter(Q(pk__in=tm)|Q(pk__in=tl))
+        
+        project = request.data.get('project', request.query_params.get('project', None))
+        if project is not None:
+            pj = Participant.objects.filter(project=project).values('employee')
+            t1= t1.filter(Q(pk__in=pj))
+        
+        emp_status = request.data.get('emp_status', request.query_params.get('emp_status', None))
+        if emp_status is not None and emp_status.isdigit() :
+            empS=Employee_Status.current.filter(type=emp_status).values('employee')
+            t1= t1.filter(pk__in=empS)
+        
+        return t1
+    @action(methods=['get'], detail=False, url_path='calendar-resource', url_name='calendar-resource')
+    def employee_calendar(self, request, pk=None):
+        t1 = self.__class__.select_ressource_from_request(request)
+        return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='contract-resource', url_name='contract-resource')
+    def employee_contract(self, request, pk=None):
+        sts = Employee_Status.current.filter(Q(is_contractual="c")).values('employee')
+        t1=Employee.objects.filter(pk__in=sts, is_active= True).order_by('first_name')
+        return JsonResponse(serializers.EmployeeContractProsp(t1, many=True).data, safe=False)
+        
+    @action(methods=['get'], detail=False, url_path='organization-chart', url_name='organization-chart')
+    def organization_chart(self, request, pk=None):
+        # get user preference to see past organization
+        show_pas = LMUserSetting.get_setting("SHOW_PAST_ORG", user=request.user)
+        
+        no_sup=Employee_Superior.objects.all().values("employee")
+        emp = Employee.objects.filter(Q(is_active=True) & ~Q(pk__in=no_sup))
+        return JsonResponse(serializers.EmployeeOrganizationChartSerialize(emp, many=True, context={'show_pas': show_pas}).data, safe=False)
+    
+    @action(methods=['get'], detail=False, url_path='incomming-employee', url_name='incomming-employee')
+    def incomming_employee(self, request):
+        emp = Employee.get_incomming(relativedelta(months=+2)) #.objects.filter(query).order_by('entry_date')
+        return JsonResponse(serializers.IncommingEmployeeSerialize(emp, many=True).data, safe=False)
+    
+    
+    @action(methods=['get'], detail=True, url_path='emp_team_lead', url_name='emp_team_lead')
+    def emp_team_lead(self, request, pk=None):
+        tm = TeamMate.objects.filter(employee=pk).values('team')
+        tl=Team.objects.filter(Q(pk__in=tm)|Q(leader=pk)).annotate(
+            is_leader=Case(
+                When(leader__pk=pk, then=Value(True)), 
+                default=Value(False),
+                output_field=BooleanField())
+            )
+
+        return JsonResponse(serializers.TeamSerializer_min(tl, many=True).data, safe=False)
+    
+    
+    @action(methods=['get'], detail=True, url_path='emp_organization', url_name='emp_organization')
+    def emp_organization(self, request, pk=None):
+        
+        # get user preference to see past organization
+        show_pas = LMUserSetting.get_setting("SHOW_PAST_ORG", user=request.user)
+        
+        emp = Employee.objects.get(pk=pk)
+        if show_pas:
+            c_down = Employee_Superior.current.filter(superior = emp, employee__is_active=True)
+        else:
+            c_down = Employee_Superior.objects.filter(superior = emp)
+            
+        # build child
+        c_node = {'sup':serializers.EmployeeSerialize_Min(emp, many=False).data, 'current':True, 'sub':[]}
+        if c_down.exists():
+            for down in c_down:
+                c_node['sub'].append({'sup':serializers.EmployeeSerialize_Min(down.employee, many=False).data, 'is_active':down.is_active, 'sub':[]})
+                self.__class__.build_tree_down(down.employee, c_node['sub'][len(c_node['sub']) - 1])
+        
+        c_sup = Employee_Superior.objects.filter(employee = emp)
+        tree={}
+        Full_Tree=[]
+        if c_sup.exists():
+            for sup in c_sup:
+                tree['sup']=serializers.EmployeeSerialize_Min(sup.superior, many=False).data
+                tree['sub']=[c_node.copy()]
+                
+                Full_Tree.append(self.__class__.build_tree_up(sup.superior, tree))
+        else:
+            Full_Tree.append(c_node)     
+        return JsonResponse(Full_Tree, safe=False)
+    
+    
+    
+    @classmethod    
+    def build_tree_down(cls, sup, tree):
+        c_down = Employee_Superior.objects.filter(superior = sup)
+        if c_down.exists():
+            for sup2 in c_down:
+                tree['sub'].append({'sup':serializers.EmployeeSerialize_Min(sup2.employee, many=False).data, 'sub':[]})
+                cls.build_tree_down(sup2.employee, tree['sub'][len(tree['sub'])-1])
+    
+    @classmethod    
+    def build_tree_up(cls, sup, tree):
+        c_sup = Employee_Superior.objects.filter(employee = sup)
+        child_tree = tree.copy()
+        node={}
+        if c_sup.exists() :
+            for sup2 in c_sup:
+                node['sup']=serializers.EmployeeSerialize_Min(sup2.superior, many=False).data
+                node['sub']=[child_tree]
+                node = cls.build_tree_up(sup2.superior, node)
+                return node.copy()
+        else:
+            return child_tree
+        
+    ######################
+    # for project calendar
+    ##################################################################
+    ### For single Employee
+    #### see project > apiview > calendar_all_get_event & calendar_all_get_resources
+    @action(methods=['get'], detail=True,url_path='calendar-get-event', url_name='calendar-get-event')
+    def calendar_get_event(self,request, pk=None):
+        
+        slot={}
+        if 'start' in request.GET :#request.GET['start']:
+            slot['from']=clean_iso_date(request.GET['start'])
+        if 'end' in request.GET:#['end']:
+            slot['to']=clean_iso_date(request.GET['end'])
+        
+        part = Participant.objects.filter(employee__pk = pk)
+        proj = Project.time_object.timeframe(slot).filter(pk__in = part.values("project"))
+        
+        evts = []
+        
+        empl_leave = request.GET.get('leave', '')
+        if empl_leave == "on":
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SHOW EMP LEAVE")
+            leaves = Leave.time_object.timeframe(slot).filter(employee__pk=pk)
+            res_leave=serializers.ProjectLeaveSerializer_cal(leaves, many=True, context={'request': request}).data
+            evts.extend(res_leave)
+            
+            
+        res_proj =  serializers.ProjectProjectSerializer_cal(proj, many=True).data
+        evts.extend(res_proj)
+        
+        ms_status = request.GET.get('milestone', '')
+        match ms_status:
+            case 'ongoing':
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=proj, status = False).order_by("end_date")
+            case 'comp':
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=proj, status = True).order_by("end_date")
+            case 'delayed':
+                milestones = Milestones.expired.overdue().filter(employee__pk=pk, project__in=proj).order_by("end_date")
+            case _: # group also empty an 'all'
+                milestones = Milestones.objects.filter(employee__pk=pk,project__in=proj).order_by("end_date")
+                
+        evt_mil = serializers.ProjectMilestonesSerializer_cal(milestones, many=True).data
+        evts.extend(evt_mil)
+
+        return Response(evts) 
+    
+    @action(methods=['get'], detail=True,url_path='calendar-get-resources', url_name='calendar-get-resources')
+    def calendar_get_resources(self,request, pk=None):
+        slot={}
+        if 'start' in request.GET :#request.GET['start']:
+            slot['from']=clean_iso_date(request.GET['start'])
+        if 'end' in request.GET:#['end']:
+            slot['to']=clean_iso_date(request.GET['end'])
+            
+        part = Participant.objects.filter(employee__pk = pk)
+        projects = Project.time_object.timeframe(slot).filter(pk__in = part.values("project"))
+        
+        resources = []
+        #show employee leaves
+        empl_leave = request.GET.get('leave', '')
+        if empl_leave == "on":
+            employee = Employee.objects.filter(pk=pk)
+            res_employee=serializers.ProjectResourceSerializer_gencal_Employee(employee, many=True, context={'request': request}).data
+            resources.extend(res_employee)
+        
+        # projects
+        res_proj = serializers.ProjectResourceSerializer_gencal_project(projects, many=True, context={'request': request}).data
+        for i, item in enumerate(res_proj):
+            item['group_order'] = f"a_{i}"
+        resources.extend(res_proj)
+        
+        ms_status = request.GET.get('milestone', '')
+        match ms_status:
+            case 'ongoing':
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=projects, status = False).order_by("end_date")
+            case 'comp':
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=projects, status = True).order_by("end_date")
+            case 'delayed':
+                milestones = Milestones.expired.overdue().filter(employee__pk=pk, project__in=projects).order_by("end_date")
+            case _: # group also empty an 'all'
+                milestones = Milestones.objects.filter(employee__pk=pk, project__in=projects).order_by("end_date")
+
+        res_mil = serializers.ProjectResourceSerializer_gencal_milestones(milestones, many=True, context={'request': request}).data
+        for i, item in enumerate(res_mil):
+            item['group_order'] = f"e_{i}"
+        resources.extend(res_mil)
+                
+        return Response(resources)  
+        
+    
+class TeamViewSet(LabPaginationMixin,viewsets.ModelViewSet):
+    queryset = Team.objects.select_related('leader').all()
+    serializer_class = serializers.TeamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    
+    extra_search_fields = [
+        "name",
+        "leader__last_name",
+        "leader__first_name",
+        "teammate__employee__last_name",
+        "teammate__employee__first_name",
+    ]
+
+    extra_search_fields_by_action = {
+        "team_projects": [
+            "project__name",
+            "employee__last_name",
+            "employee__first_name",
+        ],
+    }
+
+    ordering_fields_by_action = {
+        "team_projects": {
+            "project": "project__name",
+        },
+    }
+    
+    def get_queryset(self, *arg, **kwargs):
+
+        qset = super().get_queryset( *arg, **kwargs)
+        qset = Team.annotate_queryset(qset, self.request.user, "view")
+        return qset
+    
+    def filter_queryset(self, queryset):
+        params = self.request.query_params
+        queryset = super().filter_queryset(queryset)
+
+        name = params.get('name', None)
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+        
+        leader = params.get('leader', None)
+        if leader is not None:
+            queryset = queryset.filter(Q(leader__first_name__icontains=leader) | Q(leader__last_name__icontains=leader))
+        
+        mate = params.get('mate', None)
+        if mate is not None:
+            tm=TeamMate.objects.filter(Q(employee__first_name__icontains=mate) | Q(employee__last_name__icontains=mate)).values("team")
+            queryset = queryset.filter(pk__in=tm)
+        
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        export = request.GET.get('export', None)
+        qs = self.filter_queryset(self.get_queryset())
+        if export is not None:
+            return self.download_queryset(qs, export)
+        return self.paginated_response(qs)
+    
+    def download_queryset(self, queryset, export_format):
+        """Download the filtered queryset as a data file"""
+        dataset = TeamResource().export(queryset=queryset)
+        filedata = dataset.export(export_format)
+        dateSuffix=datetime.now().strftime("%Y%m%d-%H%M")
+        filename = f"Team_{dateSuffix}.{export_format}"
+        return DownloadFile(filedata, filename)
+    
+    @action(methods=["get"], detail=True, url_path="projects", url_name="projects",    )
+    def team_projects(self, request, pk=None):
+        if pk is None:
+            raise Exception(
+                "/api/team/<pk>/projects/ => No team Pk Found"
+            )
+
+        team = self.get_queryset().filter(pk=pk).first()
+
+        if team is None:
+            return Response(
+                {"detail": "Team not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        employee_ids = TeamMate.objects.filter(
+            team=team
+        ).values("employee_id")
+
+        participant_filter = (
+            Q(employee_id__in=employee_ids)
+            | Q(employee_id=team.leader_id)
+        ) & Q(status__in=["l", "cl"])
+
+        # Un seul Participant par projet
+        participant_ids = (
+            Participant.objects
+            .filter(participant_filter)
+            .values("project_id")
+            .annotate(participant_id=Min("pk"))
+            .values("participant_id")
+        )
+
+        participants = (
+            Participant.objects
+            .filter(pk__in=Subquery(participant_ids))
+            .select_related("project", "employee")
+        )
+
+        return self.paginated_response(
+            participants,
+            serializer_class=serializers.TeamParticipantSerializer,
+        )
+    # @action(methods=['get'], detail=True, url_path='projects', url_name='projects')
+    # def team_projects(self, request, pk=None):
+    #     if pk is None:
+    #         raise Exception("/api/team/<pk>/projects/ => No team Pk Found")
+    #     team=self.queryset.filter(pk=pk).first()
+    #     mate=TeamMate.objects.filter(team=team).values("employee")      
+    #     parti=Participant.objects.filter((Q(employee__in=mate) | Q(employee=team.leader)) & Q(status__in=["l", "cl"])).distinct('project') #.values("project")
+    #     return self.paginated_response(
+    #         parti, 
+    #         serializer_class=serializers.TeamParticipantSerializer
+    #     )
+    #     return JsonResponse(serializers.TeamParticipantSerializer(parti, many=True).data, safe=False)
+        #return JsonResponse(serializers.TeamProjectSerializer(pjset, many=True).data, safe=False) 
+        
+        

@@ -1,0 +1,128 @@
+{% extends 'dashboard/dashboard_card.html' %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% comment %}
+Note for use of dahsboard cards, context format : 
+
+ context={
+            'url':reverse_lazy("api:fund-stale_fund"),
+            'title':_('Stale Fund'),
+            'columns':[
+                {'name':_('project'),'item':'project',  'formatter':'ProjectFormatter'},
+                {'name':_('funder'),'item':'funder'},
+                {'name':_('Institution'),'item':'institution'},
+                {'name':_('end date'),'item':'end_date', 'formatter':'dueDatePassed'},
+                {'name':_('Availability'),'item':'available', 'formatter':'moneyFormatter'},
+                {'name':_('Availability Focus'),'item':'available_f', 'formatter':'moneyFormatter'},
+            ], 
+            'action':[
+                {'name':"", 'url':reverse('project_index'), 'icon':'fa-eye'} // the action on the button added at the top 
+            ],
+            'options':{
+                'download':1, // option for lab_table
+            },  
+            'static':[
+                'js/tables/milestones_table.js', // static file list to load
+            ],
+            'js_callback':{ // call of a JS function on document ready
+                'funct':'testCallback', // the func name
+                'args':[ // args
+                    'it s ok',
+                    'or it s not',
+                    ],
+            }       
+        }
+
+{% endcomment %}
+
+{% block 'dash-content' %}
+
+<div class="col chart_card  mb-2" id="c_chart">
+    <div id='tracking-table-toolbar'>
+        <div class='btn-group'>
+            {% makeId title as idT%}
+            {% with "dashboard_filter_"|add:idT as idTitle %}
+            {% include "filter_list.html" with id=idTitle %}
+            {%endwith%}
+        </div>
+    </div>
+    <table
+        class='table table-striped table-condensed'
+        id="dashboard_card_{% makeId title %}"
+        data-id-table="stalefundTable"
+        data-url="{{url}}"
+
+    >
+        <thead class="">
+            <tr>
+                {% for c in columns %}
+                <th data-sortable="true" 
+                class="th-inner sortable both" 
+                data-field="{{c.item}}"
+                data-formatter="{{c.formatter}}"
+                {% if c.custom_param %}data-custom_param="{{c.custom_param}}" {% endif %}
+                
+                 >
+                    {{c.name}}
+                </th>
+                {% endfor %}
+            
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+        
+</div>
+
+{% if static %}
+    {% for file in static%}
+        <script type='text/javascript' src="{% static file %}"></script>
+    {% endfor %}
+{%endif%}
+
+<script>
+    function testCallback(val, val2){
+        console.log("TEST CALLBACK :"+val+" / "+val2);
+    }
+    {% if options %}
+       var card_option={{options|safe}};
+    {%else%}
+        var card_option={};
+    {% endif %}
+
+        var idTable="dashboard_card_{% makeId title %}";
+        $( document ).ready(function(){
+            var options={};
+
+            if(card_option["download"]){
+                var filters = loadTableFilters('{% makeId title %}');
+                var filterOption={
+                    download:true,
+                };
+                var options={
+                    url:"{{url}}",
+                    queryParams: filters,
+                    name:idTable,
+                    
+                    
+                };
+                setupFilterList('dashboarcart', $("#dashboard_card_{% makeId title %}"), '#filter-list-dashboard_filter_{% makeId title %}',  filterOption);
+            }
+
+            $('#dashboard_card_{% makeId title %}').bootstrapTable(options);
+
+            // specific call back from options
+            {% if js_callback %}
+                var callbackArgs = {{ js_callback.args|safe }};
+                {{js_callback.funct}}(...callbackArgs);
+            {% endif %}
+
+            //
+        });
+
+       
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load import_export_tags %}
+
+
+<style>
+#file_confirm .submit-row{
+  width:100%;
+
+}
+#file_confirm .submit-row button{
+  margin-left:1em;
+}
+</style>
+
+
+{% if confirm_form %}
+  {% csrf_token %}
+    
+  <div class="d-flex flex-row justify-content-between">
+  
+    {% block confirm_import_form %}
+    <div class="p-2">
+      <form id="file_confirm" action="" method="POST">
+        {{ confirm_form.as_p }}
+        <p>
+          {% trans "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'" %}
+        </p>
+        <div class="submit-row">
+          <button type="submit" class="btn btn-primary" > {% trans 'Confirm import' %}</button>
+          <button class="btn btn-secondary" id="back_to_select" type="text" style="margin-top:auto; float: right;"> <i class="fa-solid fa-rotate-left"></i>{% trans 'Back To File Selection' %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+      {{ confirm_form | crispy}}
+    {% endblock %}
+{% else %}
+<div id="import-form-cont">
+  <div class="col">
+      <form id="file_select" action="" method="post" enctype="multipart/form-data" style="max-width: 50em;">
+
+
+        {{ form | crispy }} 
+
+        <div class="submit-row">
+            <button class="btn-primary" type="">{% trans 'Import' %}</button>
+        </div>
+      </form>
+  </div>
+  <div class="row" style="margin-top:1em;">
+    <span id="btn_imp_cont">
+      <button id="get_import_template" class="btn btn-secondary" type="" title="{% trans 'Get Import Template' %}"><span class='fas fa-download'></span> </button>
+    </span>
+    
+  </div>
+</div>
+<div id="loading-overlay">
+        <div>
+            <div class="spinner-border text-light" role="status"></div>
+            <span class="ms-2">Chargement en cours...</span>
+        </div>
+    </div>
+{% endif %}
+
+{% if result_all %}
+  {% for res in result_all%}
+    {% include 'import/import_result.html' with data_result=res %}
+  {% endfor %}
+{% elif result%}
+  {% include 'import/import_result.html' with data_result=result %}
+{% endif %}
+
+
+<script type='text/javascript'>
+  $(document).ready(function () {
+    initFileSelectForm();
+  })
+</script>

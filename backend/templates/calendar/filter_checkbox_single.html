@@ -1,0 +1,24 @@
+<!--
+title : the title of filter
+slug : the slug for parameter
+-->
+{% load i18n %}
+<div class="col-auto" >
+    <div class="d-flex flex-wrap ">
+    
+        <div class="card mr-2" >
+            <div class="row-header">                                  
+                <div class="d-flex flex-wrap subheading " role="button">
+                    <h4>
+                        <div id="{{slug}}_filters" class="calendar-filter" data-bs-toggle="collapse" data-filter-id="{{slug}}">
+                            <i class="fas fa-filter"></i>
+                            <input id="{{slug}}-cb" class="form-check-input" type="checkbox" value="on" />
+                            <label for="{{slug}}-cb"> {{title}} </label>
+                        </div>
+                    </h4>
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</div>

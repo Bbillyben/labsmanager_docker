@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% makeId title as idT%}
+<div class="setting_card_cont" id="setting_card_cont_{{idT}}">
+  <div class="d-flex flex-wrap subheading">
+      <h4>{{title}}</h4>
+
+      {% if action %}
+      <span class="flex" style="flex-grow: 1;"></span>
+      <div class="button-group" role="group">
+        {% if action.add %}
+        <button type="button" class="btn btn-secondary setting_add" title="Create New" data-form-url="{{action.add}}">
+          <span class='fa fa-plus'></span>
+        </button>
+        {% endif%}
+      </div>
+      {% endif%}
+      {% if menu %}
+      
+          <button id="{{idT}}-options" class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Actions" aria-expanded="false">
+              <i class="fas fa-flask"></i>
+          </button>
+          <ul class="dropdown-menu" style="">
+              {% for key, me in menu.items %}
+                 <li>
+                  <span class="setting-menu dropdown-item" data-form-url="{{ me.url }}" id="{{ key }}" data-form-title="{{ me.title }}">
+                      {% if me.icon %}<i class="{{ me.icon }}"></i>{% endif %}
+                      {{ me.title }}
+                  </span>
+                </li>
+              {%endfor%}
+          </ul>
+      {% endif%}
+    </div>
+
+
+    {% block 'set-content' %}
+    {% endblock %}
+</div>

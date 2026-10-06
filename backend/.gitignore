@@ -1,0 +1,8 @@
+data/dbs/
+**/__pycache__/
+config.yaml
+**/*.pyc
+*.bck
+# *.json
+*_dump.json
+/pull_all.sh

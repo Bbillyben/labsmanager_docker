@@ -1,0 +1,62 @@
+from expense.models import Expense_point, Expense
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+from settings.models import LMProjectSetting
+import logging
+logger = logging.getLogger('labsmanager')
+
+@receiver(post_save, sender=Expense_point)
+def save_Expense_point_handler(sender, instance, **kwargs):
+    # print('[save_Expense_point_handler] called')
+    # print('  - sender :'+str(sender))    
+    # print('  - instance :'+str(instance))
+    # print('         - instance.entry_date :'+str(instance.entry_date))
+    # print('         - instance.value_date :'+str(instance.value_date))
+    # print('         - instance.fund :'+str(instance.fund))
+    # print('         - instance.type :'+str(instance.type))
+    # print('         - instance.amount :'+str(instance.amount))
+    # print('  - kwargs :'+str(kwargs))
+    logger.debug('[save_Fund_Item_handler] called')
+    instance.fund.calculate()
+
+from expense.models import exp_postsave
+@receiver(exp_postsave) # signals dispatch on save by Expense and child classes
+def save_expense_handler(sender, instance, **kwargs):
+    logger.debug('[save_expense_handler] called')
+    
+    # check if there is a budget in save and recalculate total budget expense
+    # cached budhed
+    old_budget =instance.var_cache["budget_item"]
+    if old_budget:
+        old_budget.calculate_expense()
+    budget = instance.budget_item
+    if budget:
+        budget.calculate_expense()
+    
+    # get project setting
+    proj = instance.fund_item.project
+    proj_set=LMProjectSetting.get_setting('EXPENSE_CALCULATION', project=proj)
+    if proj_set =="s":
+        logger.debug(f" project {proj} settings {proj_set} is not in expense computational")
+        return
+    logger.debug(f" project {proj} settings {proj_set} START Compute, exp type : {instance.type}")
+    instance.fund_item.calculate_expense(force=False, exp_type=instance.type)
+    # check wether the type hav change => to calculate new sum in older type
+    old_type =instance.var_cache["type"]
+    if not old_type is None and not instance.type is None and old_type != instance.type:
+        instance.fund_item.calculate_expense(force=True, exp_type=old_type)
+
+@receiver(post_delete, sender=Expense)
+def delete_expense_handler(sender, instance, **kwargs):
+    logger.debug('[delete_expense_handler] called')
+    d_type = instance.type
+     # get project setting
+    proj = instance.fund_item.project
+    proj_set=LMProjectSetting.get_setting('EXPENSE_CALCULATION', project=proj)
+    if proj_set =="s":
+        logger.debug(f" project {proj} settings {proj_set} is not in expense computational")
+        return
+    logger.debug(f" project {proj} settings {proj_set} START Compute, exp type : {instance.type}")
+    
+    instance.fund_item.calculate_expense(force=True, exp_type=d_type)

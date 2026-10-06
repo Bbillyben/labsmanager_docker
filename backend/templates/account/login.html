@@ -1,0 +1,20 @@
+{% extends "account/account_base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+<!-- templates/registration/login.html -->
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+{% block content %}
+<h2>{% trans "Sign In" %}</h2>
+<form class="login" method="POST" action="{% url 'account_login' %}">
+  {% csrf_token %}
+  {{ form|crispy }}
+    <input type="hidden" name="next_redir" value="{{ request.GET.next }}" />
+    <div class="btn-group float-right" role="group">
+        <button class="btn btn-success" type="submit">
+            <span class='fas fa-sign-in-alt'></span> {% trans "Connexion" %}
+        </button>
+    </div>
+</form>
+{% endblock %}

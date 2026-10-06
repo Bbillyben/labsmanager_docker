@@ -1,0 +1,194 @@
+{% load static %}
+{% load i18n %}
+{% load customs_tags %}
+{% load js_reverse %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+<link rel="icon" type="image/png" href="{% static 'img/labsmanager/labsmanager_icon_fav.png' %}" />
+
+<!-- CSS -->
+<link rel="stylesheet" href="{% static 'css/labsmanager.css' %}">
+<link rel="stylesheet" href="{% static 'css/custom_widgets.css' %}">
+<link rel="stylesheet" href="{% static 'css/bootstrap-treeview.css' %}">
+
+
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/bootstrap-table.min.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/bootstrap-table.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/group-by-v2/bootstrap-table-group-by.min.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/group-by-v2/bootstrap-table-group-by.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.css' %}">
+<link rel='stylesheet' href='{% static "treegrid/css/jquery.treegrid.css" %}'>
+<link rel="stylesheet" href="{% static 'fontawesome/css/brands.min.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/solid.min.css' %}">
+<link rel="stylesheet" href="{% static 'script/jquery-ui/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'script/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% get_color_theme user %}">
+
+{% block link %}
+{% endblock %}
+    <style>
+        {% block css %}
+        {% endblock %}
+    </style>
+        {% block head %}
+        {% endblock %}
+    <title>
+        {% block page_title %}
+        {% endblock %}
+    </title>
+</head>
+{% include "navbar.html" %}
+
+<div class='main body wrapper container-fluid labmanager-body'>
+    <div class='row flex-nowrap labsmanager-body'>
+        <div class='col-auto px-1 sidebar-wrapper'>
+            <div id='sidebar' class='collapse collapse-horizontal show' >
+                <div id='sidebar-nav' class='list-group text-sm-start'>
+                    <ul id='sidebar-list-group' class='list-group sidebar-list-group'>
+                        {% block sidebar %}
+                        <!-- Sidebar goes here -->
+                        {% endblock %}
+                       
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <main class='col ps-md-2 pt-2 pe-2'>
+            {% block alerts %}
+            <div class='notification-area' id='alerts'>
+
+            </div>
+            {% endblock %}
+            {% block breadcrumb_list %}
+            <div class='container-fluid navigation' id='breadcrumb-div'>
+                <nav aria-label='breadcrumb'>
+                    <ol class='breadcrumb' id='breadcrumb-list'>
+                        {% block breadcrumbs %}
+                        {% endblock %}
+                    </ol>
+                </nav>
+
+                <div id='breadcrumb-tree-collapse' class='collapse collapse-horizontal show border' style='display: none;'>
+                    {% block breadcrumb_tree %}
+                    {% endblock %}
+                </div>
+            </div>
+
+            {% endblock %}
+            
+            {% block content %}
+
+            {% endblock %}
+        </main>
+    </div>
+
+</div>
+
+
+
+<script type="text/javascript" charset="utf-8">
+    {% js_reverse_inline %}
+</script>
+<!-- base jquery -->
+
+
+<script type="text/javascript" src="{% static 'script/jquery-3.6.1.min.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'script/jquery.form.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'script/jquery-ui/jquery-ui.1.13.1.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'script/select2/js/select2.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'popper/popper.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'script/bootstrap/bootstrap-treeview.js' %}"></script>
+<script type='text/javascript' src="{% static 'bootstrap-table/bootstrap-table.js' %}"></script>
+<script type='text/javascript' src="{% static 'bootstrap-table/bootstrap-table-toolbar.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'bootstrap-table/extensions/export/bootstrap-table-export.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/solid.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/regular.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/brands.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/fontawesome.min.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/fullcalendar/index.global.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/locales/de.global.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/locales/fr.global.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/fullcalendar/locales/es.global.min.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'tableExport/tableExport.js' %} "></script>
+<script type="text/javascript" src="{% static 'tableExport/jquery.base64.js' %} "></script>
+
+<!-- Scripts -->
+<script type='text/javascript' src="{% static 'js/forms.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/modals.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/messages.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/labModalForm.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/labModal.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/helper.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/tables.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/tables_filters.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/tables/tables_formatters.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/filters.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/calendar.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/calendar-employee.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/favorites.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/subscription.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager/panel_collapse.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/labsmanager/copy_btn.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/palette.js' %}"></script>
+
+
+<script type='text/javascript'>
+    USER_PERMS="{{ perms.leave }}";
+    USER_PERMS=USER_PERMS.replaceAll("&#x27;","'");
+    USER_EMPLOYEE = '{{request.user.employee.pk}}';
+    is_staff="{{ request.user.is_staff }}";
+    if(is_staff=="True")USER_PERMS+=", is_staff";    
+    {% get_filter_lists %}
+    $(document).ready(function () {
+        $.extend($.fn.bootstrapTable.defaults.icons, {
+            advancedSearchIcon: 'fa-chevron-down',
+        });
+        // iniitalise tooltip
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+        
+
+        initialiseCollapsePanel();  
+        loadInTemplate($('#favorites'), '{% url "nav_favorites"%}');
+        initFavorites();
+        initSubscription();
+    })
+
+    
+</script>
+
+
+
+
+{% block js_load %}
+{% endblock %}  
+
+{% block js %}
+{% endblock %}
+
+</body>
+</html>

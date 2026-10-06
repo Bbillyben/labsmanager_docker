@@ -1,0 +1,153 @@
+{% load static %}
+{% load i18n %}
+{% load view_breadcrumbs %}
+{% load customs_tags %}
+
+{% get_current_language as LANGUAGE_CODE %}
+{% settings_value 'STICKY_NAVBAR' user=request.user as sticky %}
+
+<nav class="navbar {% if sticky %}fixed-top{% endif %} navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+      <div class="navbar-header clearfix content-heading">
+        <a class="navbar-brand" id='logo' href="{% url 'index' %}" style="padding-top: 7px; padding-bottom: 5px;"><img src="{% static 'img/labsmanager/labsmanager_icon.png' %}" width="32" height="32" style="display:block; margin: auto;"/></a>
+      </div>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="navbar-collapse collapse" id="navbarNav">
+        <ul class="navbar-nav">
+
+          <!-- For Employee-->
+          {% if perms.staff.view_employee or perms.common.employee_list %}
+          <li class='nav-item'>
+            <a class='nav-link' href="{% url 'employee_index' %}">
+              <span class='fas fa-user icon-header'></span>{% trans "Employee" %}
+            </a>
+          </li>
+          {% endif %}
+          <!-- For Teams-->
+          {% if perms.staff.view_team or perms.common.team_list%}
+          <li class='nav-item'>
+            <a class='nav-link' href="{% url 'team_index' %}">
+              <span class='fas fa-people-group icon-header'></span>{% trans "Teams" %}
+            </a>
+          </li>
+          {% endif %}
+          <!-- For Contract-->
+          {% if perms.expense.view_contract or perms.common.contract_list %}
+          <li class='nav-item'>
+            <a class='nav-link' href="{% url 'contract_index' %}">
+              <span class='fas fa-file-signature icon-header'></span>{% trans "Contracts" %}
+            </a>
+          </li>
+          {% endif %}
+
+          <!-- For Project-->
+          {% if perms.project.view_project or perms.common.project_list %}
+          <li class='nav-item'>
+            <a class='nav-link' href="{% url 'project_index' %}">
+              <span class='fas fa-flask icon-header'></span>{% trans "Projects" %}
+            </a>
+          </li>
+          {% endif %}
+          <!-- For Project-->
+          {% if perms.common.display_infos %}
+          <li class='nav-item'>
+            <a class='nav-link' href="{% url 'orga_index' %}">
+              <span class='fas fa-landmark icon-header'></span>{% trans "Organizations" %}
+            </a>
+          </li>
+          {% endif %}
+          
+          <li class='nav-item dropdown'>
+            <a class='nav-link dropdown-toggle' href='#' id='toolMenuDropdown' role='button' data-bs-toggle='dropdown'>
+              <span class='fa-solid fa-screwdriver-wrench'></span>{% trans 'Tools' %}
+            </a>
+            <ul class='dropdown-menu dropdown-menu-end labsmanager-navbar-menu'>
+              <!-- For Fund Items-->
+              {% if perms.fund.view_fund %}
+              <li><a class='nav-link dropdown-item' href="{% url 'fund_finder' %}"><span class='fas fa-filter-circle-dollar icon-header'></span>{% trans "Funds Finder" %}</a></li>
+              {% endif %}
+              {% if perms.common.import %}
+              <li><a class='nav-link dropdown-item' href="{% url 'import_index' %}"><span class='fas fa-file-import icon-header'></span>{% trans "Import" %}</a></li>
+              {% endif %}
+              <!-- Organigramme -->
+              <li><a class='nav-link dropdown-item' href="{% url 'organisation_chart_index' %}"><span class="fa-solid fa-sitemap"></span> {% trans "Organization Chart" %}</a></li>
+              
+            </ul>
+          </li>
+          <!-- For Favorite -->
+          <li class='nav-item' id="favorites">
+
+          </li>
+
+        </ul>
+        <span class="flex" style="flex-grow: 1;"></span>
+        <ul class='navbar-nav'>
+
+            <!-- For Calendar -->
+          {% if perms.common.display_calendar %}
+           <li class='nav-item'>
+             <a class='nav-link' href="{% url 'calendar_main' %}">
+               <span class='fas fa-calendar-days icon-header'></span>{% trans "Calendar" %}
+             </a>
+           </li>
+           {%endif%}
+           <!-- For Dashboard -->
+           {% if perms.common.display_dashboard %}
+           <li class='nav-item'>
+             <a class='nav-link' href="{% url 'dashboard' %}">
+               <span class='fas fa-chart-area icon-header'></span>{% trans "Dashboard" %}
+             </a>
+           </li>
+           {%endif%}
+           {% include 'liste_spacer.html' %}
+           <li class='nav-item dropdown'>
+             <a class='nav-link dropdown-toggle' href='#' id='userMenuDropdown' role='button' data-bs-toggle='dropdown'>
+               <span class='fas fa-user'></span> <strong>{{ user.get_username }}</strong>
+             </a>
+             <ul class='dropdown-menu dropdown-menu-end labsmanager-navbar-menu'>
+               
+               {% if user.is_authenticated %}
+                 <li><a class='dropdown-item' href="{% url 'settings' %}"><span class="fas fa-gear"></span> {% trans "Settings" %}</a></li>
+                 {% if user.is_staff %}
+                   <li><a class='dropdown-item' href="{% url 'admin:index' %}"><span class="fas fa-user-shield"></span> {% trans "Admin" %}</a></li>
+                 {% endif %}
+                 {% if user.employee %}
+                 <hr>
+                 <li><a class='dropdown-item' href="{% url 'employee' pk=user.employee.pk %}" title="{{user.employee}}"><span class="fas fa-user"></span> {% trans "My Employee" %}</a></li>
+                 {% endif %}
+                 <hr>
+                 <li><a class='dropdown-item' href="{% url 'account_logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a></li>
+               {% else %}
+                 <li><a class='dropdown-item' href="{% url 'account_login' %}"><span class="fas fa-sign-in-alt"></span> {% trans "Login" %}</a></li>
+               {% endif %}    
+                 <!-- <hr>     
+                 <li><div class='dropdown-item' ><span class="fas fa-flag"></span>{{LANGUAGE_CODE}}</div></li>    -->
+             </ul>
+   
+           </li>
+         </ul>
+
+      </div>
+      
+    
+
+    </div>
+  </nav>
+{% if sticky %}
+<div class='navbar-spacer'></div>
+{% endif %}
+  
+  {% include "spacer.html" %}
+  
+  <div class="container-fluid navigation" id="breadcrumb-div">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb" id="breadcrumb-list">
+        {% block breadcrumbs %}
+          {% render_breadcrumbs %}
+          {% include 'bread_crumb_list.html' %}
+        {% endblock %}
+      </ol>
+    </nav>
+  </div>

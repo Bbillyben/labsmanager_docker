@@ -1,0 +1,21 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<form method="post" action="">
+  {% csrf_token %}
+
+
+  <div class='alert alert-block alert-danger form-validation-warning' id='form-validation-warning' style='display: none;'>
+    {% trans "Form errors exist" %}
+  </div>
+  <div class="modal-body">
+    {{ form | crispy }} 
+  </div>
+
+  <div class='modal-footer'>
+    <div id='modal-footer-buttons'>
+      <button type='button' class='btn btn-outline-secondary' id='modal-form-close' data-bs-dismiss='modal'>{% trans "Close" %}</button>
+      <button type='submit' class='btn btn-primary' id='modal-form-submit'>{% trans "Submit" %}</button>
+    </div>  
+  </div>
+</form>

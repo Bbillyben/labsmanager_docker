@@ -1,0 +1,35 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load static %}
+{% load customs_tags %}
+
+{% block label %}orga_list{% endblock %}
+
+{% block heading %}{% trans 'List Settings - Organization' %}{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 100%; padding: 5px;">
+    <div class="row">
+        <div class="subheading spacing"><h4>{%trans 'Organization Setting' %}</h4></div>
+        <div class="col col-6">
+            <div class="card  mb-2 loadingCard" data-url="{% url 'setting_organizationinfo_type' %}">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="subheading spacing"><h4>{%trans 'Contact Setting' %}</h4></div>
+        <div class="col col-6">
+            <div class="card  mb-2 loadingCard" data-url="{% url 'setting_contactinfo_type' %}">
+            </div>
+        </div>
+        <div class="col col-6">
+            <div class="card  mb-2 loadingCard" data-url="{% url 'setting_contact_type' %}">
+            </div>
+        </div>
+    </div><!-- end row -->
+</div> <!-- end container -->
+{% endblock %}
+
+{% block panel_js %}
+{% endblock %}

@@ -1,0 +1,180 @@
+{% load static %}
+{% load i18n %}
+{% load customs_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+<link rel="icon" type="image/png" href="{% static 'img/labsmanager/labsmanager_icon_fav.png' %}" />
+
+<!-- CSS -->
+<link rel="stylesheet" href="{% static 'css/labsmanager.css' %}">
+<link rel="stylesheet" href="{% static 'css/index_css.css' %}">
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/brands.min.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/css/solid.min.css' %}">
+<link rel="stylesheet" href="{% get_color_theme user %}">
+
+
+
+
+<body class='login-screen' style='background: url({% static "img/labsmanager/lab_bg.png" %}); background-size: cover;'></body>
+ 
+<div class='main body-wrapper flex'>
+{% if user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    {% if user.employee %}
+    <div class="container-fluid"><span class="dropdown-item">{% trans 'Welcome' %} <b><i><a class="no_color" href="{% url 'employee' pk=user.employee.pk %}" title="{{user.employee}}">{{user.employee.first_name}}</a></i></b></span></div>
+    {%else%}
+    <div class="container-fluid"><span class="dropdown-item">{% trans 'Welcome' %} <b><i>{{ user.get_username }}</i></b></span></div>
+    {% endif %}
+    <div class="container-fluid" style="text-align: end;">
+        <a class='dropdown-item' href="{% url 'account_logout' %}"><span class="fas fa-sign-out-alt"></span> {% trans "Logout" %}</a>
+    </div>
+</nav>
+    
+{% endif %}  
+    <div class="liencont index-screen d-flex" style='width:75%; margin:auto;'>
+        <div class="row align-items-center justify-content-center" style="width:100%;">
+            <div class="row"></div>
+            <div class="row"></div>
+            <div class="row align-items-center justify-content-center" style="width:100%;">
+                
+                {% if perms.common.employee_list or perms.staff.view_employee %}
+                    {% url 'employee_index' as urlCard %}
+                    {% trans 'Employee' as txtCard %}
+                    {% static 'img/icons/worker.png' as imgURL%}
+                    {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% elif user.employee %}
+                    {% url 'employee' pk=user.employee.pk as urlCard %}
+                    {% static 'img/icons/worker.png' as imgURL%}
+                    {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=user.employee %}
+
+                {% endif %}
+
+
+                
+                
+
+
+                {% if perms.common.team_list or perms.staff.view_team %}
+                {% url 'team_index' as urlCard %}
+                {% static 'img/icons/employee.png' as imgURL%}
+                {% trans 'Team' as txtCard %}
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+
+                {% if perms.expense.view_contract or perms.common.contract_list %}
+                {% url 'contract_index' as urlCard %}
+                {% trans 'Contract' as txtCard %}
+                {% static 'img/icons/contract.png' as imgURL%}
+
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+
+                {% if perms.project.view_project or perms.common.project_list%}
+                {% url 'project_index' as urlCard %}
+                {% trans 'Project' as txtCard %}
+                {% static 'img/icons/project.png' as imgURL%}
+
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+
+                {% if perms.common.display_infos %}
+                {% url 'orga_index' as urlCard %}
+                {% static 'img/icons/castle.png' as imgURL%}
+                {% trans 'Organization' as txtCard %}
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+
+                
+
+            </div>
+            <div class="row align-items-center justify-content-center" style="width:100%;">
+                {% include 'labmanager/index_card_tools.html' %}
+                
+                {% if perms.common.display_calendar or perms.leave.view_leave %}
+                {% url 'calendar_main' as urlCard %}
+                {% trans 'Calendar' as txtCard %}
+                {% static 'img/icons/calendar.png' as imgURL%}
+
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+
+                {% if perms.common.display_dashboard %}
+                {% url 'dashboard' as urlCard %}
+                {% trans 'Dashboard' as txtCard %}
+                {% static 'img/icons/dashboard.png' as imgURL%}
+
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+
+                
+
+                
+                <div id="favorites" style="display: contents;"></div>
+
+                {% url 'settings' as urlCard %}
+                {% trans 'Settings' as txtCard %}
+                {% static 'img/icons/settings.png' as imgURL%}
+
+                {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+
+                {% if user.is_staff %}
+                    {% url 'admin:index' as urlCard %}
+                    {% trans 'Admin' as txtCard %}
+                    {% static 'img/icons/admin.png' as imgURL%}
+                    {% include 'labmanager/index_card.html' with url=urlCard imgURL=imgURL title=txtCard %}
+                {% endif %}
+            </div>
+            <div class="row"></div>
+
+        </div>
+
+    
+
+
+    </div>
+    <footer>
+    <div class="footer-content fixed-bottom">
+        
+         
+        <div class="left"><i>{%trans "LabsManager version" %}: </i><b>{{LABSMANAGER_VERSION}}</b></div>
+        <span class="flex" style="flex-grow: 1;"></span> 
+        <div id="help_btn" class="right help">
+        </div>
+    </div>
+</footer>
+</div>
+
+
+    
+</div>
+
+<!-- Scripts -->
+<!-- base jquery -->
+<script type="text/javascript" src="{% static 'script/jquery-3.6.1.min.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'fontawesome/js/solid.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/regular.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/brands.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'fontawesome/js/fontawesome.min.js' %}"></script>
+
+
+<script type="text/javascript" src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/labsmanager.js' %}"></script>
+
+<script type='text/javascript'>
+         $(document).ready(function () {
+            loadInTemplate($('#favorites'), '{% url "nav_favorites_accordion" %}', null, null, "GET", true);
+            loadInTemplate($('#help_btn'), '{% url "help_btn" %}', null, null, "GET", false);
+         })
+</script>
+</body>
+</html>

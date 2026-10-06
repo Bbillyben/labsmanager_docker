@@ -1,0 +1,39 @@
+{% extends 'dashboard/dashboard_card.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block 'dash-content' %}
+<div class="d-flex" id="db_losscard_radio_type">
+  <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tabType" checked>
+  <label class="radiolabel" for="tabType">{% trans 'by Type' %}</label>
+  <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tabProject">
+  <label class="radiolabel" for="tabProject">{% trans 'by Project' %}</label>
+  <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tabFunder">
+  <label class="radiolabel" for="tabFunder" >{% trans 'by Funder' %}</label>
+  <input class="radiotab" tabindex="1" name="tabs" type="radio" id="tabInstitution">
+  <label class="radiolabel" for="tabInstitution" >{% trans 'by Institution' %}</label>
+</div>
+
+    <div class="col chart_card  mb-2" id="c_chart">
+        <canvas id="canvas">this is canvas</canvas>
+    </div>
+
+
+<script type='text/javascript' src="{% static 'chart/chart.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'chart/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/palette.js' %}"></script>
+
+<script type='text/javascript' src="{% static 'js/labsmanager/graph_utils.js' %}"></script>
+<script type='text/javascript' src="{% static 'js/dashboard/db_loss_card.js' %}"></script>
+
+<script>
+var datas={{data|safe}};
+
+$( document ).ready(function(){
+  dblosscard_initCard(datas);
+  
+  
+})
+</script>
+
+   {% endblock %}    

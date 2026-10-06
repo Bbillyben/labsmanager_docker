@@ -1,0 +1,98 @@
+{% load static %}
+{% load i18n %}
+{% load customs_tags %}
+{% load plugin_tags %}
+
+
+
+
+
+{% trans "Settings" as text %}
+{% include "sidebar_header.html" with text=text icon='fa-user-cog' %}
+
+{% trans "User Settings" as text %}
+{% include "sidebar_item.html" with label='user' text=text icon="fa-user" %}
+
+
+{% trans "Interface Settings" as text %}
+{% include "sidebar_item.html" with label='interface' text=text icon="fa-tablet-screen-button" %}
+
+{% trans "Notifications" as text %}
+{% include "sidebar_item.html" with label='notification' text=text icon="fa-message" %}
+
+{% trans "Favorites and Subscriptions" as text %}
+{% include "sidebar_item.html" with label='common' text=text icon="fa-star" %}
+
+{% trans "Dashboard Settings" as text %}
+{% include "sidebar_item.html" with label='dashboard' text=text icon="fa-gauge" %}
+
+{% trans "Stale Settings" as text %}
+{% include "sidebar_item.html" with label='stale_setting' text=text icon="fa-gauge" %}
+
+
+
+{% trans "LabsManager Lists" as text %}
+
+{% include "sidebar_header_accordion.html" with text=text icon='fa-list' Id='lists' %}
+
+{% trans "Fund" as text %}
+{% include "sidebar_item_accordion.html" with label='fund_list' text=text icon="fa-sack-dollar" %}
+
+{% trans "Contract" as text %}
+{% include "sidebar_item_accordion.html" with label='contract_list' text=text icon="fa-file-signature" %}
+
+{% trans "Leaves" as text %}
+{% include "sidebar_item_accordion.html" with label='leave_list' text=text icon="fa-thumbtack" %}
+
+{% trans "Project" as text %}
+{% include "sidebar_item_accordion.html" with label='project_list' text=text icon="fa-flask" %}
+
+{% trans "Staff" as text %}
+{% include "sidebar_item_accordion.html" with label='staff_list' text=text icon="fa-user" %}
+
+{% trans "Organization" as text %}
+{% include "sidebar_item_accordion.html" with label='orga_list' text=text icon="fa-landmark" %}
+
+{% include "sidebar_header_accordion_end.html" %}
+
+{% if request.user.is_staff %}
+    {% trans "LabsManager Settings" as text %}
+    {% include "sidebar_header.html" with text=text icon='fa-screwdriver-wrench' %}
+
+    {% trans "General" as text %}
+    {% include "sidebar_item.html" with label='general_settings' text=text icon="fa-screwdriver-wrench" %}
+
+    {% trans "Mails" as text %}
+    {% include "sidebar_item.html" with label='mail_setting' text=text icon="fa-envelope" %}
+
+    {% trans "Notifications" as text %}
+    {% include "sidebar_item.html" with label='notification_admin' text=text icon="fa-message" %}
+
+    {% trans "Audit Log" as text %}
+    {% include "sidebar_item.html" with label='auditlog_setting' text=text icon="fa-clock-rotate-left" %}
+
+
+    {% trans "Users Management" as text %}
+    {% include "sidebar_item.html" with label='users_admin' text=text icon="fa-users" %}
+
+    {% trans "Plugins" as text %}
+    {% include "sidebar_item.html" with label='plugin_admin' text=text icon="fa-puzzle-piece" %}
+
+
+
+    {% trans "Plugin Lists" as text %}
+    {% plugin_list as pl_list %}
+    {% if pl_list|length > 0 %}
+    {% include "sidebar_header_accordion.html" with text=text icon='fa-list' Id='PG_lists' %}
+    {% endif %}
+    
+        
+        {% for plugin_key, plugin in pl_list.items %}
+            {% if plugin.registered_mixins %}
+                {% include "sidebar_item_accordion.html" with icon="fa-puzzle-piece" label='plugin-'|add:plugin_key text=plugin.human_name %}
+            {% endif %}
+        {% endfor %}
+    {% if pl_list|length > 0 %}
+    {% include "sidebar_header_accordion_end.html" %}
+    {% endif %}
+{% endif %}

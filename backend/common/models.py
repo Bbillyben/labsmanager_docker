@@ -1,0 +1,111 @@
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
+
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+
+class favorite(models.Model):
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="common_favorite_user_object_unique")]
+
+    user = models.ForeignKey(User, null=False, blank=False, on_delete=models.CASCADE, verbose_name=_('User'))
+    content_type = models.ForeignKey(ContentType, related_name="content_type_favorite", on_delete=models.CASCADE, )
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    
+    def __str__(self):
+        return f"{self.user.username} : {self.content_object.__str__()}"
+
+class subscription(models.Model):
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="common_subscription_user_object_unique")]
+
+    user = models.ForeignKey(User, null=False, blank=False, on_delete=models.CASCADE, verbose_name=_('User'))
+    content_type = models.ForeignKey(ContentType, related_name="content_type_subscription", on_delete=models.CASCADE, )
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    def __str__(self):
+        return f"{self.user.username} : {self.content_object.__str__()}"
+
+
+class RecentItem(models.Model):
+    """A destination actually opened by a user, without cached display data."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="recent_items")
+    url_id = models.CharField(max_length=40)
+    obj_id = models.PositiveBigIntegerField(null=True, blank=True)
+    last_viewed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "url_id", "obj_id"], condition=models.Q(obj_id__isnull=False), name="common_recent_object_unique"),
+            models.UniqueConstraint(fields=["user", "url_id"], condition=models.Q(obj_id__isnull=True), name="common_recent_page_unique"),
+        ]
+        ordering = ("-last_viewed_at", "-pk")
+    
+    
+    
+################## For User customs permissions #######################################################
+#######################################################################################################
+        
+class RightsSupport(models.Model):
+            
+    class Meta:
+        
+        managed = False  # No database table creation or deletion  \
+                         # operations will be performed for this model. 
+                
+        default_permissions = ("view") # disable "add", "change", "delete"
+                                 # and "view" default permissions
+
+        permissions = ( 
+            ('self_edit', 'Permission to edit own employee'), 
+            ('employee_list', 'Permission to see employee list'),  
+            ('team_list', 'Permission to see team list'), 
+            ('project_list', 'Permission to see project list'),
+            ('contract_list', 'Permission to see contract list'),
+            ('display_calendar', 'Permission to see main calendar'),
+            ('display_dashboard', 'Permission to see dasgboard'), 
+            ('display_infos', 'Permission to see organization informations'),
+            ('import', 'Permission to import'),
+            ('delete_prov', 'Permission to delete provionnal contract'),
+        )
+
+# from django.contrib.auth.models import Permission, Group
+# from django.db import models
+
+# class PermEmployeeList(Permission):
+#     class Meta:
+#         verbose_name = 'permission Employee list'
+        
+# class PermProjectList(Permission):
+#     class Meta:
+#         verbose_name = 'permission Project list'
+
+# class PermBrowseFundList(Permission):
+#     class Meta:
+#         verbose_name = 'permission Project list'
+
+# class PermCalendar(Permission):
+#     class Meta:
+#         verbose_name = 'permission Full Calendar'
+        
+# class PermDashboard(Permission):
+#     class Meta:
+#         verbose_name = 'permission Dashboard'
+        
+# class CustomPermissionSet(models.Model):
+#     name = models.CharField(max_length=255)
+#     permissions = models.ManyToManyField(
+#         'common.PermEmployeeList', 
+#         'common.PermProjectList', 
+#         'common.PermBrowseFundList', 
+#         'common.PermCalendar', 
+#         'common.PermDashboard')
+
+#     def __str__(self):
+#         return self.name

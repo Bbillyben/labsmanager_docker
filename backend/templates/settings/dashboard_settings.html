@@ -1,0 +1,28 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load customs_tags %}
+
+{% block label %}dashboard{% endblock %}
+
+{% block heading %}{% trans 'Dashboard' %}{% endblock %}
+
+{% block content %}
+<div class='row'>
+    <table class='table table-striped table-condensed'>
+        <tbody>
+            {% include "settings/setting.html" with key="DASHBOARD_FUND_STALE_FROM_MONTH" user_setting=True icon='fa-calendar-days' %}
+            {% include "settings/setting.html" with key="DASHBOARD_FUND_STALE_TO_MONTH" user_setting=True icon='fa-calendar-days' %}
+
+            {% include "settings/setting.html" with key="DASHBOARD_MILESTONES_STALE_FROM_MONTH" user_setting=True icon='fa-calendar-days' %}
+            {% include "settings/setting.html" with key="DASHBOARD_MILESTONES_STALE_TO_MONTH" user_setting=True icon='fa-calendar-days' %}
+
+            {% include "settings/setting.html" with key="DASHBOARD_FUND_CONSOMATION_TYPE" user_setting=True icon='fa-money-bill-trend-up' %}
+            {% include "settings/setting.html" with key="DASHBOARD_FUND_CONSOMATION_RATIO" user_setting=True icon='fa-money-bill-trend-up' %}
+            
+            {% include "settings/setting.html" with key="DASHBOARD_FUND_CONSOMATION_LINEAR_RATIO_MARGIN" user_setting=True icon='fa-money-bill-trend-up' %}
+            {% include "settings/setting.html" with key="DASHBOARD_FUND_CONSOMATION_USE_STALE_PERIOD" user_setting=True icon='fa-money-bill-trend-up' %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

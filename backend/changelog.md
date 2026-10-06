@@ -1,0 +1,229 @@
+## Changelog LabsManager
+* [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
+
+### Latest : 
+[UPDATE] : add the description to budget default string to be dispayed in dropdown list
+[FIX] : issue when saving contract_expense on creation
+[FIX] : calendar issue (from pagination implementation)
+[FIX] : bug in parameter ->user-> invitation solved
+
+### 0.9.7 :
+note : require static update
+[UPDATE] : all viewset impacted by pagination and search with the new mixin "LabPaginationMixin
+
+### 0.9.6 :
+note : require static update
+[FIX] : User in setting panel back to full panel display to avoid sliders and action hiding.
+[ADD] : Pagination for bootstrap table, server side
+[ADD] : expense finder in fund explorer tools
+
+s
+### 0.9.5 :
+note : require migration and static update
+[UPDATE] : crumblist for not authorized user for full list.
+[UPDATE] :  refine subscription email display regarding rights to see fund/budget/...
+[UPDATE] : CalendarEventMixin, implemented CLASS.get_calendar_type(request) to extract calendar type from request (for event and ressources), add 'request' and 'calendar_type' parameters to get filters (! calendar_type should be literally added in filter template loop ) 
+[ADD] : landing page after login setting and background process (adapters), can be Hub, Dashboard, Calendar, My EMployee, regarding rights
+[ADD] : add checkbox in project and Fund form to bulk update end_dates when updating an instance 
+[ADD] : add checkbox in contract to update exit date of the employee with contract end date when updating an instance 
+[ADD] : add expense imputation on budget lines - no autmation nor import
+[ADD] : action in project milestones project to delay (add a quantity of days, could be negatives) or validate milestones
+[ADD] : filter to milestones tabs and export
+[UPDATE] : login field to allow the "next" parameter to be used, and then use the user parameter to redirect.
+[FIX] : issue with leave on employee page to add a newx one
+[UPDATE] : milestones can be tasks (add a start date), so a milestone is a task without start date.
+[ADD] : calendar for project, tasks and milestones to employee panel
+[ADD] : filter for tasks and milestones
+[update] :printing for project's calendar
+
+### 0.9.4 2025-10 :
+note : require static update
+[UPDATE] : update signal handler for expense. FOr project based on expense parameter (hybrid or expense), now expense type modification impact global expense calculation on previous type. 
+[ADD] : delete expense now trigger overall expense on type 
+[UPDATE] : milestone popover in project calendar now show description and change layout
+[UPDATE] : align status and quotity for completed milestones
+[FIX] : Percentage field for qutotiy is now limiting digit to 1 and round number so no more issue with forms
+[UPDATE] : traduction
+[UPDATE] : Project Fund Layout (single fund table overview)
+[ADD] : Add milestones report for subscribed project and employee in subscription mail.
+[ADD] : Add settings in subscription parameters to report milestones for subscribed project and employee in subscription mail.
+[ADD] : Add settings in subscription parameters to report validated milestones for a scope of time related to the frequecncy (nb of report it will be in not date), and a scope of time (in days) to report incomming milestones
+[UPDATE] : invitation list now show whether a  n invitation key has expired
+[FIX] : fix import js/project_graph.js in project single dashboard
+[ADD] : for setting table, add ability to add a menu items in tables with the subitem 'menu' : 
+```python
+context={
+            'url':reverse_lazy("my url"),
+            'title':_('My Title'),
+            'columns':[
+                #{'name':_('User'),'item':'user.username',},
+                {'name':_('Column 1name '),'item':'email', 'class':'fit-content'},
+            ], 
+            'action':{
+                'add':reverse('url_to_add_item'),
+            },
+            'menu':{
+                'menu_item1':{
+                        'url': reverse('menu_item_1_form_or_action_url'),
+                        'title': _("Title Of Item"),
+                        'icon': 'fa fa-trash',
+                    }
+            },
+            'options':{
+            },         
+        }
+```
+[ADD] : in calendar view, add project calendar with fund, participant and milestones, with some filters
+[UPDATE] : change fund, budget and contract visualisation in project and employee panel according to user right
+[UPDATE] : in global project calendar, projects listed are ones user has view right on (according to project list in project list panel
+
+
+### 0.9.3 2025-07 :
+note : require static update
+[ADD] : notification of user's subscribed employee and project on milestones and employee overload.
+[ADD] : status reported for incomming employee
+[ADD] : project calendar with project timeline, fund, participant and milestone
+[ADD] : print ability for project calendar
+[ADD] : quotity field is now depicted as percentage (participant, contract, Budget, Contribution)
+
+
+### 0.9.2 2025-06 :
+note : require static update
+[FIX] update comparison and Field in expenseResource to ignore import on same amout with zero decimal.
+[FIX] bug introduce with resource modification above (II)
+[ADD] : team filter for employee list
+[ADD] : spinner for loading when import
+
+### 2025-02-20
+[FIX] bug of leave add or modification issue with employee
+
+### 2025-01-19
+[ADD] : add notification for project participant overload for employee's superior
+[ADD] : Employee can edit a milestones he is attributed
+[FIX] : Milestones display in user's employee page
+[ADD] : project parameter => wether an employee can edit a milestone he is attributed
+[UPDATE] : change first panel button layout in employee and project view, move from menu to table directly 
+[ADD] : Milestones notification for project leader about Milestones edition
+
+
+
+### 20214-12-18 v0.9.6
+note : require fixture update and static
+
+[UPDATE] : report admin update to let user download the template
+[UPDATE] : css for notes and index card
+[FIX] : user able to add/update note for it's own employee
+[FIX] : issue when an employee is disabled, unable to update contract, budget
+[FIX] : issue when an admin in setting check notif, for refresh table (id is dependent of Languages!)
+[FIX] : funditem add for projet leader
+[FIX] : manage participant for leader where leader is not employee superior
+[UPDATE] : add participant : only show not already in participant list of the current project
+[UPDATE] : ability to create team for user who have rights + team mates form to focus on active employee/ change groupe rights 
+[FIX] : Import error on expense when exp Id is set for new expense
+[FIX] : docker invoke task for dumpdata
+[FIX] : bug fix for resending alreadyn sent notification with new one
+[UPDATE] : milestones notification for leader and coleader of a project.
+
+### v0.9.5/ 2024-11-08
+note : require full update (migration and static)
+
+* [ADD] : add notification app, for user to be notified when event occurs on items through the app, at first for Milestones (add, remove, complete, ....)
+* [ADD] : User Settings to enable/disable notification 
+* [ADD] : Admin Setting for pending notifications
+* [ADD] : task automation to check and send notification  
+* [UPDATE] : spread notification settings in nex tab (Notification)
+
+### 2024-11-25
+* [ADD] : labsmanager parameter to force upper case for new employee's name
+* [UPDATE] : css for hub card, and show accordion's card
+
+
+### v0.9.4/ 2024-11-08
+note : require full update (migration and static)
+
+* [FIX] Export template in resource in import view fix for resource without name
+* [ADD] expense Id to expense model, should be unique, if uniq, would be retrieve from it
+* [UPDATE] admin view for expense and contract expense
+* [ADD] : add update_report task to update file path (try)
+* [FIX] : bug fix in advancement ratio for fund without start or end date
+* [ADD] : invitation process
+
+### v0.9.1/ 2024-10-17
+note : require full update (migration and static)
+
+* [add] employee attribution to milestones
+* [add] note system to milestones   
+
+### v0.9.0 / 2024-09
+note : require full update (migration and static)
+
+* [FIX] : Issue with delete form for superior/subordinate delete view
+* [ADD] : color type setting with RGBvalidator
+* [ADD] : **Major Addition** : add plugin system. (Implement from Inventree.plugin)
+    * add SettingMixin for a plugin to add setting for admin
+    * add ScheduleMixin for a plugin to add task to schedule
+    * add CalendarEventMixin for a plugin to provide event to be display in calendar view
+* [UPDATE] : item creation (project/employee) automatic leader attribution fix if user has right to change items afterwards (global right)
+### 2024-09-05
+note : require static update
+* [UPDATE] : Information on user/employee setting page for admin
+* [ADD] : address type for info (contact and organisation)
+* [ADD] : User parameter to set default map provider to build location link for adress type info
+* [ADD] : Copy buytton for information in employee, project, contact, organisation's infos.
+* [FIX] : bug for admin button in organisation panel
+* [FIX] : prevent index card from overlapping and addigin minimum size
+* [ADD] : Notification popup for email actions in setting panel.
+* [UPDATE] : translation
+
+### 2024-08-24
+note : this version need an update for group fixture. 
+
+* [ADD] for Cost Type model, add is_hr paramter to specify wether a cost type is related to human resource, to switch on that to constrain Budget Form.
+* [ADD] Project Setting, to add project settings
+   * base calculation for project's fund, either 'Simple' (as before,only timepoint), 'Expense' : base on single expense sum for timepoint expense, or hybrid : can refer expenses, but no expense timepoint calculation, except by forcing syncing
+   * Co leader can change project : True/False : define wether a co leader of a project as the same right for project modification
+* [ADD] Single expense import / export, constrain to project's setting
+* [UPDATE] timepoint import : constrain to project's setting (mirroring expense import)
+* [UPDATE] User rules and permission
+* [UPDATE] Tasks.py to fit order with new models
+* [ADD] Version number and update login screen with footer
+* [UPDATE] Default expense status to Realised
+
+### 2024-07-27
+
+* [FIX] import issue with expense on error no fund id
+* [enhance] import form layout 
+
+
+### 2024-07-26
+note : this version need an update with static. 
+
+
+* [enhance] Change password form to hide hints 
+* [Fix] Contract's Icon in Organisation info panel 
+* [Fix] Double password reset link on login page
+* [Fix] CSS issue on provisionnal contract tab
+* [ADD] permission system at object level (django-rules), lots of modification and additions
+    * in employee, project and team view, user can change item only if user'emlployee is himself or superior, project leader or team leader
+* [ADD] Parameters to let user :
+    * modify his/her subordinates info
+    * modify project where they are co leader
+* [ADD] In finder, fund and budget are restricted for user that don't have right on items to only project where user's employee is leader or co leader 
+* [ADD] Group permission Fixture, installed at "install" task
+    * can be loaded by : python manage.py loaddata group-fixture
+    * or docker compose run lab-server invoke loadfixture group-fixture
+
+### 2024/07/11
+* [Fix] remove favorite button for user's employee
+* [enhanced] switch to nh3 sanitization of user input field
+* [enhanced] for calendar bimensual view switch from weeks label to numeric day
+* [enhanced] Add mixin for BSmodalDeleteView to help with GenericForeignKey model (note : to be broadly implemented through view modals)
+
+* [UPDATE] update to Django 4.2
+* [UPDATE] update to python 3.11.9
+
+* [ADD] Contract status : effective or provisionnal to be able to plan futur contract on fund line
+* [ADD] note system to add whatever note is needed, with "textbook" style with tab and html clean. Added to employee, project, team, organisations
+
+
+

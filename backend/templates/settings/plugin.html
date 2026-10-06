@@ -1,0 +1,100 @@
+{% extends "panel.html" %}
+{% load i18n %}
+{% load customs_tags %}
+{% load plugin_tags %}
+
+{% block label %}plugin-{{ plugin_key }}{% endblock label %}
+
+{% block heading %}
+{% trans "Plugin" %}: <em>{{ plugin.human_name }}</em>
+{% endblock heading %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col">
+        <h4>{% trans "Plugin information" %}</h4>
+        <div class='table-responsive'>
+        <table class='table table-striped table-condensed'>
+            <col width='25'>
+            <tr>
+                <td></td>
+                <td>{% trans "Name" %}</td>
+                <td>{{ plugin.human_name }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>{% trans "Description" %}</td>
+                <td>{{ plugin.description }}</td>
+            </tr>
+            <tr>
+                <td><span class='fas fa-user'></span></span></td>
+                <td>{% trans "Author" %}</td>
+                <td>{{ plugin.author }}</td>
+            </tr>
+            <tr>
+                <td><span class='fas fa-calendar-alt'></span></td>
+                <td>{% trans "Date" %}</td>
+                <td>{{ plugin.pub_date }}</td>
+            </tr>
+            <tr>
+                <td><span class='fas fa-hashtag'></span></td>
+                <td>{% trans "Version" %}</td>
+                <td>
+                    {% if plugin.version %}
+                        {{ plugin.version }}
+                    {% else %}
+                        {% trans 'no version information supplied' %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% if plugin.website %}
+            <tr>
+                <td><span class='fas fa-globe'></span></td>
+                <td>{% trans "Website" %}</td>
+                <td>{{ plugin.website }}</td>
+            </tr>
+            {% endif %}
+            {% if plugin.license %}
+            <tr>
+                <td><span class='fas fa-balance-scale'></span></td>
+                <td>{% trans "License" %}</td>
+                <td>{{ plugin.license }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td><span class='fas fa-puzzle-piece'></span></td>
+                <td>{% trans "Mixin" %}</td>
+                <td>{% for mixin in plugin.get_registered_mixins %}
+                    {{mixin}}
+                    {% if not forloop.last %}, {% endif %}
+
+                {% endfor  %}
+                
+                </td>
+            </tr>
+        </table>
+        </div>
+
+    </div>
+</div>
+
+{% mixin_enabled plugin 'settings' as settings %}
+{% if settings %}
+    {% include 'settings/plugin/settings.html' %}
+{% endif %}
+
+{% mixin_enabled plugin 'schedule' as schedule %}
+{% if schedule %}
+    {% include 'settings/plugin/schedule.html' %}
+{% endif %}
+
+
+{% mixin_enabled plugin 'urls' as urls %}
+{% if urls %}
+    {% include 'settings/plugin/urls.html' %}
+{% endif %}
+
+{% include 'settings/plugin/settings_content.html' %}
+
+{% endblock content %}
