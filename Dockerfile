@@ -1,7 +1,14 @@
+FROM node:24.11.1-bookworm-slim AS frontend-build
+WORKDIR /build/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
 # pull official base image
 FROM python:3.11.9-slim as base
 
-# set variable 
+# set variable
 ENV LAB_HOME="/home/labsmanager"
 ENV LAB_MNG_DIR="${LAB_HOME}/labsmanager"
 ENV LAB_DATA_DIR="${LAB_HOME}/data"
@@ -45,6 +52,7 @@ RUN pip install --disable-pip-version-check -U -r base_requirements.txt
 
 # Copy source code
 COPY backend ${LAB_HOME}/labsmanager
+COPY --from=frontend-build /build/frontend/dist/ ${LAB_MNG_DIR}/data/static/frontend/
 #COPY backend/data/static ${LAB_DATA_DIR}/static
 COPY requirements.txt ${LAB_HOME}/requirements.txt
 COPY gunicorn.conf.py ${LAB_HOME}/gunicorn.conf.py

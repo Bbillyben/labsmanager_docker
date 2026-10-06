@@ -1,11 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/errors'
 import { login } from '../auth/authApi'
 import { useAuth } from '../auth/AuthContext'
 import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
-import { getDjangoUrl } from '../config/django'
 import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
 import styles from './LoginPage.module.css'
@@ -73,7 +72,7 @@ export function LoginPage() {
           <input autoComplete="current-password" id="login-password" name="password" onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
           <Button disabled={submitting} type="submit" variant="primary">{t(submitting ? 'auth.signingIn' : 'auth.signIn')}</Button>
         </form>
-        <a className={styles.helpLink} href={getDjangoUrl('/accounts/password/reset/')}>{t('auth.forgotPassword')}</a>
+        <Link className={styles.helpLink} to="/password/reset">{t('auth.forgotPassword')}</Link>
       </section>
     </main>
   )

@@ -4,6 +4,7 @@ import type { ContractRecord } from '../api/contracts'
 import { useTranslation } from '../i18n/i18n'
 import { StatusBadge } from '../ui/StatusBadge'
 import { contractPercent, contractPeriod } from './contractPresentation'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './ContractSection.module.css'
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
@@ -15,6 +16,7 @@ function Organization({ value, kind }: { value: ContractRecord['fund']['funder']
 }
 
 export function ContractDetail({ contract }: { contract: ContractRecord }) {
+  useTrackRecent('contract', contract.id)
   const { t, language } = useTranslation()
   const employeeName = `${contract.employee.first_name} ${contract.employee.last_name}`
   const project = contract.fund.project

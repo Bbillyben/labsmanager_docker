@@ -19,6 +19,7 @@ import { Button } from '../ui/Button'
 import { LoadingState } from '../components/LoadingState'
 import { PageHeader } from '../ui/PageHeader'
 import { BudgetReadOnlyDetails } from './ProjectBudgetsPanel'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import { ExpenseReadOnlyDetails } from './ExpenseSection'
 import styles from './EmployeeListPage.module.css'
 
@@ -28,6 +29,7 @@ const moneyLabel = (value: string | null, language: string) => value === null ? 
 const percentLabel = (value: string | null, language: string) => value === null ? '—' : new Intl.NumberFormat(language, { style: 'percent', maximumFractionDigits: 1 }).format(Number(value))
 
 export function FinancialToolPage({ kind }: { kind: FinancialKind }) {
+  useTrackRecent(kind === 'fund-items' ? 'fund-explorer' : kind === 'budgets' ? 'budget-explorer' : 'expenses')
   const { t, language } = useTranslation()
   const [query, setQuery] = useSearchParams()
   const canonical = financialQuery(kind, query)

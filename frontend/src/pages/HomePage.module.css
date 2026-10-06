@@ -1,0 +1,14 @@
+.home { display: grid; gap: 1.5rem; max-width: 70rem; min-width: 0; }
+.section { display: grid; gap: .7rem; min-width: 0; }
+.section h2 { font-size: 1rem; font-weight: 650; }
+.primary { display: flex; align-items: center; gap: .8rem; width: min(100%, 32rem); padding: .8rem 1rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); }
+.primary > span { display: grid; gap: .1rem; flex: 1; min-width: 0; }
+.primary small, .recents small, .empty { color: var(--muted-foreground); font-size: .8rem; }
+.inlineLinks { display: flex; flex-wrap: wrap; gap: .45rem 1rem; }
+.inlineLinks a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.recents { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: .4rem .7rem; padding: 0; margin: 0; list-style: none; }
+.recents a { display: flex; align-items: center; gap: .6rem; min-width: 0; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: .6rem; }
+.recents a > span { display: grid; flex: 1; min-width: 0; }
+.recents strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.recents a:hover, .primary:hover { background: var(--accent); }
+.recents a:focus-visible, .primary:focus-visible, .inlineLinks a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }

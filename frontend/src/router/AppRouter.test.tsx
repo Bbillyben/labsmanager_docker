@@ -89,7 +89,6 @@ describe('AppRouter', () => {
     window.history.pushState({}, '', '/app/')
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] })
     document.documentElement.classList.remove('dark')
-    localStorage.removeItem('labsmanager-theme')
   })
 
   it.each(['fund-items', 'budgets', 'expenses'] as const)('loads the %s financial tool and its navigation for an authenticated user', async (kind) => {
@@ -164,10 +163,15 @@ describe('AppRouter', () => {
   })
 
   it('renders the authenticated shell and identity', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(authenticatedUser))
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/me/') return jsonResponse(authenticatedUser)
+      if (String(input) === '/api/v1/dashboards/') return jsonResponse([])
+      if (String(input) === '/api/v1/recent-items/') return jsonResponse([])
+      throw new Error(String(input))
+    })
     renderAt('/app/')
 
-    expect(await screen.findByRole('heading', { name: 'Bienvenue, Ada Lovelace' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Bienvenue, Ada' })).toBeInTheDocument()
     expect(screen.getByTitle('ada')).toHaveTextContent('Ada')
     expect(screen.getAllByText('Accueil', { selector: 'span' })).toHaveLength(2)
     const topbar = screen.getByRole('button', { name: 'Menu utilisateur : Ada' }).closest('header')!
@@ -450,15 +454,62 @@ describe('AppRouter', () => {
 
   it('links the user menu to the associated Employee profile', async () => {
     const user = userEvent.setup()
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(authenticatedUser))
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/me/') return jsonResponse(authenticatedUser)
+      if (String(input) === '/api/v1/settings/user/interface/LAB_THEME/') return jsonResponse({ key: 'LAB_THEME', value: 'dark' })
+      if (String(input) === '/api/v1/dashboards/' || String(input) === '/api/v1/recent-items/') return jsonResponse([])
+      throw new Error(String(input))
+    })
     renderAt('/app/')
 
     await user.click(await screen.findByRole('button', { name: 'Menu utilisateur : Ada' }))
 
     expect(await screen.findByRole('menuitem', { name: 'Ma fiche' })).toHaveAttribute('href', '/app/employees/42')
     await user.click(screen.getByRole('menuitem', { name: 'Apparence : thème sombre' }))
-    expect(document.documentElement).toHaveClass('dark')
-    expect(localStorage.getItem('labsmanager-theme')).toBe('dark')
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/v1/settings/user/interface/LAB_THEME/')).toBe(true)
+    await waitFor(() => expect(document.documentElement).toHaveClass('dark'))
+  })
+
+  it('loads the stored theme and rolls back when its save fails', async () => {
+    const user = userEvent.setup()
+    const account = { ...authenticatedUser, theme: 'dark' as const }
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/me/') return jsonResponse(account)
+      if (String(input) === '/api/v1/settings/user/interface/LAB_THEME/') return jsonResponse({ value: ['Save failed'] }, 400)
+      if (String(input) === '/api/v1/dashboards/' || String(input) === '/api/v1/recent-items/') return jsonResponse([])
+      throw new Error(String(input))
+    })
+    renderAt('/app/')
+    await waitFor(() => expect(document.documentElement).toHaveClass('dark'))
+    const trigger = screen.getByRole('button', { name: 'Menu utilisateur : Ada' })
+    await user.click(trigger)
+    if (trigger.getAttribute('aria-expanded') === 'false') await user.click(trigger)
+    await user.click(await screen.findByRole('menuitem', { name: 'Apparence : thème clair' }))
+    await waitFor(() => expect(document.documentElement).toHaveClass('dark'))
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/v1/settings/user/interface/LAB_THEME/')).toBe(true)
+  })
+
+  it('uses the same theme setting in Interface and the user menu', async () => {
+    const user = userEvent.setup()
+    const setting = { key: 'LAB_THEME', name: 'Theme', description: 'Color theme', type: 'choice', value: 'dark', default: 'light', can_change: true, choices: [{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }] }
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/me/') return jsonResponse({ ...authenticatedUser, theme: 'dark' })
+      if (String(input) === '/api/v1/settings/lists/') return jsonResponse({ groups: [] })
+      if (String(input) === '/api/v1/settings/user/interface/') return jsonResponse({ settings: [setting] })
+      if (String(input) === '/api/v1/settings/user/interface/LAB_THEME/') return jsonResponse({ ...setting, value: 'light' })
+      throw new Error(String(input))
+    })
+    renderAt('/app/settings/interface')
+    const theme = await screen.findByLabelText('Theme', { selector: 'select' })
+    expect(theme).toHaveValue('dark')
+    await user.selectOptions(theme, 'light')
+    await waitFor(() => expect(document.documentElement).not.toHaveClass('dark'))
+    expect(theme).toHaveValue('light')
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/v1/settings/user/interface/LAB_THEME/')).toBe(true)
+    const trigger = screen.getByRole('button', { name: 'Menu utilisateur : Ada' })
+    await user.click(trigger)
+    if (trigger.getAttribute('aria-expanded') === 'false') await user.click(trigger)
+    expect(await screen.findByRole('menuitem', { name: 'Apparence : thème sombre' })).toBeInTheDocument()
   })
 
   it('shows the Django Admin link only when the backend grants access', async () => {
@@ -518,16 +569,21 @@ describe('AppRouter', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(authenticatedUser))
     renderAt('/app/')
 
-    expect(await screen.findByRole('link', { name: 'Employés' })).toHaveAttribute('href', '/app/employees/')
-    expect(screen.getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/app/projects/')
-    expect(screen.queryByRole('link', { name: 'Équipes' })).not.toBeInTheDocument()
+    const navigation = await screen.findByRole('navigation', { name: 'Navigation principale' })
+    expect(within(navigation).getByRole('link', { name: 'Employés' })).toHaveAttribute('href', '/app/employees/')
+    expect(within(navigation).getByRole('link', { name: 'Projets' })).toHaveAttribute('href', '/app/projects/')
+    expect(within(navigation).queryByRole('link', { name: 'Équipes' })).not.toBeInTheDocument()
   })
 
   it('omits the historical domain group when no navigation capability is available', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(userWithoutNavigationCapabilities))
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/me/') return jsonResponse(userWithoutNavigationCapabilities)
+      if (String(input) === '/api/v1/dashboards/' || String(input) === '/api/v1/recent-items/') return jsonResponse([])
+      throw new Error(String(input))
+    })
     renderAt('/app/')
 
-    expect(await screen.findByRole('heading', { name: 'Bienvenue, Ada Lovelace' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Bienvenue, Ada' })).toBeInTheDocument()
     expect(screen.queryByText('Interface historique', { selector: 'p' })).not.toBeInTheDocument()
   })
 

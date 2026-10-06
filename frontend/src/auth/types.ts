@@ -21,6 +21,7 @@ export type AuthenticatedUser = {
   is_superuser: boolean
   can_access_admin?: boolean
   admin_url?: string | null
+  theme: 'light' | 'dark'
   employee: {
     id: number
     first_name: string

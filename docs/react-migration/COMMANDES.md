@@ -1170,3 +1170,60 @@ Depuis `backend/` : `python3 manage.py test global_search.tests global_search.te
 ## R3.12 — Autocomplétion Global Search
 
 Depuis `backend/` : `python3 manage.py test global_search.tests global_search.tests_r310 global_search.tests_r311 global_search.tests_r312 --keepdb --noinput`, puis `python3 manage.py check`. Depuis `frontend/` avec Node NVM : `npx vitest run src/search/GlobalSearch.test.tsx src/search/SearchAutocompleteInput.test.tsx src/api/globalSearch.test.ts --maxWorkers=1`, `npm run typecheck` et ESLint ciblé sur Search/API/i18n. Vérifier `git diff --check` sur les fichiers du lot. Au navigateur : `pro` → `project:`, `lea` → `leader:`, `leader:dup` → Employee visible, espace après condition → AND/OR, `info:mat` → `info:"Matricule CHU"=`, édition au milieu, flèches/Entrée/Tab/Échap/clic, aperçu des résultats après fermeture des suggestions, comptes et navigation. Comparer deux utilisateurs pour vérifier l'absence de valeurs invisibles. Aucun migrate requis.
+
+## R3.13 — Home et Recent Items
+
+`common.0012_recentitem` est déjà appliquée en développement. Lors d'un futur déploiement, appliquer `python3 manage.py migrate common 0012` depuis `backend/` sur la base cible. Vérifier avec `python3 manage.py test common.tests_recent_items --keepdb --noinput` et `python3 manage.py check`. Depuis `frontend/` avec Node NVM : tests ciblés `src/pages/HomePage.test.tsx` et `src/hooks/useTrackRecent.test.tsx`, `npm run typecheck`, ESLint ciblé et `git diff --check` dans les deux dépôts. Au navigateur, vérifier Dashboard par défaut et autres tableaux, Project/Employee, Fund avec fragment de ligne, Calendar, explorateurs, ordre après réouverture, disparition après perte de permission et état vide.
+
+## R3.14 — Auth React et thème Light/Dark
+
+`settings.0009_reset_lab_theme` est appliquée sur la base de développement. Lors d'un futur déploiement, exécuter `python3 manage.py migrate settings 0009` depuis `backend/` sur la base cible : cette migration efface seulement les lignes utilisateur `LAB_THEME` antérieures et rétablit le défaut `light`. Définir `REACT_PUBLIC_URL` à la base publique canonique de React, suffixe `/app` inclus (par exemple `http://localhost:5173/app`), avant de lancer Django : le lien e-mail utilise cette base et React rejoint le pont Django par `/api`. La valeur est lue dans l’environnement puis dans `backend/config.yaml` (`react_public_url`) ; redémarrer Django après changement et vérifier la valeur effective avec `python3 manage.py shell -c 'from django.conf import settings; print(settings.REACT_PUBLIC_URL)'`. Une valeur vide renvoie 503 sans envoyer d’e-mail, y compris en développement. React appelle le pont via `/api` avec le cookie de session ; le pont répond en JSON et ne redirige plus vers `/app`. Vérifier `python3 manage.py test labsmanager.tests.test_api_v1_password_reset labsmanager.tests.test_api_v1_user_settings --keepdb --noinput`, `python3 manage.py check`, les tests React auth/routeur ciblés, TypeScript, ESLint ciblé et `git diff --check`. Au navigateur : demande d'un compte connu et inconnu, vrai lien reçu, mot de passe invalide/valide, lien expiré, retour Login ; puis thème depuis le menu et Settings, rechargement, déconnexion/reconnexion et deux comptes différents. Le déploiement Docker et l'intégration du build React restent à traiter séparément.
+
+
+## R4.1 — Build Docker et publication static React
+
+Construire l’image depuis la racine avec `docker build -t labsmanager/labsmanager:r4.1 .`. L’étape Node utilise le lockfile (`npm ci`) et produit `frontend/dist/` pendant le build ; l’image finale copie cet artefact dans `backend/data/static/frontend/` sans Node. Au démarrage de `lab-server`, `init.sh` lance `python3 manage.py collectstatic --noinput` vers `LAB_STATIC_ROOT` sur le volume partagé, sans `--clear`. `lab-worker` utilise la même image et saute la collecte avec `LAB_SKIP_COLLECTSTATIC=1`. Vérifier dans `STATIC_ROOT/frontend/` `index.html`, `assets/` et le logo, ainsi que `admin/` et les static legacy ; une seconde collecte doit mettre à jour un fichier modifié sans supprimer un ancien fichier. Le build Vite référence `/static/frontend/` en production et `/app/` en développement. Le routage nginx des pages `/app/` n’est pas traité avant R4.2.
+
+Validation réalisée pour R4.1 : `docker build --target frontend-build -t labsmanager-r41-frontend-check .`, `docker build -t labsmanager-r41-check .`, contrôle `docker run --rm --entrypoint sh ...` de l’index/assets et de l’absence de Node/npm, build Vite local, deux `collectstatic` sur une racine temporaire, puis `python3 manage.py check`, `bash -n init.sh` et `git diff --check`. Aucun `collectstatic --clear`.
+
+## R4.2 — Deux entrées nginx, React et legacy
+
+`docker compose up -d --no-build lab-server lab-proxy` expose React sur `LAB_WEB_PORT` (défaut 1337) et le legacy Django sur `LAB_LEGACY_WEB_PORT` (défaut 1338). L'image R4.1 doit être construite auparavant. Vérifier `docker compose config --quiet`, `docker exec lab-proxy nginx -t`, puis `/app/`, un lien profond `/app/...`, un asset `/static/frontend/assets/...`, `/api/v1/me/`, `/admin/` et une vraie 404 backend sur le port principal. Sur le port legacy, vérifier `/`, `/static/...`, API et admin. Les deux ports rejoignent le même `lab-server` ; `/media/` n'est pas rendu public par nginx. Pour un accès HTTP direct sans terminaison TLS en amont, les réglages Django de redirection HTTPS et de cookies sécurisés doivent être adaptés à l'environnement ; conserver les réglages HTTPS pour un déploiement derrière TLS. R4.3 reste responsable du bootstrap et de la validation de production.
+
+## R4.3 — Installation, upgrade et retour arrière Docker
+
+Configurer une clé `SECRET_KEY` longue, aléatoire et propre à l'installation, `DEBUG=false`, les identifiants PostgreSQL, les hosts et origines CSRF publics, et `REACT_PUBLIC_URL=https://<hôte-public>/app` avant de construire/démarrer. Le template contient une clé de démonstration **refusée quand `DEBUG=false`**. Si `DJANGO_ADMINS` est défini, utiliser le format `nom:adresse@example.org` (entrées séparées par des espaces) : une valeur locale au format virgule empêche Django de notifier les erreurs. La résolution du fichier reste `LABSMANAGER_CONFIG_FILE` > `LABSMANAGER_CONFIG_PROFILE` > `config.yaml` ; les variables d'environnement ont priorité sur ces fichiers. `.env`, `backend/config.yaml` et `frontend/.env*` sont exclus de l'image ; ne pas placer de secret dans une variable `VITE_*`. En Docker sur la même origine, ne pas définir `VITE_DJANGO_PUBLIC_URL` au build : les liens Django restent relatifs, tandis que `REACT_PUBLIC_URL` est lu au runtime pour les e-mails de reset. Vérifier l'URL publique effective avant l'envoi réel d'un mail.
+
+Pour une **base vierge**, démarrer uniquement PostgreSQL (`docker compose up -d lab-db`), construire une image taguée unique (`docker compose build lab-server`, avec `LAB_TAG` défini), puis lancer `docker compose run --rm --no-deps --entrypoint python3 lab-server /home/labsmanager/labsmanager/manage.py migrate --noinput`. Aucune option `--skip-checks` n'est nécessaire. Démarrer ensuite les quatre services avec `docker compose up -d --no-build`. Le serveur et le worker vérifient tous deux que les migrations sont appliquées ; seul le serveur exécute `collectstatic`, sans `--clear`. Compose attend la santé PostgreSQL puis Gunicorn avant de lancer worker et nginx. Ne pas démarrer worker ou serveur avant l'étape de migration.
+
+Pour une **mise à niveau**, tester d'abord la procédure sur une base dédiée restaurée depuis un dump récent de l'ancienne version, jamais sur la production réelle. Conserver l'ancien tag/image et arrêter les écritures :
+
+```sh
+docker compose stop lab-worker lab-proxy lab-server
+umask 077
+docker compose exec -T lab-db sh -c 'pg_dump -U "$POSTGRES_USER" -Fc "$POSTGRES_DB"' > avant-r43.dump
+# Conserver aussi une sauvegarde du volume media/plugins selon la politique du site.
+# Pointer LAB_TAG vers la nouvelle image et la construire/puller avant les commandes suivantes.
+docker compose run --rm --no-deps --entrypoint python3 lab-server /home/labsmanager/labsmanager/manage.py showmigrations --plan
+docker compose run --rm --no-deps --entrypoint python3 lab-server /home/labsmanager/labsmanager/manage.py migrate --plan
+docker compose run --rm --no-deps --entrypoint python3 lab-server /home/labsmanager/labsmanager/manage.py migrate --noinput
+docker compose run --rm --no-deps --entrypoint python3 lab-server /home/labsmanager/labsmanager/manage.py migrate --noinput
+docker compose up -d --no-build
+docker exec lab-proxy nginx -t
+```
+
+La seconde migration doit annoncer « No migrations to apply ». Contrôler `python3 manage.py check` et `check --deploy` avec le profil de production, puis login/logout, session/CSRF, reset par e-mail, `/app/` et des routes profondes Project/Employee/Dashboard/Search/Settings, API, `/admin/`, le port legacy et des objets Employee/Project/Fund/Contract/Expense/Leave préexistants. Comparer au dump avant migration les comptes ou identifiants représentatifs. Aucun dataset de démonstration ne doit être généré sur cette base.
+
+En **HTTP direct de test**, laisser `LAB_TRUST_PROXY_SSL_HEADER=false`, `SECURE_SSL_REDIRECT=false`, cookies `SECURE=false` et HSTS à 0 ; ce n'est pas un profil de production publique. Derrière un **reverse proxy HTTPS**, connecter la route React exclusivement au listener nginx de confiance `127.0.0.1:${LAB_TRUSTED_HTTPS_PORT:-1339}` sur l'hôte ou à `lab-proxy:82` sur un réseau Docker de confiance ; connecter la route legacy distincte à `127.0.0.1:${LAB_TRUSTED_LEGACY_HTTPS_PORT:-1340}` ou à `lab-proxy:83`. Ces listeners fixent `X-Forwarded-Proto=https` ; les ports HTTP directs le fixent à `http` et le port Gunicorn n'est publié que sur loopback. Activer `LAB_TRUST_PROXY_SSL_HEADER=true`, `SECURE_SSL_REDIRECT=true`, `SESSION_COOKIE_SECURE=true`, `CSRF_COOKIE_SECURE=true`, `ACCOUNT_DEFAULT_HTTP_PROTOCOL=https`, `CSRF_TRUSTED_ORIGINS=https://<hôte-public>` (et l'origine legacy si distincte) et une politique HSTS adaptée après validation du domaine. Le proxy externe doit contrôler `Host` et ne pas exposer les listeners de confiance aux clients. nginx ne termine pas TLS lui-même. Vérifier les redirections et les cookies depuis les URL publiques réelles ; les ports directs HTTP sont réservés aux tests ou à l'accès interne si HTTPS est imposé.
+
+Le retour arrière n'est **pas** un `migrate` inverse automatique. Arrêter serveur, worker et proxy ; si la migration est incompatible, restaurer le dump et le volume sauvegardé, puis remettre `LAB_TAG` sur l'image précédente et relancer la stack. Exemple de restauration sur la base choisie, après vérification manuelle de la cible et arrêt de toutes ses écritures :
+
+```sh
+docker compose stop lab-worker lab-proxy lab-server
+docker compose exec -T lab-db sh -c 'dropdb -U "$POSTGRES_USER" "$POSTGRES_DB" && createdb -U "$POSTGRES_USER" "$POSTGRES_DB"'
+docker compose exec -T lab-db sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner --no-acl' < avant-r43.dump
+# Rétablir LAB_TAG et les fichiers media/plugins sauvegardés si nécessaire.
+docker compose up -d --no-build
+```
+
+Ne jamais faire tourner deux versions Django différentes sur la même base. Conserver le dump initial jusqu'à validation complète. Les journaux de `lab-server`, `lab-worker` et `lab-proxy`, ainsi que les états healthcheck de Compose, sont les premiers contrôles en cas d'échec.

@@ -25,6 +25,7 @@ import { PageHeader } from '../ui/PageHeader'
 import { OrganizationFormSheet, ContactFormSheet, InfoFormSheet } from './OrganizationSheets'
 import { useEmployeeResource } from './useEmployeeResource'
 import { getContract } from '../api/contracts'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import { ContractDetail } from './ContractDetail'
 import { ContractHubTable } from './ContractHubTable'
 import { ProjectListTable } from './ProjectListTable'
@@ -44,6 +45,7 @@ export function OrganizationDetailPage({ kind }: { kind: OrganizationKind }) {
   const navigate = useNavigate()
   const loader = useCallback((id: string, signal: AbortSignal) => getOrganization(kind, id, signal), [kind])
   const resource = useEmployeeResource(organizationId, loader)
+  useTrackRecent(kind === 'institutions' ? 'institution' : 'funder', Number(organizationId), Boolean(resource.data))
   const tab = location.pathname.split('/').filter(Boolean).at(-1)
   const selected = tabs.some((item) => item.path === tab) ? tab : ''
   const [editing, setEditing] = useState(false)

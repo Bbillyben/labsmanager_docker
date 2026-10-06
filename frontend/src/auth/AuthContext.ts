@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { AuthenticatedUser } from './types'
+import type { UserSettingData } from '../api/userSettings'
 
 export type AuthState =
   | { status: 'loading' }
@@ -10,6 +11,7 @@ export type AuthState =
 export type AuthContextValue = AuthState & {
   refresh: () => Promise<void>
   markUnauthenticated: () => void
+  changeTheme: (theme: 'light' | 'dark') => Promise<UserSettingData>
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined)

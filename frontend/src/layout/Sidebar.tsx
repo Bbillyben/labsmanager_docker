@@ -46,7 +46,7 @@ export function Sidebar({ expanded, interactive, onRequestExpand, user }: Sideba
         {user.capabilities.view_project_list && <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/projects/" title={t('navigation.projects')}><FlaskConical aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('navigation.projects')}</span></NavLink>}
         {user.capabilities.view_team_list && <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/teams/" title={t('navigation.teams')}><UsersRound aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('navigation.teams')}</span></NavLink>}
         <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/calendars" title={t('calendars.title')}><CalendarDays aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('calendars.title')}</span></NavLink>
-
+        <FavoritesMenu expanded={expanded} onRequestExpand={onRequestExpand} />
 
         {user.capabilities.view_organizations && (
           <SidebarGroup title={t('navigation.organizations')} defaultOpen={false}>
@@ -86,7 +86,7 @@ export function Sidebar({ expanded, interactive, onRequestExpand, user }: Sideba
           <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/tools/expenses" title={t('financial.expenses')}><Receipt aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('financial.expenses')}</span></NavLink>
         </SidebarGroup>
 
-        <FavoritesMenu expanded={expanded} onRequestExpand={onRequestExpand} />
+
 
       </nav>
     </aside>

@@ -21,7 +21,7 @@
 - Le routeur React utilise `/app` comme basename. Les navigations internes utilisent React Router ; les transitions vers l'interface historique et les workflows de compte non migres restent des liens HTML construits depuis l'origine Django publique.
 - Le client React appelle l'API avec des URLs relatives, la session Django et le cookie CSRF. Un `401` invalide centralement la session frontend, tandis qu'un `403` conserve sa signification d'interdiction sans deconnexion implicite.
 - React porte la page de connexion et la deconnexion via `/api/v1/auth/login/` et `/api/v1/auth/logout/`. Ces POST exigent CSRF et reutilisent django-allauth pour l'authentification par identifiant/email, les backends, la session et les limites de tentatives ; aucune logique de mot de passe ou de compte n'est dupliquee dans React.
-- Inscription/invitation, reinitialisation et changement de mot de passe, ainsi que gestion des emails restent des workflows Django/allauth tant qu'un lot dedie ne les migre pas.
+- L'inscription et l'invitation restent des workflows Django/allauth. Le changement de mot de passe et les e-mails du compte utilisent Settings React ; la réinitialisation R3.14 utilise React avec jetons, formulaires et validations allauth côté backend.
 - En developpement separe, Vite proxifie uniquement `/api`; `VITE_DJANGO_PUBLIC_URL` fournit l'origine des liens HTML vers Django.
 - Le socle frontend est teste avec Vitest, jsdom et React Testing Library. Aucun gestionnaire d'etat, cache de requetes, client HTTP tiers ou bibliotheque UI n'est introduit dans R0.
 - Un lot UX/UI precedera toute interface metier React significative ; le shell R0 reste volontairement minimal.
@@ -51,7 +51,7 @@
 ## UX2 — Design System de référence
 
 - shadcn/ui Base UI/base-nova + Tailwind v4, Lucide ; primitives locales communes, pas de second système Button/Input/Popover. Les composants métier restent spécifiques à LabsManager.
-- Teal Light/Dark via tokens sémantiques ; sélection locale du thème dans la topbar, aucune refonte des préférences utilisateur.
+- Teal Light/Dark via tokens sémantiques ; depuis R3.14, `LAB_THEME` est la préférence utilisateur unique du menu et de Settings > Interface, avec bootstrap depuis `/me/` et défaut clair pour les pages anonymes.
 - Sections avant Cards, densité modérée/compacte, actions légères ghost. Employee List pilote uniquement ; futurs écrans alignés sur cette base après validation visuelle.
 - Actions existantes déplacées dans le menu `⋯` de ligne, espace réservé et accès clavier. Galerie en lignes compactes et recherche distante via Combobox ; contrats R1/R1.1 conservés.
 
@@ -341,3 +341,13 @@ Le générateur de démonstration opère sur une base dédiée, refuse une gén�
 
 - Le contexte d'autocomplétion est calculé côté backend depuis le tokenizer R3.11 en mode tolérant ; la recherche exécutée garde son parser strict. L'endpoint renvoie contexte, plage de remplacement et texte à insérer. React partage le même contrôle Topbar/page et ne contient aucune grammaire métier.
 - Les suggestions de valeurs proviennent uniquement des querysets visibles des providers actifs, avec projection bornée ; les champs et valeurs plugins suivent le même contrat. Les types GenericInfo reprennent les catalogues visibles, sans exposer de valeurs GenericInfo. Aucun opérateur de recherche supplémentaire n'est ajouté.
+
+## R3.13 — Home et récents
+
+- Un récent désigne une destination ouverte, objet ou page, identifiée par `url_id` et `obj_id` nullable. Deux contraintes partielles garantissent l'unicité avec et sans `obj_id` sur PostgreSQL. Le frontend décide quand suivre ; le backend contrôle et résout, sans accepter d'URL arbitraire.
+- La Home reste un hub sans widgets, favoris ni annonces. Les liens Search et Recent partagent les destinations métier canoniques ; la visibilité actuelle est revérifiée à chaque lecture. Les pages financières globales suivent leur API authentifiée, tandis que Calendar conserve sa capability de navigation.
+
+## R4.3 — Upgrade explicite et transport de confiance
+
+- Les migrations de production ne sont pas lancées automatiquement par plusieurs services. L'opérateur sauvegarde la base, applique les migrations une seule fois avec la nouvelle image, puis démarre la stack ; serveur et worker refusent un schéma incomplet. Le retour arrière s'appuie sur le dump et l'image antérieure, pas sur une inversion automatique des migrations.
+- Django ne fait confiance à `X-Forwarded-Proto` que sur opt-in explicite. nginx fixe `http` sur ses ports directs et `https` sur deux listeners réservés à un terminateur TLS de confiance (React et legacy), publiés seulement sur loopback ; le port Gunicorn publié est aussi limité au loopback. Le frontend compilé garde ses URLs Django relatives dans le déploiement de même origine.

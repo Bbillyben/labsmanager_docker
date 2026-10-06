@@ -14,6 +14,7 @@ import { ReportExportDialog } from '../components/ReportExportDialog'
 import { StatusBadge } from '../ui/StatusBadge'
 import { EmployeeDetailContext } from './employeeDetailContext'
 import { useEmployeeResource } from './useEmployeeResource'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './EmployeeDetailPage.module.css'
 
 export function EmployeeDetailPage() {
@@ -21,6 +22,7 @@ export function EmployeeDetailPage() {
   const location = useLocation()
   const { t } = useTranslation()
   const employee = useEmployeeResource(employeeId, getEmployee)
+  useTrackRecent('employee', Number(employeeId), Boolean(employee.data))
   const [exportFormat, setExportFormat] = useState<'word' | 'pdf' | null>(null)
   const actionTrigger = useRef<HTMLElement | null>(null)
 

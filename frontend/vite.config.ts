@@ -3,12 +3,12 @@ import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const djangoTarget = env.VITE_DJANGO_PROXY_TARGET || 'http://192.168.1.145:7000'
 
   return {
-    base: '/app/',
+    base: command === 'build' ? '/static/frontend/' : '/app/',
     plugins: [react(), tailwindcss()],
     resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
     server: {

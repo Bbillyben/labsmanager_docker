@@ -2,6 +2,7 @@ import { ArrowLeft, Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getTeam, getTeamBudgets, getTeamProjects, removeTeamMate, type Team, type TeamBudget, type TeamEmployee, type TeamMate, type TeamProject } from '../api/teams'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import { ApiError, normalizeMutationError } from '../api/errors'
 import { useMutation } from '../api/useMutation'
 import { GenericNotes } from '../components/GenericNotes'
@@ -39,6 +40,7 @@ export function TeamDetailPage() {
   const { teamId = '' } = useParams()
   const location = useLocation()
   const team = useEmployeeResource(teamId, getTeam)
+  useTrackRecent('team', Number(teamId), Boolean(team.data))
   const tab = location.pathname.split('/').filter(Boolean).at(-1)
   const selected = sections.some((section) => section.path === tab) ? tab : ''
   if (team.loading) return <LoadingState message={t('team.loading')} />

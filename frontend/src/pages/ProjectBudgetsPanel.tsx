@@ -18,6 +18,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { useEmployeeResource } from './useEmployeeResource'
 import { ExpenseSection } from './ExpenseSection'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './ProjectBudgetsPanel.module.css'
 
 const money = (value: string | null, language: string) => value === null ? '—' : new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(Number(value))
@@ -47,6 +48,7 @@ function BudgetSection({ projectId, kind }: { projectId: string; kind: BudgetKin
   const title = t(label)
   const data = resource.data
   const selectedBudget = kind === 'budget' ? data?.items.find((item) => item.id === selectedId) : null
+  useTrackRecent('budget', selectedId ?? undefined, Boolean(selectedBudget))
   const expenseScope = useMemo(() => selectedId === null ? null : { projectId, budgetId: selectedId }, [projectId, selectedId])
 
   function open(item: BudgetBase, target: HTMLElement) {

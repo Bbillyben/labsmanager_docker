@@ -23,6 +23,7 @@ import { ContractSection } from './ContractSection'
 import { ProjectSheet } from './ProjectSheet'
 import { GenericNotes } from '../components/GenericNotes'
 import { useEmployeeResource } from './useEmployeeResource'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './EmployeeDetailPage.module.css'
 
 const sections = [
@@ -54,6 +55,7 @@ export function ProjectDetailPage() {
   const showNotes = location.pathname.endsWith('/notes')
   const showDashboard = location.pathname.endsWith('/dashboard')
   const resource = useEmployeeResource(projectId, getProject)
+  useTrackRecent('project', Number(projectId), Boolean(resource.data))
   const [editing, setEditing] = useState(false)
   const [exportFormat, setExportFormat] = useState<'word' | 'pdf' | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)

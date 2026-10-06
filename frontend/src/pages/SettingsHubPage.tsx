@@ -54,6 +54,7 @@ export function SettingsHubPage() {
 
 export function UserSettingsSection({ section }: { section: UserSettingSection }) {
   const { t } = useTranslation()
+  const auth = useAuth()
   const loader = useCallback((key: string, signal: AbortSignal) => getUserSettings(key as UserSettingSection, signal), [])
   const resource = useEmployeeResource(section, loader)
   const [pending, setPending] = useState<string | null>(null)
@@ -66,7 +67,8 @@ export function UserSettingsSection({ section }: { section: UserSettingSection }
     setSaved(null)
     setErrors((current) => ({ ...current, [key]: '' }))
     try {
-      const result = await updateUserSetting(section, key, value)
+      const result = key === 'LAB_THEME' && (value === 'light' || value === 'dark')
+        ? await auth.changeTheme(value) : await updateUserSetting(section, key, value)
       resource.updateData((current) => ({ settings: current.settings.map((item) => item.key === key ? result : item) }))
       setSaved(key)
       return result
@@ -80,7 +82,7 @@ export function UserSettingsSection({ section }: { section: UserSettingSection }
     <h2 className="text-lg font-semibold">{t(`userSettings.${section}`)}</h2>
     {resource.loading && <p role="status">{t('common.loading')}</p>}
     {!!resource.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={resource.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
-    {resource.data?.settings.map((setting) => <SettingRow key={setting.key} setting={setting} disabled={pending !== null} saving={pending === setting.key} error={errors[setting.key]} saved={saved === setting.key} onSave={(value) => save(setting.key, value)} />)}
+    {resource.data?.settings.map((setting) => <SettingRow key={setting.key} setting={setting.key === 'LAB_THEME' && auth.status === 'authenticated' ? { ...setting, value: auth.user.theme } : setting} disabled={pending !== null} saving={pending === setting.key} error={errors[setting.key]} saved={saved === setting.key} onSave={(value) => save(setting.key, value)} />)}
   </section>
 }
 

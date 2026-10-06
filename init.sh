@@ -13,10 +13,17 @@ if [[ ! -d "$LAB_STATIC_ROOT" ]]; then
     mkdir -p $LAB_STATIC_ROOT
 fi
 
-# static files
-if [ ! "$(ls -A $LAB_STATIC_ROOT)" ]; then
-    echo "Copying file to  $LAB_STATIC_ROOT"
-    cp -r $LAB_MNG_DIR/data/static/* $LAB_STATIC_ROOT/
+# Migrations are an explicit, single-operator deployment step. Refuse to start
+# either Gunicorn or the worker against a schema that has not been upgraded.
+if ! python3 "$LAB_MNG_DIR/manage.py" migrate --check --noinput; then
+    echo "Database migration check failed; run manage.py migrate before starting server or worker." >&2
+    exit 1
+fi
+
+# Collect current image assets into the shared static volume without deleting legacy files.
+if [[ "${LAB_SKIP_COLLECTSTATIC:-0}" != "1" ]]; then
+    echo "Collecting static files into $LAB_STATIC_ROOT"
+    python3 "$LAB_MNG_DIR/manage.py" collectstatic --noinput
 fi
 
 if [[ ! -d "$LAB_MEDIA_ROOT" ]]; then

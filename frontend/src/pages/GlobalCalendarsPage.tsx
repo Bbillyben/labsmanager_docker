@@ -29,6 +29,7 @@ import { MilestoneDetailSheet } from './MilestoneDetailSheet'
 import { milestoneStateKey } from './milestonePresentation'
 import { projectCalendarRange, projectCalendarScopeOrder, projectCalendarScopes, projectCalendarViewDefinition, shiftProjectCalendarAnchor } from './projectCalendarScopes'
 import { useEmployeeResource } from './useEmployeeResource'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './EmployeeLeaves.module.css'
 
 type Tab = 'employees' | 'projects'
@@ -71,6 +72,7 @@ function apiFilters(catalogue: SupportedFilter[], query: URLSearchParams, tab: T
 }
 
 export function GlobalCalendarsPage() {
+  useTrackRecent('calendar')
   const { language, t } = useTranslation()
   const navigate = useNavigate()
   const [query, setQuery] = useSearchParams()

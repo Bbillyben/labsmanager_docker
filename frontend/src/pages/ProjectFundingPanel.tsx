@@ -15,6 +15,7 @@ import { Button } from '../ui/Button'
 import { LoadingState } from '../components/LoadingState'
 import { useEmployeeResource } from './useEmployeeResource'
 import { ExpenseSection } from './ExpenseSection'
+import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './ProjectFundingPanel.module.css'
 
 const dateLabel = (value: string | null, language: Language) => value ? new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : '—'
@@ -42,6 +43,7 @@ export function ProjectFundingPanel({ projectId }: { projectId: string }) {
   }, [focusVersion])
   const data = resource.data
   const selected = data?.funds.find((fund) => fund.id === selectedId) ?? null
+  useTrackRecent('fund', selectedId ?? undefined, Boolean(selected))
 
   async function saved(fund: Fund) {
     setEditing(null)
