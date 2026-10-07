@@ -3,3 +3,5 @@
 .vs/*
 *.bck
 __pycache__/
+config.*.yaml
+backend/config.*.yaml
