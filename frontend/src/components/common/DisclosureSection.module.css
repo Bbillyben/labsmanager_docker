@@ -1,0 +1,4 @@
+.disclosure { min-width: 0; }
+.trigger { width: fit-content; padding-inline: .25rem; color: var(--muted-foreground); }
+.chevron { transform: rotate(-90deg); transition: transform .15s ease; }
+.chevron[data-open="true"] { transform: rotate(0deg); }
