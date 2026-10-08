@@ -279,7 +279,7 @@ export function getEmployee(id: string, signal: AbortSignal) {
   return apiRequest<EmployeeDetail>(`/api/v1/employees/${encodeURIComponent(id)}/`, { signal })
 }
 
-export function updateEmployee(id: number, data: EmployeeDetailWrite) {
+export function updateEmployee(id: number, data: Partial<EmployeeDetailWrite>) {
   return apiRequest<EmployeeDetail>(`/api/v1/employees/${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
 }
 

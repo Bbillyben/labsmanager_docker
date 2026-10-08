@@ -141,7 +141,7 @@ class FundWriteSerializer(StrictWriteSerializer):
         project = self.context["project"]
         start = attrs.get("start_date", instance.start_date if instance else project.start_date)
         end = attrs.get("end_date", instance.end_date if instance else project.end_date)
-        if end and (not start or end <= start):
+        if end and start and end <= start:
             raise serializers.ValidationError({"end_date": "End date must be later than start date."})
         if attrs.get("update_project_end"):
             if not project_capabilities(self.context["request"].user, project)["can_change"]:

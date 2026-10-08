@@ -84,6 +84,13 @@ class ProjectFundingV1Tests(APITestCase):
         self.grant("delete_fund", "fund")
         self.assertEqual(self.client.delete(edit).status_code, 204)
 
+    def test_fund_patch_accepts_open_start_with_bounded_end(self):
+        response = self.client.patch(self.fund_url(), {"start_date": None}, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.fund.refresh_from_db()
+        self.assertIsNone(self.fund.start_date)
+        self.assertEqual(self.fund.end_date, date(2026, 12, 31))
+
     def test_items_recalculate_and_enforce_uniqueness(self):
         url = self.child_url("item")
         response = self.client.post(url, {"type_id": self.other_type.pk, "amount": "50.00"}, format="json")

@@ -215,7 +215,7 @@ class SearchEngine:
             "-_search_rank", "pk"
         )[:max(200, limit * 15)]
         scored = {}
-        for obj in candidates:
+        for obj in provider.prepare_candidates(list(candidates)):
             score, reason = _match(provider, obj, user, query)
             if score:
                 result = provider.make_result(obj, score=score, match_reason=reason)
@@ -244,7 +244,7 @@ class SearchEngine:
         else:
             queryset = queryset.order_by("pk")
         scored = {}
-        for obj in queryset[:max(200, limit * 15)]:
+        for obj in provider.prepare_candidates(list(queryset[:max(200, limit * 15)])):
             score, reason = _node_score(provider, obj, user, query.ast, provider_keys)
             if score:
                 result = provider.make_result(obj, score=score, match_reason=reason or _("Excluded by query"))
@@ -265,11 +265,17 @@ class SearchEngine:
             return [], {}
         results, counts = [], {}
         for provider in providers:
-            if query.ast is None:
-                items, count = self.search_provider(provider, user, query, min(limit, per_provider))
-            else:
-                items, count = self.search_provider_ast(provider, user, query, min(limit, per_provider), provider_keys)
-            results.extend(items)
+            provider_results = []
+            count = 0
+            for source in provider.search_variants():
+                if query.ast is None:
+                    items, source_count = self.search_provider(source, user, query, min(limit, per_provider))
+                else:
+                    items, source_count = self.search_provider_ast(source, user, query, min(limit, per_provider), provider_keys)
+                provider_results.extend(items)
+                count += source_count
+            provider_results.sort(key=lambda item: (-item.score, item.title.casefold(), item.object_id))
+            results.extend(provider_results[:min(limit, per_provider)])
             counts[provider.key] = count
         results.sort(key=lambda item: (-item.score, item.provider_key, item.title.casefold(), item.object_id))
         return results[:limit], counts

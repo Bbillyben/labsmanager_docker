@@ -53,17 +53,18 @@ export function GlobalSearch() {
     return () => document.removeEventListener('pointerdown', outside)
   }, [query])
 
-  function close() {
+  function close(clearQuery = false) {
     setOpen(false)
     setPreview(false)
     setSelected(-1)
     setSuggestionsOpen(false)
+    if (clearQuery) setQuery('')
     root.current?.querySelector('button')?.focus()
   }
 
   function navigateTo(path: string) {
     navigate(path)
-    close()
+    close(true)
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -96,7 +97,7 @@ export function GlobalSearch() {
         {error ? <p className={styles.message} role="alert">{typeof error === 'string' ? t('globalSearch.error') : error.message}</p> : <>
           {groups.map(([key, items]) => <div key={key} role="group" aria-label={providerLabel(key, providers)}><h3>{providerLabel(key, providers)}</h3>{items.map((item) => {
             const index = visible.indexOf(item)
-            return <SearchResultItem key={`${item.provider_key}:${item.object_id}`} result={item} providers={providers} optionId={`${listId}-${index}`} active={selected === index} onClick={() => close()} />
+            return <SearchResultItem key={`${item.provider_key}:${item.object_id}`} result={item} providers={providers} optionId={`${listId}-${index}`} active={selected === index} onClick={() => close(true)} />
           })}</div>)}
           {!loading && !results.length && <p className={styles.message}>{t('globalSearch.empty')}</p>}
           {loading && <p className={styles.message} role="status">{t('common.loading')}</p>}

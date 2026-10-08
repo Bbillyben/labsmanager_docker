@@ -80,5 +80,5 @@ export function deleteProjectParticipant(id: string, itemId: number) { return ap
 export function getProjectCapabilities(signal: AbortSignal) { return apiRequest<ProjectCapabilities>('/api/v1/projects/capabilities/', { signal }) }
 export function getProjectFilterOptions(signal: AbortSignal) { return apiRequest<ProjectFilterOptions>('/api/v1/projects/filter-options/', { signal }) }
 export function createProject(value: ProjectWrite) { return apiRequest<ProjectResponse>('/api/v1/projects/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) }) }
-export function updateProject(id: number, value: ProjectWrite) { return apiRequest<ProjectResponse>(`/api/v1/projects/${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) }) }
+export function updateProject(id: number, value: Partial<ProjectWrite>) { return apiRequest<ProjectResponse>(`/api/v1/projects/${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) }) }
 export function deleteProject(id: number) { return apiRequest<void>(`/api/v1/projects/${id}/`, { method: 'DELETE' }) }

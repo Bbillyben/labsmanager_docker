@@ -25,7 +25,7 @@ export const getProjectFunding = (projectId: string, signal: AbortSignal) => api
 export const getFundingOptions = (projectId: string, signal: AbortSignal) => apiRequest<FundingOptions>(`${base(projectId)}options/`, { signal })
 export const getFundDetail = (projectId: string, fundId: number, signal: AbortSignal) => apiRequest<FundDetail>(fundPath(projectId, fundId), { signal })
 export const createFund = (projectId: string, value: FundWrite) => apiRequest<Fund>(base(projectId), write('POST', value))
-export const updateFund = (projectId: string, fundId: number, value: FundWrite) => apiRequest<Fund>(fundPath(projectId, fundId), write('PATCH', value))
+export const updateFund = (projectId: string, fundId: number, value: Partial<FundWrite>) => apiRequest<Fund>(fundPath(projectId, fundId), write('PATCH', value))
 export const deleteFund = (projectId: string, fundId: number) => apiRequest<void>(fundPath(projectId, fundId), { method: 'DELETE' })
 export const createFundItem = (projectId: string, fundId: number, value: FundChildWrite) => apiRequest<FundItem>(childPath(projectId, fundId, 'items'), write('POST', value))
 export const updateFundItem = (projectId: string, fundId: number, itemId: number, value: FundChildWrite) => apiRequest<FundItem>(childPath(projectId, fundId, 'items', itemId), write('PATCH', value))

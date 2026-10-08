@@ -30,7 +30,7 @@ export function DataConsistencyRenderer() {
   return <div className="grid gap-3">
     <p><strong className="text-2xl">{summary.total}</strong> {t('dataConsistency.issuesCount', { count: summary.total })}</p>
     {summary.categories.length > 0 && <ul className="grid gap-1">{summary.categories.map((category) =>
-      <li key={category.key} className="flex justify-between gap-3"><span>{category.key === 'contracts' ? t('dataConsistency.contracts') : category.key}</span><strong>{category.count}</strong></li>,
+      <li key={category.key} className="flex justify-between gap-3"><span>{category.key === 'contracts' ? t('dataConsistency.contracts') : category.key === 'funds' ? t('dataConsistency.funds') : category.key === 'planning' ? t('dataConsistency.planning') : category.key === 'expenses' ? t('dataConsistency.expenses') : category.key === 'projects' ? t('dataConsistency.projects') : category.key}</span><strong>{category.count}</strong></li>,
     )}</ul>}
     <Link className="text-sm underline" to="/tools/data-consistency">{t('dataConsistency.review')}</Link>
   </div>

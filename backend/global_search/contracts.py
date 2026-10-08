@@ -73,6 +73,13 @@ class SearchProvider:
     def visible_queryset(self, user):
         raise NotImplementedError
 
+    def search_variants(self):
+        """Concrete ORM sources represented by this one public result type."""
+        return (self,)
+
+    def prepare_candidates(self, candidates):
+        return candidates
+
     def field_values(self, obj, search_field):
         return tuple(str(getattr(obj, path, "") or "") for path in search_field.orm_paths)
 

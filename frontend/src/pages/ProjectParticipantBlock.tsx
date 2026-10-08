@@ -61,9 +61,9 @@ export function ProjectParticipantBlock({ projectId, resource }: Props) {
   </section>
 }
 
-function ParticipantSheet({ projectId, project, item, onClose, onSaved }: { projectId: string; project: ProjectOverview; item: ProjectParticipant | null; onClose: () => void; onSaved: (item: ProjectParticipant) => void }) {
+export function ParticipantSheet({ projectId, project, item, initialEmployeeId, onClose, onSaved }: { projectId: string; project: ProjectOverview; item: ProjectParticipant | null; initialEmployeeId?: number; onClose: () => void; onSaved: (item: ProjectParticipant) => void }) {
   const { t } = useTranslation()
-  const [employeeId, setEmployeeId] = useState(item ? String(item.employee.id) : '')
+  const [employeeId, setEmployeeId] = useState(item ? String(item.employee.id) : initialEmployeeId ? String(initialEmployeeId) : '')
   const [status, setStatus] = useState<ProjectParticipant['status']>(item?.status ?? 'p')
   const [startDate, setStartDate] = useState(item?.start_date ?? project.start_date ?? '')
   const [endDate, setEndDate] = useState(item?.end_date ?? project.end_date ?? '')

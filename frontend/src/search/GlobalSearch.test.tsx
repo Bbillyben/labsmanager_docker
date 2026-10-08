@@ -13,10 +13,12 @@ vi.mock('../api/globalSearch', () => ({ getSearchSchema: getSchema, search: sear
 
 const provider = { key: 'publication', label: 'Publications', icon: 'UnknownIcon', fields: [], supports_generic_info: false, autocomplete: false }
 const result: SearchResult = { provider_key: 'publication', object_id: '7', title: 'Precise paper', subtitle: 'Research', url: '/app/projects/7', score: 100, icon: 'UnknownIcon', match_reason: 'Title: precise', metadata: {} }
+const organizationProvider = { key: 'organization', label: 'Organizations', icon: 'Building2', fields: [], supports_generic_info: true, autocomplete: true }
+const organizationResult: SearchResult = { provider_key: 'organization', object_id: 'institutions:9', title: 'Northern Research Institute', subtitle: 'Institution', url: '/app/organizations/institutions/9', score: 100, icon: 'Building2', match_reason: 'Name: Northern Research Institute', metadata: { role: 'institution' } }
 
 function renderSearch(path = '/app/') {
   window.history.pushState({}, '', path)
-  return render(<I18nProvider><BrowserRouter basename="/app"><GlobalSearch /><Routes><Route path="/" element={<p>Home</p>} /><Route path="search" element={<SearchPage />} /><Route path="projects/:id" element={<p>Project detail</p>} /></Routes></BrowserRouter></I18nProvider>)
+  return render(<I18nProvider><BrowserRouter basename="/app"><GlobalSearch /><Routes><Route path="/" element={<p>Home</p>} /><Route path="search" element={<SearchPage />} /><Route path="projects/:id" element={<p>Project detail</p>} /><Route path="organizations/institutions/:id" element={<p>Organization detail</p>} /></Routes></BrowserRouter></I18nProvider>)
 }
 
 beforeEach(() => {
@@ -28,6 +30,55 @@ beforeEach(() => {
 afterEach(() => { vi.clearAllMocks(); window.history.pushState({}, '', '/app/') })
 
 describe('Global Search UI', () => {
+  it('shows one Organization type, opens its existing detail route and clears the topbar query', async () => {
+    const user = userEvent.setup()
+    getSchema.mockResolvedValue({ providers: [organizationProvider] })
+    searchApi.mockResolvedValue({ query: 'Northern', results: [organizationResult], groups: { organization: 1 }, counts: { organization: 1 } })
+    renderSearch()
+    await user.click(screen.getByRole('button', { name: 'Rechercher (/)' }))
+    await user.type(screen.getByRole('combobox', { name: 'Rechercher' }), 'Northern')
+    expect(await screen.findByRole('group', { name: 'Organizations' })).toBeInTheDocument()
+    expect(screen.getAllByRole('option', { name: /Northern Research Institute/ })).toHaveLength(1)
+    expect(screen.getByText('Institution / gestionnaire')).toBeInTheDocument()
+    await user.click(screen.getByRole('option', { name: /Northern Research Institute/ }))
+    expect(screen.getByText('Organization detail')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Rechercher (/)' })).toHaveAttribute('aria-expanded', 'false')
+    await user.click(screen.getByRole('button', { name: 'Rechercher (/)' }))
+    expect(screen.getByRole('combobox', { name: 'Rechercher' })).toHaveValue('')
+  })
+
+  it('clears only the topbar query after opening the full results page', async () => {
+    const user = userEvent.setup()
+    renderSearch()
+    await user.click(screen.getByRole('button', { name: 'Rechercher (/)' }))
+    await user.type(screen.getByRole('combobox', { name: 'Rechercher' }), 'precise')
+    await user.click(await screen.findByRole('option', { name: 'Voir tous les résultats' }))
+    expect(window.location.pathname).toBe('/app/search')
+    expect(new URLSearchParams(window.location.search).get('q')).toBe('precise')
+    expect(screen.getByRole('button', { name: 'Rechercher (/)' })).toHaveAttribute('aria-expanded', 'false')
+    await user.click(screen.getByRole('button', { name: 'Rechercher (/)' }))
+    const inputs = screen.getAllByRole('combobox', { name: 'Rechercher' })
+    expect(inputs[0]).toHaveValue('')
+    expect(inputs[1]).toHaveValue('precise')
+  })
+
+  it('uses the same Organization result group and role-specific routes on the full results page', async () => {
+    getSchema.mockResolvedValue({ providers: [organizationProvider] })
+    searchApi.mockResolvedValue({ query: 'Northern', results: [organizationResult, {
+      ...organizationResult, object_id: 'funders:12', url: '/app/organizations/funders/12',
+      subtitle: 'Funder', metadata: { role: 'funder' },
+    }], groups: { organization: 2 }, counts: { organization: 2 } })
+    renderSearch('/app/search?q=Northern')
+    expect(await screen.findByRole('region', { name: 'Organizations' })).toBeInTheDocument()
+    const links = screen.getAllByRole('link', { name: /Northern Research Institute/ })
+    expect(links).toHaveLength(2)
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/app/organizations/institutions/9', '/app/organizations/funders/12',
+    ])
+    expect(screen.getByText('Institution / gestionnaire')).toBeInTheDocument()
+    expect(screen.getByText('Financeur')).toBeInTheDocument()
+  })
+
   it('opens discreetly, focuses, searches after debounce, groups a plugin provider and follows result.url', async () => {
     const user = userEvent.setup()
     renderSearch()
