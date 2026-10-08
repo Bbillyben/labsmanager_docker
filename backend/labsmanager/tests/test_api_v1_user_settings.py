@@ -37,6 +37,23 @@ class UserSettingsV1Tests(APITestCase):
         self.assertEqual(self.client.patch(url, {"value": 7, "user": self.other.pk}, format="json").status_code, 400)
         self.assertEqual(self.client.patch("/api/v1/settings/user/stale/MAP_PROVIDER/", {"value": "x"}, format="json").status_code, 404)
 
+    def test_dashboard_settings_include_four_stale_fields(self):
+        settings = self.client.get("/api/v1/settings/user/stale/").data["settings"]
+        self.assertEqual(
+            {item["key"] for item in settings},
+            {
+                "DASHBOARD_CONTRACT_STALE_TO_MONTH",
+                "DASHBOARD_PROJECT_STALE_TO_MONTH",
+                "DASHBOARD_MILESTONES_STALE_TO_MONTH",
+                "DASHBOARD_FUND_STALE_TO_MONTH",
+            },
+        )
+        self.assertTrue(all(item["type"] == "integer" for item in settings))
+        for key in ("DASHBOARD_MILESTONES_STALE_TO_MONTH", "DASHBOARD_FUND_STALE_TO_MONTH"):
+            response = self.client.patch(f"/api/v1/settings/user/stale/{key}/", {"value": 4}, format="json")
+            self.assertEqual(response.status_code, 200, response.data)
+            self.assertEqual(response.data["value"], 4)
+
     def test_choice_and_boolean_validation(self):
         interface = self.client.get("/api/v1/settings/user/interface/").data["settings"]
         boolean = next(item for item in interface if item["type"] == "boolean")

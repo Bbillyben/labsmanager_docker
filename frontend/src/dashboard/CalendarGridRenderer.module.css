@@ -1,0 +1,32 @@
+.calendar { min-width: 0; }
+.earlier { display: flex; align-items: center; gap: .4rem; margin: 0 0 .5rem; color: var(--destructive); font-size: .8rem; }
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .25rem; }
+.weekday { text-align: center; color: var(--muted-foreground); font-size: .67rem; font-weight: 600; }
+.padding { min-width: 0; }
+.day { box-sizing: border-box; min-width: 0; min-height: 3.2rem; display: flex; flex-direction: column; align-items: stretch; gap: .2rem; padding: .25rem; border: 1px solid var(--border); border-radius: .35rem; background: var(--card); color: var(--foreground); text-align: left; }
+.day[data-today="true"] { outline: 2px solid var(--primary); outline-offset: -2px; background: var(--accent); }
+.day[data-tone="danger"]:not([data-today="true"]) { border-color: var(--destructive); }
+.day[data-tone="warning"]:not([data-today="true"]) { border-color: var(--warning); }
+.dayButton { width: 100%; cursor: pointer; font: inherit; }
+.dayButton:hover { background: var(--accent); }
+.dayButton:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.date { font-size: .75rem; font-weight: 700; }
+.dayHeading { display: flex; justify-content: space-between; align-items: baseline; gap: .1rem; }
+.today { color: var(--primary); font-size: .58rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+.markers { display: flex; flex-wrap: wrap; gap: .15rem; }
+.marker { display: inline-flex; align-items: center; gap: .12rem; min-width: 0; padding: .06rem .18rem; border-radius: .2rem; background: var(--muted); font-size: .62rem; line-height: 1.2; }
+.markerLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.calendar[data-size="compact"] .day { min-height: 2.5rem; padding: .15rem; }
+.calendar[data-size="compact"] .marker { padding: 0 .1rem; }
+.calendar[data-size="compact"] .today { font-size: .5rem; }
+.calendar[data-size="expanded"] .day { min-height: 4.25rem; }
+.calendar[data-size="expanded"] .marker { font-size: .68rem; }
+.popover { width: min(22rem, calc(100vw - 2rem)); max-height: min(24rem, 70vh); overflow-y: auto; }
+.detailList { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+.detail { display: grid; gap: .1rem; border-left: 3px solid var(--border); padding: .3rem .45rem; }
+.detail[data-tone="danger"] { border-left-color: var(--destructive); }
+.detail[data-tone="warning"] { border-left-color: var(--warning); }
+.detailType { display: inline-flex; align-items: center; gap: .2rem; color: var(--muted-foreground); font-size: .72rem; }
+.detail a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
+.detail > span:not(.detailType) { color: var(--muted-foreground); font-size: .78rem; }
+@media print { .grid { gap: .12rem; } .day { min-height: 2.6rem; break-inside: avoid; } .markerLabel { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; } }

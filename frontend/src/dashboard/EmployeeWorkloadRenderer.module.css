@@ -1,0 +1,15 @@
+.workload { min-width: 0; display: grid; gap: .4rem; }
+.title { margin: 0; font-size: .85rem; font-weight: 650; }
+.title a, .label:is(a) { color: var(--foreground); text-decoration: underline; text-underline-offset: 2px; }
+.scroll { overflow-x: auto; max-width: 100%; }
+.bars { display: flex; align-items: end; gap: .65rem; min-width: max-content; padding: .2rem .1rem .5rem; }
+.column { width: 5.2rem; display: grid; grid-template-rows: 1.1rem 7rem minmax(2rem, auto); gap: .18rem; text-align: center; }
+.column strong { font-size: .76rem; font-variant-numeric: tabular-nums; }
+.track { position: relative; display: flex; align-items: end; justify-content: center; border-bottom: 1px solid var(--border); }
+.bar { display: block; width: 60%; min-height: 1px; border-radius: .2rem .2rem 0 0; background: var(--primary); }
+.reference { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--warning); z-index: 1; }
+.label { font-size: .68rem; overflow-wrap: anywhere; line-height: 1.15; }
+.workload[data-size="compact"] .bars { gap: .35rem; }
+.workload[data-size="compact"] .column { width: 3.8rem; grid-template-rows: 1rem 4.5rem minmax(2rem, auto); }
+.workload[data-size="expanded"] .column { width: 6.2rem; grid-template-rows: 1.2rem 9rem minmax(2rem, auto); }
+@media print { .scroll { overflow: visible; } .bars { flex-wrap: wrap; min-width: 0; } .column { break-inside: avoid; } }

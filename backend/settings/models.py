@@ -1011,8 +1011,8 @@ class LMUserSetting(BaseLabsManagerSetting):
             'validator': [int, MinValueValidator(1)]
         },
         'DASHBOARD_FUND_STALE_TO_MONTH': {
-            'name': _('Dashboard Stale To Calculation'),
-            'description': _('Number of month to get in stale scope from now'),
+            'name': _('Dashboard Fund Stale To Calculation'),
+            'description': _('Number of month to get Fund in stale scope from now'),
             'default': 0,
             'validator': [int, MinValueValidator(0)]
         },

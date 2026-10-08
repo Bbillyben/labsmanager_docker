@@ -1,0 +1,31 @@
+.overview { display: grid; gap: .85rem; min-width: 0; }
+.metrics { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+.primaryMetric, .metric { display: grid; gap: .1rem; min-width: 0; font-variant-numeric: tabular-nums; }
+.primaryMetric strong { font-size: clamp(1.65rem, 2.8vw, 2.3rem); font-weight: 700; line-height: 1.1; letter-spacing: -.035em; }
+.metric strong { font-size: 1.15rem; line-height: 1.1; font-weight: 650; }
+.primaryMetric span, .metric span, .secondary, .deadline { color: var(--muted-foreground); font-size: .75rem; }
+.aggregateProgress, .itemDetails progress { appearance: none; border: 0; overflow: hidden; border-radius: 999px; background: var(--muted); }
+.aggregateProgress { width: 100%; height: .42rem; }
+.itemDetails progress { flex: 1; min-width: 2rem; height: .35rem; }
+.aggregateProgress::-webkit-progress-bar, .itemDetails progress::-webkit-progress-bar { background: var(--muted); border-radius: 999px; }
+.aggregateProgress::-webkit-progress-value, .itemDetails progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; }
+.aggregateProgress::-moz-progress-bar, .itemDetails progress::-moz-progress-bar { background: var(--primary); border-radius: 999px; }
+.items { display: grid; gap: .8rem; margin: 0; padding: 0; list-style: none; }
+.item { display: grid; gap: .22rem; min-width: 0; }
+.itemHeading { display: flex; justify-content: space-between; gap: .6rem; align-items: baseline; font-size: .85rem; }
+.itemHeading a, .itemHeading span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.itemHeading a { text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.itemHeading a:hover { text-decoration-color: currentColor; }
+.itemHeading a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: .15rem; }
+.itemHeading strong { flex: none; font-variant-numeric: tabular-nums; }
+.itemDetails { display: flex; align-items: center; gap: .5rem; font-size: .72rem; font-variant-numeric: tabular-nums; }
+.itemDetails > span:first-child { flex: none; }
+.deadline { flex: none; white-space: nowrap; }
+.status { justify-self: start; border-radius: 999px; padding: .12rem .42rem; font-size: .68rem; font-weight: 600; color: var(--warning); background: var(--warning-surface); }
+.status[data-status="expired"] { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 10%, var(--card)); }
+.footer { margin: .15rem 0 0; color: var(--warning); font-size: .75rem; }
+.overview[data-size="compact"] { gap: .55rem; }
+.overview[data-size="compact"] .items { gap: .55rem; }
+.overview[data-size="compact"] .primaryMetric strong { font-size: 1.55rem; }
+.overview[data-size="compact"] .itemHeading { font-size: .78rem; }
+@media print { .item { break-inside: avoid; } }

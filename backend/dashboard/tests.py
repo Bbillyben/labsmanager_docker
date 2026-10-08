@@ -200,6 +200,31 @@ class DashboardApiTests(TestCase):
             self.assertEqual(change.data["data"]["items"][0]["label"], visible.name)
             self.assertEqual(WidgetInstance.objects.get(pk=kpi.data["id"]).renderer_key, "compact-list")
 
+    def test_funding_overview_accepts_existing_fund_configuration(self):
+        pk = self.create("Blank", "blank")
+        catalog = self.client.get("/api/v1/dashboards/catalog/")
+        funding = next(item for item in catalog.data["definitions"] if item["key"] == "core.funds")
+        self.assertEqual(funding["default_size"], (6, 5))
+        config = {"project_scope": "all_visible", "scope": "managed_projects",
+                  "active_only": True, "ending_within_days": "60", "limit": 3}
+        response = self.client.post(f"/api/v1/dashboards/{pk}/widgets/",
+                                    {"source_key": "core.funds", "renderer_key": "overview-list",
+                                     "config": config}, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(response.data["config"], config)
+        self.assertEqual(response.data["data"]["summary"]["count"], 0)
+
+    def test_deadline_timeline_accepts_existing_milestone_configuration(self):
+        pk = self.create("Blank", "blank")
+        config = {"project_scope": "all_visible", "scope": "mine", "status": "all",
+                  "overdue_only": False, "due_within_days": "30", "limit": 4}
+        response = self.client.post(f"/api/v1/dashboards/{pk}/widgets/",
+                                    {"source_key": "core.milestones", "renderer_key": "deadline-list",
+                                     "config": config}, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(response.data["config"], config)
+        self.assertEqual(response.data["data"]["summary"]["count"], 0)
+
     def test_new_templates_are_copied_without_changing_existing_dashboards(self):
         old = self.create("Existing", "blank")
         WidgetInstance.objects.create(dashboard_id=old, definition_key="core.note", source_key="core.note", renderer_key="empty")
@@ -301,16 +326,107 @@ class DashboardBusinessSourceTests(TestCase):
             self.assertEqual(tasks["kpi"]["value"], 1)
             self.assertEqual(tasks["alert-list"]["items"][0]["severity"], "danger")
 
+    def test_milestone_deadline_payload_is_filtered_and_prioritizes_open_issues(self):
+        from endpoints.models import Milestones
+        from project.models import Project
+        overdue = Milestones.objects.create(project=self.project, name="Overdue ethics",
+                                            end_date=self.today - timedelta(days=2))
+        Milestones.objects.create(project=self.project, name="Completed report", status=True,
+                                  end_date=self.today - timedelta(days=10))
+        with patch.object(Project, "get_instances_for_user", return_value=Project.objects.filter(pk=self.project.pk)):
+            data = business_sources.milestones(self.context, {"status": "all", "limit": 2})["__renderers__"]
+            soon = business_sources.milestones(self.context, {"due_within_days": "7"})["__renderers__"]
+            late = business_sources.milestones(self.context, {"overdue_only": True})["__renderers__"]
+            tasks = business_sources.tasks(self.context, {})["__renderers__"]
+        timeline = data["deadline-list"]
+        self.assertEqual(timeline["summary"], {"count": 3, "overdue_count": 1, "due_soon_count": 1})
+        self.assertEqual([item["key"] for item in timeline["items"]], [str(overdue.pk), str(self.milestone.pk)])
+        self.assertEqual(timeline["items"][0]["state"], "overdue")
+        self.assertEqual(timeline["items"][0]["days_until"], -2)
+        self.assertEqual(timeline["items"][1]["project_name"], self.project.name)
+        self.assertEqual(data["compact-list"]["items"][0]["label"], "Overdue ethics")
+        self.assertEqual(data["alert-list"]["items"][0]["severity"], "danger")
+        self.assertNotIn("deadline", data["compact-list"])
+        self.assertNotIn("deadline", data["alert-list"])
+        self.assertEqual(soon["deadline-list"]["summary"]["count"], 1)
+        self.assertEqual(soon["deadline-list"]["summary"]["overdue_count"], 0)
+        self.assertEqual(late["deadline-list"]["summary"]["count"], 1)
+        self.assertNotIn("deadline-list", tasks)
+
+    def test_task_workload_prioritizes_attention_and_counts_only_filtered_tasks(self):
+        from endpoints.models import Milestones
+        from project.models import Project
+        from settings.models import LMUserSetting
+        from staff.models import Employee
+        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_MONTH", value="1")
+        near = Milestones.objects.create(project=self.project, name="Due tomorrow",
+                                        start_date=self.today, end_date=self.today + timedelta(days=1))
+        near.employee.add(self.subordinate)
+        later = Milestones.objects.create(project=self.project, name="Later work",
+                                         start_date=self.today, end_date=self.today + timedelta(days=45))
+        later.employee.add(self.employee)
+        done = Milestones.objects.create(project=self.project, name="Done work", status=True,
+                                        start_date=self.today - timedelta(days=8), end_date=self.today - timedelta(days=5))
+        done.employee.add(self.employee)
+        with patch.object(Project, "get_instances_for_user", return_value=Project.objects.filter(pk=self.project.pk)), patch.object(
+            Employee, "get_instances_for_user", return_value=Employee.objects.filter(pk=self.employee.pk)
+        ):
+            data = business_sources.tasks(self.context, {"status": "all", "limit": 4})["__renderers__"]
+            workload = data["task-workload"]
+            self.assertEqual(workload["summary"], {"count": 4, "overdue_count": 1, "due_soon_count": 1})
+            self.assertEqual([row["key"] for row in workload["items"]], [
+                str(self.task.pk), str(near.pk), str(later.pk), str(done.pk),
+            ])
+            self.assertEqual([row["state"] for row in workload["items"]], ["overdue", "due_soon", "later", "done"])
+            self.assertEqual(workload["items"][0]["assignees"][0]["href"], f"/app/employees/{self.employee.pk}")
+            self.assertIsNone(workload["items"][1]["assignees"][0]["href"])
+            self.assertEqual(workload["items"][1]["project_name"], self.project.name)
+            self.assertNotIn("task-workload", data["compact-list"])
+            self.assertNotIn("task-workload", data["alert-list"])
+            self.assertEqual(business_sources.tasks(self.context, {"status": "open"})["__renderers__"]["task-workload"]["summary"],
+                             {"count": 3, "overdue_count": 1, "due_soon_count": 1})
+            self.assertEqual(business_sources.tasks(self.context, {"overdue_only": True})["__renderers__"]["task-workload"]["summary"],
+                             {"count": 1, "overdue_count": 1, "due_soon_count": 0})
+            self.assertEqual(business_sources.tasks(self.context, {"due_within_days": "7"})["__renderers__"]["task-workload"]["summary"],
+                             {"count": 1, "overdue_count": 0, "due_soon_count": 1})
+            self.assertEqual(business_sources.tasks(self.context, {"scope": "mine"})["__renderers__"]["task-workload"]["summary"]["count"], 2)
+            self.assertEqual(business_sources.tasks(self.context, {
+                "project_scope": "specific_project", "project_id": self.project.pk,
+            })["__renderers__"]["task-workload"]["summary"]["count"], 3)
+
     def test_fund_progress_uses_visible_funds_and_signed_expense(self):
         from fund.models import Fund
+        from settings.models import LMUserSetting
+        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_FUND_STALE_TO_MONTH", value="1")
         with patch.object(Fund, "get_instances_for_user", return_value=Fund.objects.filter(pk=self.fund.pk)):
             data = business_sources.funds(self.context, {"ending_within_days": "30"})["__renderers__"]
         self.assertEqual(data["kpi"]["value"], 1)
         self.assertEqual(data["progress-list"]["items"][0]["percent"], 40.0)
         self.assertIn("60", data["progress-list"]["items"][0]["secondary"])
+        self.assertEqual(data["overview-list"]["summary"]["amount"], 100.0)
+        self.assertEqual(data["overview-list"]["summary"]["spent"], 40.0)
+        self.assertEqual(data["overview-list"]["summary"]["percent"], 40.0)
+        self.assertEqual(data["overview-list"]["summary"]["attention_count"], 1)
+        self.assertEqual(data["overview-list"]["items"][0]["status"], "ending_soon")
+        self.assertNotIn("overview", data["progress-list"])
         self.assertNotIn("HIDDEN-FUND", str(data))
         with patch.object(Fund, "get_instances_for_user", return_value=Fund.objects.filter(pk=self.fund.pk)):
             self.assertEqual(business_sources.funds(self.context, {"active_only": True})["__renderers__"]["kpi"]["value"], 1)
+
+    def test_fund_overview_uses_the_same_filters_and_config_as_existing_renderers(self):
+        from fund.models import Fund
+        from dashboard.registry import CORE_RENDERERS, dashboard_registry
+        sources, _ = dashboard_registry(self.context)
+        source = sources["core.funds"]
+        self.assertIn("overview-list", source.compatible_renderers)
+        self.assertEqual(source.default_renderer, "overview-list")
+        self.assertIn("overview-list", CORE_RENDERERS)
+        self.assertEqual(set(source.config_fields), {"project_scope", "project_id", "scope", "active_only", "ending_within_days", "limit"})
+        with patch.object(Fund, "get_instances_for_user", return_value=Fund.objects.filter(pk=self.fund.pk)):
+            data = business_sources.funds(self.context, {"ending_within_days": "7", "limit": 1})["__renderers__"]
+        self.assertEqual(data["overview-list"]["summary"]["count"], 0)
+        self.assertEqual(data["overview-list"]["items"], [])
+        self.assertIsNone(data["overview-list"]["summary"]["percent"])
 
     def test_contracts_reuse_hub_visibility_and_deadline_filters(self):
         from expense import contract_hub_api_v1
@@ -323,6 +439,207 @@ class DashboardBusinessSourceTests(TestCase):
         self.assertNotIn(str(self.hidden_employee), str(data))
         with patch.object(contract_hub_api_v1, "visible_contracts", return_value=Contract.objects.filter(pk=self.contract.pk)):
             self.assertEqual(business_sources.contracts(self.context, {"stale_only": True})["__renderers__"]["kpi"]["value"], 1)
+
+    def test_enhanced_sources_keep_distinct_generic_renderer_choices(self):
+        from dashboard.registry import dashboard_registry
+        sources, _ = dashboard_registry(self.context)
+        for key, enhanced in (("core.funds", "overview-list"), ("core.milestones", "deadline-list"),
+                              ("core.contracts", "contract-list"), ("core.employees", "employee-movements"),
+                              ("core.tasks", "task-workload")):
+            source = sources[key]
+            self.assertEqual(source.default_renderer, enhanced)
+            self.assertTrue({"compact-list", "alert-list", enhanced}.issubset(source.compatible_renderers))
+
+    def test_project_portfolio_reuses_funding_and_explicit_attention_signals(self):
+        from endpoints.models import Milestones
+        from fund.models import Fund
+        from project.models import Project
+        from dashboard.financial_sources import advancement_for_funds
+        self.project.start_date = self.today - timedelta(days=10)
+        self.project.end_date = self.today + timedelta(days=10)
+        self.project.save()
+        self.other_project.end_date = self.today + timedelta(days=300)
+        self.other_project.save()
+        earlier = Milestones.objects.create(project=self.project, name="Earlier open milestone",
+                                            end_date=self.today + timedelta(days=2))
+        Milestones.objects.create(project=self.project, name="Late milestone",
+                                  end_date=self.today - timedelta(days=3))
+        with patch.object(Project, "get_instances_for_user", return_value=Project.objects.filter(
+            pk__in=[self.project.pk, self.other_project.pk]
+        )), patch.object(Fund, "get_instances_for_user", return_value=Fund.objects.filter(pk=self.fund.pk)):
+            payload = business_sources.projects(self.context, {"limit": 5})["__renderers__"]
+        data = payload["project-portfolio"]
+        self.assertEqual(data["summary"], {"count": 2, "active_count": 2,
+                                            "ending_soon_count": 1, "attention_count": 1})
+        row = next(item for item in data["items"] if item["key"] == str(self.project.pk))
+        self.assertEqual(row["temporal_percent"], 50.0)
+        self.assertEqual(row["financial"]["percent"], advancement_for_funds([self.fund], today=self.today)["budget_percent"])
+        self.assertEqual(row["next_milestone"]["title"], earlier.name)
+        self.assertEqual(row["overdue_task_count"], 1)
+        self.assertEqual(set(row["attention_signals"]), {"overdue_tasks", "overdue_milestones", "project_ending_soon"})
+        sources, definitions = dashboard_registry(self.context)
+        self.assertEqual(sources["core.projects"].default_renderer, "project-portfolio")
+        self.assertEqual(definitions["core.projects-count"].renderer_key, "project-portfolio")
+        self.assertTrue({"kpi", "compact-list", "alert-list", "project-portfolio"}.issubset(sources["core.projects"].compatible_renderers))
+
+    def test_employee_workload_single_allocation_and_open_items(self):
+        from endpoints.models import Milestones
+        from project.models import Participant, Project
+        from staff.models import Employee
+        from dashboard.employee_workload_sources import workload
+        self.project.start_date = self.today - timedelta(days=20)
+        self.project.end_date = self.today + timedelta(days=20)
+        self.project.save()
+        Participant.objects.filter(project=self.project, employee=self.employee).update(quotity=Decimal("0.800"))
+        Participant.objects.create(project=self.other_project, employee=self.employee, quotity=Decimal("0.500"))
+        Participant.objects.create(project=self.inactive_project, employee=self.employee, quotity=Decimal("0.900"))
+        self.milestone.employee.add(self.employee)
+        done = Milestones.objects.create(project=self.project, name="Done task", status=True,
+                                         start_date=self.today - timedelta(days=1))
+        done.employee.add(self.employee)
+        self.contract.quotity = Decimal("0.900")
+        self.contract.save()
+        with patch.object(Employee, "get_instances_for_user", return_value=Employee.objects.filter(pk=self.employee.pk)), \
+             patch.object(Project, "get_instances_for_user", return_value=Project.objects.filter(
+                 pk__in=[self.project.pk, self.other_project.pk, self.inactive_project.pk]
+             )):
+            data = workload(self.context, {"scope": "single", "employee_id": self.employee.pk, "metric": "open_tasks"})
+        self.assertEqual(data["mode"], "single")
+        metrics = {item["key"]: item for item in data["metrics"]}
+        self.assertEqual([metrics[key]["value"] for key in (
+            "project_allocation", "open_tasks", "open_milestones", "open_work_items"
+        )], [130.0, 1, 1, 2])
+        self.assertEqual(metrics["project_allocation"]["reference_value"], 100)
+        self.assertIsNone(metrics["open_tasks"]["reference_value"])
+
+    def test_employee_workload_team_and_subordinates_respect_visibility(self):
+        from endpoints.models import Milestones
+        from project.models import Project
+        from staff.models import Employee, Team, TeamMate
+        from dashboard.employee_workload_sources import workload
+        team = Team.objects.create(name="Work team", leader=self.employee)
+        TeamMate.objects.create(team=team, employee=self.subordinate)
+        for name in ("Bob task A", "Bob task B"):
+            item = Milestones.objects.create(project=self.project, name=name,
+                                             start_date=self.today - timedelta(days=2))
+            item.employee.add(self.subordinate)
+        with patch.object(Employee, "get_instances_for_user", return_value=Employee.objects.filter(
+            pk__in=[self.employee.pk, self.subordinate.pk]
+        )), patch.object(Project, "get_instances_for_user", return_value=Project.objects.filter(pk=self.project.pk)), \
+             patch("staff.team_api_v1.visible_teams", return_value=Team.objects.filter(pk=team.pk)):
+            comparison = workload(self.context, {"scope": "team", "team_id": team.pk, "metric": "open_tasks"})
+            subordinate = workload(self.context, {"scope": "subordinates", "metric": "project_allocation"})
+        self.assertEqual(comparison["mode"], "comparison")
+        self.assertEqual([(item["employee_id"], item["value"]) for item in comparison["items"]],
+                         [(self.subordinate.pk, 2), (self.employee.pk, 1)])
+        self.assertEqual(comparison["unit"], "count")
+        self.assertIsNone(comparison["reference_value"])
+        self.assertEqual(subordinate["mode"], "single")
+        self.assertEqual(subordinate["employee"]["id"], self.subordinate.pk)
+
+    def test_employee_workload_config_rejects_invisible_targets(self):
+        from staff.models import Employee, Team
+        sources, definitions = dashboard_registry(self.context)
+        source = sources["core.employee-workload"]
+        definition = definitions["core.employee-workload"]
+        team = Team.objects.create(name="Visible team", leader=self.employee)
+        with patch.object(Employee, "get_instances_for_user", return_value=Employee.objects.filter(pk=self.employee.pk)), \
+             patch("staff.team_api_v1.visible_teams", return_value=Team.objects.filter(pk=team.pk)):
+            config = validated_config({"scope": "single", "employee_id": self.employee.pk},
+                                      source, definition, "employee-workload", self.context)
+            self.assertEqual(config["employee_id"], self.employee.pk)
+            with self.assertRaises(ValidationError):
+                validated_config({"scope": "single", "employee_id": self.hidden_employee.pk},
+                                 source, definition, "employee-workload", self.context)
+            team_config = validated_config({"scope": "team", "team_id": team.pk},
+                                           source, definition, "employee-workload", self.context)
+            self.assertEqual(team_config["team_id"], team.pk)
+            with self.assertRaises(ValidationError):
+                validated_config({"scope": "subordinates", "employee_id": self.employee.pk},
+                                 source, definition, "employee-workload", self.context)
+
+    def test_timeline_combines_visible_tasks_and_milestones_with_independent_filters(self):
+        from dashboard.timeline_sources import timeline
+        from dashboard.registry import CORE_RENDERERS, dashboard_registry
+        from project.models import Project
+        sources, _ = dashboard_registry(self.context)
+        self.assertEqual(sources["core.timeline"].default_renderer, "timeline-calendar")
+        self.assertEqual(set(sources["core.timeline"].compatible_renderers), {"timeline-calendar", "calendar-grid"})
+        self.assertEqual(sources["core.tasks"].default_renderer, "task-workload")
+        self.assertEqual(sources["core.milestones"].default_renderer, "deadline-list")
+        self.assertIn("timeline-calendar", CORE_RENDERERS)
+        self.assertIn("calendar-grid", CORE_RENDERERS)
+        self.task.employee.add(self.hidden_employee)
+        visible = Project.objects.exclude(pk=self.hidden_project.pk)
+        with patch.object(Project, "get_instances_for_user", return_value=visible):
+            data = timeline(self.context, {"tasks_scope": "mine", "milestones_scope": "all_visible"})
+            self.assertEqual({item["id"] for item in data["events"]},
+                             {f"tasks:{self.task.pk}", f"milestones:{self.milestone.pk}"})
+            self.assertNotIn(str(self.hidden_employee), str(data))
+            tasks = timeline(self.context, {"include_milestones": False, "tasks_scope": "mine"})
+            self.assertEqual({item["source_type"] for item in tasks["events"]}, {"tasks"})
+            milestones = timeline(self.context, {"include_tasks": False})
+            self.assertEqual({item["source_type"] for item in milestones["events"]}, {"milestones"})
+            self.assertEqual(timeline(self.context, {"include_tasks": False, "milestones_scope": "mine"})["events"], [])
+            self.assertEqual(timeline(self.context, {"tasks_status": "done", "milestones_status": "done"})["events"], [])
+
+    def test_timeline_horizon_and_earlier_overdue_count(self):
+        from dashboard.timeline_sources import timeline
+        from endpoints.models import Milestones
+        from project.models import Project
+        old = Milestones.objects.create(project=self.project, name="Old overdue",
+                                        end_date=self.today - timedelta(days=3))
+        visible_overdue = Milestones.objects.create(project=self.project, name="Visible overdue",
+                                                    end_date=self.today - timedelta(days=2))
+        far = Milestones.objects.create(project=self.project, name="Far milestone",
+                                        end_date=self.today + timedelta(days=15))
+        visible = Project.objects.exclude(pk=self.hidden_project.pk)
+        with patch.object(Project, "get_instances_for_user", return_value=visible):
+            data = timeline(self.context, {"include_tasks": False, "calendar_days": "14"})
+            self.assertEqual(data["window_start"], (self.today - timedelta(days=2)).isoformat())
+            self.assertEqual(data["window_end"], (self.today + timedelta(days=14)).isoformat())
+            self.assertEqual(data["earlier_overdue_count"], 1)
+            self.assertNotIn(f"milestones:{old.pk}", [item["id"] for item in data["events"]])
+            self.assertIn(f"milestones:{visible_overdue.pk}", [item["id"] for item in data["events"]])
+            self.assertNotIn(f"milestones:{far.pk}", [item["id"] for item in data["events"]])
+            longer = timeline(self.context, {"include_tasks": False, "calendar_days": "21"})
+            self.assertIn(f"milestones:{far.pk}", [item["id"] for item in longer["events"]])
+
+    def test_timeline_namespaced_project_scope_is_validated(self):
+        from dashboard.registry import dashboard_registry
+        sources, definitions = dashboard_registry(self.context)
+        source = sources["core.timeline"]
+        definition = definitions["core.timeline"]
+        with self.assertRaises(ValidationError):
+            validated_config({"tasks_project_scope": "specific_project", "tasks_project_id": self.hidden_project.pk},
+                             source, definition, "timeline-calendar", self.context)
+        config = validated_config({"tasks_project_scope": "specific_project", "tasks_project_id": self.project.pk},
+                                  source, definition, "timeline-calendar", self.context)
+        self.assertEqual(config["tasks_project_id"], self.project.pk)
+
+    def test_contract_overview_uses_personal_stale_setting_and_keeps_generic_lists(self):
+        from expense import contract_hub_api_v1
+        from expense.models import Contract
+        from settings.models import LMUserSetting
+        later = Contract.objects.create(employee=self.employee, fund=self.fund,
+                                        start_date=self.today, end_date=self.today + timedelta(days=45))
+        setting = LMUserSetting.objects.create(user=self.user, key="DASHBOARD_CONTRACT_STALE_TO_MONTH", value="0")
+        with patch.object(contract_hub_api_v1, "visible_contracts", return_value=Contract.objects.filter(pk__in=[self.contract.pk, later.pk])):
+            data = business_sources.contracts(self.context, {"limit": 2})["__renderers__"]
+            self.assertEqual(data["contract-list"]["summary"], {"count": 2, "ending_soon_count": 1, "stale_count": 0})
+            self.assertEqual(data["contract-list"]["items"][0]["state"], "ending_soon")
+            self.assertEqual(data["contract-list"]["items"][0]["project_name"], self.project.name)
+            self.assertEqual(data["contract-list"]["items"][0]["employee_name"], str(self.employee))
+            self.assertEqual(data["compact-list"]["items"][0]["label"], str(self.employee))
+            self.assertEqual(data["alert-list"]["items"][0]["severity"], "warning")
+            self.assertNotIn("contracts", data["compact-list"])
+            self.assertNotIn("contracts", data["alert-list"])
+            self.assertEqual(business_sources.contracts(self.context, {"stale_only": True})["__renderers__"]["kpi"]["value"], 0)
+            setting.value = "2"
+            setting.save()
+            stale = business_sources.contracts(self.context, {"stale_only": True})["__renderers__"]["contract-list"]
+            self.assertEqual(stale["summary"]["stale_count"], 2)
+            self.assertEqual(stale["items"][1]["state"], "stale")
 
     def test_employee_and_leave_sources_intersect_employee_visibility(self):
         from staff.models import Employee
@@ -338,4 +655,40 @@ class DashboardBusinessSourceTests(TestCase):
             self.assertEqual(leave["kpi"]["value"], 1)
             self.assertEqual(leave["compact-list"]["items"][0]["label"], "Annual leave")
             self.assertNotIn(str(self.hidden_employee), str(leave))
+
+    def test_employee_movements_summary_and_rows_follow_the_filtered_scope(self):
+        from staff.models import Employee, Employee_Status, Employee_Type, Team
+        role = Employee_Type.objects.create(name="Engineer", shortname="ENG")
+        Employee_Status.objects.create(employee=self.employee, type=role)
+        team = Team.objects.create(name="Team A", leader=self.employee)
+        visible = Employee.objects.exclude(pk=self.hidden_employee.pk)
+        with patch.object(Employee, "get_instances_for_user", return_value=visible), patch.object(
+            Team, "get_instances_for_user", return_value=Team.objects.filter(pk=team.pk)
+        ):
+            data = business_sources.employees(self.context, {"within_days": "30", "limit": 2})["__renderers__"]
+            self.assertEqual(data["employee-movements"]["summary"], {"count": 2, "arrivals_count": 1, "departures_count": 1})
+            self.assertEqual([row["state"] for row in data["employee-movements"]["items"]], ["leaving", "arriving"])
+            arrival = data["employee-movements"]["items"][1]
+            self.assertEqual(arrival["role"], "Engineer")
+            self.assertEqual(arrival["team_name"], "Team A")
+            self.assertEqual(arrival["team_href"], f"/app/teams/{team.pk}")
+            self.assertEqual(arrival["days_until"], 4)
+            self.assertEqual(data["compact-list"]["items"][0]["label"], str(self.employee))
+            self.assertNotIn("employee-movements", data["compact-list"])
+            self.assertNotIn("employee-movements", data["alert-list"])
+            arrival_only = business_sources.employees(self.context, {"movement": "arrivals", "within_days": "30"})["__renderers__"]["employee-movements"]
+            self.assertEqual(arrival_only["summary"], {"count": 1, "arrivals_count": 1, "departures_count": 0})
+            departure_only = business_sources.employees(self.context, {"movement": "departures", "within_days": "30"})["__renderers__"]["employee-movements"]
+            self.assertEqual(departure_only["summary"], {"count": 1, "arrivals_count": 0, "departures_count": 1})
+            short_window = business_sources.employees(self.context, {"within_days": "7"})["__renderers__"]["employee-movements"]
+            self.assertEqual(short_window["summary"], {"count": 2, "arrivals_count": 1, "departures_count": 0})
+            self_only = business_sources.employees(self.context, {"scope": "self"})["__renderers__"]["employee-movements"]
+            self.assertEqual(self_only["summary"]["count"], 1)
+            project_only = business_sources.employees(self.context, {
+                "project_scope": "specific_project", "project_id": self.project.pk,
+            })["__renderers__"]["employee-movements"]
+            self.assertEqual(project_only["summary"], {"count": 1, "arrivals_count": 1, "departures_count": 0})
+            Employee.objects.filter(pk=self.subordinate.pk).update(is_active=False)
+            active_only = business_sources.employees(self.context, {"active_only": True})["__renderers__"]["employee-movements"]
+            self.assertEqual(active_only["summary"], {"count": 1, "arrivals_count": 1, "departures_count": 0})
             self.assertEqual(business_sources.leaves(self.context, {"scope": "mine", "current_only": True})["__renderers__"]["kpi"]["value"], 0)

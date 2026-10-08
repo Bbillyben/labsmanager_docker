@@ -39,9 +39,15 @@ export function KpiRenderer({ widget, size }: Props) {
     {size !== 'compact' && data.context && <small>{data.context}</small>}{size === 'expanded' && data.secondary && <small>{data.secondary}</small>}
   </div>
 }
-export function CompactListRenderer(props: Props) { return <List {...props} variant="compact" /> }
-export function AlertListRenderer(props: Props) { return <List {...props} variant="alert" /> }
-export function ProgressListRenderer(props: Props) { return <List {...props} variant="progress" /> }
+export function CompactListRenderer(props: Props) {
+  return <List {...props} variant="compact" />
+}
+export function AlertListRenderer(props: Props) {
+  return <List {...props} variant="alert" />
+}
+export function ProgressListRenderer(props: Props) {
+  return <List {...props} variant="progress" />
+}
 export function EmptyRenderer({ widget }: Props) {
   const { t } = useTranslation()
   const message = (widget.data as { message?: string } | null)?.message

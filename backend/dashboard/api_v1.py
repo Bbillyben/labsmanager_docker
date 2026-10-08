@@ -106,26 +106,43 @@ def validated_config(value, source, definition, renderer_key, context=None):
         valid = (kind == "string" and isinstance(item, str) and len(item) <= field.get("max_length", 500)
                  or kind == "boolean" and type(item) is bool
                  or kind == "integer" and type(item) is int and field.get("min", 0) <= item <= field.get("max", 1000000)
-                 or kind == "project" and type(item) is int and item > 0
+                 or kind in ("project", "employee", "team") and type(item) is int and item > 0
                  or kind == "choice" and item in field.get("choices", ()))
         if not valid or (field.get("required") and item == ""):
             raise ValidationError({"config": f"Invalid value for {key}."})
         result[key] = item
-    if "project_scope" in schema:
+    for scope_key in (key for key in schema if key.endswith("project_scope")):
+        project_key = f"{scope_key[:-len('project_scope')]}project_id"
         has_project_context = context is not None and context.context_type == "project" and context.context_object is not None
-        scope = result.get("project_scope", "context" if has_project_context else "all_visible")
+        scope = result.get(scope_key, "context" if has_project_context else "all_visible")
         if scope == "context" and context is not None and not has_project_context:
-            raise ValidationError({"project_scope": "Project context unavailable."})
+            raise ValidationError({scope_key: "Project context unavailable."})
         if scope == "specific_project":
-            project_id = result.get("project_id")
+            project_id = result.get(project_key)
             if not project_id:
-                raise ValidationError({"project_id": "A visible Project is required."})
+                raise ValidationError({project_key: "A visible Project is required."})
             if context is not None:
                 from project.models import Project
                 if not Project.get_instances_for_user("view", context.user, Project.objects.all()).filter(pk=project_id).exists():
-                    raise ValidationError({"project_id": "A visible Project is required."})
-        elif "project_id" in result:
-            raise ValidationError({"project_id": "Only available for a specific Project."})
+                    raise ValidationError({project_key: "A visible Project is required."})
+        elif project_key in result:
+            raise ValidationError({project_key: "Only available for a specific Project."})
+    if source.key == "core.employee-workload" and context is not None:
+        scope = result.get("scope", "single")
+        target_key = "employee_id" if scope == "single" else "team_id" if scope == "team" else None
+        if target_key and not result.get(target_key):
+            raise ValidationError({target_key: "A visible target is required."})
+        if ((scope != "single" and "employee_id" in result)
+                or (scope != "team" and "team_id" in result)):
+            raise ValidationError({"config": "Target does not match scope."})
+        if scope == "single":
+            from staff.models import Employee
+            if not Employee.get_instances_for_user("view", context.user, Employee.objects.all()).filter(pk=result["employee_id"]).exists():
+                raise ValidationError({"employee_id": "A visible Employee is required."})
+        elif scope == "team":
+            from staff.team_api_v1 import visible_teams
+            if not visible_teams(context.user).filter(pk=result["team_id"]).exists():
+                raise ValidationError({"team_id": "A visible Team is required."})
     return result
 
 
@@ -286,8 +303,16 @@ def catalog_data(context, sources, definitions):
     project_options = list(Project.get_instances_for_user(
         "view", context.user, Project.objects.all()
     ).order_by("name").values("id", "name"))
+    employee_options, team_options = [], []
+    if "core.employee-workload" in used_source_keys:
+        from staff.models import Employee, Team
+        from staff.team_api_v1 import visible_teams
+        employee_options = [{"id": item.pk, "name": str(item)} for item in Employee.get_instances_for_user(
+            "view", context.user, Employee.objects.all()).order_by("last_name", "first_name", "pk")]
+        team_options = list(visible_teams(context.user, Team.objects.all()).order_by("name", "pk").values("id", "name"))
     return {"scope": context.scope,
                          "project_options": project_options,
+                         "employee_options": employee_options, "team_options": team_options,
                          "sources": [{"key": item.key, "label": item.label, "description": item.description, "category": item.category,
                                       "supported_scopes": item.supported_scopes, "compatible_renderers": item.compatible_renderers,
                                       "default_renderer": item.default_renderer or item.compatible_renderers[0],

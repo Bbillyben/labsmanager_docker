@@ -1,0 +1,30 @@
+.timeline { display: grid; gap: 1rem; min-width: 0; }
+.summary { display: flex; align-items: end; justify-content: space-between; gap: .9rem; }
+.mainMetric { display: grid; gap: .1rem; font-variant-numeric: tabular-nums; }
+.mainMetric strong { font-size: clamp(2rem, 3.3vw, 2.7rem); line-height: 1; font-weight: 700; letter-spacing: -.045em; }
+.mainMetric span { color: var(--muted-foreground); font-size: .78rem; }
+.counters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem .7rem; color: var(--muted-foreground); font-size: .75rem; font-variant-numeric: tabular-nums; }
+.counters [data-tone="danger"] strong { color: var(--destructive); }
+.counters [data-tone="warning"] strong { color: var(--warning); }
+.items { display: grid; gap: .75rem; list-style: none; margin: 0 0 0 .35rem; padding: 0 0 0 .95rem; border-left: 1px solid var(--border); }
+.item { position: relative; display: grid; grid-template-columns: minmax(3.9rem, auto) minmax(0, 1fr); align-items: start; gap: .25rem .75rem; min-width: 0; }
+.item::before { position: absolute; content: ''; left: calc(-.95rem - .3rem); top: .28rem; width: .56rem; height: .56rem; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 .18rem var(--card); }
+.item[data-state="overdue"]::before { background: var(--destructive); }
+.item[data-state="today"]::before, .item[data-state="due_soon"]::before { background: var(--warning); }
+.item[data-state="completed"]::before, .item[data-state="unscheduled"]::before { background: var(--muted-foreground); }
+.date { color: var(--muted-foreground); font-size: .76rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.detail { display: grid; gap: .05rem; min-width: 0; font-size: .83rem; }
+.detail a, .detail > strong { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.detail a { text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.detail a:hover { text-decoration-color: currentColor; }
+.detail a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: .15rem; }
+.project { color: var(--muted-foreground); font-size: .75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.relative { color: var(--muted-foreground); font-size: .74rem; }
+.item[data-state="overdue"] .relative { color: var(--destructive); }
+.item[data-state="today"] .relative, .item[data-state="due_soon"] .relative { color: var(--warning); }
+.timeline[data-size="compact"] { gap: .65rem; }
+.timeline[data-size="compact"] .mainMetric strong { font-size: 1.7rem; }
+.timeline[data-size="compact"] .counters { font-size: .68rem; }
+.timeline[data-size="compact"] .items { gap: .55rem; }
+.timeline[data-size="compact"] .item { grid-template-columns: minmax(3.2rem, auto) minmax(0, 1fr); gap: .4rem; }
+@media print { .item { break-inside: avoid; } }

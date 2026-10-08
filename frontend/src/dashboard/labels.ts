@@ -7,6 +7,15 @@ export function dashboardRendererLabel(key: string, fallback: string, t: Transla
     case 'compact-list': return t('dashboard.renderer.compact-list')
     case 'alert-list': return t('dashboard.renderer.alert-list')
     case 'progress-list': return t('dashboard.renderer.progress-list')
+    case 'overview-list': return t('dashboard.renderer.overview-list')
+    case 'deadline-list': return t('dashboard.renderer.deadline-list')
+    case 'contract-list': return t('dashboard.renderer.contract-list')
+    case 'employee-movements': return t('dashboard.renderer.employee-movements')
+    case 'task-workload': return t('dashboard.renderer.task-workload')
+    case 'timeline-calendar': return t('dashboard.renderer.timeline-calendar')
+    case 'calendar-grid': return t('dashboard.renderer.calendar-grid')
+    case 'project-portfolio': return t('dashboard.renderer.project-portfolio')
+    case 'employee-workload': return t('dashboard.renderer.employee-workload')
     case 'empty': return t('dashboard.renderer.empty')
     case 'line-chart': return t('dashboard.renderer.line-chart')
     case 'data-consistency': return t('dashboard.renderer.data-consistency')
@@ -14,7 +23,15 @@ export function dashboardRendererLabel(key: string, fallback: string, t: Transla
   }
 }
 export function dashboardFieldLabel(key: string, fallback: string, t: Translate, sourceKey = '') {
+  if (sourceKey === 'core.timeline' && key.startsWith('tasks_')) return dashboardFieldLabel(key.slice(6), fallback, t, 'core.tasks')
+  if (sourceKey === 'core.timeline' && key.startsWith('milestones_')) return dashboardFieldLabel(key.slice(11), fallback, t, 'core.milestones')
   switch (key) {
+    case 'include_tasks': return t('dashboard.timeline.includeTasks')
+    case 'include_milestones': return t('dashboard.timeline.includeMilestones')
+    case 'calendar_days': return t('dashboard.timeline.horizon')
+    case 'employee_id': return t('dashboard.workload.employee')
+    case 'team_id': return t('dashboard.workload.team')
+    case 'metric': return t('dashboard.workload.metricLabel')
     case 'message': return t('dashboard.field.message')
     case 'active_only': return sourceKey === 'core.contracts' ? t('dashboard.field.active_contracts') :
       sourceKey === 'core.funds' ? t('dashboard.field.active_funds') :
@@ -54,13 +71,19 @@ export function dashboardChoiceLabel(value: string, t: Translate) {
     case 'managed': case 'managed_projects': return t('dashboard.choice.managed')
     case 'mine': case 'self': return t('dashboard.choice.mine')
     case 'subordinates': return t('dashboard.choice.subordinates')
+    case 'single': return t('dashboard.workload.scope.single')
+    case 'team': return t('dashboard.workload.scope.team')
+    case 'project_allocation': return t('dashboard.workload.metric.project_allocation')
+    case 'open_tasks': return t('dashboard.workload.metric.open_tasks')
+    case 'open_milestones': return t('dashboard.workload.metric.open_milestones')
+    case 'open_work_items': return t('dashboard.workload.metric.open_work_items')
     case 'all': return t('dashboard.choice.all')
     case 'open': return t('dashboard.choice.open')
     case 'done': return t('dashboard.choice.done')
     case 'arrivals': return t('dashboard.choice.arrivals')
     case 'departures': return t('dashboard.choice.departures')
     case '0': return t('dashboard.choice.anyTime')
-    case '7': case '30': case '60': case '90': return t('dashboard.choice.days', { days: value })
+    case '7': case '14': case '21': case '30': case '60': case '90': return t('dashboard.choice.days', { days: value })
     default: return value
   }
 }
@@ -75,6 +98,8 @@ export function dashboardSourceLabel(key: string, fallback: string, t: Translate
     case 'core.employees': return t('dashboard.source.employees')
     case 'core.leaves': return t('dashboard.source.leaves')
     case 'core.tasks': return t('dashboard.source.tasks')
+    case 'core.timeline': return t('dashboard.source.timeline')
+    case 'core.employee-workload': return t('dashboard.source.employeeWorkload')
     case 'core.financial-advancement': return t('dashboard.source.advancement')
     case 'core.financial-summary': return t('dashboard.source.financialSummary')
     case 'core.expense-trend': return t('dashboard.source.expenseTrend')
@@ -93,6 +118,8 @@ export function dashboardSourceDescription(key: string, fallback: string, t: Tra
     case 'core.employees': return t('dashboard.sourceDescription.employees')
     case 'core.leaves': return t('dashboard.sourceDescription.leaves')
     case 'core.tasks': return t('dashboard.sourceDescription.tasks')
+    case 'core.timeline': return t('dashboard.sourceDescription.timeline')
+    case 'core.employee-workload': return t('dashboard.sourceDescription.employeeWorkload')
     case 'core.financial-advancement': return t('dashboard.sourceDescription.advancement')
     case 'core.financial-summary': return t('dashboard.sourceDescription.financialSummary')
     case 'core.expense-trend': return t('dashboard.sourceDescription.expenseTrend')

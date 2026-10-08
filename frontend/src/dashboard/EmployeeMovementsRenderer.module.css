@@ -1,0 +1,35 @@
+.movements { display: grid; gap: .9rem; min-width: 0; }
+.summary { display: flex; align-items: end; justify-content: space-between; gap: .6rem; }
+.mainMetric { display: flex; align-items: baseline; flex-wrap: wrap; gap: .35rem; font-variant-numeric: tabular-nums; }
+.mainMetric svg { align-self: center; color: var(--muted-foreground); }
+.mainMetric strong { font-size: clamp(2rem, 3.3vw, 2.6rem); line-height: 1; letter-spacing: -.04em; }
+.mainMetric span { color: var(--muted-foreground); font-size: .78rem; }
+.counters { display: grid; justify-items: end; color: var(--muted-foreground); font-size: .75rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.counters [data-tone="success"] strong { color: var(--success, var(--primary)); }
+.counters [data-tone="warning"] strong { color: var(--warning); }
+.items { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
+.item { display: grid; grid-template-columns: 2rem minmax(0, 1fr); align-items: start; gap: .55rem; min-width: 0; }
+.icon { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; color: var(--muted-foreground); background: var(--muted); }
+.item[data-state="arriving"] .icon, .item[data-state="arrived_recently"] .icon { color: var(--success, var(--primary)); background: color-mix(in srgb, var(--success, var(--primary)) 12%, var(--card)); }
+.item[data-state="leaving"] .icon, .item[data-state="departed"] .icon { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, var(--card)); }
+.content { display: grid; gap: .12rem; min-width: 0; padding: .15rem 0 .55rem; border-bottom: 1px solid var(--border); }
+.item:last-child .content { border-bottom: 0; }
+.heading { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; min-width: 0; font-size: .84rem; }
+.heading a, .heading strong { font-weight: 650; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.heading a, .context a { text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.heading a:hover, .context a:hover { text-decoration-color: currentColor; }
+.heading a:focus-visible, .context a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: .15rem; }
+.state { color: var(--muted-foreground); font-size: .69rem; white-space: nowrap; }
+.item[data-state="arriving"] .state, .item[data-state="arrived_recently"] .state { color: var(--success, var(--primary)); }
+.item[data-state="leaving"] .state, .item[data-state="departed"] .state { color: var(--warning); }
+.context, .date { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem; min-width: 0; color: var(--muted-foreground); font-size: .74rem; }
+.context a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.date { font-variant-numeric: tabular-nums; }
+.date svg { flex: none; }
+.movements[data-size="compact"] { gap: .55rem; }
+.movements[data-size="compact"] .mainMetric strong { font-size: 1.7rem; }
+.movements[data-size="compact"] .mainMetric svg { display: none; }
+.movements[data-size="compact"] .counters { font-size: .68rem; }
+.movements[data-size="compact"] .items { gap: .4rem; }
+.movements[data-size="compact"] .content { padding-bottom: .35rem; }
+@media print { .item { break-inside: avoid; } }

@@ -351,3 +351,8 @@ Le générateur de démonstration opère sur une base dédiée, refuse une gén�
 
 - Les migrations de production ne sont pas lancées automatiquement par plusieurs services. L'opérateur sauvegarde la base, applique les migrations une seule fois avec la nouvelle image, puis démarre la stack ; serveur et worker refusent un schéma incomplet. Le retour arrière s'appuie sur le dump et l'image antérieure, pas sur une inversion automatique des migrations.
 - Django ne fait confiance à `X-Forwarded-Proto` que sur opt-in explicite. nginx fixe `http` sur ses ports directs et `https` sur deux listeners réservés à un terminateur TLS de confiance (React et legacy), publiés seulement sur loopback ; le port Gunicorn publié est aussi limité au loopback. Le frontend compilé garde ses URLs Django relatives dans le déploiement de même origine.
+
+## Dashboard — grammaire de visualisation
+
+- Le Dashboard possède une grammaire visuelle dédiée construite sur le design system LabsManager. Ses renderers peuvent hiérarchiser métriques, densité, progression et statut différemment des composants génériques, tout en conservant tokens Light/Dark, Lucide, typographie et accessibilité.
+- Les renderers restent associés à `renderer_key` et consomment des payloads de présentation explicites. Les calculs et la visibilité métier demeurent côté backend ; la configuration demeure dans l’éditeur. Une amélioration de renderer ne crée ni runtime frontend plugin ni abstraction universelle de payload.

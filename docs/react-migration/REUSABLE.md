@@ -7,6 +7,9 @@ représentations différentes), **contract** (interface commune), **inheritance/
 (socle avec spécialisations) et **pattern** (convention sans composant commun).
 Ces modes sont non hiérarchiques et peuvent se combiner.
 
+Pour les contrats des registres, providers, renderers et autres points d’extension,
+voir [REGISTRIES.md](REGISTRIES.md).
+
 Avant une nouvelle implémentation, rechercher ici puis dans le code le socle, le
 contrat ou le pattern pertinent. Ajouter au registre une nouvelle brique destinée à
 être réutilisée, une brique existante devenue canonique ou un nouveau pattern UX
@@ -154,6 +157,12 @@ Le registre [ImportProfile](../../backend/import/profiles.py) déclare clé, lib
 - `DataSource` décrit le provider, les permissions/disponibilités, les renderers compatibles, la multiplicité et les champs de configuration. Une source plugin peut utiliser un renderer core sans frontend plugin ; le catalogue et les mutations réutilisent le même registre filtré.
 - `DashboardWidgetEditor` produit les champs string/boolean/integer/choice depuis les métadonnées source/renderer ; l'API reste l'autorité de validation. La page fournit l'attente du chargement batch ; `DashboardWidgetFrame` fournit le menu `…`, les états sans données/erreur et l'ErrorBoundary. Les renderers partagent l'état de liste vide. La suppression reste confirmée dans la page.
 - `renderers.ts` enregistre KPI, compact-list, alert-list et progress-list ; leurs payloads sont normalisés et sans modèle métier. `dashboardSize` fournit les variantes compact/standard/expanded à partir de la grille, sans couplage des renderers à React Grid Layout.
+- `OverviewListRenderer` est le rendu Funding enrichi : métriques hiérarchisées, progression fine, lignes bornées et états d’échéance. `compact-list`, `alert-list` et `progress-list` conservent leurs rendus génériques, y compris pour les instances enregistrées. La configuration reste dans `DashboardWidgetEditor`, et les tailles passent par `dashboardSize`.
+- `DeadlineListRenderer` applique la grammaire Dashboard au temps : compteur dominant, indicateurs d’urgence et timeline compacte, sans calcul métier dans React. Les instances Milestones en `compact-list` ou `alert-list` conservent leur rendu générique ; la sidebar conserve tous les paramètres.
+- `ContractListRenderer` présente les Contracts sous forme de fiches RH avec compteurs `count` / `ending_soon_count` / `stale_count` et lignes Employee, type, Project, échéance et état. La source `core.contracts` calcule les états selon `DASHBOARD_CONTRACT_STALE_TO_MONTH` de l’utilisateur ; `compact-list` et `alert-list` restent distincts. Les réglages restent dans la sidebar.
+- `EmployeeMovementsRenderer` présente l’effectif et les arrivées/départs sous forme de flux de personnes, avec rôle et Team visibles lorsqu’ils sont disponibles. `core.employees` fournit un payload filtré `{summary:{count,arrivals_count,departures_count},items:[{name,role,team_name,state,date,days_until,...}]}` ; les listes `compact-list` et `alert-list` gardent leurs rendus génériques et la configuration reste dans la sidebar.
+- `TaskWorkloadRenderer` présente les tâches comme une file de travail priorisée : compteur, retards, échéances proches, Project et assignees. `core.tasks` fournit `{summary:{count,overdue_count,due_soon_count},items:[{title,project_name,assignees,state,date,days_until,...}]}` après les filtres ; `compact-list` et `alert-list` restent génériques. La configuration reste dans la sidebar.
+- `TimelineCalendarRenderer` et `CalendarGridRenderer` reçoivent le même contrat générique `TimelineEvent` de `core.timeline` (`id`, `source_type`, `source_label`, `date`, `title`, Project et détail optionnels, `href`, `state`, `tone`, `icon`). Chaque provider filtre puis transforme ses objets ; le backend fixe la fenêtre J-2 à J+`calendar_days` et `timelineDays` en fournit les jours aux deux renderers, sans branche métier Task/Milestone. Le compteur `earlier_overdue_count` conserve les retards antérieurs. La grille utilise le Popover existant pour le détail local d’un jour ; l’éditeur groupe les paramètres des providers via la métadonnée légère `group` et garde la configuration dans la sidebar.
 
 ## Dashboard R3.4
 
