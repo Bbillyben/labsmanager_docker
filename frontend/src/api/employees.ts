@@ -7,6 +7,7 @@ export type EmployeeIdentity = { id: number; first_name: string; last_name: stri
 export type EmployeeStatus = { id: number; code: string; name: string }
 export type EmployeeListItem = EmployeeIdentity & {
   admin_url?: string | null
+  capabilities?: { can_change: boolean }
   entry_date: string | null
   exit_date: string | null
   is_active: boolean
@@ -14,7 +15,7 @@ export type EmployeeListItem = EmployeeIdentity & {
   superiors: EmployeeIdentity[]
 }
 export type EmployeeDetail = EmployeeListItem & {
-  capabilities?: { can_export_word: boolean; can_export_pdf: boolean }
+  capabilities?: { can_change: boolean; can_export_word: boolean; can_export_pdf: boolean }
   birth_date: string | null
   email: string | null
   contract_quotity: string | null
@@ -22,6 +23,7 @@ export type EmployeeDetail = EmployeeListItem & {
   contribution_quotity: string | null
   active_milestones_count: number
 }
+export type EmployeeDetailWrite = Pick<EmployeeDetail, 'birth_date' | 'entry_date' | 'exit_date' | 'email' | 'is_active'>
 export type EmployeeStatusHistoryItem = {
   id: number
   type: EmployeeStatus
@@ -275,6 +277,10 @@ export function getEmployeeFilterOptions(signal: AbortSignal) {
 
 export function getEmployee(id: string, signal: AbortSignal) {
   return apiRequest<EmployeeDetail>(`/api/v1/employees/${encodeURIComponent(id)}/`, { signal })
+}
+
+export function updateEmployee(id: number, data: EmployeeDetailWrite) {
+  return apiRequest<EmployeeDetail>(`/api/v1/employees/${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
 }
 
 export function getEmployeeStatuses(id: string, signal: AbortSignal) {

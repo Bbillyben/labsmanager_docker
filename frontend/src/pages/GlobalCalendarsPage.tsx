@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowLeft, Presentation } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getEmployeeFilterOptions, getLeaveTypes, type CalendarEvent, type CalendarFilter } from '../api/employees'
 import { getProjectFilterOptions } from '../api/projects'
@@ -31,6 +32,7 @@ import { projectCalendarRange, projectCalendarScopeOrder, projectCalendarScopes,
 import { useEmployeeResource } from './useEmployeeResource'
 import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './EmployeeLeaves.module.css'
+import '../dashboard/DashboardPage.css'
 
 type Tab = 'employees' | 'projects'
 const monthOptions = [6, 12, 24, 60, 120] as const
@@ -91,6 +93,10 @@ export function GlobalCalendarsPage() {
   const [selectedLeave, setSelectedLeave] = useState<CalendarEvent | null>(null)
   const [resourceVisibilityMode, setResourceVisibilityMode] = useState<ResourceVisibilityMode>('period')
   const [selectedWork, setSelectedWork] = useState<import('../api/planning').PlanningMilestone | null>(null)
+  const [presentation, setPresentation] = useState(false)
+  const enterPresentationButton = useRef<HTMLButtonElement>(null)
+  const exitPresentationButton = useRef<HTMLButtonElement>(null)
+  const presentationOpened = useRef(false)
   const anchor = validDate(canonicalQuery.get(tab === 'employees' ? 'employees_date' : 'projects_date'))
   const scope = projectCalendarScopeOrder.find((value) => value === canonicalQuery.get('view')) ?? 'month'
   const calendarMode = canonicalQuery.get('calendar_mode') === 'resources' ? 'resources' : 'calendar'
@@ -115,6 +121,11 @@ export function GlobalCalendarsPage() {
   const projectData = useEmployeeResource(requestQuery, projectLoader, tab === 'projects')
   const employeeNames = useMemo(() => new Map(Object.entries(employeeData.data?.employee_names ?? {}).map(([id, name]) => [Number(id), name])), [employeeData.data])
   const ganttData = useMemo(() => projectData.data ? adaptPlanningGantt(projectData.data.items, [], projectData.data.projects) : null, [projectData.data])
+
+  useEffect(() => {
+    if (presentation) { presentationOpened.current = true; exitPresentationButton.current?.focus() }
+    else if (presentationOpened.current) enterPresentationButton.current?.focus()
+  }, [presentation])
 
   useEffect(() => {
     if (canonicalQuery.toString() !== query.toString()) setQuery(canonicalQuery, { replace: true })
@@ -153,16 +164,17 @@ export function GlobalCalendarsPage() {
     milestoneStatuses: (projectData.data?.milestone_statuses ?? []).map((value) => ({ value, label: t(milestoneStateKey(value)) })),
   }
 
-  return <main className="grid gap-5">
-    <PageHeader title={t('calendars.title')} />
+  return <main className={presentation ? 'dashboard-presentation dashboard-presentation-overlay grid gap-5' : 'grid gap-5'}>
+    <div hidden={presentation}><PageHeader title={t('calendars.title')} actions={<Button ref={enterPresentationButton} onClick={() => { setSelectedLeave(null); setSelectedWork(null); setPresentation(true) }} variant="secondary"><Presentation aria-hidden="true" />{t('dashboard.presentation')}</Button>} /></div>
+    {presentation && <header className="dashboard-presentation-header"><Button ref={exitPresentationButton} onClick={() => setPresentation(false)} variant="ghost"><ArrowLeft aria-hidden="true" />{t('dashboard.exitPresentation')}</Button><h1>{t('calendars.title')}</h1></header>}
     <div aria-label={t('calendars.title')} className={styles.segmented} role="group">
       <Button aria-pressed={tab === 'employees'} onClick={() => setTab('employees')} variant={tab === 'employees' ? 'default' : 'ghost'}>{t('calendars.general')}</Button>
       <Button aria-pressed={tab === 'projects'} onClick={() => setTab('projects')} variant={tab === 'projects' ? 'default' : 'ghost'}>{t('calendars.projects')}</Button>
     </div>
     {Boolean(options.error) && <Alert tone="danger">{t('calendars.optionsError')} <Button onClick={() => setOptionsAttempt((value) => value + 1)} variant="ghost">{t('common.retry')}</Button></Alert>}
-    <FilterBar catalogue={catalog[tab]} sources={tab === 'employees' ? employeeFilterSources : projectFilterSources} choiceOptions={choices} query={canonicalQuery} onChange={setQuery} />
+    <div hidden={presentation}><FilterBar catalogue={catalog[tab]} sources={tab === 'employees' ? employeeFilterSources : projectFilterSources} choiceOptions={choices} query={canonicalQuery} onChange={setQuery} /></div>
     {Boolean(pluginDefinitions.error) && <Alert tone="danger">{t('leaves.pluginFiltersError')} <Button onClick={pluginDefinitions.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
-    <CalendarPluginFilters definitions={pluginDefinitions.data ?? []} values={selectedPluginValues} onChange={updatePluginFilters} />
+    <div hidden={presentation}><CalendarPluginFilters definitions={pluginDefinitions.data ?? []} values={selectedPluginValues} onChange={updatePluginFilters} /></div>
     {tab === 'employees' && <section aria-label={t('calendars.general')} className="grid gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <div aria-label={t('project.calendar')} className={styles.segmented} role="group">
@@ -173,7 +185,7 @@ export function GlobalCalendarsPage() {
         <Button aria-label={t('leaves.next')} onClick={() => setAnchor(shiftProjectCalendarAnchor(anchor, scope, 1))} size="icon-sm" variant="ghost">›</Button>
         <strong>{rangeLabel(range, language)}</strong>
         <div aria-label={t('projectCalendar.period')} className={styles.segmented} role="group">{projectCalendarScopeOrder.map((value) => <Button aria-pressed={scope === value} key={value} onClick={() => setParameter('view', value)} variant={scope === value ? 'secondary' : 'ghost'}>{t(projectCalendarScopes[value].label)}</Button>)}</div>
-        {employeeData.data && <PrintButton disabled={calendarMode === 'resources' && resourceVisibilityMode === 'today' && !todayData.data} createRequest={() => ({ renderer: 'calendar', title: t('calendars.general'), state: { scope, viewType: projectCalendarViewDefinition(scope, calendarMode).key, mode: calendarMode, range, events: employeeData.data?.events ?? [], resources: employeeData.data?.resources ?? [], todayEvents: todayData.data?.events, resourceVisibilityMode, employeeNames: Object.fromEntries(employeeNames), filters: { ...Object.fromEntries(apiFilters(catalog.employees, canonicalQuery, 'employees')), ...effectivePluginValues }, selectedId: selectedLeave?.id ?? null } satisfies CalendarPrintState })} />}
+        {employeeData.data && !presentation && <PrintButton disabled={calendarMode === 'resources' && resourceVisibilityMode === 'today' && !todayData.data} createRequest={() => ({ renderer: 'calendar', title: t('calendars.general'), state: { scope, viewType: projectCalendarViewDefinition(scope, calendarMode).key, mode: calendarMode, range, events: employeeData.data?.events ?? [], resources: employeeData.data?.resources ?? [], todayEvents: todayData.data?.events, resourceVisibilityMode, employeeNames: Object.fromEntries(employeeNames), filters: { ...Object.fromEntries(apiFilters(catalog.employees, canonicalQuery, 'employees')), ...effectivePluginValues }, selectedId: selectedLeave?.id ?? null } satisfies CalendarPrintState })} />}
       </div>
       {Boolean(employeeData.error) && <Alert tone="danger">{t('calendars.loadError')} <Button onClick={employeeData.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
       {calendarMode === 'resources' && resourceVisibilityMode === 'today' && Boolean(todayData.error) && <Alert tone="danger">{t('calendars.loadError')} <Button onClick={todayData.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
@@ -186,7 +198,7 @@ export function GlobalCalendarsPage() {
     {tab === 'projects' && <section aria-label={t('calendars.projects')}>
       {Boolean(projectData.error) && <Alert tone="danger">{t('calendars.loadError')} <Button onClick={projectData.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
       {projectData.loading && <p role="status">{t('common.loading')}</p>}
-      <PlanningGanttView data={ganttData} events={projectData.data?.events ?? []} anchor={anchor} months={months} onAnchorChange={setAnchor} onMonthsChange={(value: PlanningMonths) => setParameter('months', String(value))} printTitle={t('calendars.projects')} printFilters={{ ...Object.fromEntries(apiFilters(catalog.projects, canonicalQuery, 'projects')), ...effectivePluginValues }} onSelect={(identity) => {
+      <PlanningGanttView data={ganttData} events={projectData.data?.events ?? []} anchor={anchor} months={months} onAnchorChange={setAnchor} onMonthsChange={(value: PlanningMonths) => setParameter('months', String(value))} printTitle={t('calendars.projects')} printFilters={{ ...Object.fromEntries(apiFilters(catalog.projects, canonicalQuery, 'projects')), ...effectivePluginValues }} showPrint={!presentation} onSelect={(identity) => {
         if (identity.kind === 'project') navigate(`/projects/${identity.id}`)
         if (identity.kind === 'work') setSelectedWork(projectData.data?.items.find((item) => String(item.id) === identity.id) ?? null)
       }} />

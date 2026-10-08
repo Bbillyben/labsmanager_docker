@@ -15,3 +15,13 @@ def generic_info_capabilities(user, employee):
 def leave_capabilities(user, employee):
     can_change = bool(can_change_employee(user, employee))
     return {"can_add": can_change, "can_change": can_change, "can_delete": can_change}
+
+
+def employee_detail_capabilities(user, employee):
+    """Authorize detail editing, including the legacy staff administration role."""
+    return {
+        "can_change": bool(
+            user.is_authenticated and user.is_active
+            and (user.is_staff or can_change_employee(user, employee))
+        ),
+    }

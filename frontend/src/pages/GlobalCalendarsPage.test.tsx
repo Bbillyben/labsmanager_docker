@@ -12,8 +12,8 @@ vi.mock('./EmployeeCalendar', () => ({ EmployeeCalendar: ({ events, onOpen }: { 
 vi.mock('@fullcalendar/react', () => ({ default: function MockCalendar({ initialView, events, resources }: { initialView: string; events: Array<{ id: string; display: string; resourceId?: string; resourceIds?: string[] }>; resources?: Array<{ id: string; title: string }> }) {
   return <div data-testid="shared-resource-calendar" data-view={initialView}>{resources?.map((item) => <span key={item.id} data-resource-id={item.id}>{item.title}</span>)}{events.map((item) => <span key={item.id} data-event-id={item.id} data-display={item.display} data-resource={item.resourceId ?? item.resourceIds?.join(',')} />)}</div>
 } }))
-vi.mock('../gantt/PlanningGanttView', () => ({ PlanningGanttView: ({ onSelect }: { onSelect: (value: { kind: string; id: string }) => void }) =>
-  <div data-testid="shared-gantt"><button onClick={() => onSelect({ kind: 'work', id: '9' })}>Open Work</button><button onClick={() => onSelect({ kind: 'project', id: '3' })}>Open Project</button></div> }))
+vi.mock('../gantt/PlanningGanttView', () => ({ PlanningGanttView: ({ onSelect, showPrint }: { onSelect: (value: { kind: string; id: string }) => void; showPrint?: boolean }) =>
+  <div data-testid="shared-gantt" data-show-print={String(showPrint)}><button>Previous period</button><button>24 months</button><button onClick={() => onSelect({ kind: 'work', id: '9' })}>Open Work</button><button onClick={() => onSelect({ kind: 'project', id: '3' })}>Open Project</button></div> }))
 vi.mock('./EmployeeLeaveSheet', () => ({ EmployeeLeaveSheet: ({ employeeName }: { employeeName: string }) => <div>Leave detail: {employeeName}</div> }))
 vi.mock('./MilestoneDetailSheet', () => ({ MilestoneDetailSheet: ({ milestone }: { milestone: { name: string } | null }) => milestone ? <div>Work detail: {milestone.name}</div> : null }))
 
@@ -46,6 +46,47 @@ beforeEach(() => Object.defineProperty(window.navigator, 'languages', { configur
 afterEach(() => vi.restoreAllMocks())
 
 describe('Global calendars', () => {
+  it('presents the general calendar without filters or management controls, then restores them', async () => {
+    const fetch = setup('/app/calendars?tab=employees&employees_date=2026-10-01&view=month')
+    const user = userEvent.setup()
+    await screen.findByTestId('shared-calendar')
+    const calendarRequests = () => fetch.mock.calls.filter(([input]) => String(input).startsWith('/api/v1/calendars/employees/?')).length
+    const before = calendarRequests()
+    await user.click(screen.getByRole('button', { name: 'Présentation' }))
+    expect(document.querySelector('.dashboard-presentation-overlay')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Quitter la présentation' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Quitter la présentation' })).toHaveFocus()
+    expect(screen.queryByRole('combobox', { name: 'Zone' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Imprimer' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mois' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ressources' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Période précédente' })).toBeInTheDocument()
+    expect(screen.getByTestId('shared-calendar')).toBeInTheDocument()
+    expect(calendarRequests()).toBe(before)
+    await user.click(screen.getByRole('button', { name: 'Quitter la présentation' }))
+    expect(document.querySelector('.dashboard-presentation-overlay')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Présentation' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Présentation' })).toHaveFocus()
+    expect(screen.getByRole('combobox', { name: 'Zone' })).toBeInTheDocument()
+  })
+
+  it('presents the general Gantt with period controls but no filters or print action', async () => {
+    const fetch = setup('/app/calendars?tab=projects&projects_date=2026-10-01&months=24')
+    const user = userEvent.setup()
+    await screen.findByTestId('shared-gantt')
+    const projectRequests = () => fetch.mock.calls.filter(([input]) => String(input).startsWith('/api/v1/calendars/projects/?')).length
+    const before = projectRequests()
+    await user.click(screen.getByRole('button', { name: 'Présentation' }))
+    expect(screen.getByTestId('shared-gantt')).toHaveAttribute('data-show-print', 'false')
+    expect(screen.getByRole('button', { name: 'Previous period' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '24 months' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Calendrier général' })).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Zone' })).not.toBeInTheDocument()
+    expect(projectRequests()).toBe(before)
+    await user.click(screen.getByRole('button', { name: 'Quitter la présentation' }))
+    expect(screen.getByTestId('shared-gantt')).toHaveAttribute('data-show-print', 'true')
+    expect(screen.getByRole('button', { name: 'Présentation' })).toBeInTheDocument()
+  })
   it('uses the shared Leave calendar, filters, URL scopes and detail', async () => {
     const fetch = setup('/app/calendars?tab=employees&employees_date=2026-10-01&view=month&employees_current_status=1&employees_team=2&employees_type=7&employees_employee=2')
     const user = userEvent.setup()

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Ellipsis, Plus } from 'lucide-react'
 import { useTranslation, type Language } from '../i18n/i18n'
 import { createExpensePoint, createFund, createFundItem, deleteExpensePoint, deleteFund, deleteFundItem, getFundDetail, getFundingOptions, getProjectFunding, updateExpensePoint, updateFund, updateFundItem, type CostType, type ExpensePoint, type Fund, type FundChildWrite, type FundDetail, type FundItem, type FundingOptions, type FundWrite, type ProjectFunding } from '../api/funding'
 import { normalizeMutationError } from '../api/errors'
 import { useMutation } from '../api/useMutation'
 import { ConfirmDialog } from '../components/common/ConfirmDialog'
+import { DisclosureSection } from '../components/common/DisclosureSection'
 import { ItemActionMenu } from '../components/ItemActionMenu'
 import { SelectableTableRow } from '../components/SelectableTableRow'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu'
@@ -65,6 +66,7 @@ export function ProjectFundingPanel({ projectId }: { projectId: string }) {
 
   return <section className={styles.panel} aria-label={t('projectFunding.title')}>
     {Boolean(resource.refreshError) && <Alert tone="warning">{t('projectFunding.refreshError')} <Button variant="ghost" onClick={() => void resource.refresh()}>{t('common.retry')}</Button></Alert>}
+    {data.funds.length > 1 && <DisclosureSection showLabel={t('projectFunding.showConsolidated')} hideLabel={t('projectFunding.hideConsolidated')}><ProjectFundingOverview data={data} language={language} /></DisclosureSection>}
     <section ref={sectionRef} id="project-funds-section" tabIndex={-1} className={styles.section} aria-labelledby="project-funds-heading">
       <div className={styles.heading}><h2 id="project-funds-heading">{t('projectFunding.funds')}</h2>{data.capabilities.can_add && <Button size="sm" variant="secondary" onClick={(event) => { focus.current = event.currentTarget; setEditing('new') }}><Plus aria-hidden="true" />{t('projectFunding.addFund')}</Button>}</div>
       {data.funds.length ? <div className={styles.scroll}><table className={styles.table}><thead><tr><th>{t('projectFunding.funder')}</th><th>{t('projectFunding.institution')}</th><th>{t('projectFunding.startDate')}</th><th>{t('projectFunding.endDate')}</th><th>{t('projectFunding.reference')}</th><th>{t('funding.budgeted')}</th><th>{t('funding.consumed')}</th><th>{t('funding.available')}</th><th>{t('projectFunding.status')}</th><th><span className="sr-only">{t('list.menu')}</span></th></tr></thead><tbody>
@@ -76,6 +78,24 @@ export function ProjectFundingPanel({ projectId }: { projectId: string }) {
     {selected && <FundDetailSection key={`${selected.id}:${detailVersion}`} projectId={projectId} fund={selected} options={options.data} onFinancialChange={() => resource.refresh()} />}
     {editing && <FundSheet projectId={projectId} fund={editing === 'new' ? null : editing} projectDates={data.project_dates} options={options.data} optionsError={Boolean(options.error)} retryOptions={options.retry} returnFocus={focus} onClose={() => setEditing(null)} onSaved={(fund) => void saved(fund)} />}
     {deleting && <DeleteFundingItem title={t('projectFunding.deleteFund')} description={t('projectFunding.deleteFundDescription', { name: fundName(deleting) })} returnFocus={focus} onClose={() => setDeleting(null)} onDelete={() => deleteFund(projectId, deleting.id)} onDeleted={() => void removed()} />}
+  </section>
+}
+
+function ProjectFundingOverview({ data, language }: { data: ProjectFunding; language: Language }) {
+  const { t } = useTranslation()
+  const label = t('projectFunding.consolidatedOverview')
+  const amounts = (values: { amount: string; expense: string; available: string } | undefined) => values
+    ? <><td className={styles.number}>{money(values.amount, language)}</td><td className={styles.number}>{money(values.expense, language)}</td><td className={styles.number}>{money(values.available, language)}</td></>
+    : <><td className={styles.number}>—</td><td className={styles.number}>—</td><td className={styles.number}>—</td></>
+  return <section className={styles.section} aria-labelledby="project-funding-overview-heading">
+    <h2 id="project-funding-overview-heading">{label}</h2>
+    <div className={styles.scroll}><table className={styles.table} aria-label={label}><thead>
+      <tr><th rowSpan={2} scope="col">{t('funding.costType')}</th>{data.funds.map((fund) => <th key={fund.id} colSpan={3} scope="colgroup">{fundName(fund)}</th>)}<th colSpan={3} scope="colgroup">{t('projectFunding.total')}</th></tr>
+      <tr>{[...data.funds.map((fund) => fund.id), 'total'].map((id) => <Fragment key={id}><th scope="col">{t('funding.budgeted')}</th><th scope="col">{t('funding.consumed')}</th><th scope="col">{t('funding.available')}</th></Fragment>)}</tr>
+    </thead><tbody>
+      {data.overview.rows.map((row) => <tr key={row.type.id}><th scope="row">{row.type.name}</th>{data.funds.map((fund) => <Fragment key={fund.id}>{amounts(row.cells[String(fund.id)])}</Fragment>)}{amounts(row.total)}</tr>)}
+      <tr className={styles.total}><th scope="row">{t('projectFunding.total')}</th>{data.funds.map((fund) => <Fragment key={fund.id}>{amounts(data.overview.fund_totals[String(fund.id)])}</Fragment>)}{amounts(data.overview.grand_total)}</tr>
+    </tbody></table></div>
   </section>
 }
 

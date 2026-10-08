@@ -12,6 +12,7 @@ import {
   Users,
   UsersRound,
   Network,
+  ShieldCheck,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import type { AuthenticatedUser } from '../auth/types'
@@ -78,6 +79,7 @@ export function Sidebar({ expanded, interactive, onRequestExpand, user }: Sideba
           </SidebarGroup>
         )}
         <SidebarGroup title={t('navigation.tools')} defaultOpen={false}>
+          {user.capabilities.manage_data_consistency && <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/tools/data-consistency" title={t('dataConsistency.title')}><ShieldCheck aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('dataConsistency.title')}</span></NavLink>}
           {user.capabilities.import_data && <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/tools/import" title={t('navigation.import')}><Upload aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('navigation.import')}</span></NavLink>}
           <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/tools/organization-chart" title={t('organizationChart.title')}><Network aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('organizationChart.title')}</span></NavLink>
           <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} to="/tools/contracts" title={t('navigation.contracts')}><FileSignature aria-hidden="true" size={19} strokeWidth={1.8} /><span className={styles.label}>{t('navigation.contracts')}</span></NavLink>

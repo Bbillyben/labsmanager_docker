@@ -10,7 +10,7 @@ import type { GanttIdentity, LabsManagerGanttData } from './model'
 import { planningWindow, type PlanningMonths } from './planningWindow'
 import styles from './EmployeeGanttPanel.module.css'
 
-export function PlanningGanttView({ data, events, anchor, months, onAnchorChange, onMonthsChange, onSelect, printTitle, printFilters }: {
+export function PlanningGanttView({ data, events, anchor, months, onAnchorChange, onMonthsChange, onSelect, printTitle, printFilters, showPrint = true }: {
   data: LabsManagerGanttData | null
   events: CalendarEvent[]
   anchor: Date
@@ -20,6 +20,7 @@ export function PlanningGanttView({ data, events, anchor, months, onAnchorChange
   onSelect: (identity: GanttIdentity) => void
   printTitle?: string
   printFilters?: Record<string, unknown>
+  showPrint?: boolean
 }) {
   const { language, t } = useTranslation()
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -42,7 +43,7 @@ export function PlanningGanttView({ data, events, anchor, months, onAnchorChange
       <strong>{format(window.from)} – {format(window.to)}</strong>
     </div><div aria-label={t('gantt.period')} className={styles.group} role="group">
       {([6, 12, 24, 60, 120] as const).map((value) => <Button aria-pressed={months === value} key={value} onClick={() => onMonthsChange(value)} size="sm" variant={months === value ? 'secondary' : 'ghost'}>{t(`gantt.months${value}`)}</Button>)}
-    </div>{data && <PrintButton createRequest={() => ({ renderer: 'gantt', title: printTitle ?? t('calendars.projects'), state: { data, events, window, filters: printFilters, closedKeys: [...closedKeys] } satisfies GanttPrintState })} />}</div>
+    </div>{data && showPrint && <PrintButton createRequest={() => ({ renderer: 'gantt', title: printTitle ?? t('calendars.projects'), state: { data, events, window, filters: printFilters, closedKeys: [...closedKeys] } satisfies GanttPrintState })} />}</div>
     {data && <LabsManagerGantt data={data} events={events} dark={dark} window={window} onSelect={onSelect} closedKeys={closedKeys} onOpenChange={(key, open) => setClosedKeys((previous) => { const next = new Set(previous); if (open) next.delete(key); else next.add(key); return next })} />}
   </div>
 }

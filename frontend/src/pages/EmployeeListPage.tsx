@@ -4,10 +4,10 @@ import { SortableTableHeader } from '../components/SortableTableHeader'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../components/ui/dropdown-menu'
 import { DropdownMenuSeparator } from '../components/ui/dropdown-menu'
 import { AdminObjectAction } from '../components/AdminObjectAction'
-import { Download, Ellipsis, ExternalLink, X } from 'lucide-react'
+import { Download, Ellipsis, ExternalLink, Pencil, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { employeeQuery, getEmployeeFilterOptions, getEmployees, readEmployeeParams, type EmployeeFilterOptions, type EmployeeIdentity, type EmployeeListParams, type EmployeeListResponse, type EmployeeSortField } from '../api/employees'
+import { employeeQuery, getEmployee, getEmployeeFilterOptions, getEmployees, readEmployeeParams, type EmployeeDetail, type EmployeeFilterOptions, type EmployeeIdentity, type EmployeeListParams, type EmployeeListResponse, type EmployeeSortField } from '../api/employees'
 import { ApiError } from '../api/errors'
 import { LoadingState } from '../components/LoadingState'
 import { Alert } from '../ui/Alert'
@@ -24,6 +24,7 @@ import { projectFilterSources } from '../config/projectFilterSources'
 import { ListExportDialog } from '../components/ListExportDialog'
 import { filterDefaultsMarker } from '../filters/url'
 import { useTranslation } from '../i18n/i18n'
+import { EmployeeSheet } from './EmployeeSheet'
 
 const fullName = (employee: EmployeeIdentity) => `${employee.first_name} ${employee.last_name}`
 const employeeUrl = (id: number) => `/employees/${id}`
@@ -94,6 +95,12 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
   const [result, setResult] = useState<EmployeeListResponse | null>(null)
   const [error, setError] = useState<unknown>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [editing, setEditing] = useState<EmployeeDetail | null>(null)
+  const [editError, setEditError] = useState(false)
+  const [loadingEditId, setLoadingEditId] = useState<number | null>(null)
+  const [refreshVersion, setRefreshVersion] = useState(0)
+  const editTrigger = useRef<HTMLElement | null>(null)
+  const openingEditor = useRef(false)
   const returnToRow = useRef(false)
   const query = employeeQuery(params, true)
   const requestParams = useMemo(() => {
@@ -109,7 +116,7 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
       (reason: unknown) => { if (!controller.signal.aborted) setError(reason) },
     )
     return () => controller.abort()
-  }, [requestParams])
+  }, [requestParams, refreshVersion])
 
   if (error) return <div className={styles.feedback}><Alert tone="danger">{error instanceof ApiError && error.status === 403 ? t('employee.listForbidden') : t('employee.listLoadError')}</Alert><Button variant="ghost" onClick={retry}>{t('common.retry')}</Button></div>
   if (!result) return <div className={styles.loading}><LoadingState message={t('employee.listLoading')} /></div>
@@ -121,7 +128,26 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
     return <SortableTableHeader label={label} field={field} ordering={params.ordering || 'first_name'} onSort={(ordering) => update({ ordering })} />
   }
 
+  async function openEditor(id: number) {
+    openingEditor.current = true
+    setLoadingEditId(id)
+    setEditError(false)
+    let opened = false
+    try {
+      const detail = await getEmployee(String(id), new AbortController().signal)
+      if (detail.capabilities?.can_change) { opened = true; setEditing(detail) }
+      else setEditError(true)
+    } catch {
+      setEditError(true)
+    } finally {
+      setLoadingEditId(null)
+      openingEditor.current = false
+      if (!opened) editTrigger.current?.focus()
+    }
+  }
+
   return <section aria-label={t('employee.listLabel')}>
+    {editError && <Alert tone="danger">{t('employee.loadError')}</Alert>}
     <p className={styles.summary} role="status">{t(result.count === 1 ? 'employee.countOne' : 'employee.countMany', { count: result.count })}{result.results.length > 0 && ` · ${params.offset + 1}–${params.offset + result.results.length}`}</p>
     <p className="sr-only" role="status">{selected ? t('list.selected', { name: fullName(selected) }) : t('list.noneSelected')}</p>
     {result.results.length > 0 ? <div className={styles.scroll} role="region" aria-label={t('employee.tableScroll')} tabIndex={0}>
@@ -136,9 +162,10 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
           <td><ActivityStatusBadge active={employee.is_active} /></td>
           <td className={styles.actions}>
             <DropdownMenu onOpenChange={(open) => { if (open) { returnToRow.current = false; setSelectedId(employee.id) } }}>
-              <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className={styles.rowMenu} />} aria-label={t('common.actionsFor', { name: fullName(employee) })}><Ellipsis /></DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-52" finalFocus={() => returnToRow.current ? document.getElementById(`employee-row-${employee.id}`) : true}>
+              <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className={styles.rowMenu} />} aria-label={t('common.actionsFor', { name: fullName(employee) })} onClick={(event) => { editTrigger.current = event.currentTarget }}><Ellipsis /></DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-52" finalFocus={() => openingEditor.current || editing ? false : returnToRow.current ? document.getElementById(`employee-row-${employee.id}`) : true}>
                 <DropdownMenuItem render={<Link to={employeeUrl(employee.id)} state={{ employeeListSearch: employeeQuery(params) }} />}><ExternalLink /> {t('list.openProfile')}</DropdownMenuItem>
+                {employee.capabilities?.can_change && <DropdownMenuItem disabled={loadingEditId === employee.id} onClick={() => { void openEditor(employee.id) }}><Pencil /> {t('employee.edit')}</DropdownMenuItem>}
                 <DropdownMenuItem onClick={() => { returnToRow.current = true; setSelectedId(null) }}><X /> {t('list.deselect')}</DropdownMenuItem>
                 {employee.admin_url && <><DropdownMenuSeparator /><AdminObjectAction adminUrl={employee.admin_url} /></>}
               </DropdownMenuContent>
@@ -153,5 +180,6 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
       <span>{t('common.pageOf', { page, pages })}</span>
       <Button variant="ghost" disabled={!result.next} onClick={() => update({ offset: params.offset + params.limit })}>{t('common.next')}</Button>
     </nav>
+    {editing && <EmployeeSheet employee={editing} returnFocus={editTrigger} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); setRefreshVersion((value) => value + 1) }} />}
   </section>
 }

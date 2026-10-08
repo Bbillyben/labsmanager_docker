@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { DashboardWidget } from '../api/dashboards'
 import { KpiRenderer, CompactListRenderer, AlertListRenderer, ProgressListRenderer, EmptyRenderer } from './PilotRenderers'
 import { LineChartRenderer } from './LineChartRenderer'
+import { DataConsistencyRenderer } from './DataConsistencyRenderer'
 import type { DashboardSize } from './size'
 import type { DashboardMode } from './mode'
 
@@ -23,3 +24,4 @@ registerDashboardRenderer('alert-list', AlertListRenderer)
 registerDashboardRenderer('progress-list', ProgressListRenderer)
 registerDashboardRenderer('empty', EmptyRenderer)
 registerDashboardRenderer('line-chart', LineChartRenderer)
+registerDashboardRenderer('data-consistency', DataConsistencyRenderer)

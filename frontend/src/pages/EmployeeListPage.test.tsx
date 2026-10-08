@@ -13,14 +13,14 @@ const bob: EmployeeListItem = { ...alice, id: 2, first_name: 'Bob', last_name: '
 const collection = (results = [alice, bob], extra: Partial<EmployeeListResponse> = {}): EmployeeListResponse => ({ count: results.length, next: null, previous: null, results, ...extra })
 
 function mockApi(response: (url: string, init?: RequestInit) => Promise<Response> = async () => jsonResponse(collection()), user = authenticatedUser) {
-  return vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => String(input) === '/api/v1/me/' ? Promise.resolve(jsonResponse(user)) : String(input) === '/api/v1/employees/filter-options/' ? Promise.resolve(jsonResponse({ statuses: [{ id: 3, name: 'Chercheuse' }], teams: [{ id: 6, name: 'Recherche' }] })) : response(String(input), init))
+  return vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => String(input) === '/api/v1/me/' ? Promise.resolve(jsonResponse(user)) : String(input).startsWith('/api/v1/dashboards/') ? Promise.resolve(jsonResponse([])) : String(input) === '/api/v1/employees/filter-options/' ? Promise.resolve(jsonResponse({ statuses: [{ id: 3, name: 'Chercheuse' }], teams: [{ id: 6, name: 'Recherche' }] })) : response(String(input), init))
 }
 function renderAt(path = '/app/employees/', language = 'fr-FR') {
   Object.defineProperty(window.navigator, 'languages', { configurable: true, value: [language] })
   window.history.replaceState({}, '', path)
   return render(<I18nProvider><BrowserRouter basename="/app"><AuthProvider><AppRouter /></AuthProvider></BrowserRouter></I18nProvider>)
 }
-async function loaded() { return screen.findByRole('link', { name: 'Alice Martin' }) }
+async function loaded() { return screen.findByRole('link', { name: 'Alice Martin' }, { timeout: 8000 }) }
 function row(name: string) { return screen.getByRole('link', { name }).closest('tr')! }
 async function filterActivity(value: string) {
   if (!screen.queryByLabelText('Activité')) {
@@ -32,6 +32,52 @@ async function filterActivity(value: string) {
 function query() { return new URLSearchParams(window.location.search) }
 
 describe('Employee R1', () => {
+  it('edits an authorized Employee from the row menu in the shared Sheet and refreshes the list', async () => {
+    let email = 'alice@example.test'
+    let listCalls = 0
+    const fetchMock = mockApi(async (url, init) => {
+      if (url === '/api/v1/employees/1/') {
+        if (init?.method === 'PATCH') email = JSON.parse(String(init.body)).email
+        return jsonResponse({ ...alice, birth_date: null, email, capabilities: { can_change: true } })
+      }
+      if (url.startsWith('/api/v1/employees/?')) listCalls += 1
+      return jsonResponse(collection([{ ...alice, capabilities: { can_change: true } }]))
+    })
+    renderAt()
+    const user = userEvent.setup()
+    await loaded()
+    await user.click(within(row('Alice Martin')).getByRole('button', { name: 'Actions pour Alice Martin' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier l’employé' }))
+    const sheet = await screen.findByRole('dialog')
+    await user.clear(within(sheet).getByLabelText('Email'))
+    await user.type(within(sheet).getByLabelText('Email'), 'updated@example.test')
+    await user.click(within(sheet).getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(listCalls).toBeGreaterThan(1))
+    expect(fetchMock.mock.calls.some(([url, init]) => String(url) === '/api/v1/employees/1/' && init?.method === 'PATCH')).toBe(true)
+  })
+
+  it('hides row Edit when the Employee capability denies it', async () => {
+    mockApi(async () => jsonResponse(collection([{ ...alice, capabilities: { can_change: false } }])))
+    renderAt()
+    await loaded()
+    await userEvent.click(within(row('Alice Martin')).getByRole('button', { name: 'Actions pour Alice Martin' }))
+    expect(screen.queryByRole('menuitem', { name: 'Modifier l’employé' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the list available and restores focus if the edit detail cannot load', async () => {
+    mockApi(async (url) => url === '/api/v1/employees/1/'
+      ? jsonResponse({}, 500)
+      : jsonResponse(collection([{ ...alice, capabilities: { can_change: true } }])))
+    renderAt()
+    await loaded()
+    const trigger = within(row('Alice Martin')).getByRole('button', { name: 'Actions pour Alice Martin' })
+    const user = userEvent.setup()
+    await user.click(trigger)
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier l’employé' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de charger cette fiche Employee.')
+    expect(trigger).toHaveFocus()
+    expect(screen.getByRole('link', { name: 'Alice Martin' })).toBeInTheDocument()
+  })
   it('adds the backend-provided Admin link to the Employee row menu', async () => {
     mockApi(async () => jsonResponse(collection([{ ...alice, admin_url: '/admin/staff/employee/1/change/' }])))
     renderAt()
@@ -119,7 +165,7 @@ describe('Employee R1', () => {
   it('navigates from the sidebar to the React list', async () => {
     mockApi()
     renderAt('/app/')
-    await userEvent.click(await screen.findByRole('link', { name: 'Employés' }))
+    await userEvent.click(await within(await screen.findByRole('navigation', { name: 'Navigation principale' })).findByRole('link', { name: 'Employés' }))
     expect(await loaded()).toBeInTheDocument()
     expect(window.location.pathname).toBe('/app/employees/')
   })

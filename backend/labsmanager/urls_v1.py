@@ -52,6 +52,8 @@ from .api_v1 import CurrentUserView, LoginV1View, LogoutV1View, PasswordResetReq
 from dashboard.api_v1 import (DashboardCollection, DashboardDetail, DashboardDefault,
     DashboardDuplicate, DashboardReorder, DashboardCatalog, DashboardWidgets,
     DashboardWidgetDetail, DashboardLayout, ProjectDashboard, ProjectDashboardCatalog)
+from data_consistency.api_v1 import (DataConsistencySummary, DataConsistencyIssues,
+    DataConsistencyAccept, DataConsistencyReopen)
 from global_search.api_v1 import SearchV1View, SearchSchemaV1View, SearchAutocompleteV1View
 from project.api_v1 import ProjectCapabilitiesV1View, ProjectDetailV1View, ProjectFilterOptionsV1View, ProjectListV1View, ProjectListExportV1View, ProjectOverviewOptionsV1View, project_child_view
 from project.calendar_api_v1 import ProjectCalendarV1View, ProjectCalendarFiltersV1View, ProjectCalendarParticipantsV1View, ProjectCalendarLeaveCreateV1View, ProjectCalendarLeaveDetailV1View
@@ -97,6 +99,10 @@ app_name = "api_v1"
 import_api = import_module("import.api_v1")
 
 urlpatterns = [
+    path("data-consistency/summary/", DataConsistencySummary.as_view(), name="data-consistency-summary"),
+    path("data-consistency/issues/", DataConsistencyIssues.as_view(), name="data-consistency-issues"),
+    path("data-consistency/issues/<str:rule_key>/<int:contract_id>/accept/", DataConsistencyAccept.as_view(), name="data-consistency-accept"),
+    path("data-consistency/exceptions/<int:exception_id>/reopen/", DataConsistencyReopen.as_view(), name="data-consistency-reopen"),
     path("recent-items/", RecentItemsV1View.as_view(), name="recent-items"),
     path("search/", SearchV1View.as_view(), name="search"),
     path("search/schema/", SearchSchemaV1View.as_view(), name="search-schema"),

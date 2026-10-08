@@ -9,6 +9,7 @@ export function dashboardRendererLabel(key: string, fallback: string, t: Transla
     case 'progress-list': return t('dashboard.renderer.progress-list')
     case 'empty': return t('dashboard.renderer.empty')
     case 'line-chart': return t('dashboard.renderer.line-chart')
+    case 'data-consistency': return t('dashboard.renderer.data-consistency')
     default: return fallback
   }
 }
@@ -77,6 +78,7 @@ export function dashboardSourceLabel(key: string, fallback: string, t: Translate
     case 'core.financial-advancement': return t('dashboard.source.advancement')
     case 'core.financial-summary': return t('dashboard.source.financialSummary')
     case 'core.expense-trend': return t('dashboard.source.expenseTrend')
+    case 'core.data-consistency': return t('dataConsistency.title')
     default: return fallback
   }
 }
@@ -94,6 +96,7 @@ export function dashboardSourceDescription(key: string, fallback: string, t: Tra
     case 'core.financial-advancement': return t('dashboard.sourceDescription.advancement')
     case 'core.financial-summary': return t('dashboard.sourceDescription.financialSummary')
     case 'core.expense-trend': return t('dashboard.sourceDescription.expenseTrend')
+    case 'core.data-consistency': return t('dashboard.sourceDescription.dataConsistency')
     default: return fallback
   }
 }

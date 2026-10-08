@@ -122,6 +122,7 @@ INSTALLED_APPS = [
     'project.apps.ProjectConfig',
     'fund.apps.FundConfig',
     'expense.apps.ExpenseConfig',
+    'data_consistency.apps.DataConsistencyConfig',
     'endpoints.apps.EndpointsConfig',
     'leave.apps.LeaveConfig',
     'reports.apps.ReportsConfig',

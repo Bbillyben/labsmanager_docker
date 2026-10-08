@@ -1,0 +1,67 @@
+email:
+  backend: 'django.core.mail.backends.console.EmailBackend'
+  host: ''
+  port: 25
+  username: ''
+  password: ''
+  sender: 'demo@labsmanager.local'
+  tls: false
+  ssl: false
+
+django_admins: 'ben:legendre.ben@gmail.com benlegendre:benjamin.legendre@univ-lille.fr'  # string of username:email username2:email2
+
+site_id: 11
+
+django_allowed_hosts: '192.168.1.145 labsmanager.legendre-ratajczak.fr' # separator is space
+
+debug: true
+log_level: 'DEBUG'
+secret_key: '12345678910abcdefghijklmnopqrstuvwxyz@django_secretkey'
+csrf_trusted_origins: 'https://192.168.1.145 http://192.168.1.145 https://labsmanager.legendre-ratajczak.fr http://192.168.1.145:5173 http://localhost:5173'
+
+# # Configure DB
+lab_db_name: 'django'
+lab_db_user: 'djangouser'
+lab_db_password: 'djangoUserPass'
+lab_db_host: 'localhost'
+lab_db_port: '5432'
+
+## admin site customisation
+admin_header: "LabsManager"
+admin_site_title: "LabsManager"
+admin_index_title: "Menu" 
+
+
+static_root: '/home/labsmanager/data/static/'
+media_root: "/home/labsmanager/data/media/"
+plugin_dir: "/home/labsmanager/data/plugins/"
+plugin_enable: 'true'
+
+# CSP policy
+admin_use_csp: 'true'
+admin_csp_default: "192.168.1.145, 192.168.1.145:7000"
+admin_csp_script: "'unsafe-inline','unsafe-eval'"
+admin_csp_style: "'unsafe-inline'"
+admin_csp_font: "'unsafe-inline','unsafe-eval', data:"
+admin_csp_data: "'unsafe-inline','unsafe-eval'"
+admin_csp_img: "data:"
+admin_csp_frame_ancestors: "'none'"
+# admin_csp_media: ""
+
+#security issues 
+csrf_cookie_secure: 'false' # should be true in prod
+csrf_cookie_samesite: 'Strict'
+session_cookie_secure: 'false'
+secure_browser_xss_filter: 'true'
+secure_content_type_nosniff: 'true'
+secure_ssl_redirect: 'false'
+x_frame_options: 'DENY'
+secure_hsts_seconds: 300
+secure_hsts_include_subdomains: 'true'
+secure_hsts_preload: 'true'
+
+# Cookie lifespan when logged
+session_cookie_age: 12800
+
+# allow sign up 
+allow_sign_up: 'false'

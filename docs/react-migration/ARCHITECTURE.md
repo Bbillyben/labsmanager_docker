@@ -261,7 +261,10 @@ La sous-collection Expense Project/Contract réutilise l'API Expense et impose l
 
 Le détail visuel du Fund sélectionné conserve une seule synthèse financière par
 Cost_Type, suivie des Expense individuelles. Le bloc « Détail : Fund » redondant,
-les trois tableaux séparés et la matrice Project repliable ne sont plus affichés.
+les trois tableaux séparés ne sont plus affichés. La matrice Project est rendue
+avant la liste des Funds lorsque plus d'un Fund est visible, dans le
+`DisclosureSection` fermé par défaut et sans persistance. Elle utilise le champ
+`overview` déjà fourni par l'API et ne dépend pas du Fund sélectionné.
 La synthèse joint pour l'affichage les Fund_Item et Expense_point existants,
 ainsi que les lignes de synthèse exposées par l'API, sans créer d'objet absent.
 Pour chaque côté, date et montant `—` signifient absence d'objet ; `0,00 €`
@@ -275,8 +278,8 @@ restent inchangés. Aucun changement de contrat API ou de calcul métier.
 
 Les headers Project et Employee injectent leurs actions autorisées dans le
 `EntityActionMenu` commun. Project réutilise son `ProjectSheet` pour Modifier ;
-Employee n'expose pas Modifier tant qu'un lot dédié n'a pas créé son contrat
-d'écriture. Ce choix ne restreint pas le composant de menu. Les capabilities
+Employee utilise son Sheet métier et le PATCH du détail pour les champs modifiables
+du formulaire historique. Ce choix ne restreint pas le composant de menu. Les capabilities
 `can_export_word` et `can_export_pdf` sont calculées séparément côté Django
 depuis les permissions historiques de chaque modèle de rapport.
 

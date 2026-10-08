@@ -22,6 +22,20 @@ function showTools() {
 }
 
 describe('AppRouter', () => {
+  it('opens the Data Consistency route from the management tools menu', async () => {
+    const account = { ...authenticatedUser, capabilities: { ...authenticatedUser.capabilities, manage_data_consistency: true } }
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse(account)
+      if (url === '/api/v1/data-consistency/summary/') return jsonResponse({ total: 0, accepted_total: 0, categories: [], rules: [], capabilities: { can_accept: true, can_reopen: true } })
+      if (url.startsWith('/api/v1/data-consistency/issues/?')) return jsonResponse({ count: 0, next: null, previous: null, results: [] })
+      throw new Error(url)
+    })
+    renderAt('/app/tools/data-consistency')
+    expect(await screen.findByRole('heading', { name: 'Cohérence des données' })).toBeInTheDocument()
+    showTools()
+    expect(screen.getByRole('link', { name: 'Cohérence des données' })).toHaveAttribute('href', '/app/tools/data-consistency')
+  })
   it('loads the shareable Global Search route inside the authenticated shell', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input)

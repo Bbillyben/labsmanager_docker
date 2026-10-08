@@ -441,6 +441,7 @@ class EmployeeListV1ApiTests(APITestCase):
             set(result),
             {
                 "id",
+                "admin_url",
                 "first_name",
                 "last_name",
                 "entry_date",
@@ -448,6 +449,7 @@ class EmployeeListV1ApiTests(APITestCase):
                 "is_active",
                 "current_statuses",
                 "superiors",
+                "capabilities",
             },
         )
         self.assertEqual(
@@ -503,6 +505,93 @@ class EmployeeDetailV1ApiTests(APITestCase):
 
     def detail_url(self, employee_id):
         return reverse("api_v1:employee-detail", kwargs={"pk": employee_id})
+
+    def test_staff_without_global_change_can_edit_employee(self):
+        user = self.create_user("staff-editor")
+        user.is_staff = True
+        user.save(update_fields=["is_staff"])
+        employee = self.create_employee("Staff", "Target")
+        self.login(user)
+
+        detail = self.client.get(self.detail_url(employee.pk))
+        self.assertEqual(detail.status_code, 200)
+        self.assertTrue(detail.json()["capabilities"]["can_change"])
+        listed = self.client.get(self.list_url)
+        self.assertEqual(listed.status_code, 200)
+        self.assertEqual(listed.json()["results"][0]["id"], employee.pk)
+        self.assertTrue(listed.json()["results"][0]["capabilities"]["can_change"])
+        response = self.client.patch(self.detail_url(employee.pk), {"email": "new@example.test"})
+        self.assertEqual(response.status_code, 200)
+        employee.refresh_from_db()
+        self.assertEqual(employee.email, "new@example.test")
+
+    def test_superuser_can_edit_employee(self):
+        user = self.create_user("super-editor")
+        user.is_superuser = True
+        user.save(update_fields=["is_superuser"])
+        employee = self.create_employee("Super", "Target")
+        self.login(user)
+
+        self.assertTrue(self.client.get(self.detail_url(employee.pk)).json()["capabilities"]["can_change"])
+        self.assertEqual(self.client.patch(self.detail_url(employee.pk), {"is_active": False}).status_code, 200)
+        employee.refresh_from_db()
+        self.assertFalse(employee.is_active)
+
+    def test_global_change_and_explicit_self_edit_remain_authorized(self):
+        global_user = self.create_user("global-editor")
+        global_user.user_permissions.add(Permission.objects.get(content_type__app_label="staff", codename="change_employee"))
+        target = self.create_employee("Global", "Target")
+        self.login(global_user)
+        self.assertTrue(self.client.get(self.detail_url(target.pk)).json()["capabilities"]["can_change"])
+        self.assertEqual(self.client.patch(self.detail_url(target.pk), {"email": "global@example.test"}).status_code, 200)
+
+        self_user = self.create_user("self-editor")
+        self_user.user_permissions.add(Permission.objects.get(content_type__app_label="common", codename="self_edit"))
+        own = self.create_employee("Self", "Editor", user=self_user)
+        self.login(self_user)
+        self.assertTrue(self.client.get(self.detail_url(own.pk)).json()["capabilities"]["can_change"])
+        self.assertEqual(self.client.patch(self.detail_url(own.pk), {"email": "self@example.test"}).status_code, 200)
+
+    def test_subordinate_edit_uses_existing_change_rule(self):
+        user = self.create_user("superior-editor")
+        superior = self.create_employee("Superior", "Person", user=user)
+        subordinate = self.create_employee("Subordinate", "Person")
+        Employee_Superior.objects.create(employee=subordinate, superior=superior)
+        self.login(user)
+
+        can_change = user.has_perm("staff.change_employee", subordinate)
+        self.assertTrue(can_change)
+        self.assertEqual(self.client.get(self.detail_url(subordinate.pk)).json()["capabilities"]["can_change"], can_change)
+        response = self.client.patch(self.detail_url(subordinate.pk), {"email": "sub@example.test"})
+        self.assertEqual(response.status_code, 200)
+
+    def test_visible_reader_cannot_edit_employee(self):
+        user = self.create_user("detail-reader")
+        employee = self.create_employee("Read", "Only")
+        self.grant_global_view(user)
+        self.login(user)
+
+        self.assertFalse(self.client.get(self.detail_url(employee.pk)).json()["capabilities"]["can_change"])
+        response = self.client.patch(self.detail_url(employee.pk), {"email": "forbidden@example.test"})
+        self.assertEqual(response.status_code, 403)
+        employee.refresh_from_db()
+        self.assertIsNone(employee.email)
+
+    def test_edit_validates_dates_and_does_not_edit_identity(self):
+        user = self.create_user("staff-validator")
+        user.is_staff = True
+        user.save(update_fields=["is_staff"])
+        employee = self.create_employee("Original", "Name", entry_date=date(2025, 1, 1))
+        self.login(user)
+
+        invalid = self.client.patch(self.detail_url(employee.pk), {"exit_date": "2024-01-01"})
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn("exit_date", invalid.json())
+        valid = self.client.patch(self.detail_url(employee.pk), {"email": "valid@example.test", "first_name": "Changed"})
+        self.assertEqual(valid.status_code, 200)
+        employee.refresh_from_db()
+        self.assertEqual(employee.first_name, "Original")
+        self.assertEqual(employee.email, "valid@example.test")
 
     def test_anonymous_user_is_rejected_from_detail(self):
         employee = self.create_employee("Anonymous", "Target")
@@ -600,6 +689,7 @@ class EmployeeDetailV1ApiTests(APITestCase):
             set(detail_response.json()),
             {
                 "id",
+                "admin_url",
                 "first_name",
                 "last_name",
                 "entry_date",

@@ -72,6 +72,7 @@ const milestones = [
 type Payloads = { detail?: unknown; statuses?: unknown; hierarchy?: unknown; genericInfo?: unknown; projects?: unknown; milestones?: unknown | (() => Response); milestonePatchError?: boolean; workload?: unknown; contracts?: unknown; contributions?: unknown; contributionWorkload?: unknown; budgets?: unknown; calendar?: unknown; calendarFilters?: unknown }
 function mockApi(payloads: Payloads = {}) {
   const workState = Array.isArray(payloads.milestones) ? structuredClone(payloads.milestones) : structuredClone(milestones)
+  let detailState = structuredClone(payloads.detail ?? detail)
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input), method = init?.method ?? 'GET'
     if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
@@ -104,7 +105,10 @@ function mockApi(payloads: Payloads = {}) {
     if (url.endsWith('/contracts/')) return jsonResponse(payloads.contracts ?? [])
     if (url.includes('/calendar/filters/')) return jsonResponse(payloads.calendarFilters ?? [])
     if (url.includes('/calendar/')) return jsonResponse(payloads.calendar ?? [])
-    if (/\/api\/v1\/employees\/\d+\/$/.test(url)) return jsonResponse(payloads.detail ?? detail)
+    if (/\/api\/v1\/employees\/\d+\/$/.test(url)) {
+      if (method === 'PATCH') detailState = { ...detailState as object, ...JSON.parse(String(init?.body)) }
+      return jsonResponse(detailState)
+    }
     throw new Error(`Unexpected URL ${url}`)
   })
 }
@@ -115,6 +119,34 @@ function renderAt(id = 12, panel = '') {
 }
 
 describe('Employee R2 detail', () => {
+  it('lets an authorized staff user edit and refresh Employee details', async () => {
+    const fetchMock = mockApi({ detail: { ...detail, capabilities: { can_change: true, can_export_word: false, can_export_pdf: false } } })
+    renderAt()
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Actions pour Jean Dupont' }, { timeout: 8000 }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier l’employé' }))
+    const sheet = await screen.findByRole('dialog')
+    await user.clear(within(sheet).getByLabelText('Email'))
+    await user.type(within(sheet).getByLabelText('Email'), 'updated@example.test')
+    await user.click(within(sheet).getByRole('button', { name: 'Enregistrer' }))
+    expect(await screen.findByRole('link', { name: 'updated@example.test' })).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([url, init]) => String(url) === '/api/v1/employees/12/' && init?.method === 'PATCH' && new Headers(init.headers).get('Content-Type') === 'application/json')).toBe(true)
+    expect(fetchMock.mock.calls.filter(([url, init]) => String(url) === '/api/v1/employees/12/' && (!init || init.method === 'GET')).length).toBeGreaterThan(1)
+  })
+
+  it('omits Edit for a reader without Employee change capability', async () => {
+    mockApi({ detail: { ...detail, capabilities: { can_change: false, can_export_word: true, can_export_pdf: false } } })
+    renderAt()
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Actions pour Jean Dupont' }, { timeout: 8000 }))
+    expect(screen.queryByRole('menuitem', { name: 'Modifier l’employé' })).not.toBeInTheDocument()
+  })
+
+  it('uses the same Edit action for a superior granted Employee change', async () => {
+    mockApi({ detail: { ...detail, capabilities: { can_change: true, can_export_word: false, can_export_pdf: false } } })
+    renderAt()
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Actions pour Jean Dupont' }, { timeout: 8000 }))
+    expect(await screen.findByRole('menuitem', { name: 'Modifier l’employé' })).toBeInTheDocument()
+  })
   it('places the Admin deep link after Employee exports', async () => {
     mockApi({ detail: { ...detail, admin_url: '/admin/staff/employee/12/change/', capabilities: { can_export_word: true, can_export_pdf: true } } })
     renderAt()
@@ -481,14 +513,18 @@ describe('Employee R2 detail', () => {
   })
 
   it('keeps Employee loading and forbidden states at layout level', async () => {
-    let resolveEmployee!: (response: Response) => void
-    const employeeResponse = new Promise<Response>((resolve) => { resolveEmployee = resolve })
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => String(input) === '/api/v1/me/' ? jsonResponse(authenticatedUser) : employeeResponse)
+    let resolveEmployee!: () => void
+    const employeeResponse = new Promise<void>((resolve) => { resolveEmployee = resolve })
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/me/') return jsonResponse(authenticatedUser)
+      await employeeResponse
+      return jsonResponse({}, 403)
+    })
     renderAt(12, 'projects')
 
     expect(await screen.findByText('Chargement de l’employé…')).toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Navigation de la fiche Employee' })).not.toBeInTheDocument()
-    resolveEmployee(jsonResponse({}, 403))
+    resolveEmployee()
     expect(await screen.findByRole('alert')).toHaveTextContent('Accès interdit à cette fiche Employee.')
     expect(screen.queryByRole('heading', { name: 'Projets' })).not.toBeInTheDocument()
   })

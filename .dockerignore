@@ -1,9 +1,18 @@
-# config yaml file
+# Git
+.git
+
+# Local configuration / secrets
+.env*
+config.yaml
+config.*.yaml
 backend/config.yaml
+backend/config.*.yaml
 backend/*.bck
-backend/*.json
+
+# Frontend generated/local files
+frontend/.env*
 frontend/node_modules
 frontend/dist
-frontend/.env*
-.env
-.env.*
+
+# Backend local JSON files
+backend/*.json

@@ -111,7 +111,19 @@ CORE_RENDERERS = {
     "progress-list": {"label": "Progress list", "config_fields": {}},
     "empty": {"label": "Text", "config_fields": {}},
     "line-chart": {"label": "Line chart", "config_fields": {}},
+    "data-consistency": {"label": "Data consistency", "config_fields": {}},
 }
+
+
+def _data_consistency(context, config):
+    # The React renderer reads the same scoped summary endpoint as the review
+    # page, instead of maintaining an independent Dashboard count.
+    return {"summary_url": "/api/v1/data-consistency/summary/"}
+
+
+def _can_manage_data_consistency(context):
+    from data_consistency.permissions import can_manage_consistency
+    return can_manage_consistency(context.user)
 
 def _choice(label, options, default):
     return {"type": "choice", "label": label, "choices": options, "default": default}
@@ -142,6 +154,9 @@ CORE_SOURCES = (
     DataSource("core.note", "Note", "General", ("user",), ("empty",), _note,
                description="Personal text", allow_multiple=True, default_renderer="empty",
                config_fields={"message": {"type": "string", "label": "Message", "default": "", "max_length": 500}}),
+    DataSource("core.data-consistency", "Data consistency", "Administration", ("user",),
+               ("data-consistency",), _data_consistency, available=_can_manage_data_consistency,
+               description="Review active data consistency issues", default_renderer="data-consistency"),
     DataSource("core.projects", "Visible projects", "Projects", ("user", "project"), ("kpi", "compact-list", "alert-list"), business_sources.projects,
                description="Projects you can view", allow_multiple=True, default_renderer="kpi",
                config_fields={**PROJECT_SCOPE_FIELDS, "scope": _choice("Project scope", ["all_visible", "participated", "managed"], "all_visible"),
@@ -194,6 +209,9 @@ CORE_WIDGETS = (
     WidgetDefinition("core.projects-count", "Visible projects", "Projects", "kpi", "core.projects", supported_scopes=("user", "project"), default_size=(4, 3), allow_multiple=True),
     WidgetDefinition("core.expense-trend", "Expense evolution", "Finance", "line-chart", "core.expense-trend",
                      supported_scopes=("user", "project"), default_size=(12, 5), min_size=(4, 3), allow_multiple=True),
+    WidgetDefinition("core.data-consistency", "Data consistency", "Administration", "data-consistency",
+                     "core.data-consistency", default_size=(4, 3), printable=False,
+                     available=_can_manage_data_consistency),
 )
 
 

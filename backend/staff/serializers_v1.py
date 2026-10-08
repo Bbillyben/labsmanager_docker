@@ -10,6 +10,7 @@ from fund.models import Budget, Contribution
 from leave.models import Leave, Leave_Type
 from project.models import Participant, Project
 from reports.api_v1 import report_capabilities
+from .permissions_v1 import employee_detail_capabilities
 
 from .models import (
     Employee,
@@ -42,6 +43,7 @@ class EmployeeListV1Serializer(AdminUrlSerializerMixin, serializers.ModelSeriali
 
     current_statuses = serializers.SerializerMethodField()
     superiors = serializers.SerializerMethodField()
+    capabilities = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -55,7 +57,11 @@ class EmployeeListV1Serializer(AdminUrlSerializerMixin, serializers.ModelSeriali
             "is_active",
             "current_statuses",
             "superiors",
+            "capabilities",
         )
+
+    def get_capabilities(self, employee):
+        return employee_detail_capabilities(self.context["request"].user, employee)
 
     def get_current_statuses(self, employee):
         """Serialize prefetched current status types.
@@ -99,7 +105,6 @@ class EmployeeDetailV1Serializer(EmployeeListV1Serializer):
     project_quotity = serializers.SerializerMethodField()
     contribution_quotity = serializers.SerializerMethodField()
     active_milestones_count = serializers.SerializerMethodField()
-    capabilities = serializers.SerializerMethodField()
 
     class Meta(EmployeeListV1Serializer.Meta):
         fields = EmployeeListV1Serializer.Meta.fields + (
@@ -109,11 +114,14 @@ class EmployeeDetailV1Serializer(EmployeeListV1Serializer):
             "project_quotity",
             "contribution_quotity",
             "active_milestones_count",
-            "capabilities",
         )
 
     def get_capabilities(self, employee):
-        return report_capabilities(self.context["request"].user, "employee", employee)
+        user = self.context["request"].user
+        return {
+            **report_capabilities(user, "employee", employee),
+            **employee_detail_capabilities(user, employee),
+        }
 
     @staticmethod
     def _quotity(value):
@@ -131,6 +139,21 @@ class EmployeeDetailV1Serializer(EmployeeListV1Serializer):
 
     def get_active_milestones_count(self, employee):
         return employee.active_milestones().count()
+
+
+class EmployeeDetailWriteV1Serializer(serializers.ModelSerializer):
+    """The fields editable in the legacy Employee form after creation."""
+
+    class Meta:
+        model = Employee
+        fields = ("birth_date", "entry_date", "exit_date", "email", "is_active")
+
+    def validate(self, attrs):
+        entry_date = attrs.get("entry_date", self.instance.entry_date)
+        exit_date = attrs.get("exit_date", self.instance.exit_date)
+        if entry_date and exit_date and entry_date > exit_date:
+            raise serializers.ValidationError({"exit_date": _("Exit date must be after entry date.")})
+        return attrs
 
 
 class GenericInfoTypeV1Serializer(serializers.ModelSerializer):

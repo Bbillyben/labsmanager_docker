@@ -4,7 +4,7 @@
 
 LabsManager conserve Django comme backend et l'interface historique pendant la migration progressive. La SPA React/TypeScript est montée sous `/app/`, utilise les sessions Django et le cookie CSRF, et appelle les contrats stables sous `/api/v1/`. Le backend reste l'autorité pour les permissions et les périmètres objet.
 
-Les fondations R0, UX1, AUTH1, R1, R1.1, UX2 et UX2.1 sont en place. La liste Employee est utilisable avec recherche, tri, pagination, sélection de ligne et filtres déclaratifs Activité/Supérieur. La topbar contextualisée, l'identité Employee retournée par `/api/v1/me/`, le menu utilisateur et l'i18n navigateur français/anglais sont également en place.
+Les fondations R0, UX1, AUTH1, R1, R1.1, UX2 et UX2.1 sont en place. La liste Employee est utilisable avec recherche, tri, pagination, sélection de ligne et filtres déclaratifs Activité/Supérieur. Son menu de ligne donne accès au même Sheet d'édition que la fiche selon la capacité serveur ; validation navigateur attendue. La topbar contextualisée, l'identité Employee retournée par `/api/v1/me/`, le menu utilisateur et l'i18n navigateur français/anglais sont également en place.
 
 R0, UX1 et AUTH1 ont été validés techniquement et dans le navigateur. R1 a reçu un retour fonctionnel positif sur la VM, R1.1 a été validé fonctionnellement, et UX2/UX2.1 sont validés. Le code de R2 à R2.5b et ses validations ciblées sont présents ; ce document ne revendique pas une validation navigateur globale supplémentaire qui n'aurait pas été consignée.
 
@@ -12,7 +12,7 @@ La fiche Employee React est désormais structurée par une navigation locale et 
 
 | Route | État fonctionnel |
 |---|---|
-| `/app/employees/:id` | Vue d’ensemble migrée ; GenericInfo CRUD R2.7 validé ; exports Word/PDF R2.13a implémentés, édition Employee différée |
+| `/app/employees/:id` | Vue d’ensemble migrée ; GenericInfo CRUD R2.7 et exports Word/PDF R2.13a validés ; édition Employee implémentée, validation navigateur attendue |
 | `/app/employees/:id/projects` | Projets migrés en lecture seule |
 | `/app/employees/:id/contracts` | R2.15 validé ; proposition de synchronisation Employee R2.15a à valider au navigateur |
 | `/app/employees/:id/funding` | Contributions et Budgets affectés migrés en lecture seule |
@@ -45,7 +45,7 @@ La Vue d'ensemble contient directement la section fonctionnelle **Informations g
 - copie accessible des valeurs via `CopyableValue` ;
 - liens vers une fiche Employee seulement lorsque cette ressource est consultable indépendamment.
 
-Les chargements et erreurs des sous-ressources restent locaux. Le détail principal distingue notamment ressource absente, accès interdit et erreur réessayable. R2.7 expose uniquement les mutations GenericInfo, sans édition globale de l’Employee.
+Les chargements et erreurs des sous-ressources restent locaux. Le détail principal distingue notamment ressource absente, accès interdit et erreur réessayable. La fiche permet désormais de modifier dates, email et activité dans un Sheet, selon une capacité fournie par l'API ; les noms restent immuables après création comme dans le formulaire historique. Le PATCH accepte `is_staff` ou le droit global/objet `staff.change_employee`, avec la même règle pour l'action React et la mutation. Validation navigateur attendue.
 
 ### Projets
 
@@ -125,7 +125,7 @@ La roadmap de référence distingue R2.8 Gantt Employee en lecture seule, les fu
 
 ## Éléments différés
 
-- Création, modification, suppression et autres mutations Employee.
+- Création, suppression et mutations Employee hors édition limitée de la fiche.
 - Navigation Project autonome et migration du détail Project.
 - Panneau Notes.
 - Exposition de liens vers une ressource liée tant que son droit indépendant ou sa route React ne sont pas disponibles.
@@ -498,8 +498,10 @@ les résultats automatisés figurent dans COMMANDES.md.
 Dans Project Funding, le Fund sélectionné affiche désormais une seule synthèse
 financière par Cost_Type, puis les Dépenses individuelles inchangées. Le bloc
 « Détail : Fund » et les tableaux séparés Synthèse par type, Fund_Item et
-Expense_point ont disparu ; la matrice Project repliable au-dessus de la liste
-ne fait plus partie de cette présentation simplifiée. Les lignes montrent côte à
+Expense_point ont disparu ; la matrice Project est rétablie au-dessus de la liste
+seulement lorsque plusieurs Funds sont visibles. Elle est repliée par défaut,
+ouvrable explicitement sans persistance, et ne modifie pas le détail Fund.
+Les lignes de ce dernier montrent côte à
 côte les objets réels et le disponible fourni par l'API. Date et montant `—`
 désignent un objet absent ; un montant réel nul reste `0,00 €`.
 
@@ -514,9 +516,9 @@ consignés dans COMMANDES.md.
 
 Les headers Project et Employee utilisent le même `EntityActionMenu`. Project
 propose Modifier via le `ProjectSheet` existant, puis Export Word/PDF selon des
-capacités séparées. Employee propose uniquement Export Word/PDF : l'absence de
-Modifier est volontaire, car l'édition Employee React et son API PATCH sont
-différées vers un lot dédié, sans limitation du composant commun.
+capacités séparées. Dans R2.13a, Employee proposait uniquement Export Word/PDF :
+l'édition Employee React et son API PATCH étaient différées vers un lot dédié,
+sans limitation du composant commun. Elles ont depuis été ajoutées à la fiche.
 
 Un `ReportExportDialog` centré commun charge les templates du type demandé,
 pré-sélectionne le premier, et ajoute les dates facultatives uniquement pour

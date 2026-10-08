@@ -22,12 +22,13 @@ from leave.calendar import produce_leave_calendar_events
 from leave.models import Leave, Leave_Type
 from project.models import Participant, Project
 
-from .permissions_v1 import generic_info_capabilities, leave_capabilities
+from .permissions_v1 import employee_detail_capabilities, generic_info_capabilities, leave_capabilities
 from .ressources import EmployeeResource
 from .filters_v1 import EmployeeListV1Filter
 from .models import Employee, Employee_Status, Employee_Superior, Employee_Type, GenericInfo, GenericInfoType, Team, TeamMate
 from .serializers_v1 import (
     EmployeeDetailV1Serializer,
+    EmployeeDetailWriteV1Serializer,
     EmployeeContractDetailV1Serializer,
     EmployeeContractV1Serializer,
     EmployeeBudgetV1Serializer,
@@ -440,7 +441,8 @@ class EmployeeV1QuerysetMixin:
     """Build the shared visible Employee queryset for list and detail views.
 
     Visibility is delegated to the existing
-    `Employee.get_instances_for_user("view", ...)` mechanism. Global viewers
+    `Employee.get_instances_for_user("view", ...)` mechanism, except for list
+    and detail views that opt into staff or global change access. Global viewers
     retain the full queryset, while other users receive their existing
     relation-based scope. Current statuses and superiors are prefetched solely
     for the v1 Employee serializer.
@@ -457,9 +459,12 @@ class EmployeeV1QuerysetMixin:
             superior relations prefetched.
         """
         queryset = Employee.objects.all()
-        queryset = Employee.get_instances_for_user(
-            "view", self.request.user, queryset
-        )
+        if not (getattr(self, "allow_editor_view", False) and (
+            self.request.user.is_staff or self.request.user.has_perm("staff.change_employee")
+        )):
+            queryset = Employee.get_instances_for_user(
+                "view", self.request.user, queryset
+            )
 
         current_statuses = Employee_Status.current.select_related("type").order_by(
             "type__name", "pk"
@@ -491,6 +496,7 @@ class EmployeeListV1View(EmployeeV1QuerysetMixin, generics.ListAPIView):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = EmployeeListV1Serializer
+    allow_editor_view = True
     pagination_class = LabPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     filterset_class = EmployeeListV1Filter
@@ -516,7 +522,9 @@ class EmployeeListFilterOptionsV1View(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
-        visible = Employee.get_instances_for_user("view", request.user, Employee.objects.all())
+        visible = Employee.objects.all()
+        if not (request.user.is_staff or request.user.has_perm("staff.change_employee")):
+            visible = Employee.get_instances_for_user("view", request.user, visible)
         type_ids = Employee_Status.objects.filter(employee__in=visible).values("type_id")
         team_ids = TeamMate.objects.filter(employee__in=visible).values("team_id")
         return Response({
@@ -526,14 +534,25 @@ class EmployeeListFilterOptionsV1View(APIView):
 
 
 class EmployeeDetailV1View(EmployeeV1QuerysetMixin, generics.RetrieveAPIView):
-    """Retrieve the Employee summary used by the read-only React detail.
+    """Retrieve or edit the Employee summary used by the React detail.
 
-    The lookup runs against the same permission-bounded queryset as the list.
-    Consequently, unknown and out-of-scope identifiers both return 404.
+    Staff retain their legacy access to every Employee detail. Other users use
+    the list's permission-bounded queryset; hidden and unknown IDs return 404.
     """
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = EmployeeDetailV1Serializer
+    allow_editor_view = True
+
+    def patch(self, request, *args, **kwargs):
+        employee = self.get_object()
+        if not employee_detail_capabilities(request.user, employee)["can_change"]:
+            raise PermissionDenied()
+        serializer = EmployeeDetailWriteV1Serializer(employee, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        employee.refresh_from_db()
+        return Response(self.get_serializer(employee).data)
 
 
 class EmployeeGenericInfoV1Mixin:

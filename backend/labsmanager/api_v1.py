@@ -69,10 +69,11 @@ def get_user_capabilities(user):
         dict[str, bool]: Functional capability names mapped to permission
         results.
     """
+    from data_consistency.permissions import can_manage_consistency
     return {
         capability: any(user.has_perm(permission) for permission in permissions)
         for capability, permissions in CAPABILITY_PERMISSIONS.items()
-    }
+    } | {"manage_data_consistency": can_manage_consistency(user)}
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")

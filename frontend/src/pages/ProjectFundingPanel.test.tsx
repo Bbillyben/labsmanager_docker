@@ -41,11 +41,33 @@ function setup(data: ProjectFunding = base, fundDetail: FundDetail = detail, loa
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); window.history.replaceState({}, '', window.location.pathname) })
 
 describe('ProjectFundingPanel', () => {
-  it('selects the Fund addressed by a Global Search result URL', async () => {
+  it('selects the Fund addressed by a Global Search result URL and keeps Expenses visible in simple mode', async () => {
     window.history.replaceState({}, '', '/app/projects/3/funding#fund-row-7')
     setup()
     expect(await screen.findByRole('heading', { name: 'Dépenses individuelles' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Afficher la synthèse consolidée' })).not.toBeInTheDocument()
     expect(screen.getByRole('row', { name: /ANR.*UL.*A-1/ })).toHaveAttribute('aria-selected', 'true')
+  })
+  it('shows the consolidated overview only for multiple Funds and only when requested', async () => {
+    const second = { ...fund, id: 8, ref: 'B-2', amount: '200.00', expense: '-50.00', available: '150.00' }
+    setup({ ...base, funds: [fund, second], overview: {
+      rows: [{ type: costType, cells: { '7': totals, '8': { amount: '200.00', expense: '-50.00', available: '150.00' } }, total: { amount: '300.00', expense: '-80.00', available: '220.00' } }],
+      fund_totals: { '7': totals, '8': { amount: '200.00', expense: '-50.00', available: '150.00' } },
+      grand_total: { amount: '300.00', expense: '-80.00', available: '220.00' },
+    } })
+    const show = await screen.findByRole('button', { name: 'Afficher la synthèse consolidée' })
+    expect(show).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('table', { name: 'Synthèse consolidée du projet' })).not.toBeInTheDocument()
+    expect(screen.getByRole('row', { name: /ANR.*UL.*A-1/ })).toBeInTheDocument()
+    expect(screen.getByRole('row', { name: /ANR.*UL.*B-2/ })).toBeInTheDocument()
+    await userEvent.setup().click(show)
+    const overview = screen.getByRole('table', { name: 'Synthèse consolidée du projet' })
+    expect(screen.getByRole('button', { name: 'Masquer la synthèse consolidée' })).toHaveAttribute('aria-expanded', 'true')
+    expect(within(overview).getByRole('row', { name: /Human resources/ })).toHaveTextContent('220,00')
+    expect(within(overview).getByRole('rowheader', { name: 'Total' }).closest('tr')).toHaveTextContent('-80,00')
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Masquer la synthèse consolidée' }))
+    expect(screen.queryByRole('table', { name: 'Synthèse consolidée du projet' })).not.toBeInTheDocument()
+    expect(screen.getByRole('row', { name: /ANR.*UL.*A-1/ })).toBeInTheDocument()
   })
   it('opens the Admin action for a Fund without replacing business actions', async () => {
     setup({ ...base, funds: [{ ...fund, admin_url: '/admin/fund/fund/7/change/' }] })
@@ -144,6 +166,7 @@ describe('ProjectFundingPanel', () => {
     const empty = { ...base, funds: [], overview: { rows: [], fund_totals: {}, grand_total: { amount: '0.00', expense: '0.00', available: '0.00' } } }
     const view = setup(empty)
     expect(await screen.findAllByText('Aucun financement visible.')).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Afficher la synthèse consolidée' })).not.toBeInTheDocument()
     view.unmount()
     setup(base, detail, 503)
     expect(await screen.findByText('Impossible de charger les financements.')).toBeInTheDocument()

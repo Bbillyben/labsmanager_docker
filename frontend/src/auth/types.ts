@@ -8,6 +8,7 @@ export type Capabilities = {
   view_dashboard: boolean
   use_fund_finder: boolean
   import_data: boolean
+  manage_data_consistency?: boolean
 }
 
 export type AuthenticatedUser = {
