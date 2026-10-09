@@ -11,6 +11,7 @@ import { TaskWorkloadRenderer } from './TaskWorkloadRenderer'
 import { TimelineCalendarRenderer } from './TimelineCalendarRenderer'
 import { CalendarGridRenderer } from './CalendarGridRenderer'
 import { ProjectPortfolioRenderer } from './ProjectPortfolioRenderer'
+import { ProjectHealthBarsRenderer } from './ProjectHealthBarsRenderer'
 import { EmployeeWorkloadRenderer } from './EmployeeWorkloadRenderer'
 import type { DashboardSize } from './size'
 import type { DashboardMode } from './mode'
@@ -39,6 +40,7 @@ registerDashboardRenderer('task-workload', TaskWorkloadRenderer)
 registerDashboardRenderer('timeline-calendar', TimelineCalendarRenderer)
 registerDashboardRenderer('calendar-grid', CalendarGridRenderer)
 registerDashboardRenderer('project-portfolio', ProjectPortfolioRenderer)
+registerDashboardRenderer('project-health-bars', ProjectHealthBarsRenderer)
 registerDashboardRenderer('employee-workload', EmployeeWorkloadRenderer)
 registerDashboardRenderer('empty', EmptyRenderer)
 registerDashboardRenderer('line-chart', LineChartRenderer)

@@ -33,6 +33,10 @@
 .indicators strong { font-size:.8125rem; font-variant-numeric:tabular-nums; }
 .relations { display:grid; gap:.625rem; }
 .relation { display:grid; gap:.125rem; }
+.relationRow { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; min-width:0; }
+.relationRow .relation { min-width:0; }
+.relationshipHeading { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.relationshipHeading button { padding-inline:.25rem; }
 .relation a, .relation strong { font-size:.8125rem; font-weight:600; }
 .relation small { color:var(--muted-foreground); font-size:.75rem; }
 .previous { margin-top:.375rem; padding-inline:0; color:var(--muted-foreground); }

@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Case, DateField, F, IntegerField, Prefetch, Q, Value, When
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -23,6 +24,7 @@ from leave.models import Leave, Leave_Type
 from project.models import Participant, Project
 
 from .permissions_v1 import employee_detail_capabilities, generic_info_capabilities, leave_capabilities
+from .hierarchy_graph import would_create_cycle
 from .ressources import EmployeeResource
 from .filters_v1 import EmployeeListV1Filter
 from .models import Employee, Employee_Status, Employee_Superior, Employee_Type, GenericInfo, GenericInfoType, Team, TeamMate
@@ -37,10 +39,14 @@ from .serializers_v1 import (
     GenericInfoTypeV1Serializer,
     GenericInfoWriteV1Serializer,
     EmployeeHierarchyV1Serializer,
+    EmployeeHierarchyCreateV1Serializer,
+    EmployeeHierarchyDatesV1Serializer,
     EmployeeLeaveV1Serializer,
     EmployeeLeaveWriteV1Serializer,
     EmployeeListV1Serializer,
     EmployeeStatusHistoryV1Serializer,
+    EmployeeStatusCreateV1Serializer,
+    EmployeeStatusUpdateV1Serializer,
     ProjectParticipationV1Serializer,
 )
 
@@ -689,14 +695,28 @@ class EmployeeMilestoneDetailV1View(APIView):
         return Response(EmployeePlanningMilestoneV1Serializer(loaded, context=context).data)
 
 
+def _status_root(user, pk):
+    visible = Employee.get_instances_for_user("view", user, Employee.objects.all())
+    return get_object_or_404(visible, pk=pk)
+
+
+def _status_can_change(user, employee):
+    return employee_detail_capabilities(user, employee)["can_change"]
+
+
+def _status_validate(status):
+    if status.end_date and (not status.start_date or status.end_date < status.start_date):
+        raise ValidationError({"end_date": "end_before_start"})
+    try:
+        status.full_clean()
+    except DjangoValidationError as error:
+        raise ValidationError(getattr(error, "message_dict", None) or error.messages) from error
+
+
 class EmployeeStatusHistoryV1View(generics.ListAPIView):
     """List the complete status history of one visible employee.
 
-    The target is first resolved through
-    `Employee.get_instances_for_user("view", ...)`; unknown and out-of-scope
-    identifiers therefore both return 404. The resulting collection is
-    read-only, unpaginated, and ordered chronologically using the historical
-    end-date convention with deterministic tie-breakers.
+    Keep the existing unpaginated GET list and historical ordering unchanged.
     """
 
     permission_classes = (permissions.IsAuthenticated,)
@@ -714,10 +734,7 @@ class EmployeeStatusHistoryV1View(generics.ListAPIView):
             Http404: If the employee does not exist or is outside the caller's
             v1 visibility scope.
         """
-        visible_employees = Employee.get_instances_for_user(
-            "view", self.request.user, Employee.objects.all()
-        )
-        employee = get_object_or_404(visible_employees, pk=self.kwargs["pk"])
+        employee = _status_root(self.request.user, self.kwargs["pk"])
 
         return (
             Employee_Status.objects.filter(employee=employee)
@@ -728,6 +745,99 @@ class EmployeeStatusHistoryV1View(generics.ListAPIView):
                 "pk",
             )
         )
+
+    @transaction.atomic
+    def post(self, request, pk):
+        employee = _status_root(request.user, pk)
+        if not _status_can_change(request.user, employee):
+            raise PermissionDenied()
+        if "employee" in request.data or "employee_id" in request.data:
+            raise ValidationError({"employee": "employee_from_url"})
+        serializer = EmployeeStatusCreateV1Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        values = serializer.validated_data
+        status = Employee_Status(employee=employee, type=values["type"],
+                                 start_date=values.get("start_date", employee.entry_date),
+                                 end_date=values.get("end_date", employee.exit_date),
+                                 is_contractual=values["is_contractual"])
+        _status_validate(status)
+        status.save()
+        return Response(EmployeeStatusHistoryV1Serializer(status).data, status=201)
+
+
+class EmployeeStatusOptionsV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk):
+        employee = _status_root(request.user, pk)
+        can_change = _status_can_change(request.user, employee)
+        return Response({
+            "capabilities": {"can_add": can_change, "can_change": can_change, "can_delete": can_change},
+            "types": list(Employee_Type.objects.order_by("name", "pk").values("id", "name", "shortname")),
+            "contractuality": [{"code": code, "label": str(label)} for code, label in Employee_Status.contract_status],
+        })
+
+
+class EmployeeStatusDetailV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def _status(self, request, pk, status_pk):
+        employee = _status_root(request.user, pk)
+        if not _status_can_change(request.user, employee):
+            raise PermissionDenied()
+        return get_object_or_404(Employee_Status.objects.select_related("type"), pk=status_pk, employee=employee)
+
+    @transaction.atomic
+    def patch(self, request, pk, status_pk):
+        status = self._status(request, pk, status_pk)
+        if any(field in request.data for field in ("type", "employee", "employee_id")):
+            raise ValidationError({"type": "immutable"})
+        serializer = EmployeeStatusUpdateV1Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        for field, value in serializer.validated_data.items():
+            setattr(status, field, value)
+        _status_validate(status)
+        status.save()
+        return Response(EmployeeStatusHistoryV1Serializer(status).data)
+
+    @transaction.atomic
+    def delete(self, request, pk, status_pk):
+        status = self._status(request, pk, status_pk)
+        status.delete()
+        return Response(status=204)
+
+
+def _hierarchy_employees(user):
+    queryset = Employee.objects.all()
+    if user.is_staff or user.has_perm("staff.change_employee"):
+        return queryset
+    return Employee.get_instances_for_user("view", user, queryset)
+
+
+def _hierarchy_root(user, pk):
+    return get_object_or_404(_hierarchy_employees(user), pk=pk)
+
+
+def _hierarchy_can_change(user, employee):
+    return employee_detail_capabilities(user, employee)["can_change"]
+
+
+def _hierarchy_validate(relation, *, exclude_pk=None):
+    if relation.employee_id == relation.superior_id:
+        raise ValidationError({"employee_id": "self_relation"})
+    if relation.end_date and (not relation.start_date or relation.end_date < relation.start_date):
+        raise ValidationError({"end_date": "end_before_start"})
+    if relation.is_active and Employee_Superior.current.filter(
+        employee_id=relation.employee_id, superior_id=relation.superior_id
+    ).exclude(pk=exclude_pk).exists():
+        raise ValidationError({"employee_id": "duplicate"})
+    pairs = Employee_Superior.objects.exclude(pk=exclude_pk).values_list("superior_id", "employee_id")
+    if would_create_cycle(relation.superior_id, relation.employee_id, pairs):
+        raise ValidationError({"employee_id": "cycle"})
+    try:
+        relation.full_clean()
+    except DjangoValidationError as error:
+        raise ValidationError(getattr(error, "message_dict", None) or error.messages) from error
 
 
 class EmployeeHierarchyV1View(generics.RetrieveAPIView):
@@ -759,9 +869,7 @@ class EmployeeHierarchyV1View(generics.RetrieveAPIView):
             QuerySet: Permission-bounded employees with direct hierarchy
             relations prefetched in both directions.
         """
-        visible_employees = Employee.get_instances_for_user(
-            "view", self.request.user, Employee.objects.all()
-        )
+        visible_employees = _hierarchy_employees(self.request.user)
         relation_order = (
             F("end_date").asc(nulls_last=True),
             F("start_date").asc(nulls_first=True),
@@ -786,6 +894,95 @@ class EmployeeHierarchyV1View(generics.RetrieveAPIView):
                 to_attr="hierarchy_subordinates",
             ),
         )
+
+    def retrieve(self, request, *args, **kwargs):
+        employee = self.get_object()
+        linked_ids = {relation.superior_id for relation in employee.hierarchy_superiors}
+        linked_ids.update(relation.employee_id for relation in employee.hierarchy_subordinates)
+        visible_ids = set(_hierarchy_employees(request.user).filter(pk__in=linked_ids).values_list("pk", flat=True))
+        context = self.get_serializer_context()
+        context["visible_linked_ids"] = visible_ids
+        data = self.serializer_class(employee, context=context).data
+        can_change = _hierarchy_can_change(request.user, employee)
+        data["capabilities"] = {"can_add": can_change, "can_change": can_change, "can_delete": can_change}
+        return Response(data)
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        root = _hierarchy_root(request.user, kwargs["pk"])
+        if not _hierarchy_can_change(request.user, root):
+            raise PermissionDenied()
+        serializer = EmployeeHierarchyCreateV1Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        values = serializer.validated_data
+        linked = get_object_or_404(_hierarchy_employees(request.user).filter(is_active=True), pk=values["employee_id"])
+        superior, subordinate = (linked, root) if values["direction"] == "superior" else (root, linked)
+        list(Employee.objects.select_for_update().filter(pk__in=(superior.pk, subordinate.pk)).order_by("pk"))
+        relation = Employee_Superior(superior=superior, employee=subordinate,
+                                     start_date=values.get("start_date", root.entry_date),
+                                     end_date=values.get("end_date", root.exit_date))
+        _hierarchy_validate(relation)
+        relation.save()
+        return Response({"id": relation.pk}, status=201)
+
+
+class EmployeeHierarchyCandidatesV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk):
+        root = _hierarchy_root(request.user, pk)
+        if not _hierarchy_can_change(request.user, root):
+            raise PermissionDenied()
+        direction = request.query_params.get("direction")
+        if direction not in ("superior", "subordinate"):
+            raise ValidationError({"direction": "invalid_direction"})
+        query = request.query_params.get("search", "").strip()[:100]
+        employees = _hierarchy_employees(request.user).filter(is_active=True).exclude(pk=root.pk)
+        if query:
+            employees = employees.filter(Q(first_name__icontains=query) | Q(last_name__icontains=query))
+        relations = (Employee_Superior.current.filter(employee=root) if direction == "superior"
+                     else Employee_Superior.current.filter(superior=root))
+        existing = set(relations.values_list("superior_id" if direction == "superior" else "employee_id", flat=True))
+        pairs = set(Employee_Superior.objects.values_list("superior_id", "employee_id"))
+        choices = []
+        for employee in employees.order_by("last_name", "first_name", "pk"):
+            if employee.pk in existing:
+                continue
+            superior_id, employee_id = (employee.pk, root.pk) if direction == "superior" else (root.pk, employee.pk)
+            if would_create_cycle(superior_id, employee_id, pairs):
+                continue
+            choices.append({"id": employee.pk, "name": str(employee)})
+            if len(choices) == 11:
+                break
+        return Response({"results": choices[:10], "has_more": len(choices) > 10})
+
+
+class EmployeeHierarchyRelationV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def _relation(self, request, pk, relation_pk):
+        root = _hierarchy_root(request.user, pk)
+        if not _hierarchy_can_change(request.user, root):
+            raise PermissionDenied()
+        return get_object_or_404(Employee_Superior.objects.filter(Q(employee=root) | Q(superior=root)), pk=relation_pk)
+
+    @transaction.atomic
+    def patch(self, request, pk, relation_pk):
+        relation = self._relation(request, pk, relation_pk)
+        serializer = EmployeeHierarchyDatesV1Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        list(Employee.objects.select_for_update().filter(pk__in=(relation.superior_id, relation.employee_id)).order_by("pk"))
+        for field, value in serializer.validated_data.items():
+            setattr(relation, field, value)
+        _hierarchy_validate(relation, exclude_pk=relation.pk)
+        relation.save()
+        return Response({"id": relation.pk})
+
+    @transaction.atomic
+    def delete(self, request, pk, relation_pk):
+        relation = self._relation(request, pk, relation_pk)
+        relation.delete()
+        return Response(status=204)
 
 
 class EmployeeProjectParticipationV1View(generics.ListAPIView):

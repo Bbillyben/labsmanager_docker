@@ -32,17 +32,27 @@ export type EmployeeStatusHistoryItem = {
   contractuality: { code: string; label: string }
   is_active: boolean
 }
+export type EmployeeStatusOptions = {
+  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean }
+  types: { id: number; name: string; shortname: string }[]
+  contractuality: { code: string; label: string }[]
+}
+export type EmployeeStatusWrite = { type?: number; start_date: string | null; end_date: string | null; is_contractual: string }
 export type EmployeeHierarchyRelation = {
   id: number
   employee: EmployeeIdentity
   start_date: string | null
   end_date: string | null
   is_active: boolean
+  can_view?: boolean
 }
 export type EmployeeHierarchy = {
+  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean }
   superiors: EmployeeHierarchyRelation[]
   subordinates: EmployeeHierarchyRelation[]
 }
+export type EmployeeHierarchyDirection = 'superior' | 'subordinate'
+export type EmployeeHierarchyDates = { start_date: string | null; end_date: string | null }
 export type EmployeeGenericInfo = {
   id: number
   type: { id: number; name: string; icon: string | null }
@@ -287,8 +297,41 @@ export function getEmployeeStatuses(id: string, signal: AbortSignal) {
   return apiRequest<EmployeeStatusHistoryItem[]>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/`, { signal })
 }
 
+export function getEmployeeStatusOptions(id: string, signal: AbortSignal) {
+  return apiRequest<EmployeeStatusOptions>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/options/`, { signal })
+}
+
+export function addEmployeeStatus(id: string, data: EmployeeStatusWrite) {
+  return apiRequest<EmployeeStatusHistoryItem>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+}
+
+export function updateEmployeeStatus(id: string, statusId: number, data: Omit<EmployeeStatusWrite, 'type'>) {
+  return apiRequest<EmployeeStatusHistoryItem>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/${statusId}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+}
+
+export function deleteEmployeeStatus(id: string, statusId: number) {
+  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/${statusId}/`, { method: 'DELETE' })
+}
+
 export function getEmployeeHierarchy(id: string, signal: AbortSignal) {
   return apiRequest<EmployeeHierarchy>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/`, { signal })
+}
+
+export function getEmployeeHierarchyCandidates(id: string, direction: EmployeeHierarchyDirection, search: string, signal: AbortSignal) {
+  const query = new URLSearchParams({ direction, search })
+  return apiRequest<{ results: { id: number; name: string }[]; has_more: boolean }>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/candidates/?${query}`, { signal })
+}
+
+export function addEmployeeHierarchyRelation(id: string, direction: EmployeeHierarchyDirection, employeeId: number, dates: EmployeeHierarchyDates) {
+  return apiRequest<{ id: number }>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction, employee_id: employeeId, ...dates }) })
+}
+
+export function updateEmployeeHierarchyRelation(id: string, relationId: number, dates: EmployeeHierarchyDates) {
+  return apiRequest<{ id: number }>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/${relationId}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dates) })
+}
+
+export function deleteEmployeeHierarchyRelation(id: string, relationId: number) {
+  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/${relationId}/`, { method: 'DELETE' })
 }
 
 export function getEmployeeGenericInfo(id: string, signal: AbortSignal) {

@@ -77,7 +77,16 @@ class ProjectDashboardTests(TestCase):
         stored = Dashboard.objects.get(pk=response.data["id"])
         self.assertEqual(stored.context_object, self.project)
         self.assertEqual(stored.owner, self.user)
-        self.assertEqual(len(response.data["widgets"]), 9)
+        self.assertEqual(len(response.data["widgets"]), 7)
+        self.assertEqual([(item["source_key"], item["renderer_key"]) for item in response.data["widgets"]], [
+            ("core.projects", "project-health-bars"), ("core.timeline", "calendar-grid"),
+            ("core.tasks", "task-workload"), ("core.milestones", "deadline-list"),
+            ("core.funds", "overview-list"), ("core.contracts", "contract-list"),
+            ("core.expense-trend", "line-chart"),
+        ])
+        timeline_config = response.data["widgets"][1]["config"]
+        self.assertEqual(timeline_config["tasks_project_scope"], "context")
+        self.assertEqual(timeline_config["milestones_project_scope"], "context")
         rectangles = []
         for widget in response.data["widgets"]:
             self.assertLessEqual(widget["x"] + widget["width"], 12)

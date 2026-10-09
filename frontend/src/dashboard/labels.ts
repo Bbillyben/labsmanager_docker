@@ -15,6 +15,7 @@ export function dashboardRendererLabel(key: string, fallback: string, t: Transla
     case 'timeline-calendar': return t('dashboard.renderer.timeline-calendar')
     case 'calendar-grid': return t('dashboard.renderer.calendar-grid')
     case 'project-portfolio': return t('dashboard.renderer.project-portfolio')
+    case 'project-health-bars': return t('dashboard.renderer.project-health-bars')
     case 'employee-workload': return t('dashboard.renderer.employee-workload')
     case 'empty': return t('dashboard.renderer.empty')
     case 'line-chart': return t('dashboard.renderer.line-chart')

@@ -556,6 +556,19 @@ class EmployeeStatusHistoryV1Serializer(serializers.ModelSerializer):
         }
 
 
+class EmployeeStatusCreateV1Serializer(serializers.Serializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=Employee_Type.objects.all())
+    start_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
+    is_contractual = serializers.ChoiceField(choices=Employee_Status.contract_status, required=False, default="c")
+
+
+class EmployeeStatusUpdateV1Serializer(serializers.Serializer):
+    start_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
+    is_contractual = serializers.ChoiceField(choices=Employee_Status.contract_status, required=False)
+
+
 class EmployeeIdentityV1Serializer(serializers.ModelSerializer):
     """Serialize only the identity allowed for a related employee."""
 
@@ -573,10 +586,14 @@ class EmployeeSuperiorRelationV1Serializer(serializers.ModelSerializer):
 
     employee = EmployeeIdentityV1Serializer(source="superior", read_only=True)
     is_active = serializers.ReadOnlyField()
+    can_view = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee_Superior
-        fields = ("id", "employee", "start_date", "end_date", "is_active")
+        fields = ("id", "employee", "start_date", "end_date", "is_active", "can_view")
+
+    def get_can_view(self, relation):
+        return relation.superior_id in self.context.get("visible_linked_ids", set())
 
 
 class EmployeeSubordinateRelationV1Serializer(serializers.ModelSerializer):
@@ -588,10 +605,14 @@ class EmployeeSubordinateRelationV1Serializer(serializers.ModelSerializer):
 
     employee = EmployeeIdentityV1Serializer(read_only=True)
     is_active = serializers.ReadOnlyField()
+    can_view = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee_Superior
-        fields = ("id", "employee", "start_date", "end_date", "is_active")
+        fields = ("id", "employee", "start_date", "end_date", "is_active", "can_view")
+
+    def get_can_view(self, relation):
+        return relation.employee_id in self.context.get("visible_linked_ids", set())
 
 
 class EmployeeHierarchyV1Serializer(serializers.ModelSerializer):
@@ -622,6 +643,7 @@ class EmployeeHierarchyV1Serializer(serializers.ModelSerializer):
         return EmployeeSuperiorRelationV1Serializer(
             employee.hierarchy_superiors,
             many=True,
+            context=self.context,
         ).data
 
     def get_subordinates(self, employee):
@@ -636,7 +658,20 @@ class EmployeeHierarchyV1Serializer(serializers.ModelSerializer):
         return EmployeeSubordinateRelationV1Serializer(
             employee.hierarchy_subordinates,
             many=True,
+            context=self.context,
         ).data
+
+
+class EmployeeHierarchyCreateV1Serializer(serializers.Serializer):
+    direction = serializers.ChoiceField(choices=("superior", "subordinate"))
+    employee_id = serializers.IntegerField(min_value=1)
+    start_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
+
+
+class EmployeeHierarchyDatesV1Serializer(serializers.Serializer):
+    start_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
 
 
 class ProjectReferenceV1Serializer(serializers.ModelSerializer):

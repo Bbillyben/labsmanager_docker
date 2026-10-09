@@ -11,7 +11,8 @@ from rest_framework.views import APIView
 
 from .models import Dashboard, WidgetInstance
 from .context_service import resolve_context, visible_project
-from .registry import CORE_RENDERERS, DashboardContext, TEMPLATES, available_definitions, definition_for_template
+from .registry import CORE_RENDERERS, DashboardContext, TEMPLATES, available_definitions
+from .template_service import create_template_dashboard
 
 
 def context_for(request, dashboard=None):
@@ -174,26 +175,7 @@ class DashboardCollection(APIView):
         template = request.data.get("template")
         if template not in TEMPLATES or template == "project":
             raise ValidationError({"template": "Unknown template."})
-        context = context_for(request)
-        sources, definitions = available_definitions(context)
-        with transaction.atomic():
-            get_user_model().objects.select_for_update().get(pk=request.user.pk)
-            current = Dashboard.objects.filter(owner=request.user, scope="user")
-            position = (current.aggregate(Max("position"))["position__max"] or 0) + 1
-            dashboard = Dashboard.objects.create(owner=request.user, name=name, position=position, is_default=not current.exists())
-            for index, item in enumerate(TEMPLATES[template]):
-                definition = definition_for_template(definitions, item)
-                if definition is None:
-                    continue
-                source = sources[item.source_key]
-                if item.renderer_key not in source.compatible_renderers:
-                    continue
-                WidgetInstance.objects.create(
-                    dashboard=dashboard, definition_key=definition.key, source_key=source.key, renderer_key=item.renderer_key,
-                    config=validated_config(item.config, source, definition, item.renderer_key, context), title=item.title,
-                    x=(index % 3) * 4, y=(index // 3) * 3,
-                    width=definition.default_size[0], height=definition.default_size[1], logical_order=index,
-                )
+        dashboard = create_template_dashboard(request.user, template, name)
         return Response(dashboard_data(dashboard), status=status.HTTP_201_CREATED)
 
 

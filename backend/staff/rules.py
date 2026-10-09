@@ -1,8 +1,14 @@
 from .models import Employee, Employee_Superior, Team, TeamMate
 import rules
 from settings.models import LabsManagerSetting
+from django.contrib.auth.backends import ModelBackend
 
 #    Predicates ======================
+@rules.predicate
+def has_global_change_employee_perm(user, employee=None):
+    return ModelBackend().has_perm(user, 'staff.change_employee')
+
+
 @rules.predicate
 def is_user_employee(user, employee = None):
     """ return true if the employee instance is the current linked user employee
@@ -76,16 +82,16 @@ def is_employee_superior(user, employee= None):
         return False
 
 #    Rules ======================
-rules.add_perm('staff.change_employee', is_user_employee |  is_user_subordinate)
-rules.add_perm('staff.add_genericinfo', is_user_employee |  is_user_subordinate)
-rules.add_perm('staff.change_genericinfo', is_user_employee |  is_user_subordinate)
+rules.add_perm('staff.change_employee', is_user_employee |  is_user_subordinate | has_global_change_employee_perm)
+rules.add_perm('staff.add_genericinfo', is_user_employee |  is_user_subordinate | has_global_change_employee_perm)
+rules.add_perm('staff.change_genericinfo', is_user_employee |  is_user_subordinate | has_global_change_employee_perm)
 
-rules.add_perm('staff.change_team', is_team_leader)
-rules.add_perm('staff.view_team', is_teammate)
+rules.add_perm('staff.change_team', is_team_leader | has_global_change_employee_perm)
+rules.add_perm('staff.view_team', is_teammate | has_global_change_employee_perm)
 
-rules.add_perm('staff.view_teammate', is_teammate_superior)
+rules.add_perm('staff.view_teammate', is_teammate_superior | has_global_change_employee_perm)
 
-rules.add_perm('staff.change_participant', is_participant_manager)
+rules.add_perm('staff.change_participant', is_participant_manager | has_global_change_employee_perm)
 
 
 

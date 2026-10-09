@@ -4,12 +4,7 @@
 .primaryMetric strong { font-size: clamp(1.65rem, 2.8vw, 2.3rem); font-weight: 700; line-height: 1.1; letter-spacing: -.035em; }
 .metric strong { font-size: 1.15rem; line-height: 1.1; font-weight: 650; }
 .primaryMetric span, .metric span, .secondary, .deadline { color: var(--muted-foreground); font-size: .75rem; }
-.aggregateProgress, .itemDetails progress { appearance: none; border: 0; overflow: hidden; border-radius: 999px; background: var(--muted); }
-.aggregateProgress { width: 100%; height: .42rem; }
-.itemDetails progress { flex: 1; min-width: 2rem; height: .35rem; }
-.aggregateProgress::-webkit-progress-bar, .itemDetails progress::-webkit-progress-bar { background: var(--muted); border-radius: 999px; }
-.aggregateProgress::-webkit-progress-value, .itemDetails progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; }
-.aggregateProgress::-moz-progress-bar, .itemDetails progress::-moz-progress-bar { background: var(--primary); border-radius: 999px; }
+.itemGauge { flex: 1; min-width: 2rem; }
 .items { display: grid; gap: .8rem; margin: 0; padding: 0; list-style: none; }
 .item { display: grid; gap: .22rem; min-width: 0; }
 .itemHeading { display: flex; justify-content: space-between; gap: .6rem; align-items: baseline; font-size: .85rem; }

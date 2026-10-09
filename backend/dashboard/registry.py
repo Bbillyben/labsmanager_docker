@@ -75,7 +75,7 @@ class WidgetDefinition:
     supported_scopes: tuple[str, ...] = ("user",)
     default_size: tuple[int, int] = (4, 3)
     min_size: tuple[int, int] = (2, 2)
-    max_size: tuple[int, int] = (12, 8)
+    max_size: tuple[int, int] = (24, 24)
     allow_multiple: bool = False
     printable: bool = True
     icon: str = "LayoutDashboard"
@@ -89,6 +89,10 @@ class TemplateWidget:
     renderer_key: str
     config: dict = field(default_factory=dict)
     title: str = ""
+    x: int | None = None
+    y: int | None = None
+    width: int | None = None
+    height: int | None = None
 
 
 def _links(context, config):
@@ -119,6 +123,7 @@ CORE_RENDERERS = {
     "timeline-calendar": {"label": "Timeline calendar", "config_fields": {}},
     "calendar-grid": {"label": "Calendar grid", "config_fields": {}},
     "project-portfolio": {"label": "Project portfolio", "config_fields": {}},
+    "project-health-bars": {"label": "Project health bars", "config_fields": {}},
     "employee-workload": {"label": "Employee workload", "config_fields": {}},
     "empty": {"label": "Text", "config_fields": {}},
     "line-chart": {"label": "Line chart", "config_fields": {}},
@@ -184,7 +189,7 @@ CORE_SOURCES = (
     DataSource("core.data-consistency", "Data consistency", "Administration", ("user",),
                ("data-consistency",), _data_consistency, available=_can_manage_data_consistency,
                description="Review active data consistency issues", default_renderer="data-consistency"),
-    DataSource("core.projects", "Visible projects", "Projects", ("user", "project"), ("kpi", "compact-list", "alert-list", "project-portfolio"), business_sources.projects,
+    DataSource("core.projects", "Visible projects", "Projects", ("user", "project"), ("kpi", "compact-list", "alert-list", "project-portfolio", "project-health-bars"), business_sources.projects,
                description="Projects you can view", allow_multiple=True, default_renderer="project-portfolio",
                config_fields={**PROJECT_SCOPE_FIELDS, "scope": _choice("Project scope", ["all_visible", "participated", "managed"], "all_visible"),
                               "active_only": _bool("Active projects only"), "late_only": _bool("Overdue projects only"), "limit": _limit()}),
@@ -260,41 +265,51 @@ CORE_WIDGETS = (
 
 TEMPLATES = {
     "employee": (
-        TemplateWidget("core.projects", "kpi", {"scope": "participated", "active_only": True}),
-        TemplateWidget("core.projects", "compact-list", {"scope": "participated", "active_only": True}),
-        TemplateWidget("core.milestones", "deadline-list", {"scope": "mine", "due_within_days": "30"}),
-        TemplateWidget("core.tasks", "alert-list", {"scope": "mine", "overdue_only": True}),
-        TemplateWidget("core.leaves", "compact-list", {"scope": "mine", "upcoming_days": "30"}),
+        TemplateWidget("core.employee-workload", "employee-workload", {"scope": "single"}, x=0, y=0, width=2, height=4),
+        TemplateWidget("core.milestones", "deadline-list", {"scope": "mine", "due_within_days": "30"}, width=3, height=6),
+        TemplateWidget("core.tasks", "task-workload", {"scope": "mine", "status": "open"}, width=3, height=6),
+        TemplateWidget("core.timeline", "calendar-grid", {"include_tasks": True, "include_milestones": True,
+                                                            "tasks_scope": "mine", "milestones_scope": "mine", "calendar_days": "14"}, width=3, height=6),
+        TemplateWidget("core.leaves", "compact-list", {"scope": "mine", "upcoming_days": "30"}, width=3, height=2),
+        
+        TemplateWidget("core.projects", "compact-list", {"scope": "participated", "active_only": True}, width=3, height=6),
+        
     ),
     "leader": (
-        TemplateWidget("core.projects", "kpi", {"scope": "managed", "active_only": True}),
-        TemplateWidget("core.projects", "alert-list", {"scope": "managed", "late_only": True}),
-        TemplateWidget("core.milestones", "deadline-list", {"scope": "managed_projects", "due_within_days": "30"}),
-        TemplateWidget("core.employees", "kpi", {"scope": "subordinates", "active_only": True}),
-        TemplateWidget("core.leaves", "compact-list", {"scope": "subordinates", "upcoming_days": "30"}),
-        TemplateWidget("core.funds", "overview-list", {"scope": "managed_projects", "active_only": True}),
-        TemplateWidget("core.contracts", "alert-list", {"ending_within_days": "30"}),
+        TemplateWidget("core.projects", "project-health-bars", {"scope": "managed", "active_only": True}, width=6, height=8),
+        TemplateWidget("core.employee-workload", "employee-workload", {"scope": "subordinates", "metric": "project_allocation"}, width=6, height=4),
+        TemplateWidget("core.contracts", "contract-list", {"ending_within_days": "30","active_only": True}, width=3, height=4),
+        TemplateWidget("core.leaves", "compact-list", {"scope": "subordinates", "upcoming_days": "30"}, width=3, height=4),
+        TemplateWidget("core.tasks", "task-workload", {"scope": "managed_projects", "status": "open"}, width=4, height=5),
+        TemplateWidget("core.milestones", "deadline-list", {"scope": "managed_projects", "due_within_days": "30"}, width=4, height=5),
+        TemplateWidget("core.timeline", "calendar-grid", {"include_tasks": True, "include_milestones": True,
+                                                    "tasks_scope": "managed_projects", "milestones_scope": "managed_projects", "calendar_days": "14"}, width=4, height=5),
+        TemplateWidget("core.funds", "overview-list", {"scope": "managed_projects", "active_only": True}),        
     ),
     "lab-manager": (
-        TemplateWidget("core.projects", "kpi", {"active_only": True}),
-        TemplateWidget("core.projects", "alert-list", {"late_only": True}),
-        TemplateWidget("core.milestones", "deadline-list", {"due_within_days": "30"}),
-        TemplateWidget("core.funds", "kpi", {"active_only": True}),
-        TemplateWidget("core.funds", "overview-list", {"ending_within_days": "60"}),
-        TemplateWidget("core.contracts", "alert-list", {"ending_within_days": "30"}),
-        TemplateWidget("core.employees", "alert-list", {"movement": "departures", "within_days": "90"}),
+        TemplateWidget("core.funds", "overview-list", {"ending_within_days": "90", "active_only": True}, width=4, height=8),
+        TemplateWidget("core.contracts", "contract-list", {"ending_within_days": "90", "active_only": True}, width=4, height=8),
+        TemplateWidget("core.employees", "employee-movements", {"movement": "all", "within_days": "90"}, width=4, height=8),
+        TemplateWidget("core.milestones", "deadline-list", {"due_within_days": "60"}, width=4, height=8),
+        TemplateWidget("core.tasks", "task-workload", {"status": "open"}, width=4, height=8),
+        TemplateWidget("core.timeline", "calendar-grid", {"include_tasks": True, "include_milestones": True,
+                                                            "tasks_scope": "all_visible", "milestones_scope": "all_visible", "calendar_days": "14"}, width=4, height=8),
+        TemplateWidget("core.projects", "project-health-bars", {"scope": "all_visible", "active_only": True}, width=12, height=8),
+        TemplateWidget("core.data-consistency", "data-consistency"),
     ),
     "blank": (),
     "project": (
-        TemplateWidget("core.projects", "kpi", {"project_scope": "context"}),
-        TemplateWidget("core.financial-advancement", "kpi", {"project_scope": "context"}),
-        TemplateWidget("core.financial-summary", "kpi", {"project_scope": "context"}),
-        TemplateWidget("core.milestones", "kpi", {"project_scope": "context"}),
-        TemplateWidget("core.milestones", "deadline-list", {"project_scope": "context", "due_within_days": "30"}),
-        TemplateWidget("core.contracts", "alert-list", {"project_scope": "context"}),
-        TemplateWidget("core.expense-trend", "line-chart", {"project_scope": "context"}),
+        TemplateWidget("core.projects", "project-health-bars", {"project_scope": "context"}, width=3, height=8),
+        TemplateWidget("core.tasks", "task-workload", {"project_scope": "context", "status": "open"}, width=4, height=5),
+        TemplateWidget("core.milestones", "deadline-list", {"project_scope": "context", "due_within_days": "30"}, width=4, height=5),
+        
+        TemplateWidget("core.timeline", "calendar-grid", {"tasks_project_scope": "context", "milestones_project_scope": "context",
+                                                    "include_tasks": True, "include_milestones": True, "calendar_days": "14"}),
+        TemplateWidget("core.tasks", "task-workload", {"project_scope": "context", "status": "open"}),
+        
         TemplateWidget("core.funds", "overview-list", {"project_scope": "context"}),
-        TemplateWidget("core.employees", "compact-list", {"project_scope": "context"}),
+        TemplateWidget("core.contracts", "contract-list", {"project_scope": "context"}),
+        TemplateWidget("core.expense-trend", "line-chart", {"project_scope": "context"}),
     ),
 }
 

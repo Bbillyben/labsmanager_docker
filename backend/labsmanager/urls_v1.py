@@ -23,6 +23,8 @@ from staff.api_v1 import (
     EmployeeGenericInfoDetailV1View,
     GenericInfoTypeV1View,
     EmployeeHierarchyV1View,
+    EmployeeHierarchyCandidatesV1View,
+    EmployeeHierarchyRelationV1View,
     EmployeeLeaveListV1View,
     EmployeeLeaveCapabilitiesV1View,
     EmployeeLeaveDetailV1View,
@@ -37,6 +39,8 @@ from staff.api_v1 import (
     EmployeeProjectParticipationV1View,
     EmployeeProjectWorkloadV1View,
     EmployeeStatusHistoryV1View,
+    EmployeeStatusOptionsV1View,
+    EmployeeStatusDetailV1View,
 )
 from staff.organization_chart_v1 import OrganizationChartV1View
 from staff.team_api_v1 import (
@@ -338,11 +342,15 @@ urlpatterns = [
         EmployeeStatusHistoryV1View.as_view(),
         name="employee-statuses",
     ),
+    path("employees/<int:pk>/statuses/options/", EmployeeStatusOptionsV1View.as_view(), name="employee-status-options"),
+    path("employees/<int:pk>/statuses/<int:status_pk>/", EmployeeStatusDetailV1View.as_view(), name="employee-status-detail"),
     path(
         "employees/<int:pk>/hierarchy/",
         EmployeeHierarchyV1View.as_view(),
         name="employee-hierarchy",
     ),
+    path("employees/<int:pk>/hierarchy/candidates/", EmployeeHierarchyCandidatesV1View.as_view(), name="employee-hierarchy-candidates"),
+    path("employees/<int:pk>/hierarchy/<int:relation_pk>/", EmployeeHierarchyRelationV1View.as_view(), name="employee-hierarchy-relation"),
     path(
         "employees/<int:pk>/project-participations/",
         EmployeeProjectParticipationV1View.as_view(),

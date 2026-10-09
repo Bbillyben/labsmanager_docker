@@ -42,8 +42,25 @@ export type DashboardProjectPortfolioData = {
   items: { key: string; name: string; href: string; start_date: string | null; end_date: string | null;
     temporal_percent: number | null; temporal_state: 'upcoming' | 'active' | 'ending_soon' | 'ended' | 'unknown';
     financial: { amount: number; spent: number; percent: number } | null;
-    next_milestone: { title: string; date: string; days_until: number; href: string } | null;
-    overdue_task_count: number; attention_signals: string[] }[]
+    financial_delta: number | null;
+    financial_state: { key: 'on_track' | 'funding_ahead' | 'funding_behind'; tone: 'success' | 'warning' | 'neutral' } | null;
+    next_milestone: { title: string; date: string; days_until: number; relative_state: 'today' | 'upcoming'; href: string } | null;
+    overdue_task_count: number; overdue_milestone_count: number;
+    attention_signals: { key: 'overdue_tasks' | 'overdue_milestones' | 'project_ending_soon' | 'project_ended' | 'funding_ahead' | 'funding_behind';
+      count?: number; delta?: number; tone: 'danger' | 'warning' | 'neutral' | 'muted' }[] }[]
+}
+export type DashboardProjectHealthBarsData = {
+  summary: DashboardProjectPortfolioData['summary']
+  items: { key: string; name: string; href: string
+    milestones: { total: number; upcoming_count: number; imminent_count: number; overdue_count: number; unscheduled_count: number }
+    tasks: { total: number; upcoming_count: number; imminent_count: number; overdue_count: number; unscheduled_count: number }
+    contracts: { total: number; active_count: number; ending_soon_count: number; expired_rh_active_count: number }
+    funding: { amount: number; spent: number; percent: number; tone: 'neutral' | 'danger' } | null
+    deadline: { percent: number | null; state: DashboardProjectPortfolioData['items'][number]['temporal_state'];
+      tone: 'neutral' | 'warning' | 'danger';
+      relative: { state: 'starts_in' | 'ends_in' | 'ends_today' | 'ended_ago' | 'unknown'; count: number | null; unit: 'days' | 'months' | null } }
+    funding_pace: { applicable: boolean; ratio: number | null; state: 'not_applicable' | 'aligned' | 'above' | 'below';
+      tone: 'muted' | 'success' | 'warning' | 'danger' } }[]
 }
 export type DashboardEmployeeWorkloadData =
   | { mode: 'single'; employee: { id: number; name: string; href: string };

@@ -1311,7 +1311,7 @@ class EmployeeHierarchyV1ApiTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"superiors": [], "subordinates": []},
+            {"superiors": [], "subordinates": [], "capabilities": {"can_add": False, "can_change": False, "can_delete": False}},
         )
 
     def test_hierarchy_contract_history_and_order_are_deterministic(self):
@@ -1364,6 +1364,7 @@ class EmployeeHierarchyV1ApiTests(APITestCase):
                         "start_date": (today - timedelta(days=100)).isoformat(),
                         "end_date": (today - timedelta(days=20)).isoformat(),
                         "is_active": False,
+                        "can_view": True,
                     },
                     {
                         "id": superior_current.pk,
@@ -1375,6 +1376,7 @@ class EmployeeHierarchyV1ApiTests(APITestCase):
                         "start_date": (today - timedelta(days=5)).isoformat(),
                         "end_date": None,
                         "is_active": True,
+                        "can_view": True,
                     },
                 ],
                 "subordinates": [
@@ -1388,6 +1390,7 @@ class EmployeeHierarchyV1ApiTests(APITestCase):
                         "start_date": (today - timedelta(days=50)).isoformat(),
                         "end_date": (today - timedelta(days=10)).isoformat(),
                         "is_active": False,
+                        "can_view": True,
                     },
                     {
                         "id": subordinate_current.pk,
@@ -1399,15 +1402,17 @@ class EmployeeHierarchyV1ApiTests(APITestCase):
                         "start_date": (today - timedelta(days=2)).isoformat(),
                         "end_date": None,
                         "is_active": True,
+                        "can_view": True,
                     },
                 ],
+                "capabilities": {"can_add": False, "can_change": False, "can_delete": False},
             },
         )
-        for collection in response.json().values():
+        for collection in (response.json()["superiors"], response.json()["subordinates"]):
             for item in collection:
                 self.assertEqual(
                     set(item),
-                    {"id", "employee", "start_date", "end_date", "is_active"},
+                    {"id", "employee", "start_date", "end_date", "is_active", "can_view"},
                 )
                 self.assertEqual(
                     set(item["employee"]),
@@ -1443,6 +1448,7 @@ class EmployeeHierarchyV1ApiTests(APITestCase):
                     "start_date": None,
                     "end_date": None,
                     "is_active": True,
+                    "can_view": False,
                 }
             ],
         )

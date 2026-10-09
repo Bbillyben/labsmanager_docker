@@ -19,10 +19,12 @@ export function DashboardGrid({ widgets, definitions, mode, layoutDraft, onLayou
   const desktopLayout = useMemo<Layout>(() => widgets.map((widget) => {
     const definition = definitions.get(widget.definition_key)
     const draft = layoutDraft?.find((item) => item.id === widget.id)
-    return { i: widget.id, x: draft?.x ?? widget.x, y: draft?.y ?? widget.y,
+    return {
+      i: widget.id, x: draft?.x ?? widget.x, y: draft?.y ?? widget.y,
       w: draft?.width ?? widget.width, h: draft?.height ?? widget.height,
       minW: definition?.min_size[0] ?? 1, minH: definition?.min_size[1] ?? 1,
-      maxW: definition?.max_size[0] ?? 12, maxH: definition?.max_size[1] ?? 8 }
+      maxW: definition?.max_size[0] ?? 24, maxH: definition?.max_size[1] ?? 24
+    }
   }), [widgets, definitions, layoutDraft])
   const mobileLayout = useMemo<Layout>(() => [...widgets].sort((a, b) => a.logical_order - b.logical_order).map((widget, index) => ({ i: widget.id, x: 0, y: index * Math.max(2, widget.height), w: 1, h: Math.max(2, widget.height), minW: 1, maxW: 1 })), [widgets])
   const update = (layout: Layout) => {

@@ -1,6 +1,6 @@
 """Read-only Dashboard providers built on the existing domain visibility rules."""
 
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
@@ -51,6 +51,29 @@ def project_queryset(context, config):
     return qs
 
 
+PROJECT_FINANCIAL_DELTA_THRESHOLD = 10  # Percentage points, not a Project health score.
+PROJECT_PACE_MIN_TEMPORAL_PERCENT = 1.0
+
+
+def _project_temporal_percent(project, today):
+    if not project.start_date or not project.end_date or project.end_date <= project.start_date:
+        return None
+    duration = (project.end_date - project.start_date).days
+    elapsed = max(0, min(duration, (today - project.start_date).days))
+    return round(elapsed / duration * 100, 1)
+
+
+def _project_financial_state(financial, temporal_percent):
+    if financial is None or temporal_percent is None:
+        return None, None
+    delta = round(financial["budget_percent"] - temporal_percent, 1)
+    if delta > PROJECT_FINANCIAL_DELTA_THRESHOLD:
+        return delta, {"key": "funding_ahead", "tone": "warning"}
+    if delta < -PROJECT_FINANCIAL_DELTA_THRESHOLD:
+        return delta, {"key": "funding_behind", "tone": "neutral"}
+    return delta, {"key": "on_track", "tone": "success"}
+
+
 def project_portfolio(context, config, qs=None):
     from collections import defaultdict
     from endpoints.models import Milestones
@@ -64,19 +87,40 @@ def project_portfolio(context, config, qs=None):
     project_ids = qs.values("pk")
     overdue = Milestones.objects.filter(project_id__in=project_ids, status=False, end_date__lt=today)
     overdue_tasks = dict(overdue.filter(start_date__isnull=False).values("project_id").annotate(total=Count("pk")).values_list("project_id", "total"))
-    overdue_milestones = set(overdue.filter(start_date__isnull=True).values_list("project_id", flat=True).distinct())
+    overdue_milestones = dict(overdue.filter(start_date__isnull=True).values("project_id").annotate(
+        total=Count("pk")).values_list("project_id", "total"))
     ending_ids = set(qs.filter(status=True, end_date__gte=today, end_date__lte=soon_date).values_list("pk", flat=True))
     ended_ids = set(qs.filter(status=True, end_date__lt=today).values_list("pk", flat=True))
-    attention_ids = set(overdue_tasks) | overdue_milestones | ending_ids | ended_ids
+    funds_by_project = defaultdict(list)
+    for fund in visible_funds(context, config).filter(project_id__in=project_ids).only(
+        "project_id", "amount", "expense", "start_date", "end_date"
+    ).iterator():
+        funds_by_project[fund.project_id].append(fund)
+    health_by_project = {}
+    attention_count = 0
+    for project in qs.only("pk", "start_date", "end_date").iterator():
+        temporal_percent = _project_temporal_percent(project, today)
+        financial = advancement_for_funds(funds_by_project[project.pk], today=today)
+        financial_delta, financial_state = _project_financial_state(financial, temporal_percent)
+        signals = []
+        if project.pk in overdue_tasks:
+            signals.append({"key": "overdue_tasks", "count": overdue_tasks[project.pk], "tone": "danger"})
+        if project.pk in overdue_milestones:
+            signals.append({"key": "overdue_milestones", "count": overdue_milestones[project.pk], "tone": "danger"})
+        if project.pk in ending_ids:
+            signals.append({"key": "project_ending_soon", "tone": "warning"})
+        if project.pk in ended_ids:
+            signals.append({"key": "project_ended", "tone": "muted"})
+        if financial_state and financial_state["key"] != "on_track":
+            signals.append({"key": financial_state["key"], "delta": financial_delta,
+                            "tone": financial_state["tone"]})
+        if signals:
+            attention_count += 1
+        health_by_project[project.pk] = (temporal_percent, financial, financial_delta, financial_state, signals)
     summary = {"count": qs.count(), "active_count": qs.filter(status=True).count(),
-               "ending_soon_count": len(ending_ids), "attention_count": len(attention_ids)}
+               "ending_soon_count": len(ending_ids), "attention_count": attention_count}
     rows = list(qs.order_by("name", "pk")[:config.get("limit", 5)])
     row_ids = {item.pk for item in rows}
-    funds_by_project = defaultdict(list)
-    for fund in visible_funds(context, config).filter(project_id__in=row_ids).only(
-        "project_id", "amount", "expense", "start_date", "end_date"
-    ):
-        funds_by_project[fund.project_id].append(fund)
     next_milestones = {}
     for milestone in Milestones.objects.filter(
         project_id__in=row_ids, start_date__isnull=True, status=False, end_date__gte=today
@@ -84,32 +128,113 @@ def project_portfolio(context, config, qs=None):
         next_milestones.setdefault(milestone.project_id, milestone)
     items = []
     for project in rows:
-        temporal_percent = None
-        if project.start_date and project.end_date and project.end_date > project.start_date:
-            duration = (project.end_date - project.start_date).days
-            elapsed = max(0, min(duration, (today - project.start_date).days))
-            temporal_percent = round(elapsed / duration * 100, 1)
+        temporal_percent, financial, financial_delta, financial_state, signals = health_by_project[project.pk]
         state = ("ended" if project.end_date and project.end_date < today else
                  "upcoming" if project.start_date and project.start_date > today else
                  "ending_soon" if project.pk in ending_ids else
                  "active" if project.status else "unknown")
-        financial = advancement_for_funds(funds_by_project[project.pk], today=today)
         milestone = next_milestones.get(project.pk)
-        signals = (["overdue_tasks"] if project.pk in overdue_tasks else []) + (
-            ["overdue_milestones"] if project.pk in overdue_milestones else []) + (
-            ["project_ending_soon"] if project.pk in ending_ids else []) + (
-            ["project_ended"] if project.pk in ended_ids else [])
         items.append({"key": str(project.pk), "name": project.name, "href": f"/app/projects/{project.pk}",
                       "start_date": project.start_date.isoformat() if project.start_date else None,
                       "end_date": project.end_date.isoformat() if project.end_date else None,
                       "temporal_percent": temporal_percent, "temporal_state": state,
                       "financial": {"amount": financial["amount"], "spent": financial["spent"],
                                     "percent": financial["budget_percent"]} if financial else None,
+                      "financial_delta": financial_delta, "financial_state": financial_state,
                       "next_milestone": {"title": milestone.name, "date": milestone.end_date.isoformat(),
                                          "days_until": (milestone.end_date - today).days,
+                                         "relative_state": "today" if milestone.end_date == today else "upcoming",
                                          "href": f"/app/projects/{project.pk}/tasks"} if milestone else None,
-                      "overdue_task_count": overdue_tasks.get(project.pk, 0), "attention_signals": signals})
+                      "overdue_task_count": overdue_tasks.get(project.pk, 0),
+                      "overdue_milestone_count": overdue_milestones.get(project.pk, 0),
+                      "attention_signals": signals})
     return {"summary": summary, "items": items}
+
+
+def _project_deadline_relative(item, today):
+    start = date.fromisoformat(item["start_date"]) if item["start_date"] else None
+    end = date.fromisoformat(item["end_date"]) if item["end_date"] else None
+    if start and start > today:
+        return {"state": "starts_in", "count": (start - today).days, "unit": "days"}
+    if end is None:
+        return {"state": "unknown", "count": None, "unit": None}
+    days = (end - today).days
+    if days < 0:
+        return {"state": "ended_ago", "count": -days, "unit": "days"}
+    if days == 0:
+        return {"state": "ends_today", "count": 0, "unit": "days"}
+    months = relativedelta(end, today).years * 12 + relativedelta(end, today).months
+    return {"state": "ends_in", "count": months if months >= 2 else days,
+            "unit": "months" if months >= 2 else "days"}
+
+
+def _project_funding_pace(item):
+    temporal = item["temporal_percent"]
+    financial = item["financial"]
+    if temporal is None or temporal < PROJECT_PACE_MIN_TEMPORAL_PERCENT or financial is None:
+        return {"applicable": False, "ratio": None, "state": "not_applicable", "tone": "muted"}
+    ratio = round(financial["percent"] / temporal, 2)
+    deviation = abs(ratio - 1)
+    tone = "success" if deviation <= 0.2 else "warning" if deviation <= 0.4 else "danger"
+    return {"applicable": True, "ratio": ratio,
+            "state": "aligned" if tone == "success" else "above" if ratio > 1 else "below", "tone": tone}
+
+
+def project_health_bars(context, config, portfolio):
+    """A graphic Project projection; all business buckets are prepared server-side."""
+    from endpoints.models import Milestones
+    from expense.contract_hub_api_v1 import visible_contracts
+    from settings.models import LMUserSetting
+
+    rows = portfolio["items"]
+    project_ids = [int(item["key"]) for item in rows]
+    today = timezone.localdate()
+    months = int(LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_MONTH", user=context.user, backup_value=1))
+    work_cutoff = today + timedelta(days=months * 30)  # Same default horizon as planning()/task-workload.
+    work = {}
+    for kind, is_task in (("tasks", True), ("milestones", False)):
+        work[kind] = {row["project_id"]: row for row in Milestones.objects.filter(
+            project_id__in=project_ids, status=False, start_date__isnull=not is_task
+        ).values("project_id").annotate(
+            total=Count("pk"), overdue_count=Count("pk", filter=Q(end_date__lt=today)),
+            imminent_count=Count("pk", filter=Q(end_date__gte=today, end_date__lte=work_cutoff)),
+            upcoming_count=Count("pk", filter=Q(end_date__gt=work_cutoff)),
+            unscheduled_count=Count("pk", filter=Q(end_date__isnull=True)),
+        )}
+    contract_months = int(LMUserSetting.get_setting("DASHBOARD_CONTRACT_STALE_TO_MONTH", user=context.user, backup_value=3))
+    contract_cutoff = today + relativedelta(months=contract_months)
+    contracts = {row["fund__project_id"]: row for row in visible_contracts(context.user).filter(
+        fund__project_id__in=project_ids, is_active=True
+    ).filter(Q(start_date__isnull=True) | Q(start_date__lte=today)).values("fund__project_id").annotate(
+        total=Count("pk"), expired_rh_active_count=Count("pk", filter=Q(end_date__lt=today)),
+        ending_soon_count=Count("pk", filter=Q(end_date__gte=today, end_date__lte=contract_cutoff)),
+    )}
+    items = []
+    for item in rows:
+        project_id = int(item["key"])
+        milestones = work["milestones"].get(project_id, {})
+        tasks = work["tasks"].get(project_id, {})
+        contract = contracts.get(project_id, {})
+        contract_total = contract.get("total", 0)
+        contract_soon = contract.get("ending_soon_count", 0)
+        contract_expired = contract.get("expired_rh_active_count", 0)
+        items.append({"key": item["key"], "name": item["name"], "href": item["href"],
+                      "milestones": {key: milestones.get(key, 0) for key in (
+                          "total", "upcoming_count", "imminent_count", "overdue_count", "unscheduled_count")},
+                      "tasks": {key: tasks.get(key, 0) for key in (
+                          "total", "upcoming_count", "imminent_count", "overdue_count", "unscheduled_count")},
+                      "contracts": {"total": contract_total, "active_count": contract_total - contract_soon - contract_expired,
+                                    "ending_soon_count": contract_soon,
+                                    "expired_rh_active_count": contract_expired},
+                      "funding": {**item["financial"],
+                                  "tone": "danger" if item["financial"]["percent"] > 100 else "neutral"}
+                      if item["financial"] else None,
+                      "deadline": {"percent": item["temporal_percent"], "state": item["temporal_state"],
+                                   "tone": "danger" if item["temporal_state"] == "ended" else
+                                           "warning" if item["temporal_state"] == "ending_soon" else "neutral",
+                                   "relative": _project_deadline_relative(item, today)},
+                      "funding_pace": _project_funding_pace(item)})
+    return {"summary": portfolio["summary"], "items": items}
 
 
 def projects(context, config):
@@ -124,7 +249,9 @@ def projects(context, config):
              for item in qs.order_by("end_date", "name", "pk")[:config.get("limit", 5)]]
     alerts = [{**item, "severity": "danger" if item["tone"] == "danger" else "info"} for item in items]
     payload = _payload(count, _("Projects"), items, alerts=alerts)
-    payload["__renderers__"]["project-portfolio"] = project_portfolio(context, config, qs)
+    portfolio = project_portfolio(context, config, qs)
+    payload["__renderers__"]["project-portfolio"] = portfolio
+    payload["__renderers__"]["project-health-bars"] = project_health_bars(context, config, portfolio)
     if context.scope == "project" and config.get("project_scope", "context") == "context" and count == 1:
         project = qs.first()
         payload["__renderers__"]["kpi"] = {
@@ -164,7 +291,11 @@ def planning_queryset(context, config, *, tasks=False):
         qs = qs.filter(status=False, end_date__lt=today)
     due_within = config.get("due_within_days", "0")
     if due_within != "0":
-        qs = qs.filter(end_date__gte=today, end_date__lte=today + timedelta(days=int(due_within)))
+        cutoff = today + timedelta(days=int(due_within))
+        qs = qs.filter(
+            Q(status=False, end_date__lt=today) # we keep all overdue milestones
+            | Q(end_date__gte=today, end_date__lte=cutoff)
+        )
     return qs
 
 
@@ -205,7 +336,14 @@ def planning(context, config, *, tasks=False):
         )).order_by("_deadline_priority", "end_date", "pk")
     else:
         ordered = ordered.order_by("end_date", "pk")
-    rows = ordered[:config.get("limit", 5)]
+    limit = int(config.get("limit", 5))
+    overdue_rows = list(
+        ordered.filter(status=False, end_date__lt=today)
+    )
+    other_rows = list(
+        ordered.exclude(status=False, end_date__lt=today)[:limit]
+    )
+    rows = overdue_rows + other_rows
     items, deadline_items = [], []
     for item in rows:
         date = item.end_date.isoformat() if item.end_date else None
@@ -238,7 +376,14 @@ def planning(context, config, *, tasks=False):
                 default=Value(4), output_field=IntegerField(),
             )
         ).order_by("_attention_priority", "end_date", "pk")
-        task_rows = list(prioritized_tasks[:config.get("limit", 5)])
+        limit = int(config.get("limit", 5))
+        overdue_tasks = list(
+            prioritized_tasks.filter(status=False, end_date__lt=today)
+        )
+        other_tasks = list(
+            prioritized_tasks.exclude(status=False, end_date__lt=today)[:limit]
+        )
+        task_rows = overdue_tasks + other_tasks
         assignee_ids = {employee.pk for item in task_rows for employee in item.employee.all()}
         visible_assignee_ids = set(Employee.get_instances_for_user(
             "view", context.user, Employee.objects.filter(pk__in=assignee_ids)

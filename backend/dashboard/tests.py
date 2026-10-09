@@ -1,10 +1,11 @@
 from unittest.mock import patch
 from datetime import timedelta
 from decimal import Decimal
+from types import SimpleNamespace
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -13,8 +14,53 @@ from .registry import (DashboardContext, CORE_WIDGETS, TEMPLATES, TemplateWidget
                        available_definitions, dashboard_registry, definition_for_template,
                        DataSource, WidgetDefinition)
 from .api_v1 import validated_config
+from .template_service import _find_free_position, _fits_position, _template_size
 from . import business_sources
 from rest_framework.exceptions import ValidationError
+
+
+class DashboardProjectHealthHelperTests(SimpleTestCase):
+    def test_deadline_and_pace_boundaries(self):
+        today = timezone.localdate()
+        relative = business_sources._project_deadline_relative
+        self.assertEqual(relative({"start_date": (today + timedelta(days=5)).isoformat(),
+                                   "end_date": (today + timedelta(days=100)).isoformat()}, today),
+                         {"state": "starts_in", "count": 5, "unit": "days"})
+        self.assertEqual(relative({"start_date": None, "end_date": today.isoformat()}, today)["state"], "ends_today")
+        self.assertEqual(relative({"start_date": None, "end_date": (today - timedelta(days=3)).isoformat()}, today),
+                         {"state": "ended_ago", "count": 3, "unit": "days"})
+        self.assertEqual(relative({"start_date": None, "end_date": None}, today)["state"], "unknown")
+        project = SimpleNamespace(start_date=today, end_date=today + timedelta(days=100))
+        self.assertEqual(business_sources._project_temporal_percent(project, today), 0.0)
+        project.end_date = None
+        self.assertIsNone(business_sources._project_temporal_percent(project, today))
+        pace = business_sources._project_funding_pace
+        self.assertEqual(pace({"temporal_percent": 50, "financial": {"percent": 25}}),
+                         {"applicable": True, "ratio": 0.5, "state": "below", "tone": "danger"})
+        self.assertEqual(pace({"temporal_percent": 0.5, "financial": {"percent": 25}})["state"], "not_applicable")
+        self.assertEqual(pace({"temporal_percent": 50, "financial": None})["state"], "not_applicable")
+
+
+class DashboardTemplatePlacementTests(SimpleTestCase):
+    def test_size_defaults_and_clamps_to_definition_and_grid(self):
+        definition = WidgetDefinition("test", "Test", "Test", "kpi", "test.source",
+                                      default_size=(4, 3), min_size=(2, 2), max_size=(8, 6))
+        item = lambda **layout: TemplateWidget("test.source", "kpi", **layout)
+        self.assertEqual(_template_size(item(), definition), (4, 3))
+        self.assertEqual(_template_size(item(width=30, height=20), definition), (8, 6))
+        self.assertEqual(_template_size(item(width=1, height=1), definition), (2, 2))
+        self.assertEqual(_template_size(item(width=7), definition), (7, 3))
+        wide = WidgetDefinition("wide", "Wide", "Test", "kpi", "test.source", max_size=(24, 24))
+        self.assertEqual(_template_size(item(width=30), wide), (12, 3))
+
+    def test_position_checks_boundaries_collisions_and_first_free_cell(self):
+        occupied = [(0, 0, 12, 7), (0, 7, 6, 5)]
+        self.assertFalse(_fits_position(-1, 0, 4, 3, occupied))
+        self.assertFalse(_fits_position(0, -1, 4, 3, occupied))
+        self.assertFalse(_fits_position(9, 7, 4, 3, occupied))
+        self.assertFalse(_fits_position(6, 3, 6, 5, occupied))
+        self.assertTrue(_fits_position(6, 7, 4, 3, occupied))
+        self.assertEqual(_find_free_position(4, 3, occupied), (6, 7))
 
 
 class DashboardApiTests(TestCase):
@@ -31,7 +77,7 @@ class DashboardApiTests(TestCase):
         return response.data["id"]
 
     def test_templates_are_copied_and_multiple_dashboards_are_owned(self):
-        expected = {"employee": 5, "leader": 7, "lab-manager": 7, "blank": 0}
+        expected = {"employee": 5, "leader": 8, "lab-manager": 6, "blank": 0}
         ids = [self.create(name, name) for name in expected]
         self.assertEqual(Dashboard.objects.filter(owner=self.user).count(), 4)
         self.assertEqual(Dashboard.objects.filter(owner=self.user, is_default=True).count(), 1)
@@ -39,8 +85,9 @@ class DashboardApiTests(TestCase):
             self.assertEqual(Dashboard.objects.get(pk=pk).widgets.count(), count)
         leader_detail = self.client.get(f"/api/v1/dashboards/{ids[1]}/")
         self.assertEqual(leader_detail.status_code, 200)
-        self.assertEqual(next(item for item in leader_detail.data["widgets"] if item["definition_key"] == "core.projects-count")["data"]["value"], 0)
-        self.assertEqual(next(item for item in leader_detail.data["widgets"] if item["definition_key"] == "core.projects-count")["source_key"], "core.projects")
+        health = next(item for item in leader_detail.data["widgets"] if item["source_key"] == "core.projects")
+        self.assertEqual(health["renderer_key"], "project-health-bars")
+        self.assertEqual(health["data"]["summary"]["count"], 0)
         self.assertEqual([row["id"] for row in self.client.get("/api/v1/dashboards/").data], ids)
         self.assertEqual(CORE_WIDGETS[0].key, "core.quick-links")
 
@@ -228,7 +275,7 @@ class DashboardApiTests(TestCase):
     def test_new_templates_are_copied_without_changing_existing_dashboards(self):
         old = self.create("Existing", "blank")
         WidgetInstance.objects.create(dashboard_id=old, definition_key="core.note", source_key="core.note", renderer_key="empty")
-        for template, expected in (("employee", 5), ("leader", 7), ("lab-manager", 7), ("blank", 0)):
+        for template, expected in (("employee", 5), ("leader", 8), ("lab-manager", 6), ("blank", 0)):
             pk = self.create(template, template)
             self.assertEqual(Dashboard.objects.get(pk=pk).widgets.count(), expected)
             detail = self.client.get(f"/api/v1/dashboards/{pk}/")
@@ -243,12 +290,20 @@ class DashboardApiTests(TestCase):
         for template in ("employee", "leader", "lab-manager", "blank"):
             pk = self.create(template, template)
             widgets = list(Dashboard.objects.get(pk=pk).widgets.order_by("logical_order"))
-            self.assertEqual(len(widgets), len(TEMPLATES[template]))
-            for index, (widget, item) in enumerate(zip(widgets, TEMPLATES[template])):
+            expected_items = [item for item in TEMPLATES[template]
+                              if not (item.source_key == "core.employee-workload" and item.config.get("scope") == "single")
+                              and item.source_key != "core.data-consistency"]
+            self.assertEqual(len(widgets), len(expected_items))
+            rectangles = []
+            for index, (widget, item) in enumerate(zip(widgets, expected_items)):
                 self.assertEqual((widget.source_key, widget.renderer_key, widget.title),
                                  (item.source_key, item.renderer_key, item.title))
                 self.assertEqual(widget.logical_order, index)
-                self.assertEqual((widget.x, widget.y), ((index % 3) * 4, (index // 3) * 3))
+                self.assertLessEqual(widget.x + widget.width, 12)
+                box = (widget.x, widget.y, widget.x + widget.width, widget.y + widget.height)
+                for other in rectangles:
+                    self.assertTrue(box[2] <= other[0] or other[2] <= box[0] or box[3] <= other[1] or other[3] <= box[1])
+                rectangles.append(box)
                 for key, value in item.config.items():
                     self.assertEqual(widget.config[key], value)
 
@@ -257,6 +312,54 @@ class DashboardApiTests(TestCase):
             response = self.client.post("/api/v1/dashboards/", {"name": "Broken", "template": "employee"}, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Dashboard.objects.filter(owner=self.user).count(), before)
+
+    def test_employee_template_resolves_visible_self_and_keeps_all_four_metrics(self):
+        from staff.models import Employee
+        employee = Employee.objects.create(first_name="Template", last_name="Employee", user=self.user)
+        pk = self.create("Employee", "employee")
+        widgets = list(Dashboard.objects.get(pk=pk).widgets.order_by("logical_order"))
+        self.assertEqual([(item.source_key, item.renderer_key) for item in widgets], [
+            ("core.employee-workload", "employee-workload"), ("core.projects", "project-portfolio"),
+            ("core.tasks", "task-workload"), ("core.milestones", "deadline-list"),
+            ("core.timeline", "calendar-grid"), ("core.leaves", "compact-list"),
+        ])
+        self.assertEqual(widgets[0].config["employee_id"], employee.pk)
+        detail = self.client.get(f"/api/v1/dashboards/{pk}/")
+        self.assertEqual([metric["key"] for metric in detail.data["widgets"][0]["data"]["metrics"]], [
+            "project_allocation", "open_tasks", "open_milestones", "open_work_items",
+        ])
+        self.assertFalse(any(item["error"] for item in detail.data["widgets"]))
+
+    def test_template_renderers_match_catalog_and_admin_widget_is_capability_gated(self):
+        sources, _ = available_definitions(DashboardContext.personal(self.user))
+        for template, items in TEMPLATES.items():
+            for item in items:
+                self.assertIn(item.renderer_key, sources[item.source_key].compatible_renderers,
+                              (template, item.source_key, item.renderer_key))
+        self.assertEqual(TEMPLATES["blank"], ())
+        self.assertNotIn("core.data-consistency", Dashboard.objects.get(
+            pk=self.create("Manager", "lab-manager")
+        ).widgets.values_list("source_key", flat=True))
+        self.user.is_staff = True
+        self.user.save(update_fields=("is_staff",))
+        manager = Dashboard.objects.get(pk=self.create("Staff manager", "lab-manager"))
+        self.assertIn("core.data-consistency", manager.widgets.values_list("source_key", flat=True))
+
+    def test_template_layout_uses_explicit_positions_and_falls_back_without_overlap(self):
+        layout = (
+            TemplateWidget("core.tasks", "task-workload", x=0, y=0, width=12, height=7),
+            TemplateWidget("core.milestones", "deadline-list", x=6, y=3, width=6, height=5),
+            TemplateWidget("core.funds", "overview-list", x=11, y=0, width=30, height=1),
+            TemplateWidget("core.contracts", "contract-list", x=3),
+            TemplateWidget("core.projects", "project-portfolio", y=2),
+        )
+        with patch.dict(TEMPLATES, {"layout-case": layout}):
+            dashboard = Dashboard.objects.get(pk=self.create("Layout", "layout-case"))
+        widgets = list(dashboard.widgets.order_by("logical_order"))
+        self.assertEqual([(item.x, item.y, item.width, item.height) for item in widgets], [
+            (0, 0, 12, 7), (0, 7, 6, 5), (0, 12, 12, 2), (6, 7, 4, 3), (0, 14, 6, 5),
+        ])
+        self.assertEqual([item.logical_order for item in widgets], list(range(len(layout))))
 
     def test_template_definition_resolution_uses_stable_source_and_renderer_keys(self):
         first = WidgetDefinition("first", "First", "Test", "kpi", "shared.source")
@@ -474,13 +577,141 @@ class DashboardBusinessSourceTests(TestCase):
         row = next(item for item in data["items"] if item["key"] == str(self.project.pk))
         self.assertEqual(row["temporal_percent"], 50.0)
         self.assertEqual(row["financial"]["percent"], advancement_for_funds([self.fund], today=self.today)["budget_percent"])
+        self.assertEqual(row["financial_delta"], -10.0)
+        self.assertEqual(row["financial_state"], {"key": "on_track", "tone": "success"})
         self.assertEqual(row["next_milestone"]["title"], earlier.name)
+        self.assertEqual(row["next_milestone"]["relative_state"], "upcoming")
         self.assertEqual(row["overdue_task_count"], 1)
-        self.assertEqual(set(row["attention_signals"]), {"overdue_tasks", "overdue_milestones", "project_ending_soon"})
+        self.assertEqual(row["overdue_milestone_count"], 1)
+        self.assertEqual({signal["key"] for signal in row["attention_signals"]},
+                         {"overdue_tasks", "overdue_milestones", "project_ending_soon"})
+        self.assertEqual(next(signal["count"] for signal in row["attention_signals"]
+                              if signal["key"] == "overdue_milestones"), 1)
         sources, definitions = dashboard_registry(self.context)
         self.assertEqual(sources["core.projects"].default_renderer, "project-portfolio")
         self.assertEqual(definitions["core.projects-count"].renderer_key, "project-portfolio")
         self.assertTrue({"kpi", "compact-list", "alert-list", "project-portfolio"}.issubset(sources["core.projects"].compatible_renderers))
+
+    def test_project_portfolio_financial_gap_and_missing_percentages(self):
+        from fund.models import Fund
+        from project.models import Project
+        self.project.start_date = self.today - timedelta(days=100)
+        self.project.end_date = self.today + timedelta(days=100)
+        self.project.save()
+        self.task.status = True
+        self.task.save()
+        visible = Project.objects.filter(pk=self.project.pk)
+        funds = Fund.objects.filter(pk=self.fund.pk)
+        def payload():
+            with patch.object(Project, "get_instances_for_user", return_value=visible), \
+                 patch.object(Fund, "get_instances_for_user", return_value=funds):
+                return business_sources.projects(self.context, {"limit": 1})["__renderers__"]["project-portfolio"]
+
+        self.fund.expense = Decimal("-70")
+        self.fund.save()
+        ahead = payload()
+        row = ahead["items"][0]
+        self.assertEqual(row["financial_delta"], 20.0)
+        self.assertEqual(row["financial_state"]["key"], "funding_ahead")
+        self.assertEqual(ahead["summary"]["attention_count"], 1)
+        self.assertIn({"key": "funding_ahead", "delta": 20.0, "tone": "warning"}, row["attention_signals"])
+
+        self.fund.expense = Decimal("-20")
+        self.fund.save()
+        behind = payload()["items"][0]
+        self.assertEqual(behind["financial_delta"], -30.0)
+        self.assertEqual(behind["financial_state"]["key"], "funding_behind")
+
+        self.project.start_date = None
+        self.project.save()
+        no_time = payload()["items"][0]
+        self.assertIsNone(no_time["financial_delta"])
+        self.assertIsNone(no_time["financial_state"])
+        self.project.start_date = self.today - timedelta(days=100)
+        self.project.save()
+        funds = Fund.objects.none()
+        no_funding = payload()["items"][0]
+        self.assertIsNone(no_funding["financial_delta"])
+        self.assertIsNone(no_funding["financial_state"])
+
+    def test_project_health_bars_groups_visible_work_contracts_and_pace(self):
+        from endpoints.models import Milestones
+        from expense.models import Contract
+        from fund.models import Fund
+        from project.models import Project
+        from settings.models import LMUserSetting
+
+        self.project.start_date = self.today - timedelta(days=10)
+        self.project.end_date = self.today + timedelta(days=10)
+        self.project.save()
+        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_MONTH", value="1")
+        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_CONTRACT_STALE_TO_MONTH", value="1")
+        Milestones.objects.create(project=self.project, name="Late milestone", end_date=self.today - timedelta(days=1))
+        Milestones.objects.create(project=self.project, name="Future milestone", end_date=self.today + timedelta(days=90))
+        Milestones.objects.create(project=self.project, name="Undated milestone")
+        Milestones.objects.create(project=self.project, name="Due task", start_date=self.today - timedelta(days=1),
+                                  end_date=self.today + timedelta(days=2))
+        Milestones.objects.create(project=self.project, name="Later task", start_date=self.today,
+                                  end_date=self.today + timedelta(days=90))
+        expired_active = Contract.objects.create(employee=self.employee, fund=self.fund, is_active=True,
+                                                  start_date=self.today - timedelta(days=30), end_date=self.today - timedelta(days=1))
+        expired_inactive = Contract.objects.create(employee=self.employee, fund=self.fund, is_active=False,
+                                                    start_date=self.today - timedelta(days=30), end_date=self.today - timedelta(days=1))
+        later = Contract.objects.create(employee=self.employee, fund=self.fund, is_active=True,
+                                        start_date=self.today - timedelta(days=1), end_date=self.today + timedelta(days=90))
+        Fund.objects.create(project=self.project, funder=self.fund.funder, institution=self.fund.institution,
+                            ref="INVISIBLE-SAME-PROJECT", amount=Decimal("1000"), expense=Decimal("-1000"),
+                            start_date=self.today - timedelta(days=30), end_date=self.today + timedelta(days=20))
+        visible_projects = Project.objects.filter(pk=self.project.pk)
+        visible_funds = Fund.objects.filter(pk=self.fund.pk)
+        visible_contracts = Contract.objects.filter(pk__in=[self.contract.pk, expired_active.pk,
+                                                            expired_inactive.pk, later.pk])
+
+        def health():
+            with patch.object(Project, "get_instances_for_user", return_value=visible_projects), \
+                 patch.object(Fund, "get_instances_for_user", return_value=visible_funds), \
+                 patch("expense.contract_hub_api_v1.visible_contracts", return_value=visible_contracts):
+                return business_sources.projects(self.context, {"limit": 1})["__renderers__"]["project-health-bars"]
+
+        row = health()["items"][0]
+        self.assertEqual(row["milestones"], {"total": 4, "upcoming_count": 1, "imminent_count": 1,
+                                              "overdue_count": 1, "unscheduled_count": 1})
+        self.assertEqual(row["tasks"], {"total": 3, "upcoming_count": 1, "imminent_count": 1,
+                                         "overdue_count": 1, "unscheduled_count": 0})
+        self.assertEqual(row["contracts"], {"total": 3, "active_count": 1,
+                                             "ending_soon_count": 1, "expired_rh_active_count": 1})
+        self.assertEqual(row["funding"]["percent"], 40.0)
+        self.assertEqual(row["deadline"]["percent"], 50.0)
+        self.assertEqual(row["deadline"]["relative"], {"state": "ends_in", "count": 10, "unit": "days"})
+        self.assertEqual(row["funding_pace"], {"applicable": True, "ratio": 0.8,
+                                                "state": "aligned", "tone": "success"})
+
+        self.fund.expense = Decimal("-110")
+        self.fund.save()
+        overspent = health()["items"][0]
+        self.assertEqual(overspent["funding"]["percent"], 110.0)
+        self.assertEqual(overspent["funding"]["tone"], "danger")
+        self.assertEqual(overspent["funding_pace"], {"applicable": True, "ratio": 2.2,
+                                                      "state": "above", "tone": "danger"})
+
+        self.project.start_date = self.today
+        self.project.save()
+        self.assertEqual(health()["items"][0]["funding_pace"]["state"], "not_applicable")
+        visible_funds = Fund.objects.none()
+        self.assertIsNone(health()["items"][0]["funding"])
+
+    def test_project_health_bars_preserves_source_choices_and_contract_visibility(self):
+        from expense.models import Contract
+        from project.models import Project
+        from dashboard.registry import dashboard_registry
+        sources, _ = dashboard_registry(self.context)
+        self.assertEqual(sources["core.projects"].default_renderer, "project-portfolio")
+        self.assertIn("project-health-bars", sources["core.projects"].compatible_renderers)
+        self.assertIn("project-portfolio", sources["core.projects"].compatible_renderers)
+        with patch.object(Project, "get_instances_for_user", return_value=Project.objects.filter(pk=self.project.pk)), \
+             patch("expense.contract_hub_api_v1.visible_contracts", return_value=Contract.objects.none()):
+            data = business_sources.projects(self.context, {"limit": 1})["__renderers__"]["project-health-bars"]
+        self.assertEqual(data["items"][0]["contracts"]["total"], 0)
 
     def test_employee_workload_single_allocation_and_open_items(self):
         from endpoints.models import Milestones

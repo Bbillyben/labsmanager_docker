@@ -521,6 +521,7 @@ describe('Employee R1', () => {
   it('returns from an Employee detail to the exact filtered list URL', async () => {
     mockApi(async (url) => {
       if (url === '/api/v1/employees/1/') return jsonResponse({ ...alice, birth_date: null, email: null, contract_quotity: null, project_quotity: null, contribution_quotity: null, active_milestones_count: 0 })
+      if (url.endsWith('/statuses/options/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, types: [], contractuality: [] })
       if (url.endsWith('/statuses/')) return jsonResponse([])
       if (url.endsWith('/hierarchy/')) return jsonResponse({ superiors: [], subordinates: [] })
       if (url.endsWith('/generic-info/')) return jsonResponse({ capabilities: { can_add: false }, items: [] })

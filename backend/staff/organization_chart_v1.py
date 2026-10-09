@@ -1,6 +1,6 @@
 """Visible Employee hierarchy as a flat directed graph for the React chart."""
 
-from collections import defaultdict, deque
+from collections import defaultdict
 
 from rest_framework import permissions, status
 from rest_framework.response import Response
@@ -9,22 +9,7 @@ from rest_framework.views import APIView
 from settings.models import LMUserSetting
 
 from .models import Employee, Employee_Status, Employee_Superior
-
-
-def cyclic_employee_ids(employee_ids, relationships):
-    """Return the IDs left in a graph after topological traversal."""
-    indegree = {employee_id: 0 for employee_id in employee_ids}
-    children = defaultdict(list)
-    for superior_id, employee_id in relationships:
-        children[superior_id].append(employee_id)
-        indegree[employee_id] += 1
-    queue = deque(employee_id for employee_id, degree in indegree.items() if degree == 0)
-    while queue:
-        for child_id in children[queue.popleft()]:
-            indegree[child_id] -= 1
-            if indegree[child_id] == 0:
-                queue.append(child_id)
-    return sorted(employee_id for employee_id, degree in indegree.items() if degree)
+from .hierarchy_graph import cyclic_employee_ids
 
 
 class OrganizationChartV1View(APIView):

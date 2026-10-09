@@ -826,3 +826,15 @@ Les ports HTTP directs fixent `X-Forwarded-Proto=http`. Deux listeners nginx dis
 ### Dashboard Milestones — suivi visuel des échéances
 
 `core.milestones` propose `deadline-list` par défaut : compteur, jalons en retard/proches et timeline datée avec Project et état relatif. Le backend calcule les états et compteurs sur les jalons visibles après les filtres existants ; les anciennes instances `compact-list` et `alert-list` utilisent le rendu enrichi sans migration. Le widget reste en lecture seule, avec configuration uniquement dans la sidebar. **Implémenté techniquement ; validation navigateur Light/Dark, tailles, présentation et impression attendue.**
+
+### Dashboard — composition actuelle des nouveaux templates
+
+Les nouveaux dashboards Employee, Leader, Lab Manager et Project privilégient les renderers enrichis compatibles avec leurs sources ; les KPI et listes génériques redondants sont retirés des templates. Le placement initial respecte la largeur et la hauteur par défaut des définitions sur 12 colonnes. Le widget de charge personnelle exige un Employee lié et visible ; Data Consistency n'apparaît que pour un Lab Manager autorisé. Blank reste vide. **Seuls les dashboards créés après ce changement reçoivent ces compositions ; aucune instance existante n'est migrée.** Tests backend ciblés réussis ; validation visuelle des nouvelles compositions à effectuer.
+
+### Employee Overview — mutations de la hiérarchie
+
+La section Supérieurs/Subordonnés conserve l'historique et ajoute des actions discrètes, un Sheet latéral Add/Edit avec recherche distante des Employees éligibles et un menu `…` sur les relations courantes. Le retrait physique, conforme au legacy, passe par `ConfirmDialog`. L'API hierarchy fournit les capacités et contrôle l'Employee racine, le candidat visible, les dates, les doublons et les cycles via le helper partagé avec l'Organigramme ; React rafraîchit uniquement la hiérarchie après mutation. Les 20 tests backend ciblés et les tests frontend ciblés passent, ainsi que TypeScript et ESLint ciblé. **Implémenté techniquement ; validation navigateur des droits, du clavier, du focus et de l'historique attendue.**
+
+### Employee Overview — CRUD des statuts
+
+Les statuts courants et l'historique repliable conservent leur rendu et leur compteur. Un bouton discret ouvre le Sheet latéral de création ; les menus `…` des statuts courants et historiques ouvrent l'édition ou la suppression confirmée. Le type, les dates et la contractualité suivent le formulaire legacy (type immuable en édition, suppression physique). Le GET historique reste une liste ; un endpoint d'options distinct fournit le catalogue et les capacités calculées côté backend. Les mutations utilisent le droit de modification Employee, valident les dates et rafraîchissent uniquement les statuts. **Implémenté techniquement ; 14 tests backend et les tests frontend ciblés réussis, TypeScript et ESLint ciblé réussis ; validation navigateur attendue.**

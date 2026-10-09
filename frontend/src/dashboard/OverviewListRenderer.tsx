@@ -1,13 +1,12 @@
 import type { DashboardWidget } from '../api/dashboards'
 import { useTranslation } from '../i18n/i18n'
+import { RoundedProgressGauge } from './DashboardGraphics'
 import type { DashboardMode } from './mode'
 import type { DashboardSize } from './size'
 import { isOverview } from './overviewData'
 import styles from './OverviewListRenderer.module.css'
 
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
-
-const bounded = (value: number | null) => Math.min(100, Math.max(0, value ?? 0))
 
 export function OverviewListRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
@@ -23,7 +22,8 @@ export function OverviewListRenderer({ widget, size, mode = 'view' }: Props) {
       <div className={styles.metric}><strong>{percent(summary.percent)}</strong><span>{t('dashboard.overview.consumed')}</span></div>
       {size !== 'compact' && <div className={styles.metric}><strong>{summary.count}</strong><span>{summary.count_label}</span></div>}
     </div>
-    {size !== 'compact' && <progress className={styles.aggregateProgress} value={bounded(summary.percent)} max={100} aria-label={t('dashboard.overview.overallProgress')} />}
+    {size !== 'compact' && <RoundedProgressGauge label={t('dashboard.overview.overallProgress')}
+      value={summary.percent} displayValue={percent(summary.percent)} showLabel={false} showValue={false} />}
     {items.length ? <ul className={styles.items}>{items.map((item) => <li className={styles.item} key={item.key}>
       <div className={styles.itemHeading}>
         {item.href && mode !== 'print' ? <a href={item.href}>{item.label}</a> : <span>{item.label}</span>}
@@ -32,7 +32,9 @@ export function OverviewListRenderer({ widget, size, mode = 'view' }: Props) {
       {size === 'expanded' && item.secondary && <small className={styles.secondary}>{item.secondary}</small>}
       <div className={styles.itemDetails}>
         {size !== 'compact' && <span>{amount(item.current)} / {amount(item.total)}</span>}
-        <progress value={bounded(item.percent)} max={100} aria-label={t('dashboard.overview.itemProgress', { name: item.label })} />
+        <RoundedProgressGauge label={t('dashboard.overview.itemProgress', { name: item.label })}
+          value={item.percent} displayValue={percent(item.percent)} showLabel={false} showValue={false}
+          className={styles.itemGauge} />
         {size !== 'compact' && item.remaining_days !== null && <span className={styles.deadline}>{item.remaining_days < 0
           ? t('dashboard.overview.expired')
           : t('dashboard.overview.daysRemaining', { count: item.remaining_days })}</span>}

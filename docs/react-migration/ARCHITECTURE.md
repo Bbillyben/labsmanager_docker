@@ -89,8 +89,12 @@ Ce principe s'applique notamment à la hiérarchie Employee, aux collaborateurs 
 | `GET/POST /api/v1/employees/<id>/generic-info/` | Collection enveloppée, capacités contextuelles et création |
 | `PATCH/DELETE /api/v1/employees/<id>/generic-info/<info_id>/` | Valeur modifiable, suppression définitive |
 | `GET /api/v1/generic-info-types/` | Catalogue global authentifié, lecture seule |
-| `GET /api/v1/employees/<id>/statuses/` | Statuts courants et historiques |
-| `GET /api/v1/employees/<id>/hierarchy/` | Supérieurs et subordonnés directs, courants et historiques |
+| `GET/POST /api/v1/employees/<id>/statuses/` | Liste historique inchangée en lecture ; création contextualisée d'un statut |
+| `GET /api/v1/employees/<id>/statuses/options/` | Types, contractualité et capacités de mutation calculées côté backend |
+| `PATCH/DELETE /api/v1/employees/<id>/statuses/<status_id>/` | Édition des dates/contractualité, type immuable, suppression physique confirmée |
+| `GET/POST /api/v1/employees/<id>/hierarchy/` | Supérieurs et subordonnés directs, courants et historiques, capacités et création contextualisée |
+| `GET /api/v1/employees/<id>/hierarchy/candidates/` | Recherche des Employees visibles et éligibles selon le sens de la relation |
+| `PATCH/DELETE /api/v1/employees/<id>/hierarchy/<relation_id>/` | Dates de la relation existante et suppression confirmée |
 | `GET /api/v1/employees/<id>/milestones/` | Jalons et tâches contextualisés |
 | `GET /api/v1/employees/<id>/project-participations/` | Relations `Participant` de l'Employee |
 | `GET /api/v1/employees/<id>/project-workload/` | Profil temporel agrégé de charge projet |
@@ -577,6 +581,8 @@ La sémantique des vues Calendar est centralisée : `CalendarPrintView` réutili
 ## Organigramme R2.26a
 
 La hiérarchie est exposée par `/api/v1/organization-chart/` comme deux collections plates `employees` et `relationships`. Le queryset Employee visible reste l'autorité (`get_instances_for_user("view", user)`), et seules les arêtes dont les deux extrémités sont visibles sont publiées. Le mode courant reprend les relations `Employee_Superior.current` et les Employees actifs ; le mode historique inclut les relations et Employees visibles historiques. Les racines se calculent à partir du graphe filtré, sans racine artificielle. Un cycle détecté avant publication retourne une réponse 409 contrôlée. React Flow rend le graphe, ELK calcule sa disposition ; recherche et repli opèrent sur les identifiants du graphe, sans nouvelle règle de visibilité frontend.
+
+La validation des mutations de la hiérarchie Employee et l'Organigramme partagent `staff.hierarchy_graph.cyclic_employee_ids` ; `would_create_cycle` l'applique à une arête candidate. Une seule ligne `Employee_Superior` représente les deux sens de lecture. Les écritures vérifient la capability Employee et la visibilité du candidat, puis appellent `full_clean()` et `save()` ou `delete()` ; le retrait suit la suppression physique du legacy, tandis que les relations datées non supprimées restent dans l'historique. Le Sheet React n'utilise que les capacités retournées par l'API.
 
 La préférence `LMUserSetting.SHOW_PAST_ORG` conserve sa sémantique historique inversée : `true` sélectionne « organisation actuelle uniquement ». L'API lit et met à jour cette préférence pour l'utilisateur authentifié. R2.30 réutilise le graphe normalisé et ELK dans un renderer d'impression distinct du viewport React Flow.
 

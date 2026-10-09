@@ -78,6 +78,7 @@ function mockApi(payloads: Payloads = {}) {
     if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
     if (url === '/api/v1/notes/employee/12/') return jsonResponse({ capabilities: { can_add: false }, items: [] })
     if (url.startsWith('/api/v1/reports/employee/')) return jsonResponse({ templates: [{ id: 9, name: 'Rapport employé' }] })
+    if (url.endsWith('/statuses/options/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, types: [], contractuality: [] })
     if (url.endsWith('/statuses/')) return jsonResponse(payloads.statuses ?? statuses)
     if (url.endsWith('/hierarchy/')) return jsonResponse(payloads.hierarchy ?? hierarchy)
     if (url.endsWith('/generic-info/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, items: payloads.genericInfo ?? genericInfo })
@@ -224,7 +225,7 @@ describe('Employee R2 detail', () => {
 
     expect(screen.getByRole('link', { name: 'Marie Martin' })).toHaveAttribute('href', '/app/employees/3')
     expect(screen.queryByRole('link', { name: 'Ancien Chef' })).not.toBeInTheDocument()
-    const superiors = screen.getByRole('heading', { name: 'Supérieurs' }).closest('div')!
+    const superiors = screen.getByRole('heading', { name: 'Supérieurs' }).closest('div')!.parentElement!
     await user.click(within(superiors).getByRole('button', { name: '↳ 1 précédent' }))
     expect(screen.getByRole('link', { name: 'Ancien Chef' })).toHaveAttribute('href', '/app/employees/4')
     expect(within(superiors).getByRole('button', { name: '↟ Réduire' })).toBeInTheDocument()
@@ -537,6 +538,7 @@ describe('Employee R2 detail', () => {
       if (/\/api\/v1\/employees\/\d+\/$/.test(url) && !failed) { failed = true; throw new TypeError('offline') }
       if (/\/api\/v1\/employees\/\d+\/$/.test(url)) return jsonResponse(detail)
       if (url.endsWith('/generic-info/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, items: [] })
+      if (url.endsWith('/statuses/options/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, types: [], contractuality: [] })
       if (url.endsWith('/statuses/')) return jsonResponse([])
       if (url.endsWith('/hierarchy/')) return jsonResponse({ superiors: [], subordinates: [] })
       if (url.includes('/project-workload/')) return jsonResponse(projectWorkload)
