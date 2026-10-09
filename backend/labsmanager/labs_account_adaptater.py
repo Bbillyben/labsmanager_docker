@@ -10,6 +10,13 @@ from labsmanager.react_urls import react_public_url
 
 class LabsManagerAccountAdapter(DefaultAccountAdapter):
 
+    def send_mail(self, template_prefix, email, context):
+        if template_prefix == "invitations/email/email_invite":
+            context = {**context, "invite_url": react_public_url(
+                f"invitations/accept/{quote(context['key'], safe='')}/"
+            )}
+        return super().send_mail(template_prefix, email, context)
+
     def get_reset_password_from_key_url(self, key):
         if getattr(self.request, "react_password_reset", False):
             return react_public_url(f"password/reset/bridge/{quote(key, safe='')}/")

@@ -18,6 +18,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
+from invitations.views import AcceptInvite
+from staff.invitation_provisioning import AtomicInvitationSignupView
 from .views import IndexView , redirectIndexView, get_filters_lists
 from settings.apiviews import UserSettingsDetail
 from rest_framework import routers
@@ -37,6 +39,7 @@ from django_js_reverse import views as jsrev_views
 
 from plugin.urls import get_plugin_urls
 
+admin.site.site_url = settings.REACT_PUBLIC_URL
 
 urlpatterns = [
     path('filter_code_list', get_filters_lists, name='filter_code_list'),
@@ -60,6 +63,7 @@ urlpatterns = [
 #  Authentications : 
 urlpatterns += [
     #path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/signup/', AtomicInvitationSignupView.as_view(), name='legacy-invitation-signup'),
     path('accounts/', include('allauth.urls')),
 ]
 #  django_js_reverse
@@ -69,6 +73,7 @@ urlpatterns += [
 # django-invitations
 urlpatterns += [
     path("invitations/", include('invitations.urls', namespace='invitations')),
+    path("invitations/accept/<str:key>/", AcceptInvite.as_view(), name="legacy-invitation-accept"),
 ]
 
 

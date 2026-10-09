@@ -1,6 +1,7 @@
 from time import altzone
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q, CheckConstraint, F
@@ -144,6 +145,17 @@ class Employee(models.Model, RightsCheckerMixin):
             queryset = cls.objects.none()
         return queryset
 
+
+
+class InvitationProvisioning(models.Model):
+    """Optional staff-approved assignments for one django-invitations invite."""
+
+    invitation = models.OneToOneField("invitations.Invitation", on_delete=models.CASCADE, related_name="labsmanager_provisioning")
+    employee = models.ForeignKey(Employee, null=True, blank=True, on_delete=models.SET_NULL)
+    groups = models.ManyToManyField(Group, blank=True)
+
+    def __str__(self):
+        return f"Provisioning for {self.invitation.email}"
 
 
 class Employee_Status(ActiveDateMixin):

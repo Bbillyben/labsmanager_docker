@@ -1,6 +1,7 @@
 """Staff-only Settings administration backed by the existing models and services."""
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
 from django.http import Http404
@@ -15,7 +16,8 @@ from notification.tasks import send_pending_notification
 from notification.utils import check_overdue_milestones, check_overload_employee, check_stale_milestones
 from plugin.models import PluginSetting
 from plugin.registry import registry
-from staff.models import Employee
+from staff.models import Employee, InvitationProvisioning
+from staff.invitation_provisioning import assignable_groups, eligible_employee, save_provisioning
 
 from .models import LabsManagerSetting
 from .forms import labInviteForm
@@ -136,6 +138,7 @@ class AdminEmployeeOptions(StaffView):
 
 
 def invitation_data(invitation):
+    provisioning = InvitationProvisioning.objects.filter(invitation=invitation).select_related("employee").first()
     return {
         "id": invitation.pk,
         "email": invitation.email,
@@ -144,30 +147,70 @@ def invitation_data(invitation):
         "accepted": invitation.accepted,
         "key_expired": invitation.key_expired() if invitation.sent else False,
         "inviter": {"id": invitation.inviter_id, "username": invitation.inviter.username} if invitation.inviter_id else None,
+        "employee": {"id": provisioning.employee_id, "name": provisioning.employee.user_name} if provisioning and provisioning.employee_id else None,
+        "group_ids": list(provisioning.groups.values_list("pk", flat=True)) if provisioning else [],
     }
+
+
+def invitation_selection(request, email, *, current=None):
+    data = request.data
+    employee_id = data.get("employee_id", current.employee_id if current else None)
+    group_ids = data.get("group_ids", list(current.groups.values_list("pk", flat=True)) if current else [])
+    if employee_id is not None and (type(employee_id) is not int or employee_id <= 0):
+        raise serializers.ValidationError({"employee_id": "A valid Employee id is required."})
+    if not isinstance(group_ids, list) or any(type(group_id) is not int or group_id <= 0 for group_id in group_ids):
+        raise serializers.ValidationError({"group_ids": "A list of Group ids is required."})
+    if "group_ids" in data and not request.user.is_superuser:
+        raise serializers.ValidationError({"group_ids": "Only a superuser can manage invitation groups."})
+    try:
+        employee = eligible_employee(email, employee_id, lock=True)
+        groups = assignable_groups(request.user, group_ids) if "group_ids" in data else list(current.groups.all()) if current else []
+    except DjangoValidationError as error:
+        raise serializers.ValidationError(error.message_dict) from error
+    return employee, groups
 
 
 class AdminInvitations(StaffView):
     def get(self, request):
         invitations = get_invitation_model().objects.select_related("inviter").order_by("-created", "-pk")
-        return Response({"results": [invitation_data(item) for item in invitations]})
+        return Response({
+            "results": [invitation_data(item) for item in invitations],
+            "group_options": [{"id": group.pk, "name": group.name} for group in Group.objects.order_by("name")] if request.user.is_superuser else [],
+            "can_assign_groups": request.user.is_superuser,
+        })
 
     def post(self, request):
-        if not isinstance(request.data, dict) or set(request.data) != {"email"}:
+        if not isinstance(request.data, dict) or not set(request.data) <= {"email", "employee_id", "group_ids"} or "email" not in request.data:
             raise serializers.ValidationError({"email": "An e-mail address is required."})
         form = labInviteForm(data=request.data)
         if not form.is_valid():
             raise serializers.ValidationError(form.errors)
         email = form.cleaned_data["email"]
         with transaction.atomic():
+            employee, groups = invitation_selection(request, email)
             invitation = form.save(email)
             invitation.inviter = request.user
             invitation.save()
+            save_provisioning(invitation, employee, groups)
             try:
                 invitation.send_invitation(request)
             except Exception as error:
                 raise serializers.ValidationError({"email": "The invitation could not be sent."}) from error
         return Response(invitation_data(invitation), status=201)
+
+
+class AdminInvitationDetail(StaffView):
+    def patch(self, request, pk):
+        if not isinstance(request.data, dict) or not request.data or not set(request.data) <= {"employee_id", "group_ids"}:
+            raise serializers.ValidationError({"detail": "Provide Employee and/or groups."})
+        with transaction.atomic():
+            invitation = get_object_or_404(get_invitation_model().objects.select_for_update(), pk=pk)
+            if invitation.accepted or (invitation.sent and invitation.key_expired()):
+                raise serializers.ValidationError({"detail": "Only active invitations can be changed."})
+            current = InvitationProvisioning.objects.filter(invitation=invitation).first()
+            employee, groups = invitation_selection(request, invitation.email, current=current)
+            save_provisioning(invitation, employee, groups)
+        return Response(invitation_data(invitation))
 
 
 class AdminRemoveExpiredInvitations(StaffView):

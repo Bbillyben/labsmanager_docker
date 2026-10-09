@@ -155,7 +155,7 @@ class AdminInvitationsV1Tests(APITestCase):
         response = self.client.get(BASE + "invitations/")
         self.assertEqual(response.status_code, 200, response.data)
         rows = {row["id"]: row for row in response.data["results"]}
-        self.assertEqual(set(rows[invite.pk]), {"id", "email", "created", "sent", "accepted", "key_expired", "inviter"})
+        self.assertEqual(set(rows[invite.pk]), {"id", "email", "created", "sent", "accepted", "key_expired", "inviter", "employee", "group_ids"})
         self.assertEqual(rows[invite.pk]["inviter"], {"id": self.staff.pk, "username": self.staff.username})
         self.assertFalse(rows[invite.pk]["accepted"])
         self.assertFalse(rows[invite.pk]["key_expired"])

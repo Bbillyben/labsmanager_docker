@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+from django.conf import settings
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
@@ -330,6 +331,7 @@ INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
 INVITATIONS_ACCEPT_INVITE_AFTER_SIGNUP = True
 INVITATIONS_INVITATION_ONLY = True
 INVITATIONS_INVITATION_EXPIRY = 3
+
 
 
 # LOGIN_REDIRECT_URL = '/redirect-after-login/' # "/"

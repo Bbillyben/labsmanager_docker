@@ -53,6 +53,7 @@ from staff.team_api_v1 import (
 )
 
 from .api_v1 import CurrentUserView, LoginV1View, LogoutV1View, PasswordResetRequestV1View, PasswordResetBridgeV1View, PasswordResetConfirmV1View
+from .invitation_api_v1 import InvitationBridgeV1View, InvitationSignupV1View
 from dashboard.api_v1 import (DashboardCollection, DashboardDetail, DashboardDefault,
     DashboardDuplicate, DashboardReorder, DashboardCatalog, DashboardWidgets,
     DashboardWidgetDetail, DashboardLayout, ProjectDashboard, ProjectDashboardCatalog)
@@ -86,7 +87,7 @@ from settings.admin_api_v1 import (
     AdminSettings, AdminSettingDetail, AdminUsers, AdminUserEmployee,
     AdminEmployeeOptions, AdminNotifications, AdminNotificationAction,
     AdminPlugins, AdminPluginReload, AdminPluginDetail, AdminPluginSetting,
-    AdminInvitations, AdminRemoveExpiredInvitations,
+    AdminInvitations, AdminInvitationDetail, AdminRemoveExpiredInvitations,
 )
 from settings.account_api_v1 import UserAccountV1View, UserPasswordV1View, UserEmailsV1View, UserEmailDetailV1View
 from settings.mutable_lists_api_v1 import MutableListsRegistryV1View, MutableListCollectionV1View, MutableListDetailV1View
@@ -103,6 +104,8 @@ app_name = "api_v1"
 import_api = import_module("import.api_v1")
 
 urlpatterns = [
+    path("auth/invitations/bridge/", InvitationBridgeV1View.as_view(), name="invitation-bridge"),
+    path("auth/invitations/current/", InvitationSignupV1View.as_view(), name="invitation-signup"),
     path("data-consistency/summary/", DataConsistencySummary.as_view(), name="data-consistency-summary"),
     path("data-consistency/issues/", DataConsistencyIssues.as_view(), name="data-consistency-issues"),
     path("data-consistency/issues/<str:rule_key>/<int:object_id>/accept/", DataConsistencyAccept.as_view(), name="data-consistency-accept"),
@@ -126,6 +129,7 @@ urlpatterns = [
     path("settings/admin/<str:section>/settings/<str:key>/", AdminSettingDetail.as_view(), name="admin-setting-detail"),
     path("settings/admin/users/", AdminUsers.as_view(), name="admin-users"),
     path("settings/admin/invitations/", AdminInvitations.as_view(), name="admin-invitations"),
+    path("settings/admin/invitations/<int:pk>/", AdminInvitationDetail.as_view(), name="admin-invitation-detail"),
     path("settings/admin/invitations/remove-expired/", AdminRemoveExpiredInvitations.as_view(), name="admin-invitations-remove-expired"),
     path("settings/admin/users/employee-options/", AdminEmployeeOptions.as_view(), name="admin-employee-options"),
     path("settings/admin/users/<int:pk>/employee/", AdminUserEmployee.as_view(), name="admin-user-employee"),

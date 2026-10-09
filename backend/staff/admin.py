@@ -93,3 +93,10 @@ admin.site.register(Employee_Type, EmployeeTypeAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Employee_Status)
 admin.site.register(GenericInfoType, EmployeeGenericInfoTypeAdmin)
+
+# Keep the package's Invitation Admin, adding only LabsManager assignments.
+from invitations.utils import get_invitation_model
+from .invitation_admin import LabsInvitationAdmin
+
+admin.site.unregister(get_invitation_model())
+admin.site.register(get_invitation_model(), LabsInvitationAdmin)
