@@ -1,14 +1,16 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { authenticatedUser } from '../test/fixtures'
 import { HomePage } from './HomePage'
 
-const mocks = vi.hoisted(() => ({ listDashboards: vi.fn(), listRecentItems: vi.fn(), useAuth: vi.fn() }))
+const mocks = vi.hoisted(() => ({ listDashboards: vi.fn(), listRecentItems: vi.fn(), getSystemInfo: vi.fn(), useAuth: vi.fn(), writeToClipboard: vi.fn() }))
 vi.mock('../api/dashboards', () => ({ listDashboards: mocks.listDashboards }))
 vi.mock('../api/recentItems', () => ({ listRecentItems: mocks.listRecentItems }))
+vi.mock('../api/systemInfo', () => ({ getSystemInfo: mocks.getSystemInfo }))
 vi.mock('../auth/AuthContext', () => ({ useAuth: mocks.useAuth }))
+vi.mock('../utils/clipboard', () => ({ writeToClipboard: mocks.writeToClipboard }))
 
 function showHome() {
   return render(<I18nProvider><MemoryRouter><HomePage /></MemoryRouter></I18nProvider>)
@@ -18,7 +20,12 @@ beforeEach(() => {
   Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] })
   mocks.listDashboards.mockReset()
   mocks.listRecentItems.mockReset()
+  mocks.getSystemInfo.mockReset().mockResolvedValue({
+    labsmanager_version: 'react-phase1-rc4', python_version: '3.11.9', django_version: '5.1',
+    database: { vendor: 'postgresql', version: '13.17' }, help_links: [],
+  })
   mocks.useAuth.mockReset()
+  mocks.writeToClipboard.mockReset().mockResolvedValue(true)
   mocks.useAuth.mockReturnValue({ status: 'authenticated', user: authenticatedUser })
   mocks.listDashboards.mockResolvedValue([
     { id: 2, name: 'Another board', icon: '', is_default: false, position: 0, scope: 'user' },
@@ -60,5 +67,47 @@ describe('Home hub', () => {
     mocks.listDashboards.mockResolvedValue([])
     showHome()
     expect(await screen.findByRole('link', { name: /Créer mon tableau de bord/ })).toHaveAttribute('href', '/dashboard')
+  })
+
+  it('shows configured help links and copies issue diagnostics with the backend version', async () => {
+    mocks.getSystemInfo.mockResolvedValue({
+      labsmanager_version: 'v4.3.0', python_version: '3.11.9', django_version: '5.1',
+      database: { vendor: 'postgresql', version: '13.17' },
+      help_links: [{ label: 'Documentation', url: 'https://example.test/docs' }],
+    })
+    showHome()
+    const help = await screen.findByRole('region', { name: 'Aide et support' })
+    expect(await within(help).findByRole('link', { name: 'Documentation' })).toHaveAttribute('href', 'https://example.test/docs')
+    expect(within(help).getByText('Version v4.3.0')).toBeInTheDocument()
+    fireEvent.click(within(help).getByRole('button', { name: 'Copier les informations techniques' }))
+    await screen.findByText('Informations techniques copiées.')
+    const copied = String(mocks.writeToClipboard.mock.calls[0][0])
+    expect(copied).toContain('LabsManager system information\nLabsManager: v4.3.0')
+    expect(copied).toContain('Python: 3.11.9')
+    expect(copied).toContain('Django: 5.1')
+    expect(copied).toContain('Database: PostgreSQL 13.17')
+    expect(copied).toContain('URL:')
+    expect(copied).toContain('Browser:')
+    expect(copied).toContain('Language:')
+    expect(copied).toContain('Theme: light')
+    expect(copied).toMatch(/Timestamp: \d{4}-\d\d-\d\dT/)
+    expect(copied).not.toContain('undefined')
+    expect(copied).not.toContain('\n\n')
+  })
+
+  it('omits unavailable runtime details from the copied text', async () => {
+    mocks.getSystemInfo.mockResolvedValue({
+      labsmanager_version: 'react-phase1-rc4', python_version: '', django_version: '5.1',
+      database: { vendor: 'sqlite', version: null }, help_links: [],
+    })
+    showHome()
+    await screen.findByText('Version react-phase1-rc4')
+    fireEvent.click(screen.getByRole('button', { name: 'Copier les informations techniques' }))
+    await screen.findByText('Informations techniques copiées.')
+    const copied = String(mocks.writeToClipboard.mock.calls[0][0])
+    expect(copied).toContain('Database: SQLite')
+    expect(copied).not.toContain('Python:')
+    expect(copied).not.toContain('null')
+    expect(copied).not.toContain('\n\n')
   })
 })

@@ -22,7 +22,10 @@ services:
     # lab web server service
     # Uses gunicorn as the web server
     lab-server:
-        build: .
+        build:
+            context: .
+            args:
+                LABSMANAGER_GIT_TAG: ${LABSMANAGER_GIT_TAG:-}
         container_name: lab-server
         # If you wish to specify a particular lab version, do so here
         image: labsmanager/labsmanager:${LAB_TAG:-latest}

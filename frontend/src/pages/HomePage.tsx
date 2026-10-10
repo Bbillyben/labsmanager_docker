@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, LayoutDashboard } from 'lucide-react'
+import { ArrowRight, Copy, LayoutDashboard } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { listDashboards, type DashboardSummary } from '../api/dashboards'
 import { listRecentItems, type RecentItem } from '../api/recentItems'
+import { getSystemInfo, type SystemInfo } from '../api/systemInfo'
+import { formatSystemValue } from '../api/systemInfo'
 import { useAuth } from '../auth/AuthContext'
+import { writeToClipboard } from '../utils/clipboard'
 import { genericInfoIcon } from './genericInfoIcons'
 import { useTranslation, type TranslationKey } from '../i18n/i18n'
 import { PageHeader } from '../ui/PageHeader'
+import { Button } from '../ui/Button'
 import styles from './HomePage.module.css'
 
 const recentTypeKeys: Record<string, TranslationKey> = {
@@ -16,21 +20,47 @@ const recentTypeKeys: Record<string, TranslationKey> = {
   'fund-explorer': 'financial.fundItems', 'budget-explorer': 'financial.budgets', expenses: 'financial.expenses',
 }
 
+const databaseNames: Record<string, string> = {
+  postgresql: 'PostgreSQL', sqlite: 'SQLite', mysql: 'MySQL', oracle: 'Oracle', other: 'Other',
+}
+
 export function HomePage() {
   const auth = useAuth()
   const { t } = useTranslation()
   const [dashboards, setDashboards] = useState<DashboardSummary[] | null>(null)
   const [recents, setRecents] = useState<RecentItem[] | null>(null)
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
+  const [copyResult, setCopyResult] = useState<'copied' | 'failed' | null>(null)
 
   useEffect(() => {
     if (auth.status !== 'authenticated') return
     const controller = new AbortController()
     void listDashboards().then((items) => { if (!controller.signal.aborted) setDashboards(items) }, () => { if (!controller.signal.aborted) setDashboards([]) })
     void listRecentItems(controller.signal).then((items) => { if (!controller.signal.aborted) setRecents(items) }, () => { if (!controller.signal.aborted) setRecents([]) })
+    void getSystemInfo(controller.signal).then((info) => { if (!controller.signal.aborted) setSystemInfo(info) }, () => { if (!controller.signal.aborted) setSystemInfo(null) })
     return () => controller.abort()
   }, [auth.status])
 
   if (auth.status !== 'authenticated') return null
+  async function copySystemInfo() {
+    if (auth.status !== 'authenticated') return
+    // const database = [systemInfo?.database.vendor && (databaseNames[systemInfo.database.vendor] ?? systemInfo.database.vendor), systemInfo?.database.version].filter(Boolean).join(' ')
+    const systemDetails = systemInfo
+      ? Object.entries(systemInfo.system_info)
+          .filter(([, value]) => value !== null && value !== undefined && value !== '')
+          .map(([key, value]) => `${key}: ${formatSystemValue(key, value)}`)
+      : []
+    const details = [
+        'LabsManager system information',
+        ...systemDetails,
+        `URL: ${window.location.href}`,
+        `Browser: ${navigator.userAgent}`,
+        `Language: ${navigator.language}`,
+        `Theme: ${auth.user.theme}`,
+        `Timestamp: ${new Date().toISOString()}`,
+      ].join('\n')
+    setCopyResult(await writeToClipboard(details) ? 'copied' : 'failed')
+  }
   const displayName = auth.user.employee ? auth.user.employee.first_name : [auth.user.first_name, auth.user.last_name].filter(Boolean).join(' ') || auth.user.username
   const primary = dashboards?.find((item) => item.is_default) ?? dashboards?.[0]
   const others = dashboards?.filter((item) => item.id !== primary?.id) ?? []
@@ -61,5 +91,19 @@ export function HomePage() {
       })}</ul> : <p className={styles.empty}>{t('home.noRecents')}</p>)}
     </section>
     {quick.length > 0 && <section className={styles.section} aria-labelledby="home-quick"><h2 id="home-quick">{t('home.quickAccess')}</h2><div className={styles.inlineLinks}>{quick.map((item) => <Link key={item.url} to={item.url}>{t(item.key)}</Link>)}</div></section>}
+    <section className={styles.section} aria-labelledby="home-help"><h2 id="home-help">{t('home.helpSupport')}</h2>
+      {systemInfo && systemInfo.help_links.length > 0 && <div className={styles.inlineLinks}>{systemInfo.help_links.map((link) => <a href={link.url} key={`${link.label}:${link.url}`} rel="noopener noreferrer" target="_blank">{link.label}</a>)}</div>}
+      
+       {typeof systemInfo?.system_info.labsmanager_version === 'string' && (
+        <p className={styles.version}>
+          {t('home.version', {
+            version: systemInfo.system_info.labsmanager_version,
+          })}
+        </p>
+      )}
+      
+      <Button className={styles.copyButton} onClick={() => void copySystemInfo()} size="sm" variant="outline"><Copy aria-hidden="true" size={16} />{t('home.copySystemInfo')}</Button>
+      {copyResult && <p aria-live="polite" className={styles.copyResult}>{t(copyResult === 'copied' ? 'home.systemInfoCopied' : 'home.systemInfoCopyFailed')}</p>}
+    </section>
   </main>
 }

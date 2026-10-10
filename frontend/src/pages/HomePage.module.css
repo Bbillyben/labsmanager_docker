@@ -1,6 +1,8 @@
 .home { display: grid; gap: 1.5rem; max-width: 70rem; min-width: 0; }
 .section { display: grid; gap: .7rem; min-width: 0; }
 .section h2 { font-size: 1rem; font-weight: 650; }
+.version, .copyResult { color: var(--muted-foreground); font-size: .8rem; }
+.copyButton { justify-self: start; }
 .primary { display: flex; align-items: center; gap: .8rem; width: min(100%, 32rem); padding: .8rem 1rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); }
 .primary > span { display: grid; gap: .1rem; flex: 1; min-width: 0; }
 .primary small, .recents small, .empty { color: var(--muted-foreground); font-size: .8rem; }

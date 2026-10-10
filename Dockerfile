@@ -52,6 +52,10 @@ RUN pip install --disable-pip-version-check -U -r base_requirements.txt
 
 # Copy source code
 COPY backend ${LAB_HOME}/labsmanager
+ARG LABSMANAGER_GIT_TAG=
+RUN if [ -n "$LABSMANAGER_GIT_TAG" ]; then \
+      python3 -c 'import os; from pathlib import Path; Path("labsmanager/lab_version.py").write_text("LABSMANAGER_VERSION=" + repr(os.environ["LABSMANAGER_GIT_TAG"]) + "\n")'; \
+    fi
 COPY --from=frontend-build /build/frontend/dist/ ${LAB_MNG_DIR}/data/static/frontend/
 #COPY backend/data/static ${LAB_DATA_DIR}/static
 COPY requirements.txt ${LAB_HOME}/requirements.txt

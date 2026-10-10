@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from django.conf import settings
 from pathlib import Path
+from urllib.parse import urlsplit
 from django.core.exceptions import ImproperlyConfigured
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
 import os
@@ -576,11 +577,18 @@ logger.debug('=========  =========  =========')
 
 LABSMANAGER_SHOW_HELP=get_boolean_setting("LABSMANAGER_SHOW_HELP", 'show_help', True)
 HELP_LINKS = []
-help_lk= get_setting('HELP_LINK', 'help_link', None)
+help_lk = get_setting('HELP_LINK', 'help_link', None)
 if help_lk:
-    links=help_lk.split(' ')
-    for link in links:
-        label, url = link.split(';')
+    for link in str(help_lk).split():
+        label, separator, url = link.partition(';')
+        if not separator or not label or not url:
+            continue
+        try:
+            parsed_url = urlsplit(url)
+        except ValueError:
+            continue
+        if parsed_url.scheme not in ('http', 'https') or not parsed_url.netloc:
+            continue
         HELP_LINKS.append({
             "label": _(label),
             "url": url,

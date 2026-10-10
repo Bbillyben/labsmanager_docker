@@ -80,7 +80,7 @@ Apres recuperation du changement sur l'hote de distribution :
 
 ```bash
 git submodule update --init --recursive
-docker compose build lab-server lab-worker
+./docker-build.sh
 docker compose up -d lab-server lab-worker lab-proxy
 ```
 
@@ -1194,7 +1194,7 @@ Validation réalisée pour R4.1 : `docker build --target frontend-build -t labsm
 
 Configurer une clé `SECRET_KEY` longue, aléatoire et propre à l'installation, `DEBUG=false`, les identifiants PostgreSQL, les hosts et origines CSRF publics, et `REACT_PUBLIC_URL=https://<hôte-public>/app` avant de construire/démarrer. Le template contient une clé de démonstration **refusée quand `DEBUG=false`**. Si `DJANGO_ADMINS` est défini, utiliser le format `nom:adresse@example.org` (entrées séparées par des espaces) : une valeur locale au format virgule empêche Django de notifier les erreurs. La résolution du fichier reste `LABSMANAGER_CONFIG_FILE` > `LABSMANAGER_CONFIG_PROFILE` > `config.yaml` ; les variables d'environnement ont priorité sur ces fichiers. `.env`, `backend/config.yaml` et `frontend/.env*` sont exclus de l'image ; ne pas placer de secret dans une variable `VITE_*`. En Docker sur la même origine, ne pas définir `VITE_DJANGO_PUBLIC_URL` au build : les liens Django restent relatifs, tandis que `REACT_PUBLIC_URL` est lu au runtime pour les e-mails de reset. Vérifier l'URL publique effective avant l'envoi réel d'un mail.
 
-Pour une **base vierge**, démarrer uniquement PostgreSQL (`docker compose up -d lab-db`), construire une image taguée unique (`docker compose build lab-server`, avec `LAB_TAG` défini), puis lancer `docker compose run --rm --no-deps --entrypoint python3 lab-server /home/labsmanager/labsmanager/manage.py migrate --noinput`. Aucune option `--skip-checks` n'est nécessaire. Démarrer ensuite les quatre services avec `docker compose up -d --no-build`. Le serveur et le worker vérifient tous deux que les migrations sont appliquées ; seul le serveur exécute `collectstatic`, sans `--clear`. Compose attend la santé PostgreSQL puis Gunicorn avant de lancer worker et nginx. Ne pas démarrer worker ou serveur avant l'étape de migration.
+Pour une **base vierge**, démarrer uniquement PostgreSQL (`docker compose up -d lab-db`), construire une image taguée unique (`./docker-build.sh`, avec `LAB_TAG` défini pour nommer l’image), puis lancer `docker compose run --rm --no-deps --entrypoint python3 lab-server /home/labsmanager/labsmanager/manage.py migrate --noinput`. Le script transmet le tag Git exact du commit à `LABSMANAGER_VERSION` pendant le build ; sans tag exact, la valeur de `lab_version.py` est conservée. Aucune option `--skip-checks` n'est nécessaire. Démarrer ensuite les quatre services avec `docker compose up -d --no-build`. Le serveur et le worker vérifient tous deux que les migrations sont appliquées ; seul le serveur exécute `collectstatic`, sans `--clear`. Compose attend la santé PostgreSQL puis Gunicorn avant de lancer worker et nginx. Ne pas démarrer worker ou serveur avant l'étape de migration.
 
 Pour une **mise à niveau**, tester d'abord la procédure sur une base dédiée restaurée depuis un dump récent de l'ancienne version, jamais sur la production réelle. Conserver l'ancien tag/image et arrêter les écritures :
 

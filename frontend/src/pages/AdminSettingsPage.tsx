@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Pencil, Plus, Unlink } from 'lucide-react'
-import { getAdminInvitations, getAdminNotifications, getAdminPlugin, getAdminPlugins, getAdminSettings, getAdminUsers, getEmployeeOptions, reloadAdminPlugins, removeExpiredAdminInvitations, runAdminNotificationAction, sendAdminInvitation, updateAdminPluginSetting, updateAdminSetting, updateAdminUserEmployee, type AdminUser, type PluginDetail } from '../api/adminSettings'
+import { getAdminInvitations, getAdminNotifications, getAdminPlugin, getAdminPlugins, getAdminSettings, getAdminUsers, getEmployeeOptions, reloadAdminPlugins, removeExpiredAdminInvitations, runAdminNotificationAction, sendAdminInvitation, updateAdminInvitation, updateAdminPluginSetting, updateAdminSetting, updateAdminUserEmployee, type AdminInvitation, type AdminUser, type PluginDetail } from '../api/adminSettings'
 import type { UserSettingData } from '../api/userSettings'
 import type { SettingValue } from '../api/settings'
 import { normalizeMutationError } from '../api/errors'
@@ -84,26 +84,44 @@ export function AdminUsersPage() {
         <div className={styles.sheetActions}><Button type="button" variant="ghost" onClick={() => setEditing(null)}>{t('common.close')}</Button><Button type="submit" disabled={pending || !options.data}>{t('common.save')}</Button></div>
       </form></SheetContent></Sheet>}
     {error && !editing && <Alert tone="danger">{error}</Alert>}
-  </section><AdminInvitationsSection /></div>
+  </section><AdminInvitationsSection employees={options.data?.results ?? []} /></div>
 }
 
-function AdminInvitationsSection() {
+function AdminInvitationsSection({ employees }: { employees: { id: number; name: string }[] }) {
   const { t, language } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getAdminInvitations(signal), [])
   const invitations = useEmployeeResource('admin-invitations', loader)
   const [inviting, setInviting] = useState(false)
+  const [editingInvitation, setEditingInvitation] = useState<AdminInvitation | null>(null)
   const [confirmRemove, setConfirmRemove] = useState(false)
   const [email, setEmail] = useState('')
+  const [invitationEmployeeId, setInvitationEmployeeId] = useState<number | null>(null)
+  const [invitationGroupIds, setInvitationGroupIds] = useState<number[]>([])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [feedback, setFeedback] = useState('')
   const focus = useRef<HTMLElement | null>(null)
+  function openInvitation(row?: AdminInvitation) {
+    setEditingInvitation(row ?? null)
+    setEmail(row?.email ?? '')
+    setInvitationEmployeeId(row?.employee?.id ?? null)
+    setInvitationGroupIds(row?.group_ids ?? [])
+    setError('')
+    setInviting(true)
+  }
   async function send() {
     setPending(true); setError(''); setFeedback('')
     try {
-      const created = await sendAdminInvitation(email)
-      invitations.updateData((data) => ({ results: [created, ...data.results] }))
-      setInviting(false); setEmail(''); setFeedback(t('settingsAdmin.invitationSent'))
+      if (editingInvitation) {
+        const updated = await updateAdminInvitation(editingInvitation.id, invitationEmployeeId, invitations.data?.can_assign_groups ? invitationGroupIds : null)
+        invitations.updateData((data) => ({ ...data, results: data.results.map((row) => row.id === updated.id ? updated : row) }))
+        setFeedback(t('settingsAdmin.invitationUpdated'))
+      } else {
+        const created = await sendAdminInvitation(email, invitationEmployeeId, invitations.data?.can_assign_groups ? invitationGroupIds : null)
+        invitations.updateData((data) => ({ ...data, results: [created, ...data.results] }))
+        setFeedback(t('settingsAdmin.invitationSent'))
+      }
+      setInviting(false); setEditingInvitation(null); setEmail(''); setInvitationEmployeeId(null); setInvitationGroupIds([])
       await invitations.refresh()
     } catch (cause) { setError(errorText(cause, t('settings.saveError'))) }
     finally { setPending(false) }
@@ -119,17 +137,17 @@ function AdminInvitationsSection() {
   }
   const date = (value: string | null) => value ? new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—'
   return <section className={styles.section} aria-label={t('settingsAdmin.invitations')}><div className={styles.heading}><h3>{t('settingsAdmin.invitations')}</h3><div className={styles.actions}>
-    <Button variant="secondary" disabled={pending} onClick={(event) => { focus.current = event.currentTarget; setInviting(true); setError('') }}><Plus aria-hidden="true" />{t('settingsAdmin.inviteUser')}</Button>
+    <Button variant="secondary" disabled={pending} onClick={(event) => { focus.current = event.currentTarget; openInvitation() }}><Plus aria-hidden="true" />{t('settingsAdmin.inviteUser')}</Button>
     <Button variant="destructive" disabled={pending} onClick={(event) => { focus.current = event.currentTarget; setConfirmRemove(true); setError('') }}>{t('settingsAdmin.removeExpired')}</Button>
   </div></div>
     {feedback && <p role="status" className={styles.feedback}>{feedback}</p>}
     {error && !inviting && !confirmRemove && <Alert tone="danger">{error}</Alert>}
     {invitations.loading && <p role="status">{t('common.loading')}</p>}
     {!!invitations.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={invitations.retry}>{t('common.retry')}</Button></Alert>}
-    {invitations.data && <div className={styles.tableScroll}><table className={`${styles.table} ${styles.invitationTable}`}><thead><tr><th>{t('settingsAdmin.email')}</th><th>{t('settingsAdmin.dateCreated')}</th><th>{t('settingsAdmin.dateSent')}</th><th>{t('settingsAdmin.accepted')}</th><th>{t('settingsAdmin.keyExpired')}</th><th>{t('settingsAdmin.inviter')}</th></tr></thead><tbody>
-      {invitations.data.results.map((row) => <tr key={row.id}><td>{row.email}</td><td>{date(row.created)}</td><td>{date(row.sent)}</td><td><Badge variant={row.accepted ? 'secondary' : 'outline'}>{t(row.accepted ? 'settingsAdmin.yes' : 'settingsAdmin.no')}</Badge></td><td><Badge variant={row.key_expired ? 'secondary' : 'outline'}>{t(row.key_expired ? 'settingsAdmin.yes' : 'settingsAdmin.no')}</Badge></td><td>{row.inviter?.username || '—'}</td></tr>)}
+    {invitations.data && <div className={styles.tableScroll}><table className={`${styles.table} ${styles.invitationTable}`}><thead><tr><th>{t('settingsAdmin.email')}</th><th>{t('settingsAdmin.dateCreated')}</th><th>{t('settingsAdmin.dateSent')}</th><th>{t('settingsAdmin.accepted')}</th><th>{t('settingsAdmin.keyExpired')}</th><th>{t('settingsAdmin.inviter')}</th><th>{t('settingsAdmin.linkedEmployee')}</th><th>{t('settingsAdmin.groups')}</th><th>{t('settingsAdmin.action')}</th></tr></thead><tbody>
+      {invitations.data.results.map((row) => <tr key={row.id}><td>{row.email}</td><td>{date(row.created)}</td><td>{date(row.sent)}</td><td><Badge variant={row.accepted ? 'secondary' : 'outline'}>{t(row.accepted ? 'settingsAdmin.yes' : 'settingsAdmin.no')}</Badge></td><td><Badge variant={row.key_expired ? 'secondary' : 'outline'}>{t(row.key_expired ? 'settingsAdmin.yes' : 'settingsAdmin.no')}</Badge></td><td>{row.inviter?.username || '—'}</td><td>{row.employee?.name || '—'}</td><td>{row.group_ids?.length || '—'}</td><td>{!row.accepted && !row.key_expired && <EntityActionMenu label={t('common.actionsFor', { name: row.email })} onTrigger={(trigger) => { focus.current = trigger }} groups={[[{ id: 'edit', icon: <Pencil aria-hidden="true" />, label: t('settingsAdmin.editProvisioning'), onSelect: () => openInvitation(row) }]]} />}</td></tr>)}
     </tbody></table>{!invitations.data.results.length && <p className={styles.empty}>{t('settingsAdmin.noInvitations')}</p>}</div>}
-    {inviting && <Sheet open onOpenChange={(open) => { if (!open && !pending) setInviting(false) }}><SheetContent finalFocus={focus}><SheetHeader><SheetTitle>{t('settingsAdmin.inviteUser')}</SheetTitle><SheetDescription>{t('settingsAdmin.inviteDescription')}</SheetDescription></SheetHeader><form className={styles.form} onSubmit={(event) => { event.preventDefault(); void send() }}><label>{t('settingsAdmin.email')}<Input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>{error && <Alert tone="danger">{error}</Alert>}<div className={styles.sheetActions}><Button type="button" variant="ghost" disabled={pending} onClick={() => setInviting(false)}>{t('common.close')}</Button><Button type="submit" disabled={pending}>{pending ? t('settingsAdmin.sending') : t('settingsAdmin.sendInvitation')}</Button></div></form></SheetContent></Sheet>}
+    {inviting && <Sheet open onOpenChange={(open) => { if (!open && !pending) setInviting(false) }}><SheetContent finalFocus={focus}><SheetHeader><SheetTitle>{t(editingInvitation ? 'settingsAdmin.editProvisioning' : 'settingsAdmin.inviteUser')}</SheetTitle><SheetDescription>{t('settingsAdmin.inviteDescription')}</SheetDescription></SheetHeader><form className={styles.form} onSubmit={(event) => { event.preventDefault(); void send() }}><label>{t('settingsAdmin.email')}<Input type="email" required readOnly={!!editingInvitation} value={email} onChange={(event) => setEmail(event.target.value)} /></label><label>{t('settingsAdmin.linkedEmployee')}<select className={styles.select} value={invitationEmployeeId ?? ''} onChange={(event) => setInvitationEmployeeId(event.target.value ? Number(event.target.value) : null)}><option value="">—</option>{editingInvitation?.employee && !employees.some((row) => row.id === editingInvitation.employee?.id) && <option value={editingInvitation.employee.id}>{editingInvitation.employee.name}</option>}{employees.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>{invitations.data?.can_assign_groups && <label>{t('settingsAdmin.groups')}<select className={styles.select} multiple size={Math.min(5, Math.max(2, invitations.data.group_options?.length ?? 0))} value={invitationGroupIds.map(String)} onChange={(event) => setInvitationGroupIds(Array.from(event.target.selectedOptions, (option) => Number(option.value)))}>{invitations.data.group_options?.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>}{error && <Alert tone="danger">{error}</Alert>}<div className={styles.sheetActions}><Button type="button" variant="ghost" disabled={pending} onClick={() => setInviting(false)}>{t('common.close')}</Button><Button type="submit" disabled={pending}>{pending ? t('settingsAdmin.sending') : t(editingInvitation ? 'common.save' : 'settingsAdmin.sendInvitation')}</Button></div></form></SheetContent></Sheet>}
     {confirmRemove && <ConfirmDialog title={t('settingsAdmin.removeExpired')} description={t('settingsAdmin.removeExpiredDescription')} pending={pending} error={error && <Alert tone="danger">{error}</Alert>} onCancel={() => { setConfirmRemove(false); setError('') }} onConfirm={() => void removeExpired()} returnFocus={focus} />}
   </section>
 }

@@ -1,3 +1,6 @@
+import platform
+
+import django
 from allauth.account.forms import LoginForm
 from allauth.account.forms import ResetPasswordForm, ResetPasswordKeyForm, UserTokenForm
 from allauth.account import app_settings
@@ -11,17 +14,19 @@ from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.contrib import admin
+from django.db import connection
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from staff.models import Employee
 from settings.models import LMUserSetting
+from . import lab_version
 
 RESET_SESSION_UID = "react_password_reset_uid"
 RESET_SESSION_KEY = "react_password_reset_key"
@@ -53,6 +58,45 @@ CAPABILITY_PERMISSIONS = {
     "use_fund_finder": ("fund.view_fund",),
     "import_data": ("common.import",),
 }
+
+
+def get_system_info():
+    """Expose only non-sensitive runtime versions for support diagnostics."""
+    vendor = connection.vendor
+    database_vendor = vendor if vendor in {"postgresql", "sqlite", "mysql", "oracle"} else "other"
+    database_version = None
+    if vendor == "postgresql":
+        pg_version = connection.pg_version
+        major = pg_version // 10000
+        remainder = pg_version % 10000
+        database_version = (
+            f"{major}.{remainder}" if major >= 10
+            else f"{major}.{remainder // 100}.{remainder % 100}"
+        )
+    #  plugin Informations
+    from plugin.registry import registry
+
+    plugins_info = []
+
+    for slug, plugin in registry.plugins.items():
+        registered_mixins = plugin.get_registered_mixins()
+
+        plugins_info.append({
+            "slug": slug,
+            "name": getattr(plugin, "name", slug),
+            "active": True,
+            "mixins": list(registered_mixins.keys()),
+        })
+    
+    return {"system_info":{
+            "labsmanager_version": lab_version.LABSMANAGER_VERSION,
+            "python_version": platform.python_version(),
+            "django_version": django.get_version(),
+            "database": {"vendor": database_vendor, "version": database_version},
+            "plugins": plugins_info, 
+        },
+        "help_links": settings.HELP_LINKS if settings.LABSMANAGER_SHOW_HELP else [],
+    }
 
 
 def get_user_capabilities(user):
@@ -127,6 +171,15 @@ class CurrentUserView(APIView):
                 "theme": LMUserSetting.get_setting("LAB_THEME", user=user, create=False),
             }
         )
+
+
+class SystemInfoView(APIView):
+    """Return a small whitelist of runtime versions to authenticated users."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(get_system_info())
 
 
 def _authentication_error(code, message, status_code):

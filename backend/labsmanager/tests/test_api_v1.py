@@ -1,7 +1,15 @@
+import platform
+from types import SimpleNamespace
+from unittest.mock import patch
+
+import django
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import override_settings
+from django.db import connection
 from django.urls import resolve, reverse
+from labsmanager import lab_version
+from labsmanager.api_v1 import get_system_info
 from rest_framework.test import APIClient, APITestCase
 
 from staff.models import Employee
@@ -60,6 +68,42 @@ class CurrentUserApiTests(APITestCase):
         self.assertEqual(response.json(), {"is_authenticated": False})
         self.assertIn("csrftoken", response.cookies)
 
+    def test_authenticated_user_omits_help_links_and_system_info(self):
+        user = self.create_user("support-user")
+        self.login(user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse({"help_links", "version", "runtime", "labsmanager_version"} & set(response.data))
+
+    def test_system_info_requires_authentication(self):
+        response = self.client.get(reverse("api_v1:system-info"))
+
+        self.assertIn(response.status_code, (401, 403))
+
+    @override_settings(HELP_LINKS=[{"label": "Documentation", "url": "https://example.test/docs"}], LABSMANAGER_SHOW_HELP=True)
+    def test_system_info_contains_only_whitelisted_versions_and_help_links(self):
+        self.login(self.create_user("system-info-user"))
+
+        response = self.client.get(reverse("api_v1:system-info"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(set(response.data), {"labsmanager_version", "python_version", "django_version", "database", "help_links"})
+        self.assertEqual(response.data["labsmanager_version"], lab_version.LABSMANAGER_VERSION)
+        self.assertEqual(response.data["python_version"], platform.python_version())
+        self.assertEqual(response.data["django_version"], django.get_version())
+        self.assertEqual(set(response.data["database"]), {"vendor", "version"})
+        self.assertEqual(response.data["database"]["vendor"], connection.vendor)
+        self.assertEqual(response.data["help_links"], [{"label": "Documentation", "url": "https://example.test/docs"}])
+        self.assertFalse({"host", "name", "user", "password", "dsn", "path", "secret"} & set(response.data))
+
+    def test_postgresql_runtime_contains_only_formatted_server_version(self):
+        with patch("labsmanager.api_v1.connection", SimpleNamespace(vendor="postgresql", pg_version=130017)):
+            info = get_system_info()
+
+        self.assertEqual(info["database"], {"vendor": "postgresql", "version": "13.17"})
+
     def test_authenticated_user_without_permissions_has_no_capabilities(self):
         user = self.create_user(
             "react-user",
@@ -73,8 +117,12 @@ class CurrentUserApiTests(APITestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
+        data = response.json()
         self.assertEqual(
-            response.json(),
+            {key: data[key] for key in (
+                "id", "username", "first_name", "last_name", "email", "is_authenticated",
+                "is_staff", "is_superuser", "employee",
+            )},
             {
                 "id": user.pk,
                 "username": "react-user",
@@ -85,9 +133,10 @@ class CurrentUserApiTests(APITestCase):
                 "is_staff": True,
                 "is_superuser": False,
                 "employee": None,
-                "capabilities": CAPABILITIES_DENIED,
             },
         )
+        self.assertEqual(data["capabilities"], CAPABILITIES_DENIED | {"manage_data_consistency": True})
+        self.assertFalse({"version", "runtime", "help_links"} & set(data))
         self.assertIn("sessionid", self.client.cookies)
 
     def test_authenticated_user_includes_linked_employee_identity(self):
@@ -127,7 +176,7 @@ class CurrentUserApiTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json()["capabilities"],
-            {capability: True for capability in CAPABILITIES_DENIED},
+            {capability: True for capability in CAPABILITIES_DENIED} | {"manage_data_consistency": False},
         )
 
     def test_superuser_has_all_capabilities(self):
@@ -139,7 +188,7 @@ class CurrentUserApiTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json()["capabilities"],
-            {capability: True for capability in CAPABILITIES_DENIED},
+            {capability: True for capability in CAPABILITIES_DENIED} | {"manage_data_consistency": True},
         )
 
     def test_session_authentication_enforces_csrf_for_unsafe_requests(self):

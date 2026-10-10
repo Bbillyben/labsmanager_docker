@@ -10,7 +10,7 @@ import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
 import styles from './LoginPage.module.css'
 
-function AuthFrame({ title, children }: { title: string; children: React.ReactNode }) {
+export function AuthFrame({ title, children }: { title: string; children: React.ReactNode }) {
   const { t } = useTranslation()
   return <main className={styles.page}><section className={styles.card} aria-labelledby="auth-flow-title">
     <img alt="LabsManager" className={styles.logo} src={`${import.meta.env.BASE_URL}labsmanager-logo.png`} />

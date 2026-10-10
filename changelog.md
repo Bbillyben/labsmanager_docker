@@ -11,6 +11,10 @@ All notable changes to LabsManager are documented in this file.
 - Global search implementation with support for extensible fields.
 - React dashboard architecture with support for configurable widgets.
 - Support for plugins exposing frontend capabilities and dashboard widgets.
+- Add, edit, and remove employee superior/subordinate relationships from the employee page, with checks to prevent hierarchy cycles.
+- Add, edit, and remove employee statuses from the employee page while retaining the current and historical status views.
+- New invitations open the React acceptance flow; existing Django invitation URLs remain compatible.
+- Administrators can prepare an Employee for an invitation, and superusers can assign Django groups. Registration automatically links the new account to the prepared Employee and assigns the selected groups.
 
 ### Changed
 

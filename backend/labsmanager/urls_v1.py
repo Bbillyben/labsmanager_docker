@@ -52,7 +52,7 @@ from staff.team_api_v1 import (
     TeamCalendarLeaveDetailV1View,
 )
 
-from .api_v1 import CurrentUserView, LoginV1View, LogoutV1View, PasswordResetRequestV1View, PasswordResetBridgeV1View, PasswordResetConfirmV1View
+from .api_v1 import CurrentUserView, SystemInfoView, LoginV1View, LogoutV1View, PasswordResetRequestV1View, PasswordResetBridgeV1View, PasswordResetConfirmV1View
 from .invitation_api_v1 import InvitationBridgeV1View, InvitationSignupV1View
 from dashboard.api_v1 import (DashboardCollection, DashboardDetail, DashboardDefault,
     DashboardDuplicate, DashboardReorder, DashboardCatalog, DashboardWidgets,
@@ -270,6 +270,7 @@ urlpatterns = [
         EmployeeGenericInfoDetailV1View.as_view(), name="employee-generic-info-detail",
     ),
     path("me/", CurrentUserView.as_view(), name="me"),
+    path("system-info/", SystemInfoView.as_view(), name="system-info"),
     path("auth/login/", LoginV1View.as_view(), name="login"),
     path("auth/logout/", LogoutV1View.as_view(), name="logout"),
     path("auth/password/reset/", PasswordResetRequestV1View.as_view(), name="password-reset"),

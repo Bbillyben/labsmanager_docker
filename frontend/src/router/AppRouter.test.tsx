@@ -22,6 +22,19 @@ function showTools() {
 }
 
 describe('AppRouter', () => {
+  it('opens the public invitation URL through the React router', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse({ is_authenticated: false })
+      if (url.endsWith('/auth/invitations/bridge/') && init?.method === 'POST') return jsonResponse({ state: 'valid', email: 'invited@example.test', fields: { username: true, password2: true }, password_hints: [] })
+      if (url.endsWith('/auth/invitations/current/')) return jsonResponse({ state: 'valid', email: 'invited@example.test', fields: { username: true, password2: true }, password_hints: [] })
+      throw new Error(url)
+    })
+    renderAt('/app/invitations/accept/secret-token/')
+    expect(await screen.findByRole('heading', { name: 'Accepter l’invitation' })).toBeInTheDocument()
+    expect(await screen.findByLabelText('Adresse email')).toHaveValue('invited@example.test')
+    expect(window.location.pathname).toBe('/app/invitations/accept/')
+  })
   it('opens the Data Consistency route from the management tools menu', async () => {
     const account = { ...authenticatedUser, capabilities: { ...authenticatedUser.capabilities, manage_data_consistency: true } }
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {

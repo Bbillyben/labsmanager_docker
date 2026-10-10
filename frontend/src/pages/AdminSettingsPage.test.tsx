@@ -7,7 +7,7 @@ import { I18nProvider } from '../i18n/I18nProvider'
 import { authenticatedUser, jsonResponse } from '../test/fixtures'
 import { AppRouter } from '../router/AppRouter'
 
-function renderAt(path: string, staff = true, invitationError = false) {
+function renderAt(path: string, staff = true, invitationError = false, canAssignGroups = false) {
   window.history.pushState({}, '', path)
   const account = { ...authenticatedUser, is_staff: staff }
   const calls: string[] = []
@@ -26,12 +26,18 @@ function renderAt(path: string, staff = true, invitationError = false) {
     if (url === '/api/v1/settings/admin/users/') return jsonResponse({ results: [{ id: 2, username: 'reader', name: 'Reader', last_login: null, is_active: true, is_staff: false, employee: null }] })
     if (url === '/api/v1/settings/admin/users/employee-options/') return jsonResponse({ results: [{ id: 8, name: 'Ada Test' }] })
     if (url === '/api/v1/settings/admin/users/2/employee/' && init?.method === 'PATCH') return jsonResponse({ id: 2, username: 'reader', name: 'Reader', last_login: null, is_active: true, is_staff: false, employee: { id: 8, name: 'Ada Test' } })
-    if (url === '/api/v1/settings/admin/invitations/' && init?.method === 'GET') return jsonResponse({ results: invitationRows })
+    if (url === '/api/v1/settings/admin/invitations/' && init?.method === 'GET') return jsonResponse({ results: invitationRows, can_assign_groups: canAssignGroups, group_options: canAssignGroups ? [{ id: 4, name: 'Readers' }] : [] })
     if (url === '/api/v1/settings/admin/invitations/' && init?.method === 'POST') {
       if (invitationError) return jsonResponse({ email: ['This e-mail address has already been invited.'] }, 400)
-      const row = { id: 3, email: 'new@example.test', created: '2026-10-03T10:00:00Z', sent: '2026-10-03T10:00:01Z', accepted: false, key_expired: false, inviter: { id: 7, username: 'ada' } }
+      const payload = JSON.parse(String(init.body)) as { employee_id: number | null; group_ids: number[] }
+      const row = { id: 3, email: 'new@example.test', created: '2026-10-03T10:00:00Z', sent: '2026-10-03T10:00:01Z', accepted: false, key_expired: false, inviter: { id: 7, username: 'ada' }, employee: payload.employee_id ? { id: payload.employee_id, name: 'Ada Test' } : null, group_ids: payload.group_ids }
       invitationRows = [row, ...invitationRows]
       return jsonResponse(row, 201)
+    }
+    if (url === '/api/v1/settings/admin/invitations/1/' && init?.method === 'PATCH') {
+      const payload = JSON.parse(String(init.body)) as { employee_id: number | null; group_ids?: number[] }
+      invitationRows = invitationRows.map((row) => row.id === 1 ? { ...row, employee: payload.employee_id ? { id: payload.employee_id, name: 'Ada Test' } : null, group_ids: payload.group_ids ?? [] } : row)
+      return jsonResponse(invitationRows[0])
     }
     if (url === '/api/v1/settings/admin/invitations/remove-expired/' && init?.method === 'POST') { invitationRows = invitationRows.filter((row) => !row.key_expired); return jsonResponse({ deleted: 1 }) }
     if (url === '/api/v1/settings/admin/notifications/') return jsonResponse({ results: [] })
@@ -95,6 +101,31 @@ describe('Settings administration', () => {
     expect(await within(section).findByText('new@example.test')).toBeInTheDocument()
     expect(calls).toContain('POST /api/v1/settings/admin/invitations/')
     expect(calls.filter((call) => call === 'GET /api/v1/settings/admin/invitations/').length).toBeGreaterThan(1)
+  })
+
+  it('prepares Employee and groups in the existing invitation sheet', async () => {
+    renderAt('/app/settings/admin/users', true, false, true)
+    const section = await screen.findByRole('region', { name: 'Invitations' })
+    await userEvent.click(within(section).getByRole('button', { name: 'Inviter un utilisateur' }))
+    await userEvent.type(screen.getByRole('textbox', { name: 'E-mail' }), 'new@example.test')
+    await userEvent.selectOptions(screen.getByLabelText('Employé lié'), '8')
+    await userEvent.selectOptions(screen.getByLabelText('Groupes'), '4')
+    await userEvent.click(screen.getByRole('button', { name: 'Envoyer l’invitation' }))
+    expect(await within(section).findByText('new@example.test')).toBeInTheDocument()
+    const sent = vi.mocked(fetch).mock.calls.find(([url, init]) => String(url).endsWith('/admin/invitations/') && init?.method === 'POST')
+    expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ email: 'new@example.test', employee_id: 8, group_ids: [4] })
+  })
+
+  it('edits assignments on a pending invitation without resending it', async () => {
+    const calls = renderAt('/app/settings/admin/users')
+    const section = await screen.findByRole('region', { name: 'Invitations' })
+    await userEvent.click(await within(section).findByRole('button', { name: /actions.*active@example.test/i }))
+    await userEvent.click(await screen.findByText('Modifier la préparation'))
+    await userEvent.selectOptions(screen.getByLabelText('Employé lié'), '8')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(await within(section).findByText('Ada Test')).toBeInTheDocument()
+    expect(calls).toContain('PATCH /api/v1/settings/admin/invitations/1/')
+    expect(calls).not.toContain('POST /api/v1/settings/admin/invitations/')
   })
 
   it('keeps the invitation sheet open on a business error', async () => {

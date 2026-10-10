@@ -29,8 +29,8 @@ export function Sidebar({ expanded, interactive, onRequestExpand, user }: Sideba
   return (
     <aside aria-hidden={!interactive} className={styles.sidebar} id="primary-navigation" data-expanded={expanded} inert={!interactive}>
       <div className={styles.brand}>
-        <img alt="" aria-hidden="true" className={styles.brandMark} src={`${import.meta.env.BASE_URL}labsmanager-logo.png`} />
-        <span className={styles.brandName}>LabsManager</span>
+        <img alt="" aria-hidden="true" className={styles.brandMark} src={`${import.meta.env.BASE_URL}labsmanager-favicon.png`} />
+        <span className={styles.brandName}><span className={styles.brandName_1}>Labs</span><span className={styles.brandName_2}>Manager</span></span>
       </div>
       <nav className={styles.navigation} aria-label={t('navigation.primary')}>
         <NavLink className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`} end to="/" title={t('page.home')}>
