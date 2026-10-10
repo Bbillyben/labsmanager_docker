@@ -95,6 +95,21 @@
                 "rightssupport"
             ],
             [
+                "add_dataconsistencyexception",
+                "data_consistency",
+                "dataconsistencyexception"
+            ],
+            [
+                "change_dataconsistencyexception",
+                "data_consistency",
+                "dataconsistencyexception"
+            ],
+            [
+                "view_dataconsistencyexception",
+                "data_consistency",
+                "dataconsistencyexception"
+            ],
+            [
                 "add_milestones",
                 "endpoints",
                 "milestones"
@@ -2380,6 +2395,351 @@
                 "view_teammate",
                 "staff",
                 "teammate"
+            ]
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "Proj_viewer",
+        "permissions": [
+            [
+                "view_genericinfoproject",
+                "project",
+                "genericinfoproject"
+            ],
+            [
+                "view_genericinfotypeproject",
+                "project",
+                "genericinfotypeproject"
+            ],
+            [
+                "view_institution",
+                "project",
+                "institution"
+            ],
+            [
+                "view_institution_participant",
+                "project",
+                "institution_participant"
+            ],
+            [
+                "view_participant",
+                "project",
+                "participant"
+            ],
+            [
+                "view_project",
+                "project",
+                "project"
+            ]
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "Employee_Viewer",
+        "permissions": [
+            [
+                "view_employee",
+                "staff",
+                "employee"
+            ],
+            [
+                "view_employee_status",
+                "staff",
+                "employee_status"
+            ],
+            [
+                "view_employee_superior",
+                "staff",
+                "employee_superior"
+            ],
+            [
+                "view_employee_type",
+                "staff",
+                "employee_type"
+            ],
+            [
+                "view_genericinfo",
+                "staff",
+                "genericinfo"
+            ],
+            [
+                "view_genericinfotype",
+                "staff",
+                "genericinfotype"
+            ]
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "low_manager",
+        "permissions": [
+            [
+                "display_calendar",
+                "common",
+                "rightssupport"
+            ],
+            [
+                "display_infos",
+                "common",
+                "rightssupport"
+            ],
+            [
+                "project_list",
+                "common",
+                "rightssupport"
+            ],
+            [
+                "team_list",
+                "common",
+                "rightssupport"
+            ],
+            [
+                "view_milestones",
+                "endpoints",
+                "milestones"
+            ],
+            [
+                "view_contract",
+                "expense",
+                "contract"
+            ],
+            [
+                "view_contract_expense",
+                "expense",
+                "contract_expense"
+            ],
+            [
+                "view_contract_type",
+                "expense",
+                "contract_type"
+            ],
+            [
+                "view_expense",
+                "expense",
+                "expense"
+            ],
+            [
+                "view_expense_point",
+                "expense",
+                "expense_point"
+            ],
+            [
+                "view_contact",
+                "infos",
+                "contact"
+            ],
+            [
+                "view_contactinfo",
+                "infos",
+                "contactinfo"
+            ],
+            [
+                "view_contactinfotype",
+                "infos",
+                "contactinfotype"
+            ],
+            [
+                "view_contacttype",
+                "infos",
+                "contacttype"
+            ],
+            [
+                "view_genericnote",
+                "infos",
+                "genericnote"
+            ],
+            [
+                "view_organizationinfos",
+                "infos",
+                "organizationinfos"
+            ],
+            [
+                "view_organizationinfostype",
+                "infos",
+                "organizationinfostype"
+            ],
+            [
+                "view_leave",
+                "leave",
+                "leave"
+            ],
+            [
+                "view_leave_type",
+                "leave",
+                "leave_type"
+            ],
+            [
+                "view_genericinfoproject",
+                "project",
+                "genericinfoproject"
+            ],
+            [
+                "view_genericinfotypeproject",
+                "project",
+                "genericinfotypeproject"
+            ],
+            [
+                "view_institution",
+                "project",
+                "institution"
+            ],
+            [
+                "view_institution_participant",
+                "project",
+                "institution_participant"
+            ],
+            [
+                "view_participant",
+                "project",
+                "participant"
+            ],
+            [
+                "view_project",
+                "project",
+                "project"
+            ],
+            [
+                "view_lmusersetting",
+                "settings",
+                "lmusersetting"
+            ],
+            [
+                "view_employee",
+                "staff",
+                "employee"
+            ],
+            [
+                "view_employee_status",
+                "staff",
+                "employee_status"
+            ],
+            [
+                "view_employee_superior",
+                "staff",
+                "employee_superior"
+            ],
+            [
+                "view_employee_type",
+                "staff",
+                "employee_type"
+            ],
+            [
+                "view_genericinfo",
+                "staff",
+                "genericinfo"
+            ],
+            [
+                "view_genericinfotype",
+                "staff",
+                "genericinfotype"
+            ],
+            [
+                "view_team",
+                "staff",
+                "team"
+            ],
+            [
+                "view_teammate",
+                "staff",
+                "teammate"
+            ]
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "fund_viewer",
+        "permissions": [
+            [
+                "view_amounthistory",
+                "fund",
+                "amounthistory"
+            ],
+            [
+                "view_budget",
+                "fund",
+                "budget"
+            ],
+            [
+                "view_contribution",
+                "fund",
+                "contribution"
+            ],
+            [
+                "view_cost_type",
+                "fund",
+                "cost_type"
+            ],
+            [
+                "view_fund",
+                "fund",
+                "fund"
+            ],
+            [
+                "view_fund_institution",
+                "fund",
+                "fund_institution"
+            ],
+            [
+                "view_fund_item",
+                "fund",
+                "fund_item"
+            ]
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "fields": {
+        "name": "organisation_view",
+        "permissions": [
+            [
+                "display_infos",
+                "common",
+                "rightssupport"
+            ],
+            [
+                "view_contact",
+                "infos",
+                "contact"
+            ],
+            [
+                "view_contactinfo",
+                "infos",
+                "contactinfo"
+            ],
+            [
+                "view_contactinfotype",
+                "infos",
+                "contactinfotype"
+            ],
+            [
+                "view_contacttype",
+                "infos",
+                "contacttype"
+            ],
+            [
+                "view_genericnote",
+                "infos",
+                "genericnote"
+            ],
+            [
+                "view_organizationinfos",
+                "infos",
+                "organizationinfos"
+            ],
+            [
+                "view_organizationinfostype",
+                "infos",
+                "organizationinfostype"
             ]
         ]
     }
