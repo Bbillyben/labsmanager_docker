@@ -49,7 +49,7 @@ class ProjectPlanningV1View(ProjectPlanningScopeV1Mixin, APIView):
             context=planning_serializer_context(request.user, scoped),
         ).data
         participants = Participant.objects.filter(project=project).select_related("employee").order_by(
-            "employee__last_name", "employee__first_name", "employee_id",
+            "employee__first_name", "employee__last_name", "employee_id",
         )
         unique_participants = {}
         for relation in participants:

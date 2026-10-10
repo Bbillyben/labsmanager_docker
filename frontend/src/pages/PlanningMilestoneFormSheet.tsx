@@ -67,7 +67,11 @@ export function PlanningMilestoneFormSheet({ projectId, item, participants, onCl
         {type === 'q' && <label>{t('employee.progress')} (%)<Input type="number" min="0" max="100" step="0.1" required value={percent} disabled={mutation.pending} onChange={(event) => setPercent(event.target.value)} /></label>}
         <CheckboxRow checked={status} disabled={mutation.pending} onChange={(event) => setStatus(event.target.checked)}>{t('planning.completed')}</CheckboxRow>
         <fieldset className="grid gap-1"><legend>{t('employee.assignees')}</legend>
-          {participants.length ? participants.map((participant) => <CheckboxRow key={participant.id} checked={employeeIds.includes(participant.id)} disabled={mutation.pending} onChange={(event) => setEmployeeIds((current) => event.target.checked ? [...current, participant.id] : current.filter((id) => id !== participant.id))}>{participant.first_name} {participant.last_name}</CheckboxRow>) : <p>{t('planning.noParticipants')}</p>}
+          {participants.length ? participants.map((participant) => 
+            <CheckboxRow key={participant.id} checked={employeeIds.includes(participant.id)} disabled={mutation.pending} onChange={(event) => setEmployeeIds((current) => event.target.checked 
+                ? [...current, participant.id] : current.filter((id) => id !== participant.id))}>
+              {participant.first_name} {participant.last_name}
+              </CheckboxRow>) : <p>{t('planning.noParticipants')}</p>}
         </fieldset>
         <div className={styles.formButtons}><Button type="button" variant="ghost" disabled={mutation.pending} onClick={onClose}>{t('common.cancel')}</Button><Button type="submit" disabled={mutation.pending || !name.trim() || (kind === 'task' && !startDate)}>{t('common.save')}</Button></div>
       </form>

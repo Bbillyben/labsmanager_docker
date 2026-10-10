@@ -82,7 +82,7 @@ from expense.contract_hub_api_v1 import (
 )
 from reports.api_v1 import ReportExportV1View
 from settings.api_v1 import ProjectSettingsV1View, ProjectSettingDetailV1View
-from settings.user_api_v1 import UserSettingsV1View, UserSettingDetailV1View
+from settings.user_api_v1 import UserSettingsV1View, UserSettingDetailV1View, NotificationTestSendV1View, NotificationTestPreviewV1View
 from settings.admin_api_v1 import (
     AdminSettings, AdminSettingDetail, AdminUsers, AdminUserEmployee,
     AdminEmployeeOptions, AdminNotifications, AdminNotificationAction,
@@ -186,6 +186,8 @@ urlpatterns = [
     path("settings/account/password/", UserPasswordV1View.as_view(), name="user-password"),
     path("settings/account/emails/", UserEmailsV1View.as_view(), name="user-emails"),
     path("settings/account/emails/<int:email_id>/", UserEmailDetailV1View.as_view(), name="user-email-detail"),
+    path("settings/notifications/test-email/send/", NotificationTestSendV1View.as_view(), name="notification-test-send"),
+    path("settings/notifications/test-email/preview/", NotificationTestPreviewV1View.as_view(), name="notification-test-preview"),
     path("settings/user/<str:section>/", UserSettingsV1View.as_view(), name="user-settings"),
     path("settings/user/<str:section>/<str:key>/", UserSettingDetailV1View.as_view(), name="user-setting-detail"),
     path("settings/lists/", MutableListsRegistryV1View.as_view(), name="mutable-lists"),

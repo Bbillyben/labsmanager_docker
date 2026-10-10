@@ -1,0 +1,15 @@
+{% load i18n %}
+{% if kind == "planning" %}
+  {% if action == "add" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#edf3f8;color:#456583;font-size:11px;font-weight:700;line-height:16px;">{% trans "Updated" %}</span>
+  {% elif action == "rem" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#f1f4f7;color:#69788a;font-size:11px;font-weight:700;line-height:16px;">{% trans "Unassigned" %}</span>
+  {% elif action == "sta" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#fcf2d9;color:#805a15;font-size:11px;font-weight:700;line-height:16px;">{% trans "Stale" %}</span>
+  {% elif action == "ove" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#fbe9eb;color:#b83b45;font-size:11px;font-weight:700;line-height:16px;">{% trans "Overdue" %}</span>
+  {% elif action == "com" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#e7f3ec;color:#26724f;font-size:11px;font-weight:700;line-height:16px;">{% trans "Completed" %}</span>
+  {% elif action == "del" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#fbe9eb;color:#b83b45;font-size:11px;font-weight:700;line-height:16px;">{% trans "Deleted" %}</span>
+  {% elif action == "res" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#edf3f8;color:#456583;font-size:11px;font-weight:700;line-height:16px;">{% trans "Rescheduled" %}</span>
+  {% elif action == "ovl" %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#fcf2d9;color:#805a15;font-size:11px;font-weight:700;line-height:16px;">{% trans "Overload" %}</span>
+  {% elif action %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#f1f4f7;color:#69788a;font-size:11px;font-weight:700;line-height:16px;">{% trans "Unknown event" %}</span>
+  {% else %}<span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#f1f4f7;color:#69788a;font-size:11px;font-weight:700;line-height:16px;">{% trans "Notification" %}</span>{% endif %}
+{% else %}
+  <span style="display:inline-block;padding:3px 8px;border-radius:12px;background-color:#edf3f8;color:#456583;font-size:11px;font-weight:700;line-height:16px;">{% if label %}{{ label }}{% else %}{% trans "Notification" %}{% endif %}</span>
+{% endif %}

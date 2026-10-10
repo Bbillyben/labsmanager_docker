@@ -1,264 +1,47 @@
 {% extends "email/base_email.html" %}
-{% load i18n %}
-{% load static %}
-{% load customs_tags %}
-{% load plugin_tags %}
+{% load i18n email_tags plugin_tags %}
 
-{% block css %}
-.main-container{
-    display:block;
-}
-.table_container{
-    width:100%;
-}
-table{
-    width:100%;
-    font-size: small;
-}
-
-.table_title{
-    padding-top:10px;
-    font-size: large;
-    width:100%;
-    text-align: center;
-    padding: 0.1em;
-}
-
-.table_title.milestones, .table_title.project{
-    color:white;
-    background-color: #568f67;
-    
-}
-thead tr.column_title{
-    background-color: #8fbc9d;
-}
-tbody tr.odd {
-    background-color: #dfece3;
-}
-
-
-.footer-para{
-    font-style: italic;
-    font-size:small;
-    margin-top: 5em;
-}
-
-.table_title.participant{
-    color:white;
-    background-color: #993366;
-}
-.participant thead tr.column_title{
-    background-color: #d98cb3;
-}
-.participant tbody tr.odd {
-    background-color: #f2d9e6;
-}
-
-.table_title.team_live{
-    color:white;
-    background-color: #0099cc;
-}
-.team thead tr.column_title{
-    background-color: #4dd2ff;
-}
-.team tbody tr.odd {
-    background-color: #ccf2ff;
-}
-.team tbody tr.even {
-    background-color: #e6f9ff;
-}
-
-.team tbody td.on-leave {
-    background-color: #4682b4;
-    color: #4682b4;
-}
-
-
-.table_title.leave{
-    color:white;
-    background-color: #cc7a00;
-}
-.leaves thead tr.column_title{
-    background-color: #ffb84d;
-}
-.leaves tbody tr.odd {
-    background-color: #ffe0b3;
-}
-.leaves tbody tr.even {
-    background-color: #fff5e6;
-}
-.leaves tbody td.on-leave {
-    background-color: 	#f08080;
-    color: 	#f08080;
-}
-
-td.leave{
-    text-align: center;;
-}
-
-
-
-hr {
-    display: block;
-    margin-top: 1.5em;
-    margin-bottom: 1.5em;
-    margin-left: auto;
-    margin-right: auto;
-    border-style: inset;
-    border-width: 1px;
-    width:50%;
-  }
-hr.light {
-    border-style: dashed;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-}
-
-{% endblock %}
-
-
-
+{% block title %}{% trans "Notification Report" %}{% endblock %}
 {% block content %}
-{% setvar 'http'  as scheme %}
-    {% if user.employee %}
-        {% setvar user.employee.user_name  as username %}
-    {%else%}
-        {% setvar user  as username %}
-    {%endif%}
+  {% if user.employee %}{% with username=user.employee.user_name %}
+    <p style="margin:0 0 16px;">{% blocktrans %}Dear {{ username }},{% endblocktrans %}</p>
+  {% endwith %}{% else %}{% with username=user.username %}
+    <p style="margin:0 0 16px;">{% blocktrans %}Dear {{ username }},{% endblocktrans %}</p>
+  {% endwith %}{% endif %}
+  <p style="margin:0 0 18px;color:#43566d;">{% trans "Here are your LabsManager notifications." %}</p>
 
-    <p>
-        {% blocktrans %}Dear {{ username }},
-        Please find below your <a href='{{scheme}}://{{base_url}}'>labsmanager</a>'s notifications.
-        {% endblocktrans %}
+  {% if notification.endpoints_milestones %}
+    <h2 style="margin:22px 0 4px;color:#36506a;font-size:16px;line-height:22px;">{% trans "Milestones and tasks" %}</h2>
+    {% for n in notification.endpoints_milestones %}{% include "email/components/notification_card.html" with kind="planning" n=n only %}{% endfor %}
+  {% endif %}
 
-    </p>
-{%if notification.endpoints_milestones %}
-     <div class="main-container">
-        <div class="table_container">
-            <div class="table_title milestones">
-                {% trans "Milestones Notification" %}
-            </div>
-            <table class="table">
-                <thead>
-                    
-                    <tr class="column_title">
-                        <th>{% trans "Project" %}</th>
-                        <th>{% trans "Milestones" %}</th>
-                        <th>{% trans "Assignation" %}</th>
-                        <th>{% trans "Due Date" %}</th>
-                        <th>{% trans "Action" %}</th>
-                        <th>{% trans "Message" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for n in notification.endpoints_milestones%}
-                    <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
-                        <td align="left" valign="top"> <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=n.source_object.project.pk %}">{{n.source_object.project.name}}</a></td>
-                        <td align="center" valign="top">{{n.source_object.name}}</td>
-                        <td align="center" valign="top">
-                        {% for employee in n.source_object.employee.all %}
-                            {{ employee.first_name }} {{ employee.last_name }}
-                            {% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                            {% trans "No assigned employees" %}
-                        {% endfor %}
-                        </td>
-                        <td align="center" valign="top">{{n.source_object.end_date}}</td>
-                        <td align="center" valign="top">{{n.get_action_type_display}}</td>
-                        <td align="center" valign="top">{{n.message|default_if_none:"--"}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <hr class="">
+  {% if notification.project_participant %}
+    <h2 style="margin:22px 0 4px;color:#36506a;font-size:16px;line-height:22px;">{% trans "Project Notification" %}</h2>
+    {% for n in notification.project_participant %}{% include "email/components/notification_card.html" with kind="project" n=n only %}{% endfor %}
+  {% endif %}
 
-{%endif%}
+  {% if notification.staff_employee %}
+    <h2 style="margin:22px 0 4px;color:#36506a;font-size:16px;line-height:22px;">{% trans "Employee Notification" %}</h2>
+    {% for n in notification.staff_employee %}{% include "email/components/notification_card.html" with kind="employee" n=n only %}{% endfor %}
+  {% endif %}
 
-{%if notification.project_participant %}
-    <div class="main-container">
-        <div class="table_container">
-            <div class="table_title participant">
-                {% trans "Project Notification" %}
-            </div>
-            <table class="table participant">
-                <thead>
-                    
-                    <tr class="column_title">
-                        <th>{% trans "Project" %}</th>
-                        <th>{% trans "Action" %}</th>
-                        <th>{% trans "Message" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for n in notification.project_participant%}
-                    <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
-                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=n.source_object.project.pk %}">{{n.source_object.project.name}}</a></td>
-                        <td align="center" valign="top">{{n.get_action_type_display}} {{n.source_content_type}}</td>
-                        <td align="center" valign="top">{{n.message|default_if_none:"--"}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <hr class="">
-{%endif%}
+  {% plugin_list_mixin "mailsubscription" as plugins %}
+  {% for pg in plugins %}{% if pg.get_template %}{% for template_name in pg.get_template %}
+    {% include template_name %}
+  {% endfor %}{% endif %}{% endfor %}
 
-{%if notification.staff_employee %}
-    <div class="main-container">
-        <div class="table_container">
-            <div class="table_title participant">
-                {% trans "Employee Notification" %}
-            </div>
-            <table class="table participant">
-                <thead>
-                    
-                    <tr class="column_title">
-                        <th>{% trans "Employee" %}</th>
-                        <th>{% trans "Action" %}</th>
-                        <th>{% trans "Message" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for n in notification.staff_employee%}
-                    <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
-                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=n.source_object.pk %}">{{n.source_object.user_name}}</a></td>
-                        <td align="center" valign="top">{{n.get_action_type_display}} {{n.source_content_type}}</td>
-                        <td align="center" valign="top">{{n.message|default_if_none:"--"}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <hr class="">
-{%endif%}
-
-{% plugin_list_mixin "mailsubscription" as plugins%}
-{% for pg in plugins %}
-    {% if pg.get_template %}
-        {% for tempalte in pg.get_template %}
-            {% include tempalte %}
-        {%endfor%}
-    {%endif%}
-{% endfor %}
-
-
-<div class="footer-para">
-    {% blocktrans %} Your notification parameters :{% endblocktrans %}</br>
-    <div style="margin-left: 2em;">
-    {%trans "User Name" %}: <b>{{user.username}}</b></br>
-    {%trans "General Notification activated" %}: <b>{% if sub_status %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
-    {%trans "Milestones Notification activated" %}: <b>{% if milestone_enab %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
-    {%trans "Milestones Stales delay" %}: <b>{{milestone_stale}}</b></br>
-    {%trans "Milestones Repeat delay" %}: <b>{{milestone_repeat}}</b></br>
-    {%trans "Project Participant Notification activated" %}: <b>{% if participant_enab %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
-    {%trans "Employee Notification activated" %}: <b>{% if employee_enab %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
-    </div>
-</div>
-
-
- 
+  {% notification_email_link "settings" as settings_url %}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;margin-top:24px;border-top:1px solid #dce4ec;">
+    <tr><td style="padding-top:14px;color:#69788a;font-size:12px;line-height:18px;">
+      <strong style="color:#43566d;">{% trans " Your notification parameters :" %}</strong><br>
+      {% trans "User Name" %}: {{ user.username }}<br>
+      {% trans "General Notification activated" %}: {% if sub_status %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}<br>
+      {% trans "Milestones Notification activated" %}: {% if milestone_enab %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}<br>
+      {% trans "Milestones Stales delay" %}: {{ milestone_stale }}<br>
+      {% trans "Milestones Repeat delay" %}: {{ milestone_repeat }}<br>
+      {% trans "Project Participant Notification activated" %}: {% if participant_enab %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}<br>
+      {% trans "Employee Notification activated" %}: {% if employee_enab %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}<br>
+      <a href="{{ settings_url }}" style="display:inline-block;margin-top:8px;color:#456583;text-decoration:underline;font-weight:700;">{% trans "Notification settings" %} →</a>
+    </td></tr>
+  </table>
 {% endblock %}

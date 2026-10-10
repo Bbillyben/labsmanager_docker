@@ -260,7 +260,7 @@ class ContractOptionsV1View(ContractContextView):
         else:
             selectable_funds = funds if self.capabilities()["can_add"] else Fund.objects.none()
         return Response({
-            "employees": [{"id": item.pk, "name": str(item)} for item in employees.order_by("last_name", "first_name", "pk")],
+            "employees": [{"id": item.pk, "name": str(item)} for item in employees.order_by("first_name", "last_name",  "pk")],
             "funds": [{"id": item.pk, "name": str(item), "project_id": item.project_id} for item in selectable_funds.select_related("project", "funder", "institution").order_by("project__name", "pk")],
             "contract_types": [{"id": item.pk, "name": item.name} for item in Contract_type.objects.order_by("name", "pk")],
         })

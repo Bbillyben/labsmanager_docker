@@ -315,7 +315,7 @@ def project_list_queryset(user):
     visible_funds = Fund.get_instances_for_user("view", user, Fund.objects.all())
     return visible.prefetch_related(
         Prefetch("institution_participant_set", queryset=Institution_Participant.objects.select_related("institution").order_by("institution__short_name", "pk"), to_attr="list_institutions"),
-        Prefetch("participant_project", queryset=Participant.objects.select_related("employee").filter(employee__is_active=True).order_by("employee__last_name", "employee__first_name", "pk"), to_attr="list_participants"),
+        Prefetch("participant_project", queryset=Participant.objects.select_related("employee").filter(employee__is_active=True).order_by("employee__first_name", "employee__last_name", "pk"), to_attr="list_participants"),
         Prefetch("fund_set", queryset=visible_funds.select_related("funder", "institution").order_by("funder__short_name", "ref", "pk"), to_attr="list_funds"),
     )
 
@@ -374,7 +374,7 @@ class ProjectListExportV1View(ProjectListV1View):
         queryset = self.filter_queryset(self.get_queryset())
         return export_list_queryset(request, queryset, ProjectResource, "Project", resource_kwargs={"fund_scope": "visible"})
 
-
+from django.db.models import Prefetch, Case, When, Value, IntegerField
 class ProjectDetailV1View(ProjectV1QuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -387,7 +387,21 @@ class ProjectDetailV1View(ProjectV1QuerysetMixin, generics.RetrieveUpdateDestroy
         return Project.get_instances_for_user("view", self.request.user, Project.objects.all()).prefetch_related(
             Prefetch("genericinfoproject_set", queryset=GenericInfoProject.objects.select_related("info").order_by("info__name", "pk"), to_attr="overview_generic_info"),
             Prefetch("institution_participant_set", queryset=Institution_Participant.objects.select_related("institution").order_by("institution__short_name", "pk"), to_attr="overview_institutions"),
-            Prefetch("participant_project", queryset=Participant.objects.select_related("employee").order_by("employee__last_name", "employee__first_name", "pk"), to_attr="overview_participants"),
+            Prefetch(
+                "participant_project", 
+                queryset=Participant.objects
+                    .select_related("employee")
+                    .annotate(
+                        status_order=Case(
+                            When(status="l", then=Value(0)),
+                            When(status="cl", then=Value(1)),
+                            When(status="p", then=Value(2)),
+                            default=Value(3),
+                            output_field=IntegerField(),
+                        )
+                    )
+                    .order_by( "status_order", "employee__first_name", "employee__last_name", "pk"), 
+                    to_attr="overview_participants"),
         )
 
     def get_serializer_context(self):

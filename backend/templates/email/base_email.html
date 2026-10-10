@@ -1,52 +1,36 @@
-{% load i18n %}
-{% load static %}
-{% load customs_tags %}
-<!-- { html_message true } -->
-<style>
-    #header_bar{
-      width:100%;
-      background-color:#EEF3F7;
-      padding: 10px;
-
-    }
-    #header_bar img{
-      display: inline;
-      width:32px;
-      height:32px;
-      vertical-align:middle;
-      margin-right: 10px;
-
-    }
-    #header_bar .inline{
-      margin-right: auto;
-      font-weight: bold;
-    }
-    {% block css %}
-    {% endblock %}
-</style>
-
-
-<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=">
-  </head>
-  <body>
-    <div id="header_bar"> 
-      <img src="{% static 'img/labsmanager/labsmanager_icon_small.png' %}" alt="logo image">
-      
-      <span class="inline">{% block title %} LabsManager Report {% endblock %}</span>
-    </div>
-
-{% block content %}
-<!-- Each view fills in here.. -->
-{% endblock %}
-
-
-  </body>
+{% load i18n email_tags static %}{% get_current_language as LANGUAGE_CODE %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LabsManager</title>
+  <style>
+    {% block css %}{% endblock %}
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f6f8fb;color:#243347;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;background-color:#f6f8fb;">
+    <tr><td align="center" style="padding:20px 12px 32px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="640" style="width:100%;max-width:640px;background-color:#ffffff;border:1px solid #dce4ec;border-radius:8px;">
+        <tr><td style="padding:18px 24px;border-bottom:1px solid #dce4ec;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+            <td width="60" valign="middle" style="width:60px;padding-right:12px;">
+              {% if embed_email_logo %}{% static 'img/labsmanager/labsmanager-logo.png' as logo_url %}{% else %}{% labsmanager_email_logo as logo_url %}{% endif %}<img src="{{ logo_url }}" alt="LabsManager" width="48" height="48" style="display:block;width:48px;height:48px;object-fit:contain;border:0;">
+            </td>
+            <td valign="middle" style="font-size:17px;line-height:23px;font-weight:700;color:#36506a;">
+              LabsManager<br><span style="font-size:13px;line-height:18px;font-weight:400;color:#69788a;">{% block title %}{% trans "LabsManager Report" %}{% endblock %}</span>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:24px;color:#243347;font-size:14px;line-height:21px;">
+          {% block content %}{% endblock %}
+        </td></tr>
+        <tr><td style="padding:14px 24px;border-top:1px solid #dce4ec;color:#69788a;font-size:12px;line-height:18px;">
+          {% trans "Sent by LabsManager" %}
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
 </html>
-
-
-
-
-
-

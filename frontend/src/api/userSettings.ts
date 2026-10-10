@@ -19,6 +19,8 @@ export const getUserSettings = (section: UserSettingSection, signal: AbortSignal
 export const updateUserSetting = (section: UserSettingSection, key: string, value: SettingValue) => apiRequest<UserSettingData>(`${base}user/${section}/${encodeURIComponent(key)}/`, {
   method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }),
 })
+export const sendTestNotification = () => apiRequest<{ sent: boolean }>(`${base}notifications/test-email/send/`, { method: 'POST' })
+export const previewTestNotification = () => apiRequest<string>(`${base}notifications/test-email/preview/`, { method: 'POST' }, 'text')
 export const getUserAccount = (signal: AbortSignal) => apiRequest<UserAccount>(`${base}account/`, { signal })
 export const changeUserPassword = (values: { oldpassword?: string; password1: string; password2: string }) => apiRequest<{ saved: boolean; logged_out: boolean }>(`${base}account/password/`, {
   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values),

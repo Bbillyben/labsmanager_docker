@@ -2,6 +2,8 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### Latest : 
+[UPDATE] : periodic notification reports now show compact funding, milestone, employee and leave summaries.
+[UPDATE] : notification emails have a clearer layout and links to the React interface.
 [UPDATE] : add the description to budget default string to be dispayed in dropdown list
 [FIX] : issue when saving contract_expense on creation
 [FIX] : calendar issue (from pagination implementation)

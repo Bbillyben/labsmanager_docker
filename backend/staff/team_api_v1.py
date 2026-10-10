@@ -24,7 +24,8 @@ from staff.ressources import TeamResource
 from staff.serializers_v1 import EmployeeLeaveV1Serializer, EmployeeLeaveWriteV1Serializer
 
 from .models import Employee, Team, TeamMate
-
+from django.utils import timezone
+from django.db.models import Prefetch, Case, When, Value, IntegerField, Q
 
 def visible_teams(user, queryset=None):
     """SQL equivalent of the existing view_team leader/member predicate."""
@@ -91,11 +92,36 @@ def employee_data(employee, visible_ids):
 
 
 def team_queryset(user):
-    return visible_teams(user, Team.objects.select_related("leader").prefetch_related(
-        Prefetch("teammate_set", queryset=TeamMate.objects.select_related("employee").order_by(
-            "employee__last_name", "employee__first_name", "pk"
-        ), to_attr="loaded_mates")
-    ))
+    today = timezone.localdate()
+    active_condition = (
+        (Q(start_date__isnull=True) | Q(start_date__lte=today))
+        &
+        (Q(end_date__isnull=True) | Q(end_date__gte=today))
+    )
+    return visible_teams(
+        user,
+        Team.objects.select_related("leader").prefetch_related(
+            Prefetch(
+                "teammate_set",
+                queryset=TeamMate.objects
+                    .select_related("employee")
+                    .alias(
+                        active_order=Case(
+                            When(active_condition, then=Value(0)),
+                            default=Value(1),
+                            output_field=IntegerField(),
+                        )
+                    )
+                    .order_by(
+                        "active_order",
+                        "employee__first_name",
+                        "employee__last_name",
+                        "pk",
+                    ),
+                to_attr="loaded_mates",
+            )
+        )
+    )
 
 
 def team_data(team, user, visible_ids, can_view=True):

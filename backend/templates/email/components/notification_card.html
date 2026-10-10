@@ -1,0 +1,42 @@
+{% load i18n email_tags %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-top:1px solid #dce4ec;">
+  <tr><td style="padding:14px 0 15px;font-size:13px;line-height:19px;overflow-wrap:anywhere;">
+    {% if kind == "planning" %}
+      {% include "email/components/notification_badge.html" with kind="planning" action=n.action_type only %}
+      {% if n.source_object %}
+        <div style="margin-top:7px;color:#243347;font-size:15px;font-weight:700;line-height:21px;">{{ n.source_object.name }}</div>
+        <div style="margin-top:2px;color:#69788a;font-size:12px;">
+          {% if n.source_object.start_date %}{% trans "Task" %}{% else %}{% trans "Milestone" %}{% endif %}
+          {% if n.source_object.project %} · {% trans "Project" %}: {{ n.source_object.project.name }}{% endif %}
+        </div>
+        {% if n.source_object.end_date %}<div style="margin-top:5px;color:#69788a;">{% trans "Due date" %}: {{ n.source_object.end_date|date:"DATE_FORMAT" }}</div>{% endif %}
+        <div style="margin-top:2px;color:#69788a;">{% trans "Assigned" %}:
+          {% for employee in n.source_object.employee.all %}{{ employee.first_name }} {{ employee.last_name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "No assigned employees" %}{% endfor %}
+        </div>
+        {% if n.source_object.project_id %}
+          {% notification_email_link "planning" n.source_object.project_id as link_url %}
+          <div style="margin-top:8px;"><a href="{{ link_url }}" style="color:#456583;text-decoration:underline;font-weight:700;">{% trans "View project planning" %} →</a></div>
+        {% endif %}
+      {% endif %}
+    {% elif kind == "project" %}
+      {% include "email/components/notification_badge.html" with label=n.get_action_type_display only %}
+      {% if n.source_object %}
+        <div style="margin-top:7px;color:#243347;font-size:15px;font-weight:700;line-height:21px;">{{ n.source_object.project.name }}</div>
+        <div style="margin-top:2px;color:#69788a;font-size:12px;">{{ n.source_content_type }}</div>
+        {% if n.source_object.project_id %}
+          {% notification_email_link "project" n.source_object.project_id as link_url %}
+          <div style="margin-top:8px;"><a href="{{ link_url }}" style="color:#456583;text-decoration:underline;font-weight:700;">{% trans "View project" %} →</a></div>
+        {% endif %}
+      {% endif %}
+    {% elif kind == "employee" %}
+      {% include "email/components/notification_badge.html" with label=n.get_action_type_display only %}
+      {% if n.source_object %}
+        <div style="margin-top:7px;color:#243347;font-size:15px;font-weight:700;line-height:21px;">{{ n.source_object.user_name }}</div>
+        <div style="margin-top:2px;color:#69788a;font-size:12px;">{{ n.source_content_type }}</div>
+        {% notification_email_link "employee" n.source_object.pk as link_url %}
+        <div style="margin-top:8px;"><a href="{{ link_url }}" style="color:#456583;text-decoration:underline;font-weight:700;">{% trans "View employee" %} →</a></div>
+      {% endif %}
+    {% endif %}
+    {% if n.message %}<div style="margin-top:8px;color:#43566d;white-space:pre-wrap;overflow-wrap:anywhere;">{{ n.message }}</div>{% endif %}
+  </td></tr>
+</table>

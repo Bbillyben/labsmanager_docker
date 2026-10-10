@@ -1,27 +1,17 @@
-
-{% load i18n %}
-{% load customs_tags %}
-
-<table class="table fund_o_t">
-    <thead>
-        <tr  class="column_title">
-            <th>{% trans "Type" %}</th>
-            <th>{% trans "In Focus" %}</th>
-            <th>{% trans "Amount" %}</th>
-            <th>{% trans "Expense" %}</th>
-            <th>{% trans "Available" %}</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for f in fs %}
-        <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-            <td align="center" valign="top">{{f.type_name}}</td>
-            <td align="center" valign="top">{{f.type_focus}}</td>
-            <td align="center" valign="top">{% moneyFormat f.total_amount %}</td>
-            <td align="center" valign="top">{% moneyFormat f.total_expense %}</td>
-            <td align="center" valign="top">{% moneyFormat f.total_available %}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-    
+{% load i18n customs_tags %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;font-size:11px;line-height:16px;margin-bottom:12px;">
+  <thead><tr style="background:#edf3f8;color:#36506a;">
+    <th align="left" style="padding:5px 4px;">{% trans "Type" %}</th>
+    <th align="left" style="padding:5px 4px;">{% trans "In Focus" %}</th>
+    <th align="right" style="padding:5px 4px;">{% trans "Amount" %}</th>
+    <th align="right" style="padding:5px 4px;">{% trans "Expense" %}</th>
+    <th align="right" style="padding:5px 4px;">{% trans "Available" %}</th>
+  </tr></thead>
+  <tbody>{% for f in fs %}<tr>
+    <td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ f.type_name }}</td>
+    <td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ f.type_focus }}</td>
+    <td align="right" style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{% moneyFormat f.total_amount %}</td>
+    <td align="right" style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{% moneyFormat f.total_expense %}</td>
+    <td align="right" style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{% moneyFormat f.total_available %}</td>
+  </tr>{% endfor %}</tbody>
 </table>

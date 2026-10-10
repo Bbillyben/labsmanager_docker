@@ -1,13 +1,21 @@
 """Typed, current-user-only Settings API backed by LMUserSetting."""
 
+import json
+import logging
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from rest_framework import permissions, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.tasks import send_notification
+from labsmanager.mails import SubscriptionMail
 from .models import LMUserSetting
+
+
+logger = logging.getLogger(__name__)
 
 
 USER_SETTING_GROUPS = {
@@ -86,3 +94,35 @@ class UserSettingDetailV1View(APIView):
             except DjangoValidationError as error:
                 raise serializers.ValidationError(getattr(error, "message_dict", None) or error.messages) from error
         return Response(user_setting_data(request.user, key))
+
+
+class NotificationTestSendV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            result = send_notification(user_pk=request.user.pk)
+        except Exception:
+            logger.exception("Unable to send a test notification")
+            return Response({"detail": "Unable to send the test notification."}, status=500)
+        if result is None:
+            return Response({"detail": "Unable to send the test notification."}, status=500)
+        payload = json.loads(result.content)
+        if result.status_code != 200:
+            return Response({"detail": payload.get("message", "Unable to send the test notification.")}, status=result.status_code)
+        return Response({"sent": True})
+
+
+class NotificationTestPreviewV1View(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            mail = SubscriptionMail()
+            options = {"user": request.user, "embedImg": True}
+            mail.generate_context(**options)
+            html = mail.render_html(**options)
+        except Exception:
+            logger.exception("Unable to generate a test notification preview")
+            return Response({"detail": "Unable to generate the test notification preview."}, status=500)
+        return HttpResponse(html, content_type="text/html; charset=utf-8")

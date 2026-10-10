@@ -3972,9 +3972,6 @@ msgstr "Options"
 #~ msgid "Add Superior"
 #~ msgstr "Ajout Responsable"
 
-#~ msgid "Subscription Report"
-#~ msgstr "Rapport desabonnements"
-
 #~ msgid "Server Restart Required"
 #~ msgstr "Redémarrage du serveur requis"
 
@@ -4026,3 +4023,82 @@ msgstr "Dans %(days)d jours"
 #: plugin/samples/FrenchHollidayPlugin/FrenchHollidayPlugin.py
 msgid "Today"
 msgstr "Aujourd’hui"
+
+# HTML notification email, phase A.
+msgid "Unassigned"
+msgstr "Désaffecté"
+
+msgid "Rescheduled"
+msgstr "Replanifié"
+
+msgid "Unknown event"
+msgstr "Événement inconnu"
+
+msgid "Sent by LabsManager"
+msgstr "Envoyé par LabsManager"
+
+msgid "LabsManager Report"
+msgstr "Rapport LabsManager"
+
+msgid "Notification Report"
+msgstr "Rapport de notifications"
+
+msgid "Dear %(username)s,"
+msgstr "Bonjour %(username)s,"
+
+msgid "Here are your LabsManager notifications."
+msgstr "Voici vos notifications LabsManager."
+
+msgid "Milestones and tasks"
+msgstr "Jalons et tâches"
+
+msgid "Task"
+msgstr "Tâche"
+
+msgid "Due date"
+msgstr "Échéance"
+
+msgid "Assigned"
+msgstr "Personnes affectées"
+
+msgid "View project planning"
+msgstr "Voir le planning du projet"
+
+msgid "View project"
+msgstr "Voir le projet"
+
+msgid "View employee"
+msgstr "Voir l’employé"
+
+msgid "Notification settings"
+msgstr "Paramètres de notification"
+
+msgid "Subscription Report"
+msgstr "Rapport périodique"
+
+msgid "Here is your LabsManager subscription report."
+msgstr "Voici votre rapport périodique LabsManager."
+
+msgid "Funding by type"
+msgstr "Financement par type"
+
+msgid "Budget consumption"
+msgstr "Consommation du budget"
+
+msgid "Temporal advancement"
+msgstr "Avancement temporel"
+
+msgid "Funding pace"
+msgstr "Rythme de financement"
+
+msgid "Above target"
+msgstr "Au-dessus de la cible"
+
+msgid "Below target"
+msgstr "Sous la cible"
+
+msgid "Near target"
+msgstr "Proche de la cible"
+
+msgid "Not interpretable yet"
+msgstr "Non interprétable à ce stade"

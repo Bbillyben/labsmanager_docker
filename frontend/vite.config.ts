@@ -14,6 +14,7 @@ export default defineConfig(({ mode, command }) => {
     server: {
       host: '0.0.0.0',
       proxy: {
+        '/static/img/labsmanager/labsmanager-logo.png': { target: djangoTarget, changeOrigin: true },
         '/static/django_prose_editor': { target: djangoTarget, changeOrigin: true },
         '/api': {
           target: djangoTarget,

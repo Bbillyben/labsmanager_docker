@@ -64,7 +64,7 @@ class ProjectCalendarParticipantsV1View(ProjectCalendarBaseV1View):
         employees = (
             Participant.objects.filter(project=project)
             .select_related("employee")
-            .order_by("employee__last_name", "employee__first_name", "employee_id")
+            .order_by("employee__first_name", "employee__last_name", "employee_id")
         )
         seen = set()
         resources = []

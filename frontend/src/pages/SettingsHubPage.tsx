@@ -1,9 +1,9 @@
-import { Check, Send, Trash2 } from 'lucide-react'
+import { Check, Eye, LoaderCircle, Send, Trash2 } from 'lucide-react'
 import { useCallback, useRef, useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { getFavorites, getSubscriptions, setObjectPreference, type FavoriteItem, type PreferenceType } from '../api/preferences'
 import { normalizeMutationError } from '../api/errors'
-import { addUserEmail, changeUserPassword, getUserAccount, getUserSettings, removeUserEmail, updateUserEmail, updateUserSetting, type EmailAddress, type UserSettingData, type UserSettingSection } from '../api/userSettings'
+import { addUserEmail, changeUserPassword, getUserAccount, getUserSettings, previewTestNotification, removeUserEmail, sendTestNotification, updateUserEmail, updateUserSetting, type EmailAddress, type UserSettingData, type UserSettingSection } from '../api/userSettings'
 import type { SettingValue } from '../api/settings'
 import { useAuth } from '../auth/AuthContext'
 import { Input } from '../components/ui/input'
@@ -83,7 +83,64 @@ export function UserSettingsSection({ section }: { section: UserSettingSection }
     {resource.loading && <p role="status">{t('common.loading')}</p>}
     {!!resource.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={resource.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
     {resource.data?.settings.map((setting) => <SettingRow key={setting.key} setting={setting.key === 'LAB_THEME' && auth.status === 'authenticated' ? { ...setting, value: auth.user.theme } : setting} disabled={pending !== null} saving={pending === setting.key} error={errors[setting.key]} saved={saved === setting.key} onSave={(value) => save(setting.key, value)} />)}
+    {section === 'notifications' && <NotificationTestActions />}
   </section>
+}
+
+function NotificationTestActions() {
+  const { t } = useTranslation()
+  const busy = useRef(false)
+  const [pending, setPending] = useState<'send' | 'preview' | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function run(action: 'send' | 'preview') {
+    if (busy.current) return
+    const previewWindow = action === 'preview' ? window.open('', '_blank') : null
+    if (action === 'preview' && !previewWindow) {
+      setError(t('userSettings.previewBlocked'))
+      return
+    }
+    busy.current = true
+    setPending(action)
+    setMessage(null)
+    setError(null)
+    try {
+      if (action === 'send') {
+        await sendTestNotification()
+        setMessage(t('userSettings.testSent'))
+      } else if (previewWindow) {
+        const html = await previewTestNotification()
+        previewWindow.document.open()
+        previewWindow.document.write(html)
+        previewWindow.document.close()
+        previewWindow.document.title = 'LabsManager Test Mail'
+        if (previewWindow.document.body) previewWindow.document.body.style.backgroundColor = 'white'
+      }
+    } catch (failure) {
+      previewWindow?.close()
+      const fallback = t(action === 'send' ? 'userSettings.testSendError' : 'userSettings.testPreviewError')
+      setError(normalizeMutationError(failure).kind === 'server' ? fallback : errorText(failure, fallback))
+    } finally {
+      busy.current = false
+      setPending(null)
+    }
+  }
+
+  return <div className={styles.notificationTests}>
+    <div className={styles.actions}>
+      <Button variant="outline" disabled={pending !== null} onClick={() => void run('send')}>
+        {pending === 'send' ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}
+        {t('userSettings.sendTestNotification')}
+      </Button>
+      <Button variant="outline" disabled={pending !== null} onClick={() => void run('preview')}>
+        {pending === 'preview' ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Eye aria-hidden="true" />}
+        {t('userSettings.previewNotification')}
+      </Button>
+    </div>
+    {message && <p role="status" className={styles.feedback}>{message}</p>}
+    {error && <p role="alert" className={styles.error}>{error}</p>}
+  </div>
 }
 
 export function SettingRow({ setting, disabled, saving, error, saved, onSave }: { setting: UserSettingData; disabled: boolean; saving: boolean; error?: string; saved: boolean; onSave: (value: SettingValue) => Promise<UserSettingData | null> }) {

@@ -260,6 +260,7 @@ TEMPLATES = [
             ],
             'libraries':{
                 'customs_tags': 'labsmanager.templatetags.customs_tags',
+                'email_tags': 'labsmanager.templatetags.email_tags',
                 'lab_rules': 'labsmanager.templatetags.lab_rules',
                 'format_tag': 'labsmanager.templatetags.format_tag',
                 'plugin_tag': 'plugin.templatetags.plugin_tags',

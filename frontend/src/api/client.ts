@@ -18,7 +18,7 @@ async function readResponse(response: Response): Promise<unknown> {
   return contentType.includes('application/json') ? response.json() : undefined
 }
 
-export async function apiRequest<T>(url: string, init: RequestInit = {}): Promise<T> {
+export async function apiRequest<T>(url: string, init: RequestInit = {}, responseType: 'json' | 'text' = 'json'): Promise<T> {
   if (!url.startsWith('/') || url.startsWith('//')) {
     throw new TypeError('API URLs must be relative to the current origin')
   }
@@ -31,7 +31,7 @@ export async function apiRequest<T>(url: string, init: RequestInit = {}): Promis
   }
 
   const response = await fetch(url, { ...init, method, headers, credentials: 'include' })
-  const payload = await readResponse(response)
+  const payload = response.ok && responseType === 'text' ? await response.text() : await readResponse(response)
   if (!response.ok) {
     if (response.status === 401) unauthorizedListeners.forEach((listener) => listener())
     throw new ApiError(response.status, payload)

@@ -1,653 +1,114 @@
 {% extends "email/base_email.html" %}
-{% load i18n %}
-{% load static %}
-{% load customs_tags %}
-{% load plugin_tags %}
-{% load lab_rules %}
-
-{% block css %}
-.main-container{
-    display:block;
-}
-.table_container{
-    width:100%;
-}
-table{
-    width:100%;
-    font-size: small;
-}
-
-.table_title{
-    padding-top:10px;
-    font-size: large;
-    width:100%;
-    text-align: center;
-    padding: 0.1em;
-}
-
-.table_title.project_overview, .table_title.project{
-    color:white;
-    background-color: #568f67;
-    
-}
-thead tr.column_title{
-    background-color: #8fbc9d;
-}
-tbody tr.odd {
-    background-color: #dfece3;
-}
-
-.table_title.project_milestones{
-    color:white;
-    background-color: #207276ff;
-    
-}
-.project_milestone thead tr.column_title{
-    background-color: #207276ff;
-}
-.project_milestone tbody tr.odd {
-    background-color: #92adae;
-}
-.project_milestone tbody tr.even {
-    background-color: #639c9f;
-}
-.project_milestone tbody tr.delayed, .employee_milestone  tbody tr.delayed{
-    background-color: #eca184 !important;
-}
-
-.table_title.employee_milestones{
-    color:white;
-    background-color: #964f8b;
-    
-}
-.employee_milestone thead tr.column_title{
-    background-color: #bd82b4;
-}
-.employee_milestone tbody tr.odd {
-    background-color: #e3c1de;
-}
-.employee_milestone tbody tr.even {
-    background-color: #eee4ec;
-}
-
-.footer-para{
-    font-style: italic;
-    font-size:small;
-    margin-top: 5em;
-}
-
-.table_title.employee{
-    color:white;
-    background-color: #993366;
-}
-.employee thead tr.column_title{
-    background-color: #d98cb3;
-}
-.employee tbody tr.odd {
-    background-color: #f2d9e6;
-}
-
-.table_title.team_live{
-    color:white;
-    background-color: #0099cc;
-}
-.team thead tr.column_title{
-    background-color: #4dd2ff;
-}
-.team tbody tr.odd {
-    background-color: #ccf2ff;
-}
-.team tbody tr.even {
-    background-color: #e6f9ff;
-}
-
-.team tbody td.on-leave {
-    background-color: #4682b4;
-    color: #4682b4;
-}
-
-
-.table_title.leave{
-    color:white;
-    background-color: #cc7a00;
-}
-.leaves thead tr.column_title{
-    background-color: #ffb84d;
-}
-.leaves tbody tr.odd {
-    background-color: #ffe0b3;
-}
-.leaves tbody tr.even {
-    background-color: #fff5e6;
-}
-.leaves tbody td.on-leave {
-    background-color: 	#f08080;
-    color: 	#f08080;
-}
-
-td.leave{
-    text-align: center;;
-}
-
-
-
-hr {
-    display: block;
-    margin-top: 1.5em;
-    margin-bottom: 1.5em;
-    margin-left: auto;
-    margin-right: auto;
-    border-style: inset;
-    border-width: 1px;
-    width:50%;
-  }
-hr.light {
-    border-style: dashed;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-}
-
-{% endblock %}
-
-
-
+{% load i18n customs_tags plugin_tags email_tags %}
+{% block title %}{% trans "Subscription Report" %}{% endblock %}
 {% block content %}
-{% setvar 'http'  as scheme %}
-{% if user.employee %}
-    {% setvar user.employee.user_name  as username %}
-{%else%}
-    {% setvar user  as username %}
-{%endif%}
+{% setvar 'http' as scheme %}
+{% if user.employee %}{% setvar user.employee.user_name as username %}{% else %}{% setvar user as username %}{% endif %}
+<p style="margin:0 0 12px;">{% blocktrans %}Dear {{ username }},{% endblocktrans %}</p>
+<p style="margin:0 0 14px;color:#43566d;">{% trans "Here is your LabsManager subscription report." %}</p>
 
-<p>
-    {% blocktrans %}Dear {{ username }},
-    Please find below the report from your <a href='{{scheme}}://{{base_url}}'>labsmanager</a> subscriptions.
-    {% endblocktrans %}
-
-</p>
-<div class="main-container">
 {% if projects %}
-
-
-    <div class="table_container">
-        <div class="table_title project_overview">
-            {% trans "Project overview" %}
-        </div>
-        <table class="table">
-            <thead>
-                
-                <tr class="column_title">
-                    <th>{% trans "Project" %}</th>
-                    <th>{% trans "Start Date" %}</th>
-                    <th>{% trans "End Date" %}</th>
-                    <th>{% trans "Budget" %}</th>
-                    <th>{% trans "Expense" %}</th>
-                    <th>{% trans "Available" %}</th>
-                    <th>{% trans "Available in focus" %}</th>
-                    <th>{% trans "Consumption ratio" %}</th>
-                    <th>{% trans "Consumption Advancement" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in projects %}
-                <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}" >
-                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.pk %}">{{p.name}}</a></td>
-                    <td align="center" valign="top">{{p.start_date}}</td>
-                    <td align="center" valign="top">{{p.end_date}}</td>
-                    {% has_lab_perm 'fund.view_fund' user p as can_view_fund %}
-                    {%if can_view_fund %} 
-                    <td align="center" valign="top">{% moneyFormat p.get_funds_amount %}</td>
-                    <td align="center" valign="top">{% moneyFormat p.get_funds_expense %}</td>
-                    <td align="center" valign="top">{% moneyFormat p.get_funds_available %}</td>
-                    <td align="center" valign="top">{% moneyFormat p.get_funds_available_f %}</td>
-                    {%else%}
-                    <td align="center" valign="top">-</td>
-                    <td align="center" valign="top">-</td>
-                    <td align="center" valign="top">-</td>
-                    <td align="center" valign="top">-</td>
-                    {%endif%}
-
-                    <td align="center" valign="top">{% quotityFormat p.get_consumption_ratio %}</td>
-                    <td align="center" valign="top">{% quotityFormat p.get_advancement_ratio %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <hr class="">
-
+<h2 style="margin:18px 0 4px;color:#36506a;font-size:15px;line-height:21px;">{% trans "Project overview" %}</h2>
+{% for row in project_report_rows %}{% include "email/components/report_financial_row.html" with row=row kind="project" only %}{% endfor %}
 {% endif %}
 
-{% setvar "no_p" as pname %}
 {% if funds %}
-
-        {% for f in funds %}
-            {% if f.project.name != pname %} 
-            {% if pname != "no_p" %}
-                    </tbody>
-                </table>
-                {% with "fund_o_"|addstr:pname as funds_o %}
-                    {% extractArgs funds_o  as fs%}
-                    
-                    {% include 'fund/fund_overview_type.html' with fs=fs %}
-                {% endwith %}
-            {% endif %}
-            {% if not forloop.first %}
-            <hr class="light">
-            {% endif %}
-            <div class="table_container">
-                <div class="table_title project">
-                    {% trans "Project Fund overview :" %} <a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=f.project.pk %}">{{f.project.name}}</a>
-                </div>   
-                <table class="table ">
-                        <thead>
-                            <tr class="column_title">
-                                <th>{% trans "Funder" %}</th>
-                                <th>{% trans "Institution" %}</th>
-                                <th>{% trans "Ref" %}</th>
-                                <th>{% trans "Start Date" %}</th>
-                                <th>{% trans "End Date" %}</th>
-                                <th>{% trans "Budget" %}</th>
-                                <th>{% trans "Expense" %}</th>
-                                <th>{% trans "Available" %}</th>
-                                <th>{% trans "Available in focus" %}</th>
-                                <th>{% trans "Consumption ratio" %}</th>
-                                <th>{% trans "Consumption Advancement" %}</th>
-                                
-                            </tr>
-                        </thead>
-                    <tbody>
-            {% endif %}
-                        <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                            <td align="left" valign="top">{{f.funder.short_name}}</td>
-                            <td align="center" valign="top">{{f.institution.short_name}}</td>
-                            <td align="center" valign="top">{{f.ref}}</td>
-                            <td align="center" valign="top">{{f.start_date}}</td>
-                            <td align="center" valign="top">{{f.end_date}}</td>
-                            <td align="center" valign="top">{% moneyFormat f.amount %}</td>
-                            <td align="center" valign="top">{% moneyFormat f.expense %}</td>
-                            <td align="center" valign="top">{% moneyFormat f.available %}</td>
-                            <td align="center" valign="top">{% moneyFormat f.available_f %}</td>
-                            <td align="center" valign="top">{% quotityFormat f.get_consumption_ratio %}</td>
-                            <td align="center" valign="top">{% quotityFormat f.get_advancement_ratio %}</td>
-                        </tr>
-
-            {% setvar f.project.name as pname %}
-
-            {% if forloop.last %}
-                </tbody>
-            </table> 
-            {% with "fund_o_"|addstr:pname as funds_o %}
-                    {% extractArgs funds_o  as fs%}
-                    {% include 'fund/fund_overview_type.html' with fs=fs %}
-                {% endwith %}
-            {% endif %}
-        {% endfor %}
-           
-        </div>
-    </div>
-</div>
-<hr class="">
+<h2 style="margin:20px 0 4px;color:#36506a;font-size:15px;line-height:21px;">{% trans "Project Fund overview :" %}</h2>
+{% for row in fund_report_rows %}{% include "email/components/report_financial_row.html" with row=row kind="fund" only %}{% endfor %}
+{% for row in project_report_rows %}{% if row.type_summary %}
+  <div style="margin:8px 0 13px;color:#43566d;font-size:11px;font-weight:700;">{{ row.object.name }} · {% trans "Funding by type" %}</div>
+  {% include "fund/fund_overview_type.html" with fs=row.type_summary only %}
+{% endif %}{% endfor %}
 {% endif %}
 
 {% if project_milestones %}
-    <div class="table_container">
-        <div class="table_title project_milestones">
-            {% trans "Project Milestones" %}
-        </div>
-        <table class="table project_milestone">
-            <thead>
-                
-                <tr class="column_title">
-                    <th>{% trans "Project" %}</th>
-                    <th>{% trans "Milestone" %}</th>
-                    <th>{% trans "Deadline" %}</th>
-                    <th>{% trans "Quotity" %}</th>
-                    <th>{% trans "Assignation" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in project_milestones %}
-                <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}
-                 {% if p.is_overdue %}delayed{% endif %}
-                " >
-                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.project.pk %}">{{p.project.name}}</a></td>
-                    <td align="center" valign="top">{{p.name}}</td>
-                    <td align="center" valign="top">{{p.end_date}}</td>
-                    <td align="center" valign="top">{% quotityFormat p.quotity %}</td>
-                    <td align="center" valign="top">
-                        {% for e in p.employee.all%}
-                            {{e.user_name}}
-                            {% if forloop.last %}{% else %}, {%endif%} 
-                        {% empty %}
-                            {% trans "Not assigned" %}
-                        {% endfor %}
-                    </td>
-                    
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <hr class="">
-
-{%endif%}
+<h2 style="margin:20px 0 4px;color:#36506a;font-size:15px;line-height:21px;">{% trans "Project Milestones" %}</h2>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;font-size:12px;line-height:18px;">
+{% for p in project_milestones %}
+<tr><td style="padding:7px 0;border-top:1px solid #dce4ec;{% if p.is_overdue %}border-left:3px solid #b83b45;padding-left:7px;{% endif %}">
+  <strong style="color:#243347;">{{ p.name }}</strong>
+  {% if p.is_overdue %}<strong style="color:#b83b45;"> · {% trans "Overdue" %}</strong>{% endif %}<br>
+  {% notification_email_link "planning" p.project_id as planning_url %}<a href="{{ planning_url }}" style="color:#456583;text-decoration:underline;">{{ p.project.name }}</a>
+  · {% trans "Deadline" %}: {% if p.end_date %}{{ p.end_date|date:"DATE_FORMAT" }}{% else %}—{% endif %}
+  · {% trans "Quotity" %}: {% quotityFormat p.quotity %}<br>
+  <span style="color:#69788a;">{% trans "Assignation" %}: {% for e in p.employee.all %}{{ e.user_name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "Not assigned" %}{% endfor %}</span>
+</td></tr>
+{% endfor %}
+</table>
+{% endif %}
 
 {% if contracts %}
-<hr class="">
-<div class="main-container">
-    <div class="table_container">
-        <div class="table_title employee">
-            {% trans "Employee overview" %}
-        </div>
-        <table class="table employee">
-            <thead>
-                
-                <tr class="column_title">
-                    <th>{% trans "Employee" %}</th>
-                    <th>{% trans "Project" %}</th>
-                    <th>{% trans "Funder" %}</th>
-                    <th>{% trans "Institution" %}</th>
-                    <th>{% trans "Start Date" %}</th>
-                    <th>{% trans "End Date" %}</th>
-                    <th>{% trans "Quotity" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in contracts %}
-                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                    <td align="center" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=c.employee.pk %}">{{c.employee.user_name}}</a></td>
-                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=c.fund.project.pk %}">{{c.fund.project.name}}</a></td>
-                    <td align="center" valign="top">{{c.fund.funder.short_name}}</td>
-                    <td align="center" valign="top">{{c.fund.institution.short_name}}</td>
-                    <td align="center" valign="top">{{c.start_date}}</td>
-                    <td align="center" valign="top">{{c.end_date}}</td>
-                    <td align="center" valign="top">{% quotityFormat c.quotity %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-
-</div>
-<hr class="">
+<h2 style="margin:20px 0 6px;color:#36506a;font-size:15px;line-height:21px;">{% trans "Employee overview" %}</h2>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;font-size:11px;line-height:16px;">
+<thead><tr style="background:#edf3f8;color:#36506a;">
+<th align="left" style="padding:6px 4px;">{% trans "Employee" %}</th><th align="left" style="padding:6px 4px;">{% trans "Project" %}</th><th align="left" style="padding:6px 4px;">{% trans "Funder" %}</th><th align="left" style="padding:6px 4px;">{% trans "Institution" %}</th><th align="left" style="padding:6px 4px;">{% trans "Start Date" %}</th><th align="left" style="padding:6px 4px;">{% trans "End Date" %}</th><th align="left" style="padding:6px 4px;">{% trans "Quotity" %}</th>
+</tr></thead><tbody>
+{% for c in contracts %}<tr>
+{% notification_email_link "employee" c.employee_id as employee_url %}{% notification_email_link "project" c.fund.project_id as project_url %}
+<td valign="top" style="padding:6px 4px;border-bottom:1px solid #edf1f5;"><a href="{{ employee_url }}" style="color:#456583;">{{ c.employee.user_name }}</a></td>
+<td valign="top" style="padding:6px 4px;border-bottom:1px solid #edf1f5;"><a href="{{ project_url }}" style="color:#456583;">{{ c.fund.project.name }}</a></td>
+<td valign="top" style="padding:6px 4px;border-bottom:1px solid #edf1f5;">{{ c.fund.funder.short_name }}</td><td valign="top" style="padding:6px 4px;border-bottom:1px solid #edf1f5;">{{ c.fund.institution.short_name }}</td>
+<td valign="top" style="padding:6px 4px;border-bottom:1px solid #edf1f5;">{% if c.start_date %}{{ c.start_date|date:"DATE_FORMAT" }}{% else %}—{% endif %}</td><td valign="top" style="padding:6px 4px;border-bottom:1px solid #edf1f5;">{% if c.end_date %}{{ c.end_date|date:"DATE_FORMAT" }}{% else %}—{% endif %}</td><td valign="top" style="padding:6px 4px;border-bottom:1px solid #edf1f5;">{% quotityFormat c.quotity %}</td>
+</tr>{% endfor %}</tbody></table>
 {% endif %}
 
 {% if employee_milestones %}
-    <div class="table_container">
-        <div class="table_title employee_milestones">
-            {% trans "Employees Milestones" %}
-        </div>
-        <table class="table employee_milestone">
-            <thead>
-                
-                <tr class="column_title">
-                    <th>{% trans "Assignation" %}</th>
-                    <th>{% trans "Project" %}</th>
-                    <th>{% trans "Milestone" %}</th>
-                    <th>{% trans "Deadline" %}</th>
-                    <th>{% trans "Quotity" %}</th>
-                    
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in employee_milestones %}
-                <tr class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}
-                 {% if p.is_overdue %}delayed{% endif %}
-                " >
-                    <td align="center" valign="top">
-                        {% for e in p.employee.all%}
-                            {% if e in employees%}
-                                {% if not forloop.first %}, {%endif%} 
-                                {{e.user_name}}
-                                
-                            {%endif%}
-                        {% endfor %}
-                    </td>
-                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'project_single' pk=p.project.pk %}">{{p.project.name}}</a></td>
-                    <td align="center" valign="top">{{p.name}}</td>
-                    <td align="center" valign="top">{{p.end_date}}</td>
-                    <td align="center" valign="top">{% quotityFormat p.quotity %}</td>
-                    
-                    
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <hr class="">
-
-{%endif%}
+<h2 style="margin:20px 0 4px;color:#36506a;font-size:15px;line-height:21px;">{% trans "Employees Milestones" %}</h2>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;font-size:12px;line-height:18px;">
+{% for p in employee_milestones %}<tr><td style="padding:7px 0;border-top:1px solid #dce4ec;{% if p.is_overdue %}border-left:3px solid #b83b45;padding-left:7px;{% endif %}">
+  <strong>{% for e in p.employee.all %}{% if e in employees %}{{ e.user_name }} · {% endif %}{% endfor %}{{ p.name }}</strong>
+  {% if p.is_overdue %}<strong style="color:#b83b45;"> · {% trans "Overdue" %}</strong>{% endif %}<br>
+  {% notification_email_link "planning" p.project_id as planning_url %}<a href="{{ planning_url }}" style="color:#456583;">{{ p.project.name }}</a>
+  · {% trans "Deadline" %}: {% if p.end_date %}{{ p.end_date|date:"DATE_FORMAT" }}{% else %}—{% endif %}
+  · {% trans "Quotity" %}: {% quotityFormat p.quotity %}<br>
+  <span style="color:#69788a;">{% trans "Assignation" %}: {% for e in p.employee.all %}{{ e.user_name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "Not assigned" %}{% endfor %}</span>
+</td></tr>{% endfor %}
+</table>
+{% endif %}
 
 {% if teams %}
-       
-
-        {% if leave_format == "list" %}
-        {% for t in teams %}
-
-                <div class="table_container">   
-                    {% with "leave_"|addstr:t.name as leaveM %}
-                    {% extractArgs leaveM  as leaves%}
-                    {% if leaves|length %}
-                    
-                    <table class="table team">
-                            <div class="table_title team_live">
-                                {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                            </div>
-                                <thead>
-                                    
-                                    <tr class="column_title">
-                                        <th>{% trans "Team Mate" %}</th>
-                                        <th>{% trans "Start Date" %}</th>
-                                        <th>{% trans "End Date" %}</th>
-                                        <th>{% trans "Type" %}</th>
-                                    </tr>
-                                </thead>
-                            <tbody>
-                                        {% for l in leaves %}
-                                        <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                                            <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
-                                            <td align="center" valign="top">{{l.start_date}}</td>
-                                            <td align="center" valign="top">{{l.end_date}}</td>
-                                            <td align="center" valign="top">{{l.type.short_name}}</td>
-                                        </tr>
-                                        {% endfor %}        
-                        </tbody>
-                    </table> 
-                    {%else%}
-                        <div> {% trans "No leaves planned for team :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                        </div>
-                    {% endif %}
-                    {% endwith %}
-                {% if not forloop.last %}
-                <hr class="light">
-                {% endif %}
-        {% endfor %}
-        {% endif %}
-        {% if leave_format == "calendar" %}
-        {% for t in teams %}
-                <div class="table_container">    
-                    {% with "leave_"|addstr:t.name as leaveM %}
-                    {% extractArgs leaveM  as leaves%}
-                    {% if leaves  %}
-                    <p> ITEMS :  {{leaves}}</p>
-                    <div class="table_title team_live">
-                        {% trans "Team Leaves :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                    </div>      
-                    
-                    <table class="table team">
-                            <thead>
-                                <tr class="column_title">
-                                    <th>{% trans "Team Mate" %}</th>
-                                    {% for d in days %}
-                                    <th>{{ d|date:"d M" }}</th>
-                                    {%endfor%}
-                                </tr>
-                            </thead>
-                        <tbody>
-                                {% for l, li in leaves.items %}
-                                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                                    <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
-                                    {% for d in days %}
-                                        {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}
-                                    {%endfor%}
-            
-                                </tr>
-                                {% endfor %}    
-                    </tbody>
-                </table> 
-                {%else%}
-                    <div> {% trans "No leaves planned for team :" %} <a href="{{scheme}}://{{base_url}}{% url 'team_single' pk=t.pk %}">{{t.name}}</a>
-                    </div>
-                {% endif %}
-                {% endwith %}
-                {% if not forloop.last %}
-                <hr class="light">
-                {% endif %}
-        {% endfor %}
-        {% endif %}
-<hr class="">
+{% for t in teams %}
+{% with "leave_"|addstr:t.name as leave_key %}{% extractArgs leave_key as leaves %}
+{% if leaves|length %}
+{% notification_email_link "team" t.pk as team_url %}<h2 style="margin:20px 0 6px;color:#36506a;font-size:15px;line-height:21px;">{% trans "Team Leaves :" %} <a href="{{ team_url }}" style="color:#456583;">{{ t.name }}</a></h2>
+{% if leave_format == "list" %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;font-size:11px;line-height:16px;">
+<thead><tr style="background:#edf3f8;color:#36506a;"><th align="left" style="padding:5px 4px;">{% trans "Team Mate" %}</th><th align="left" style="padding:5px 4px;">{% trans "Start Date" %}</th><th align="left" style="padding:5px 4px;">{% trans "End Date" %}</th><th align="left" style="padding:5px 4px;">{% trans "Type" %}</th></tr></thead>
+<tbody>{% for l in leaves %}<tr>{% notification_email_link "employee" l.employee_id as employee_url %}<td style="padding:5px 4px;border-bottom:1px solid #edf1f5;"><a href="{{ employee_url }}" style="color:#456583;">{{ l.employee }}</a></td><td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ l.start_date|date:"DATE_FORMAT" }}</td><td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ l.end_date|date:"DATE_FORMAT" }}</td><td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ l.type.short_name }}</td></tr>{% endfor %}</tbody></table>
+{% elif leave_format == "calendar" %}
+{% with "leave_emp_"|addstr:t.name as calendar_key %}{% extractArgs calendar_key as calendar_leaves %}
+{% include "email/components/report_leave_calendar.html" with employee_leaves=calendar_leaves days=days only %}
+{% endwith %}
+{% endif %}
+{% else %}{% notification_email_link "team" t.pk as team_url %}<p style="margin:14px 0 0;color:#69788a;font-size:12px;">{% trans "No leaves planned for team :" %} <a href="{{ team_url }}" style="color:#456583;">{{ t.name }}</a></p>{% endif %}
+{% endwith %}
+{% endfor %}
 {% endif %}
 
 {% if inc_emp %}
-<div class="main-container">
-    <div class="table_container">
-        <div class="table_title employee">
-            {% trans "Incomming Employee" %}
-        </div>
-        <table class="table inc_employee">
-            <thead>
-                
-                <tr class="column_title">
-                    <th>{% trans "Employee" %}</th>
-                    <th>{% trans "Start Date" %}</th>
-                    <th>{% trans "End Date" %}</th>
-                    <th>{% trans "Superior" %}</th>
-                    <th>{% trans "Status" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in inc_emp %}
-                <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                    <td align="center" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=c.pk %}">{{c.user_name}}</a></td>
-                    <td align="center" valign="top">{{c.entry_date}}</td>
-                    <td align="center" valign="top">{{c.exit_date}}</td>
-                    <td align="center" valign="top">
-                        {% for su in c.superior%}
-                        <a href="{{scheme}}://{{base_url}}{% url 'employee' pk=su.employee_superior.pk %}">{{su.employee_superior.user_name}}</a>
-                        {% if forloop.last == False %} - {%endif%}
-                        {% endfor %}
-                    </td>
-                    <td align="center" valign="top">
-                     {% for st in c.status%}
-                        {{st.type.shortname}}
-                        {% if forloop.last == False %}, {%endif%}
-                        {% endfor %}
-                        </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-
-</div>
-<hr class="">
+<h2 style="margin:20px 0 6px;color:#36506a;font-size:15px;line-height:21px;">{% trans "Incomming Employee" %}</h2>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;font-size:11px;line-height:16px;">
+<thead><tr style="background:#edf3f8;color:#36506a;"><th align="left" style="padding:5px 4px;">{% trans "Employee" %}</th><th align="left" style="padding:5px 4px;">{% trans "Start Date" %}</th><th align="left" style="padding:5px 4px;">{% trans "End Date" %}</th><th align="left" style="padding:5px 4px;">{% trans "Superior" %}</th><th align="left" style="padding:5px 4px;">{% trans "Status" %}</th></tr></thead>
+<tbody>{% for c in inc_emp %}<tr>{% notification_email_link "employee" c.pk as employee_url %}<td valign="top" style="padding:5px 4px;border-bottom:1px solid #edf1f5;"><a href="{{ employee_url }}" style="color:#456583;">{{ c.user_name }}</a></td><td valign="top" style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ c.entry_date }}</td><td valign="top" style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ c.exit_date|default:"—" }}</td><td valign="top" style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{% for su in c.superior %}{% notification_email_link "employee" su.employee_superior.pk as superior_url %}<a href="{{ superior_url }}" style="color:#456583;">{{ su.employee_superior.user_name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td><td valign="top" style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{% for st in c.status %}{{ st.type.shortname }}{% if not forloop.last %}, {% endif %}{% endfor %}</td></tr>{% endfor %}</tbody></table>
 {% endif %}
+
 {% if all_leaves %}
-        {% if leave_format == "list" %}
-        <div class="table_container">    
-            <div class="table_title leave">
-                <a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a>
-            </div>      
-            <table class="table leaves">
-                    <thead>
-                        
-                        <tr class="column_title">
-                            <th>{% trans "Employee" %}</th>
-                            <th>{% trans "Start Date" %}</th>
-                            <th>{% trans "End Date" %}</th>
-                            <th>{% trans "Type" %}</th>
-                        </tr>
-                    </thead>
-                <tbody>
-
-                    {% for l in all_leaves %}
-                    <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.employee.pk %}">{{l.employee}}</a></td>
-                        <td align="center" valign="top">{{l.start_date}}</td>
-                        <td align="center" valign="top">{{l.end_date}}</td>
-                        <td align="center" valign="top">{{l.type.short_name}}</td>
-                    </tr>
-                    {% endfor %}                           
-
-                </tbody>
-            </table> 
-        </div>
-
-        {%endif%}
-        {% if leave_format == "calendar" %}
-        <!--          ################################################  TEST MONTH DISPLAY ##################-->
-        <div class="table_container">   
-            <div class="table_title leave">
-                <a href="{{scheme}}://{{base_url}}{% url 'calendar_main' %}">{% trans "Current Leaves" %} - {{current_month}} </a>
-            </div>         
-            <table class="table leaves">
-                    <thead>
-                        <tr class="column_title">
-                            <th>{% trans "Employee" %}</th>
-                            {% for d in days %}
-                            <th>{{ d|date:"d M" }}</th>
-                            {%endfor%}
-                        </tr>
-                    </thead>
-                <tbody>
-
-                    {% for l, li in emp_leaves.items %}
-                    <tr  class="{% if forloop.counter|divisibleby:2 %}even{%else%}odd{% endif %}">
-                        <td align="left" valign="top"><a href="{{scheme}}://{{base_url}}{% url 'employee' pk=l.pk %}">{{l}}</a></td>
-                        {% for d in days %}
-                            {% if d|is_in_leavelist:li %}<td class="leave on-leave">X</td>{%else%}<td class="leave out-leave"></td>{%endif%}
-                        {%endfor%}
-
-                    </tr>
-                    {% endfor %}                           
-
-                </tbody>
-            </table> 
-        </div>
-        {%endif%}
-        <hr class="">
-
+{% notification_email_link "calendar" as calendar_url %}<h2 style="margin:20px 0 6px;color:#36506a;font-size:15px;line-height:21px;"><a href="{{ calendar_url }}" style="color:#456583;">{% trans "Current Leaves" %} · {{ current_month }}</a></h2>
+{% if leave_format == "list" %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;font-size:11px;line-height:16px;">
+<thead><tr style="background:#edf3f8;color:#36506a;"><th align="left" style="padding:5px 4px;">{% trans "Employee" %}</th><th align="left" style="padding:5px 4px;">{% trans "Start Date" %}</th><th align="left" style="padding:5px 4px;">{% trans "End Date" %}</th><th align="left" style="padding:5px 4px;">{% trans "Type" %}</th></tr></thead>
+<tbody>{% for l in all_leaves %}<tr>{% notification_email_link "employee" l.employee_id as employee_url %}<td style="padding:5px 4px;border-bottom:1px solid #edf1f5;"><a href="{{ employee_url }}" style="color:#456583;">{{ l.employee }}</a></td><td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ l.start_date|date:"DATE_FORMAT" }}</td><td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ l.end_date|date:"DATE_FORMAT" }}</td><td style="padding:5px 4px;border-bottom:1px solid #edf1f5;">{{ l.type.short_name }}</td></tr>{% endfor %}</tbody></table>
+{% elif leave_format == "calendar" %}{% include "email/components/report_leave_calendar.html" with employee_leaves=emp_leaves days=days only %}{% endif %}
 {% endif %}
 
+{% plugin_list_mixin "mailsubscription" as plugins %}
+{% for pg in plugins %}{% if pg.get_template %}{% for template_name in pg.get_template %}{% include template_name %}{% endfor %}{% endif %}{% endfor %}
 
-{% plugin_list_mixin "mailsubscription" as plugins%}
-{% for pg in plugins %}
-    {% if pg.get_template %}
-        {% for tempalte in pg.get_template %}
-            {% include tempalte %}
-        {%endfor%}
-    {%endif%}
-{% endfor %}
-
-
-<div class="footer-para">
-    {% blocktrans %} Your subscription parameters :{% endblocktrans %}</br>
-    <div style="margin-left: 2em;">
-    {%trans "User Name" %}: <b>{{user.username}}</b></br>
-    {%trans "Notification activated" %}: <b>{% if sub_status %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
-    {%trans "Report Leaves" %}: <b>{% if report_leave %}{% trans 'Yes'%}{%else%}{% trans 'No'%}{%endif%}</b></br>
-    {%trans "frequency" %}: <b>{{sub_freq}}</b></br>
-    {%trans "Next report" %}: <b>{{next_date}}</b></br>
-    {%trans "Current Date" %}: <b>{{current_date}}</b></br>
-    </div>
-    
-
-</div>
- 
+{% notification_email_link "settings" as settings_url %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;margin-top:24px;border-top:1px solid #dce4ec;"><tr><td style="padding-top:12px;color:#69788a;font-size:11px;line-height:17px;">
+  <strong style="color:#43566d;">{% trans " Your subscription parameters :" %}</strong><br>
+  {% trans "User Name" %}: {{ user.username }} · {% trans "Notification activated" %}: {% if sub_status %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %} · {% trans "Report Leaves" %}: {% if report_leave %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}<br>
+  {% trans "frequency" %}: {{ sub_freq }} · {% trans "Next report" %}: {{ next_date }} · {% trans "Current Date" %}: {{ current_date }}<br>
+  <a href="{{ settings_url }}" style="color:#456583;text-decoration:underline;">{% trans "Notification settings" %} →</a>
+</td></tr></table>
 {% endblock %}

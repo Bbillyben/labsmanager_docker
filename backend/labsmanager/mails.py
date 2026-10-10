@@ -35,6 +35,7 @@ class BaseMail():
         self.context={}
         self.context["base_url"]=Site.objects.get_current()
         self.context["current_date"]=datetime.datetime.now()
+        self.context["embed_email_logo"]=kwargs.get("embedImg") is True
         
         return self.context
     
@@ -240,7 +241,6 @@ from leave.models import Leave
 from endpoints.models import Milestones
 from django.contrib.contenttypes.models import ContentType
 from dashboard import utils
-from project.views import get_project_fund_overviewReport_bytType
 from django.db.models import Q
 from labsmanager.utils import create_dict
 
@@ -301,13 +301,16 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         
         self.context['projects']=projects
         self.context['funds']=fund_lines
+
+        from labsmanager.email_report import periodic_funding_rows
+        self.context['project_report_rows'], self.context['fund_report_rows'] = periodic_funding_rows(
+            projects, fund_lines.select_related('project', 'funder', 'institution')
+        )
         
         
         
-        for pj in projects:
-            # Fund overview by project
-            fo = get_project_fund_overviewReport_bytType(pj.pk, fund_lines.filter(project=pj))
-            self.context['fund_o_'+str(pj.name)] = fo
+        for row in self.context['project_report_rows']:
+            self.context['fund_o_'+str(row['object'].name)] = row['type_summary']
             
         
         

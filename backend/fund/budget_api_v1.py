@@ -202,7 +202,7 @@ class ProjectBudgetOptionsV1View(ProjectBudgetBase):
             "cost_types": [cost_type_data(item) for item in Cost_Type.objects.order_by("short_name", "pk")],
             "employee_types": [{"id": item.pk, "name": str(item)} for item in Employee_Type.objects.order_by("name", "pk")],
             "contract_types": [{"id": item.pk, "name": str(item)} for item in Contract_type.objects.order_by("name", "pk")],
-            "employees": [{"id": item.pk, "name": str(item)} for item in editable_employees.order_by("last_name", "pk")],
+            "employees": [{"id": item.pk, "name": str(item)} for item in editable_employees.order_by("first_name", "last_name", "pk")],
         })
 
 

@@ -1,0 +1,35 @@
+{% load i18n customs_tags email_tags %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-top:1px solid #dce4ec;margin-top:7px;">
+  <tr><td style="padding:10px 0 3px;line-height:19px;overflow-wrap:anywhere;">
+    {% if kind == "project" %}{% notification_email_link "project" row.object.pk as row_url %}
+      <a href="{{ row_url }}" style="color:#36506a;font-weight:700;text-decoration:underline;">{{ row.object.name }}</a>
+    {% else %}{% notification_email_link "funding" row.object.project_id as row_url %}
+      <a href="{{ row_url }}" style="color:#36506a;font-weight:700;text-decoration:underline;">{{ row.object.funder.short_name }}</a>
+      {% if row.object.ref %} · {{ row.object.ref }}{% endif %}
+      <span style="color:#69788a;"> · {{ row.object.project.name }} · {{ row.object.institution.short_name }}</span>
+    {% endif %}
+  </td></tr>
+  <tr><td style="padding:0 0 6px;color:#69788a;font-size:11px;line-height:16px;">
+    {% if row.object.start_date %}{{ row.object.start_date|date:"DATE_FORMAT" }}{% else %}—{% endif %} – {% if row.object.end_date %}{{ row.object.end_date|date:"DATE_FORMAT" }}{% else %}—{% endif %}
+  </td></tr>
+  <tr><td>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;font-size:11px;line-height:15px;">
+      <tr>
+        <td width="25%" valign="top" style="padding:4px 3px 4px 0;border-top:1px solid #edf1f5;">{% trans "Budget" %}<br><strong>{% moneyFormat row.amount %}</strong></td>
+        <td width="25%" valign="top" style="padding:4px 3px;border-top:1px solid #edf1f5;">{% trans "Expense" %}<br><strong>{% moneyFormat row.expense %}</strong></td>
+        <td width="25%" valign="top" style="padding:4px 3px;border-top:1px solid #edf1f5;">{% trans "Available" %}<br><strong>{% moneyFormat row.available %}</strong></td>
+        <td width="25%" valign="top" style="padding:4px 0 4px 3px;border-top:1px solid #edf1f5;">{% trans "Available in focus" %}<br><strong>{% moneyFormat row.available_focus %}</strong></td>
+      </tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding:5px 0 8px;font-size:11px;line-height:17px;">
+    {% include "email/components/report_progress.html" with label="Budget consumption" ratio=row.consumption_ratio width=row.consumption_bar tone="financial" only %}
+    {% include "email/components/report_progress.html" with label="Temporal advancement" ratio=row.temporal_ratio width=row.temporal_bar tone="temporal" only %}
+    <span style="color:#69788a;">{% trans "Funding pace" %}:</span>
+    {% if row.funding_pace.applicable %}
+      <strong style="color:{% if row.funding_pace.tone == 'danger' %}#b83b45{% elif row.funding_pace.tone == 'warning' %}#805a15{% else %}#26724f{% endif %};">
+        {{ row.funding_pace.ratio|floatformat:2 }}× · {% if row.funding_pace.state == 'above' %}{% trans "Above target" %}{% elif row.funding_pace.state == 'below' %}{% trans "Below target" %}{% else %}{% trans "Near target" %}{% endif %}
+      </strong>
+    {% else %}<span style="color:#69788a;">{% trans "Not interpretable yet" %}</span>{% endif %}
+  </td></tr>
+</table>
