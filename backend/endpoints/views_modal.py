@@ -20,6 +20,10 @@ class MilestonesUpdateView(LoginRequiredMixin, BSModalUpdateView):
     success_url = reverse_lazy('project_index')
     label_confirm = "Confirm"
 
+    def form_valid(self, form):
+        form.instance._validation_user = self.request.user
+        return super().form_valid(form)
+
 # remove
 class MilestonesDeleteView(LoginRequiredMixin, BSModalDeleteView):
     model = models.Milestones
@@ -40,6 +44,10 @@ class MilestonesCreateView(LoginRequiredMixin, BSModalCreateView):
     success_url = reverse_lazy('employee_index')
     label_confirm = "Confirm"
     model = models.Milestones
+
+    def form_valid(self, form):
+        form.instance._validation_user = self.request.user
+        return super().form_valid(form)
 
     def get(self, request, *args, **kwargs):
         kw = self.get_form_kwargs()
@@ -156,5 +164,7 @@ class validateMilestonesView(BSModalViewCheckAjax, multiMilestonesView):
                 milestone_id = key.split('_')[1]
                 selected_milestones.append(milestone_id)
         # update status to True
-        Milestones.objects.filter(pk__in=selected_milestones).update(status=True, quotity=1)
+        for milestone in Milestones.objects.filter(pk__in=selected_milestones):
+            milestone.status = True
+            milestone.save(validation_user=self.request.user)
         return super().form_valid(form)

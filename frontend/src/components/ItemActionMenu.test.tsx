@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { CalendarClock } from 'lucide-react'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { ItemActionMenu } from './ItemActionMenu'
 
@@ -20,6 +21,14 @@ describe('ItemActionMenu', () => {
   it('renders no trigger or empty menu without actions', () => {
     setup(false, false)
     expect(screen.queryByRole('button', { name: 'Actions pour Badge' })).not.toBeInTheDocument()
+  })
+
+  it('supports one contextual action without changing Edit/Delete', async () => {
+    const onSelect = vi.fn()
+    setup(false, false, { extraAction: { label: 'Décaler ce jalon…', icon: <CalendarClock aria-hidden="true" />, onSelect } })
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour Badge' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Décaler ce jalon…' }))
+    expect(onSelect).toHaveBeenCalledOnce()
   })
 
   it('shows an authorized Admin link even without business actions', async () => {

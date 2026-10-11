@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { CalendarClock, ChevronDown, ChevronRight, Circle, CircleCheck } from 'lucide-react'
 import { useState } from 'react'
 import type { PlanningMilestone, PlanningMilestoneState } from '../api/planning'
 import { useTranslation } from '../i18n/i18n'
@@ -20,12 +20,13 @@ const groupOrder: PlanningMilestoneState[] = ['overdue', 'due_soon', 'in_progres
 export type PlanningMilestoneActions = {
   canChange: boolean; canDelete: boolean
   onEdit: (item: PlanningMilestone) => void; onDelete: (item: PlanningMilestone) => void
+  onDelay?: (item: PlanningMilestone) => void
   onTrigger?: (trigger: HTMLElement) => void
   onMenuOpen?: () => void
   finalFocus?: () => boolean
 }
 
-export function PlanningMilestoneTable({ resource, onOpen, actions }: { resource: MilestoneResource; onOpen?: (item: PlanningMilestone) => void; actions?: PlanningMilestoneActions }) {
+export function PlanningMilestoneTable({ resource, onOpen, actions, delaySelection }: { resource: MilestoneResource; onOpen?: (item: PlanningMilestone) => void; actions?: PlanningMilestoneActions; delaySelection?: { selectedIds: number[]; onToggle: (id: number) => void } }) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<PlanningMilestone | null>(null)
   const [openGroups, setOpenGroups] = useState<Record<PlanningMilestoneState, boolean>>({
@@ -54,7 +55,7 @@ export function PlanningMilestoneTable({ resource, onOpen, actions }: { resource
             <span>{title}<span aria-hidden="true"> · </span><strong>{items.length}</strong></span>
             {open ? <ChevronDown aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
           </button></h3>
-          {open && <div className={styles.rows}>{items.map((milestone) => <MilestoneRow key={milestone.id} milestone={milestone} onOpen={() => (onOpen ?? setSelected)(milestone)} actions={actions} />)}</div>}
+          {open && <div className={styles.rows}>{items.map((milestone) => <MilestoneRow key={milestone.id} milestone={milestone} onOpen={() => (onOpen ?? setSelected)(milestone)} actions={actions} delaySelection={delaySelection} />)}</div>}
         </section>
       })}</div>
     </>}
@@ -62,9 +63,12 @@ export function PlanningMilestoneTable({ resource, onOpen, actions }: { resource
   </div>
 }
 
-function MilestoneRow({ milestone, onOpen, actions }: { milestone: PlanningMilestone; onOpen: () => void; actions?: PlanningMilestoneActions }) {
+function MilestoneRow({ milestone, onOpen, actions, delaySelection }: { milestone: PlanningMilestone; onOpen: () => void; actions?: PlanningMilestoneActions; delaySelection?: { selectedIds: number[]; onToggle: (id: number) => void } }) {
   const { language, t } = useTranslation()
-  return <div className={styles.row}><button aria-label={t('employee.openMilestone', { name: milestone.name })} className={styles.rowButton} onClick={onOpen} type="button">
+  const eligible = !milestone.status && !!milestone.end_date
+  const selectedForDelay = delaySelection?.selectedIds.includes(milestone.id) ?? false
+  return <div className={`${styles.row} ${delaySelection && !eligible ? styles.delayUnavailable : ''} ${selectedForDelay ? styles.delaySelected : ''}`}><button aria-label={delaySelection ? t(selectedForDelay ? 'planning.delayDeselect' : 'planning.delaySelect', { name: milestone.name }) : t('employee.openMilestone', { name: milestone.name })} aria-pressed={delaySelection ? selectedForDelay : undefined} disabled={Boolean(delaySelection && !eligible)} className={`${styles.rowButton} ${delaySelection ? styles.delayRowButton : ''}`} onClick={delaySelection ? () => delaySelection.onToggle(milestone.id) : onOpen} type="button">
+    {delaySelection && <span className={styles.delayIndicator}>{selectedForDelay ? <CircleCheck aria-hidden="true" /> : <Circle aria-hidden="true" />}</span>}
     <span className={styles.main}>
       <strong>{milestone.name}</strong>
       <small>{milestone.project.name} · {t(milestone.work_kind === 'milestone' ? 'employee.milestone' : 'employee.task')}{milestone.end_date && <> · {formatDate(milestone.end_date, language)}</>}</small>
@@ -72,11 +76,12 @@ function MilestoneRow({ milestone, onOpen, actions }: { milestone: PlanningMiles
       {milestone.type === 'q' && <span className={styles.rowProgress}><Progress label={`${t('employee.progress')} — ${milestone.name}`} value={milestone.quotity} /></span>}
     </span>
     <span className={styles.due}>{dueText(milestone, language, t)}</span>
-  </button>{(actions?.canChange || actions?.canDelete || milestone.admin_url) && <span className={styles.rowActions}><ItemActionMenu
+  </button>{!delaySelection && (actions?.canChange || actions?.canDelete || milestone.admin_url) && <span className={styles.rowActions}><ItemActionMenu
     label={t('common.actionsFor', { name: milestone.name })}
     canChange={actions?.canChange ?? false} canDelete={actions?.canDelete ?? false} adminUrl={milestone.admin_url} onOpen={() => actions?.onMenuOpen?.()}
     onTrigger={actions?.onTrigger} finalFocus={actions?.finalFocus}
     onEdit={() => actions?.onEdit(milestone)} onDelete={() => actions?.onDelete(milestone)}
+    extraAction={eligible && actions?.canChange && actions.onDelay ? { label: t('planning.delaySingle'), icon: <CalendarClock aria-hidden="true" />, onSelect: () => actions.onDelay?.(milestone) } : undefined}
   /></span>}</div>
 }
 

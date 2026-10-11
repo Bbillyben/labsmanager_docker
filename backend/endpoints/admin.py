@@ -43,6 +43,10 @@ class MilestoneProjectFundListFitler(admin.SimpleListFilter):
 class MilestonesAdmin(admin.ModelAdmin):
     list_display = ('get_proj_name', 'name', 'desc', 'end_date', 'type', 'quotity', 'status', 'get_employee_list')
     list_filter=('status' ,'end_date', EmployeeProjectFundListFitler, MilestoneProjectFundListFitler)
+    readonly_fields = ('validated_at', 'validated_by')
+
+    def save_model(self, request, obj, form, change):
+        obj.save(validation_user=request.user)
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)

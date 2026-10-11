@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.db import connection, models, transaction
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
@@ -50,13 +51,23 @@ class Milestones(endpoint, ActiveDateMixin):
     start_date=models.DateField(null=True, blank=True, verbose_name=_('Start Date'),
                                 help_text=_('Leave it empty to define as milestone')
                                 )
+    validated_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Validated at"))
+    validated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="+", verbose_name=_("Validated by"),
+    )
     project=models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name=_('Project'))
     history = AuditlogHistoryField()
     employee= models.ManyToManyField(Employee, related_query_name="milestones_by_employee", related_name="milestones", blank=True)
     
-    class meta:
+    class Meta:
         verbose_name = _("Milestone")
         verbose_name_plural = _("Milestones")
+        constraints = [models.CheckConstraint(
+            check=(Q(status=True, quotity=1, validated_at__isnull=False)
+                   | Q(status=False, quotity__lt=1, validated_at__isnull=True)),
+            name="milestones_completion_validation_coherent",
+        )]
     @property
     def is_milestone(self):
         return self.start_date is None
@@ -64,6 +75,50 @@ class Milestones(endpoint, ActiveDateMixin):
     def __str__(self):
         """Return a string representation of the Status (for use in the admin interface)"""
         return f"{self.project.name} - {self.name}"
+
+    def normalize_completion(self, validation_user=None):
+        """Resolve status/progress transitions for every model save path."""
+        previous = type(self).objects.filter(pk=self.pk).values("status", "quotity").first() if self.pk else None
+        was_completed = bool(previous and previous["status"])
+        status_changed = bool(previous and self.status != previous["status"])
+        progress_decreased = bool(previous and self.quotity < 1 and self.quotity != previous["quotity"])
+
+        if was_completed and ((status_changed and not self.status) or progress_decreased):
+            # An explicit reopen cannot retain 100% completion.
+            self.status = False
+            if self.quotity >= 1:
+                self.quotity = 0
+        elif self.status or self.quotity >= 1:
+            self.status = True
+            self.quotity = 1
+        else:
+            self.status = False
+
+        if self.status and not was_completed:
+            if self.validated_at is None:
+                self.validated_at = timezone.now()
+                self.validated_by = None
+            if getattr(validation_user, "is_authenticated", False):
+                self.validated_by = validation_user
+        elif not self.status:
+            self.validated_at = None
+            self.validated_by = None
+
+    def clean(self):
+        super().clean()
+        self.normalize_completion()
+
+    def save(self, *args, validation_user=None, **kwargs):
+        author = validation_user or getattr(self, "_validation_user", None)
+        if hasattr(self, "_validation_user"):
+            del self._validation_user
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and not {"status", "quotity"}.intersection(update_fields):
+            return super().save(*args, **kwargs)
+        self.normalize_completion(author)
+        if update_fields is not None:
+            kwargs["update_fields"] = set(update_fields) | {"status", "quotity", "validated_at", "validated_by"}
+        return super().save(*args, **kwargs)
     
 
         

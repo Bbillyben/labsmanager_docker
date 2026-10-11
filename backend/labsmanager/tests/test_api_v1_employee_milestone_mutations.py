@@ -68,7 +68,10 @@ class EmployeeMilestoneMutationV1Tests(APITestCase):
         self.assertEqual(self.item.project, self.project)
         self.assertEqual(self.item.quotity, Decimal("0.750"))
         self.assertEqual(self.client.patch(self.detail(), {"status": True}, format="json").json()["quotity"], "1.000")
-        self.assertTrue(self.client.patch(self.detail(), {"quotity": "1.000", "status": False}, format="json").json()["status"])
+        reopened = self.client.patch(self.detail(), {"quotity": "1.000", "status": False}, format="json").json()
+        self.assertFalse(reopened["status"])
+        self.assertEqual(reopened["quotity"], "0.000")
+        self.assertIsNone(reopened["validated_at"])
         self.assertEqual(self.client.patch(self.detail(), {"quotity": "1.500"}, format="json").status_code, 400)
 
     def test_denies_unknown_fields_create_delete_and_dependency_changes(self):

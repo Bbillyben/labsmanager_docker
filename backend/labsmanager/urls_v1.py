@@ -11,6 +11,7 @@ from endpoints.api_v1 import (
     ProjectPlanningV1View,
     ProjectPlanningItemV1View,
 )
+from endpoints.delay_v1 import ProjectPlanningDelayV1View
 
 from staff.api_v1 import (
     EmployeeBudgetListV1View,
@@ -53,6 +54,7 @@ from staff.team_api_v1 import (
 )
 
 from .api_v1 import CurrentUserView, SystemInfoView, LoginV1View, LogoutV1View, PasswordResetRequestV1View, PasswordResetBridgeV1View, PasswordResetConfirmV1View
+from .email_confirmation_api_v1 import EmailConfirmationBridgeV1View, EmailConfirmationV1View
 from .invitation_api_v1 import InvitationBridgeV1View, InvitationSignupV1View
 from dashboard.api_v1 import (DashboardCollection, DashboardDetail, DashboardDefault,
     DashboardDuplicate, DashboardReorder, DashboardCatalog, DashboardWidgets,
@@ -253,6 +255,7 @@ urlpatterns = [
     path("projects/<int:pk>/participants/", project_child_view("participants"), name="project-participants"),
     path("projects/<int:pk>/participants/<int:item_id>/", project_child_view("participants", detail=True), name="project-participant-detail"),
     path("projects/<int:pk>/planning/", ProjectPlanningV1View.as_view(), name="project-planning"),
+    path("projects/<int:pk>/planning/delay/<str:action>/", ProjectPlanningDelayV1View.as_view(), name="project-planning-delay"),
     path("projects/<int:pk>/planning/<int:item_id>/", ProjectPlanningItemV1View.as_view(), name="project-planning-item"),
     path("projects/<int:pk>/funding/", ProjectFundingView.as_view(), name="project-funding"),
     path("projects/<int:pk>/funding/options/", FundingOptionsView.as_view(), name="project-funding-options"),
@@ -278,6 +281,8 @@ urlpatterns = [
     path("auth/password/reset/", PasswordResetRequestV1View.as_view(), name="password-reset"),
     path("auth/password/reset/bridge/<str:key>/", PasswordResetBridgeV1View.as_view(), name="password-reset-bridge"),
     path("auth/password/reset/<str:uid>/", PasswordResetConfirmV1View.as_view(), name="password-reset-confirm"),
+    path("auth/email/confirm/bridge/", EmailConfirmationBridgeV1View.as_view(), name="email-confirmation-bridge"),
+    path("auth/email/confirm/", EmailConfirmationV1View.as_view(), name="email-confirmation"),
     path("employees/", EmployeeListV1View.as_view(), name="employees"),
     path("employees/export/", EmployeeListExportV1View.as_view(), name="employee-list-export"),
     path("employees/filter-options/", EmployeeListFilterOptionsV1View.as_view(), name="employee-filter-options"),

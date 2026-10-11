@@ -686,7 +686,9 @@ class EmployeeMilestoneDetailV1View(APIView):
         )
         if not request.user.has_perm("endpoints.change_milestones", item):
             raise PermissionDenied()
-        serializer = EmployeeMilestonePartialWriteV1Serializer(item, data=request.data, partial=True)
+        serializer = EmployeeMilestonePartialWriteV1Serializer(
+            item, data=request.data, partial=True, context={"validation_user": request.user},
+        )
         serializer.is_valid(raise_exception=True)
         saved = serializer.save()
         scoped = Milestones.objects.filter(pk=saved.pk)

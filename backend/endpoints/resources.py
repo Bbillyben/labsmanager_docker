@@ -15,7 +15,7 @@ class MilestonesResource(labResource):
         model = Milestones
         skip_unchanged = False
         clean_model_instances = False
-        exclude = [ 'id','type',
+        exclude = [ 'id','type', 'validated_at', 'validated_by',
          ]
         # export_order=['name',
         #               'start_date',

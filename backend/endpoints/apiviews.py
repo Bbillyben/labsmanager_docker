@@ -18,6 +18,10 @@ from dashboard import utils
 class MilestonesViewSet(viewsets.ModelViewSet):
     queryset = Milestones.objects.prefetch_related('project').all()
     serializer_class = serializers.MilestonesSerializer
+
+    def perform_update(self, serializer):
+        serializer.instance._validation_user = self.request.user
+        serializer.save()
     
     def list(self, request, *args, **kwargs):
         export = request.GET.get('export', None)
@@ -94,4 +98,4 @@ class MilestonesViewSet(viewsets.ModelViewSet):
         return JsonResponse(serializers.MilestonesSerializer(ms, many=True, context={'request': request}).data, safe=False)
     
     
-    
+

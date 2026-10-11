@@ -2,6 +2,7 @@
 * [TODO] : add send mail notification task and check for stale test (ie milestones, mayebe fund??)
 
 ### Latest : 
+[ADD] : milestones and tasks now record their actual validation date and validator separately from the planned end date.
 [UPDATE] : periodic notification reports now show compact funding, milestone, employee and leave summaries.
 [UPDATE] : notification emails have a clearer layout and links to the React interface.
 [UPDATE] : add the description to budget default string to be dispayed in dropdown list

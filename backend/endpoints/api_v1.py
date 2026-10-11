@@ -71,7 +71,7 @@ class ProjectPlanningV1View(ProjectPlanningScopeV1Mixin, APIView):
         if not self.can_change(request, project):
             raise PermissionDenied()
         serializer = PlanningMilestoneWriteV1Serializer(
-            data=request.data, context={"project": project},
+            data=request.data, context={"project": project, "validation_user": request.user},
         )
         serializer.is_valid(raise_exception=True)
         item = serializer.save()
@@ -88,7 +88,7 @@ class ProjectPlanningItemV1View(ProjectPlanningScopeV1Mixin, APIView):
         if not self.can_change(request, project):
             raise PermissionDenied()
         serializer = PlanningMilestoneWriteV1Serializer(
-            item, data=request.data, partial=True, context={"project": project},
+            item, data=request.data, partial=True, context={"project": project, "validation_user": request.user},
         )
         serializer.is_valid(raise_exception=True)
         item = serializer.save()

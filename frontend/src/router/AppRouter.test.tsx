@@ -22,6 +22,18 @@ function showTools() {
 }
 
 describe('AppRouter', () => {
+  it('opens the public email-confirmation bridge and removes its key from the URL', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/me/') return jsonResponse({ is_authenticated: false })
+      if (url.endsWith('/auth/email/confirm/bridge/')) return jsonResponse({ state: 'confirmation_required' })
+      if (url.endsWith('/auth/email/confirm/')) return jsonResponse({ state: 'confirmation_required', email: 'ada@example.test' })
+      throw new Error(url)
+    })
+    renderAt('/app/email/confirm/bridge/secret-key/')
+    expect(await screen.findByRole('button', { name: /Confirmer l’adresse email|Confirm email address/ })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/app/email/confirm/')
+  })
   it('opens the public invitation URL through the React router', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input)

@@ -71,6 +71,10 @@ export function MilestoneDetailSheet({ milestone, onClose, onDependenciesChanged
         <Detail label={t('employee.milestoneType')}>{t(milestone.type === 'q' ? 'employee.quantifiable' : 'employee.notQuantifiable')}</Detail>
         {milestone.start_date && <Detail label={t('employee.startDate')}>{formatDate(milestone.start_date, language)}</Detail>}
         <Detail label={t('employee.deadline')}>{milestone.end_date ? formatDate(milestone.end_date, language) : t('employee.noDeadline')}</Detail>
+        {milestone.validated_at && <Detail label={t('planning.validatedAt')}>
+          {new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(milestone.validated_at))}
+          {milestone.validated_by && <> · {t('planning.validatedBy', { name: milestone.validated_by.display_name })}</>}
+        </Detail>}
         {milestone.type === 'q' && <Detail label={t('employee.progress')}><Progress value={milestone.quotity} label={t('employee.progress')} /></Detail>}
       </dl>
 

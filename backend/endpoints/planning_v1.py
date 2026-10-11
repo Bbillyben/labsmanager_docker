@@ -30,7 +30,7 @@ def filter_planning_items(queryset, params):
 
 def preload_planning_items(queryset):
     """Load relations used by the shared Planning serializer."""
-    return queryset.select_related("project").prefetch_related(
+    return queryset.select_related("project", "validated_by").prefetch_related(
         Prefetch("employee", queryset=Employee.objects.order_by("first_name", "last_name", "pk")),
         Prefetch(
             "incoming_dependencies",

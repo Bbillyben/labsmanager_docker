@@ -8,6 +8,8 @@ export type PlanningMilestone = {
   desc: string | null
   start_date: string | null
   end_date: string | null
+  validated_at?: string | null
+  validated_by?: { id: number; display_name: string } | null
   status: boolean
   type: 'o' | 'q'
   quotity: string
@@ -53,6 +55,24 @@ export function updateProjectPlanningItem(projectId: string, itemId: number, dat
 }
 export function deleteProjectPlanningItem(projectId: string, itemId: number) {
   return apiRequest<void>(`${projectPlanningUrl(projectId)}${itemId}/`, { method: 'DELETE' })
+}
+
+export type PlanningDelayIntent = { root_ids: number[]; blocked_dependency_ids: number[]; days: number }
+export type PlanningDelayNode = { id: number; name: string; project: { id: number; name: string }; work_kind: 'task' | 'milestone'; end_date: string | null; eligible: boolean; unavailable_reason: 'read_only' | 'completed' | 'no_end_date' | null; affected: boolean }
+export type PlanningDelayPreview = PlanningDelayIntent & {
+  nodes: PlanningDelayNode[]
+  edges: Array<{ id: number; predecessor_id: number; successor_id: number }>
+  affected: Array<{ id: number; old_end_date: string; new_end_date: string }>
+  excluded_ids: number[]
+  revision: string
+}
+
+export function previewProjectPlanningDelay(projectId: string, intent: PlanningDelayIntent, signal?: AbortSignal) {
+  return apiRequest<PlanningDelayPreview>(`${projectPlanningUrl(projectId)}delay/preview/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(intent), signal })
+}
+
+export function applyProjectPlanningDelay(projectId: string, intent: PlanningDelayIntent, revision: string) {
+  return apiRequest<{ affected_ids: number[] }>(`${projectPlanningUrl(projectId)}delay/apply/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...intent, revision }) })
 }
 
 export type PlanningProject = { id: number; name: string }

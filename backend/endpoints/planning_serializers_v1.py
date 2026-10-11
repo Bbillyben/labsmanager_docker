@@ -22,6 +22,7 @@ class PlanningMilestoneV1Serializer(serializers.ModelSerializer):
     project = serializers.SerializerMethodField()
     employees = serializers.SerializerMethodField()
     dependencies = serializers.SerializerMethodField()
+    validated_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Milestones
@@ -35,6 +36,8 @@ class PlanningMilestoneV1Serializer(serializers.ModelSerializer):
             "status",
             "type",
             "quotity",
+            "validated_at",
+            "validated_by",
             "display_state",
             "days_to_due",
             "work_kind",
@@ -45,6 +48,10 @@ class PlanningMilestoneV1Serializer(serializers.ModelSerializer):
 
     def get_admin_url(self, milestone):
         return get_admin_change_url(self.context.get("user"), milestone)
+
+    def get_validated_by(self, milestone):
+        user = milestone.validated_by
+        return {"id": user.pk, "display_name": user.get_full_name() or user.get_username()} if user else None
 
     def get_display_state(self, milestone):
         """Classify attention state using the viewer's configured threshold."""
@@ -118,15 +125,6 @@ class EmployeePlanningMilestoneV1Serializer(PlanningMilestoneV1Serializer):
         return self.context["request"].user.has_perm("endpoints.change_milestones", milestone)
 
 
-def cohere_planning_progress(attrs, instance):
-    """Preserve the existing Project Planning completion/status behavior."""
-    if attrs.get("status", instance.status if instance else False):
-        attrs["quotity"] = 1
-    elif attrs.get("quotity", instance.quotity if instance else 0) == 1:
-        attrs["status"] = True
-    return attrs
-
-
 class PlanningMilestoneWriteV1Serializer(serializers.ModelSerializer):
     """Write a Project-scoped Task or Milestone with participant-only assignees."""
 
@@ -159,31 +157,32 @@ class PlanningMilestoneWriteV1Serializer(serializers.ModelSerializer):
             ).values_list("employee_id", flat=True))
             if any(employee.pk not in allowed for employee in employees):
                 raise serializers.ValidationError({"employee_ids": "Assignees must participate in this Project."})
-        return cohere_planning_progress(attrs, self.instance)
+        return attrs
 
     def create(self, validated_data):
         employees = validated_data.pop("employee_ids", [])
-        validated_data.pop("work_kind")
+        validated_data.pop("work_kind", None)
         item = Milestones(project=self.context["project"], **validated_data)
-        self._validate_model(item)
-        item.save()
+        self._validate_model(item, self.context.get("validation_user"))
+        item.save(validation_user=self.context.get("validation_user"))
         item.employee.set(employees)
         return item
 
     def update(self, instance, validated_data):
         employees = validated_data.pop("employee_ids", None)
-        validated_data.pop("work_kind")
+        validated_data.pop("work_kind", None)
         for key, value in validated_data.items():
             setattr(instance, key, value)
-        self._validate_model(instance)
-        instance.save()
+        self._validate_model(instance, self.context.get("validation_user"))
+        instance.save(validation_user=self.context.get("validation_user"))
         if employees is not None:
             instance.employee.set(employees)
         return instance
 
     @staticmethod
-    def _validate_model(item):
+    def _validate_model(item, validation_user=None):
         try:
+            item.normalize_completion(validation_user)
             item.full_clean()
         except DjangoValidationError as error:
             raise serializers.ValidationError(getattr(error, "message_dict", None) or error.messages) from error
@@ -207,11 +206,12 @@ class EmployeeMilestonePartialWriteV1Serializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if not attrs:
             raise serializers.ValidationError("At least one editable field is required.")
-        return cohere_planning_progress(attrs, self.instance)
+        return attrs
 
     def update(self, instance, validated_data):
         for key, value in validated_data.items():
             setattr(instance, key, value)
-        PlanningMilestoneWriteV1Serializer._validate_model(instance)
-        instance.save()
+        user = self.context.get("validation_user")
+        PlanningMilestoneWriteV1Serializer._validate_model(instance, user)
+        instance.save(validation_user=user)
         return instance

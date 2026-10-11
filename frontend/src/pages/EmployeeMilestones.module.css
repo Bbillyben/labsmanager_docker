@@ -16,6 +16,13 @@
 .row { display:flex; align-items:start; min-height:3rem; border-top:1px solid color-mix(in oklch,var(--border),transparent 40%); border-radius:0; }
 .row:hover { background:var(--muted); }
 .rowButton { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:1rem; flex:1; min-width:0; padding:.5rem; border:0; background:transparent; color:var(--foreground); text-align:left; cursor:pointer; }
+.delayRowButton { grid-template-columns:auto minmax(0,1fr) auto; gap:.5rem; }
+.delayIndicator { display:inline-flex; flex:none; color:var(--muted-foreground); }
+.delayIndicator svg { width:1rem; height:1rem; }
+.delaySelected { background:var(--accent); }
+.delaySelected .delayIndicator { color:var(--primary); }
+.delayUnavailable { opacity:.55; }
+.rowButton:disabled { cursor:not-allowed; }
 .rowButton:focus-visible { position:relative; outline:2px solid var(--ring); outline-offset:-2px; border-radius:var(--radius-md); }
 .rowActions { flex:none; padding:.375rem; opacity:0; }
 .row:hover .rowActions, .row:focus-within .rowActions { opacity:1; }

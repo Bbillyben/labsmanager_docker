@@ -52,15 +52,8 @@ class MilestonesModelForm(SanitizeDataFormMixin, BSModalModelForm):
             self.fields['employee'].queryset = Employee.objects.filter(pk__in=project_part, is_active=True)
     
     def clean(self):
-        cleaned_data = super().clean()
-        status  = cleaned_data.get('status')
-        quotity = cleaned_data.get('quotity') 
-        if status == True : 
-            cleaned_data["quotity"]=1.000
-        elif quotity == 1.000:
-            cleaned_data["status"]=True
-        
-        return cleaned_data
+        # The model resolves completion transitions for every write path.
+        return super().clean()
             
 ### Action form
 from django.utils.safestring import mark_safe
@@ -106,4 +99,4 @@ class delayMilestonesForm(checkMilestonesForm):
 
 class ValidateMilestonesForm(checkMilestonesForm):
     pass
-                    
+

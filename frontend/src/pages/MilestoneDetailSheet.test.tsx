@@ -26,6 +26,19 @@ beforeEach(() => {
 })
 
 describe('shared Planning detail', () => {
+  it('shows validation time and author, omits an unknown author, and keeps both out of editing', async () => {
+    const date = '2026-10-18T12:32:00Z'
+    const { rerender } = render(<I18nProvider><MemoryRouter><MilestoneDetailSheet milestone={{ ...milestone, status: true, validated_at: date, validated_by: { id: 3, display_name: 'Alice Martin' } }} onClose={vi.fn()} employeeEdit={{ canChange: true, onSave: vi.fn() }} /></MemoryRouter></I18nProvider>)
+    const sheet = screen.getByRole('dialog')
+    expect(within(sheet).getByText('Validé le')).toBeInTheDocument()
+    expect(within(sheet).getByText(/par Alice Martin/)).toBeInTheDocument()
+    await userEvent.setup().click(within(sheet).getByRole('button', { name: 'Modifier' }))
+    expect(within(sheet).queryByRole('textbox', { name: 'Validé le' })).not.toBeInTheDocument()
+    expect(within(sheet).queryByRole('combobox', { name: /validateur/i })).not.toBeInTheDocument()
+    rerender(<I18nProvider><MemoryRouter><MilestoneDetailSheet milestone={{ ...milestone, status: true, validated_at: date, validated_by: null }} onClose={vi.fn()} /></MemoryRouter></I18nProvider>)
+    expect(screen.getByText('Validé le')).toBeInTheDocument()
+    expect(screen.queryByText(/par Alice Martin/)).not.toBeInTheDocument()
+  })
   it('links only the independently visible Project name to its React detail', async () => {
     render(<I18nProvider><MemoryRouter><Routes><Route path="/" element={<MilestoneDetailSheet milestone={milestone} onClose={vi.fn()} />} /><Route path="/projects/:projectId" element={<p>Project page</p>} /></Routes></MemoryRouter></I18nProvider>)
     const link = screen.getByRole('link', { name: 'Atlas' })

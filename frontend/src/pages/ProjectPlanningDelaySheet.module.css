@@ -1,0 +1,13 @@
+.content { display: grid; gap: .85rem; min-width: 0; }
+.days { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.days input { width: 5.5rem; }
+.content h3 { font-weight: 600; }
+.hint { color: var(--muted-foreground); font-size: .85rem; }
+.tree { list-style: none; margin: 0; padding: 0; }
+.content > .tree { max-height: min(48vh, 28rem); overflow: auto; border: 1px solid var(--border); border-radius: .5rem; padding: .5rem; }
+.node { min-width: max-content; }
+.line { display: flex; align-items: center; gap: .4rem; min-height: 2rem; }
+.line small { color: var(--muted-foreground); }
+.excluded { opacity: .55; }
+.summary { font-weight: 600; }
+.actions { display: flex; justify-content: flex-end; gap: .5rem; }
