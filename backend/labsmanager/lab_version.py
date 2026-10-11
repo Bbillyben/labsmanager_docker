@@ -1,1 +1,1 @@
-LABSMANAGER_VERSION="react-phase1-rc5"
+LABSMANAGER_VERSION="react-phase1-rc6"
