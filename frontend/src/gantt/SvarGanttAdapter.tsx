@@ -7,6 +7,7 @@ import { ganttScales } from './timeScale'
 import styles from './LabsManagerGantt.module.css'
 
 export type GanttWindow = { from: string; to: string; months: 6 | 12 | 24 | 60 | 120 }
+export type PlanningGanttVisibility = { showMilestones: boolean; showTasks: boolean }
 
 function date(value: string) { return new Date(`${value.slice(0, 10)}T12:00:00`) }
 function calendarDate(value: string) { return value.includes('T') ? new Date(value) : date(value) }
@@ -14,7 +15,7 @@ function valid(value: string | null): value is string { return Boolean(value && 
 
 // Kept beside the renderer so SVAR-specific mapping stays inside its adapter.
 // eslint-disable-next-line react-refresh/only-export-components
-export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[], window: GanttWindow, closedKeys: ReadonlySet<string> = new Set()): { tasks: ITask[]; links: ILink[]; identities: Map<string, GanttIdentity>; omitted: number } {
+export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[], window: GanttWindow, closedKeys: ReadonlySet<string> = new Set(), visibility?: PlanningGanttVisibility): { tasks: ITask[]; links: ILink[]; identities: Map<string, GanttIdentity>; omitted: number } {
   const tasks: ITask[] = []
   const identities = new Map<string, GanttIdentity>()
   let omitted = 0
@@ -37,6 +38,7 @@ export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[],
     const groupIndex = tasks.length - 1
     identities.set(group.key, group.identity)
     for (const item of children) {
+      if ((item.kind === 'milestone' && visibility?.showMilestones === false) || (item.kind === 'task' && visibility?.showTasks === false)) continue
       const start = item.kind === 'milestone' ? item.end : item.start ?? (item.kind === 'participation' ? window.from : null)
       const end = item.end ?? ((item.kind === 'participation' || item.kind === 'task') && valid(item.start) ? window.to : null)
       if (!valid(start) || !valid(end) || start > end) { omitted++; continue }
@@ -72,7 +74,7 @@ export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[],
   return { tasks, links, identities, omitted }
 }
 
-export function SvarGanttAdapter({ data, events, window, onSelect, onOpenChange, closedKeys, dark, language }: {
+export function SvarGanttAdapter({ data, events, window, onSelect, onOpenChange, closedKeys, dark, language, visibility }: {
   data: LabsManagerGanttData
   events: CalendarEvent[]
   window: GanttWindow
@@ -81,8 +83,9 @@ export function SvarGanttAdapter({ data, events, window, onSelect, onOpenChange,
   closedKeys?: ReadonlySet<string>
   dark: boolean
   language: string
+  visibility?: PlanningGanttVisibility
 }) {
-  const { tasks, links, identities } = toSvarTasks(data, events, window, closedKeys)
+  const { tasks, links, identities } = toSvarTasks(data, events, window, closedKeys, visibility)
   const selection = useRef({ identities, onSelect })
   const openChange = useRef(onOpenChange)
   useLayoutEffect(() => { openChange.current = onOpenChange }, [onOpenChange])

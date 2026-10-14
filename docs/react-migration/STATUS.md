@@ -870,3 +870,7 @@ Le tableau Planning Project ouvre un mode de sélection temporaire pour décaler
 ### Milestones / Tasks — validation effective
 
 `validated_at` et `validated_by` distinguent la validation réelle de l’échéance `end_date`. Une progression à 100 % valide l’élément ; la réouverture efface date et auteur, et une revalidation enregistre un nouveau cycle. La migration `endpoints.0009` reprend `end_date` pour les validations historiques datées ; l’unique jalon terminé sans date est rouvert selon l’arbitrage utilisateur. Le détail React affiche date et auteur sans les rendre éditables. **Implémenté techniquement ; 13 tests backend et 7 tests frontend ciblés réussis, cohérence des migrations, contrôle Django, TypeScript et ESLint ciblé vérifiés ; migration créée mais non appliquée à la base de développement, validation navigateur attendue.**
+
+### Planning Gantt — visibilité des jalons et tâches
+
+La toolbar commune Project/global permet de masquer indépendamment Jalons et Tâches, tous deux visibles par défaut. Le filtre reste local au Gantt : les lignes et périodes Project, les données Planning, le tableau et le rendu Print complet ne changent pas ; les dépendances vers des éléments masqués ne sont pas rendues. Le choix reste actif pendant les changements de fenêtre tant que la vue est montée. Le Gantt Employee conserve son comportement actuel. **Implémenté techniquement ; validation navigateur Project et multiprojet attendue.**

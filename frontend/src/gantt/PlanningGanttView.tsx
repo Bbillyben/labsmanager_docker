@@ -25,6 +25,8 @@ export function PlanningGanttView({ data, events, anchor, months, onAnchorChange
   const { language, t } = useTranslation()
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
   const [closedKeys, setClosedKeys] = useState<Set<string>>(() => new Set())
+  const [showMilestones, setShowMilestones] = useState(true)
+  const [showTasks, setShowTasks] = useState(true)
   const window = planningWindow(anchor, months)
   useEffect(() => {
     const observer = new MutationObserver(() => setDark(document.documentElement.classList.contains('dark')))
@@ -43,7 +45,10 @@ export function PlanningGanttView({ data, events, anchor, months, onAnchorChange
       <strong>{format(window.from)} – {format(window.to)}</strong>
     </div><div aria-label={t('gantt.period')} className={styles.group} role="group">
       {([6, 12, 24, 60, 120] as const).map((value) => <Button aria-pressed={months === value} key={value} onClick={() => onMonthsChange(value)} size="sm" variant={months === value ? 'secondary' : 'ghost'}>{t(`gantt.months${value}`)}</Button>)}
+    </div><div className={styles.group}>
+      <label className={styles.visibility}><input checked={showMilestones} onChange={(event) => setShowMilestones(event.target.checked)} type="checkbox" />{t('gantt.showMilestones')}</label>
+      <label className={styles.visibility}><input checked={showTasks} onChange={(event) => setShowTasks(event.target.checked)} type="checkbox" />{t('gantt.showTasks')}</label>
     </div>{data && showPrint && <PrintButton createRequest={() => ({ renderer: 'gantt', title: printTitle ?? t('calendars.projects'), state: { data, events, window, filters: printFilters, closedKeys: [...closedKeys] } satisfies GanttPrintState })} />}</div>
-    {data && <LabsManagerGantt data={data} events={events} dark={dark} window={window} onSelect={onSelect} closedKeys={closedKeys} onOpenChange={(key, open) => setClosedKeys((previous) => { const next = new Set(previous); if (open) next.delete(key); else next.add(key); return next })} />}
+    {data && <LabsManagerGantt data={data} events={events} dark={dark} window={window} visibility={{ showMilestones, showTasks }} onSelect={onSelect} closedKeys={closedKeys} onOpenChange={(key, open) => setClosedKeys((previous) => { const next = new Set(previous); if (open) next.delete(key); else next.add(key); return next })} />}
   </div>
 }
