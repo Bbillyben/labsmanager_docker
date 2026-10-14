@@ -3,6 +3,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 from io import StringIO
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -11,6 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
+from rest_framework.test import APIClient
 
 from dashboard.models import Dashboard
 from dashboard.registry import DashboardContext
@@ -20,6 +22,7 @@ from expense.models import Contract, Expense, Expense_point
 from fund.models import AmountHistory, Fund
 from leave.models import Leave
 from project.models import Project
+from reports.models import EmployeeWordReport, ProjectPDFReport
 from staff.models import Employee, Employee_Superior
 
 from .context import DemoContext
@@ -28,6 +31,26 @@ from .context import DemoContext
 @override_settings(DEBUG=True)
 class DemoDatasetTests(TestCase):
     T0 = date(2026, 10, 4)
+
+    @classmethod
+    def setUpClass(cls):
+        cls._media_dir = TemporaryDirectory()
+        cls._media_override = override_settings(MEDIA_ROOT=cls._media_dir.name)
+        cls._media_override.enable()
+        try:
+            super().setUpClass()
+        except Exception:
+            cls._media_override.disable()
+            cls._media_dir.cleanup()
+            raise
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            super().tearDownClass()
+        finally:
+            cls._media_override.disable()
+            cls._media_dir.cleanup()
 
     def generate(self, date_value=None, seed=42, reset=False):
         output = StringIO()
@@ -98,6 +121,34 @@ class DemoDatasetTests(TestCase):
         shifted = self.snapshot()
         self.assertEqual([row[0] for row in first["projects"]], [row[0] for row in shifted["projects"]])
         self.assertEqual(shifted["projects"][0][1] - first["projects"][0][1], timedelta(days=180))
+
+    def test_report_templates_are_available_for_demo_records(self):
+        self.generate()
+        employee = Employee.objects.get(first_name="Camille", last_name="ORREN")
+        project = Project.objects.get(name="ORION — Optical Resilience")
+        manager = get_user_model().objects.get(username="labmanager")
+        client = APIClient()
+        client.force_authenticate(manager)
+
+        for entity, record, format_name, model, report_name, extension in (
+            ("employee", employee, "word", EmployeeWordReport, "Demo Employee Report", ".docx"),
+            ("project", project, "pdf", ProjectPDFReport, "Demo Project Report", ".html"),
+        ):
+            report = model.objects.get(name=report_name)
+            report.full_clean()
+            self.assertTrue(report.template.storage.exists(report.template.name))
+            self.assertTrue(report.template.name.endswith(extension))
+            response = client.get(f"/api/v1/reports/{entity}/{record.pk}/{format_name}/")
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(report.pk, [item["id"] for item in response.json()["templates"]])
+
+        first_ids = (EmployeeWordReport.objects.get(name="Demo Employee Report").pk,
+                     ProjectPDFReport.objects.get(name="Demo Project Report").pk)
+        self.generate(reset=True)
+        self.assertEqual(first_ids, (EmployeeWordReport.objects.get(name="Demo Employee Report").pk,
+                                     ProjectPDFReport.objects.get(name="Demo Project Report").pk))
+        self.assertEqual(EmployeeWordReport.objects.filter(name="Demo Employee Report").count(), 1)
+        self.assertEqual(ProjectPDFReport.objects.filter(name="Demo Project Report").count(), 1)
 
     def test_stable_namespaced_rng_and_reset_guard(self):
         ctx = DemoContext(self.T0, 42)

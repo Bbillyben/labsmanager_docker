@@ -21,6 +21,7 @@ from .leaves import generate_leaves
 from .people import generate_people
 from .projects import generate_projects
 from .references import ensure_reference_data
+from .reports import generate_report_templates
 
 
 OPERATIONAL_MODELS = (get_user_model(), Employee, Project, Fund, Expense, Contract, Leave, Team, Dashboard)
@@ -74,4 +75,5 @@ def generate_demo_dataset(reference_date, seed, reset=False):
             dashboard = create_template_dashboard(ctx.users[account], template, name)
             if not dashboard.widgets.exists():
                 raise CommandError(f"Dashboard template {template} produced no widgets")
+        generate_report_templates()
         return ctx

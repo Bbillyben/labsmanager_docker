@@ -10,6 +10,7 @@ import '@fullcalendar/react/skeleton.css'
 import '@fullcalendar/react/themes/classic/theme.css'
 import '@fullcalendar/react/themes/classic/palette.css'
 import { useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { CalendarEvent, LeaveWrite } from '../api/employees'
 import { useTranslation } from '../i18n/i18n'
 import { projectCalendarRange, projectCalendarViewDefinition, projectDayGridViews, projectResourceViews, type CalendarViewMode, type ProjectCalendarScope } from '../pages/projectCalendarScopes'
@@ -52,6 +53,7 @@ export function SharedCalendar({ anchor, scope, viewMode, events, resources = em
   const visibleResources = useMemo(() => viewMode === 'resources'
     ? visibleCalendarResources(resources, visibilityMode === 'today' ? todayEvents ?? [] : events, visibilityMode, projectCalendarRange(scope, anchor))
     : emptyResources, [resources, visibilityMode, todayEvents, events, scope, anchor, viewMode])
+  const employeeIdsByResource = useMemo(() => new Map(visibleResources.map((resource) => [resource.id, resource.employeeId])), [visibleResources])
   const suppressClick = useRef(false)
   const byId = useMemo(() => new Map(events.map((event) => [event.id, event])), [events])
   const mappedEvents = useMemo(() => {
@@ -122,6 +124,12 @@ export function SharedCalendar({ anchor, scope, viewMode, events, resources = em
       plugins={[dayGridPlugin, timelinePlugin, resourceTimelinePlugin, interactionPlugin, classicThemePlugin]}
       views={viewMode === 'resources' ? projectResourceViews : projectDayGridViews}
       resources={viewMode === 'resources' ? visibleResources : undefined}
+      resourceCellContent={viewMode === 'resources' ? (info) => {
+        if (!info.resource) return info.fieldValue
+        const employeeId = employeeIdsByResource.get(info.resource.id)
+        if (print || !employeeId || !/^[1-9]\d*$/.test(String(employeeId))) return info.resource.title
+        return <Link className={styles.resourceEmployeeLink} to={`/employees/${employeeId}`} onClick={(event) => event.stopPropagation()} onMouseDown={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>{info.resource.title}</Link>
+      } : undefined}
       selectable={!print && canCreate}
       selectAllow={(selection) => viewMode !== 'resources' || Boolean(selection.resource && (canCreateResource?.(selection.resource.id) ?? true))}
       select={(selection) => {

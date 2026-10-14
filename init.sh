@@ -20,10 +20,9 @@ if ! python3 "$LAB_MNG_DIR/manage.py" migrate --check --noinput; then
     exit 1
 fi
 
-# Collect current image assets into the shared static volume without deleting legacy files.
+# Refresh React from this image; collect the other Django/plugin static files as usual.
 if [[ "${LAB_SKIP_COLLECTSTATIC:-0}" != "1" ]]; then
-    echo "Collecting static files into $LAB_STATIC_ROOT"
-    python3 "$LAB_MNG_DIR/manage.py" collectstatic --noinput
+    "$LAB_MNG_DIR/refresh-react-static.sh"
 fi
 
 if [[ ! -d "$LAB_MEDIA_ROOT" ]]; then

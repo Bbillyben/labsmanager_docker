@@ -28,19 +28,19 @@ export const projectDayGridViews: Record<string, ViewOptions> = {
     },
   },
   dayGridMonthCustom: {
-    type: 'dayGrid', 
-    duration: projectCalendarScopes.month.duration, 
-    dateAlignment: 'month', 
+    type: 'dayGrid',
+    duration: projectCalendarScopes.month.duration,
+    dateAlignment: 'month',
     dayMaxEvents: false,
     dayMaxEventRows: false
   },
-  dayGridTwoMonths: { 
-    type: 'timeline', 
-    duration: projectCalendarScopes.twoMonths.duration, 
-    dateAlignment: 'month', 
+  dayGridTwoMonths: {
+    type: 'timeline',
+    duration: projectCalendarScopes.twoMonths.duration,
+    dateAlignment: 'month',
     dayMaxEvents: false,
     dayMaxEventRows: false,
-     slotHeaderFormat: [
+    slotHeaderFormat: [
       {
         month: 'long',
       },
@@ -72,8 +72,8 @@ export const projectDayGridViews: Record<string, ViewOptions> = {
 }
 
 export const projectResourceViews: Record<string, ViewOptions> = {
-  resourceTimelineFifteenDays: { 
-    type: 'resourceTimeline', 
+  resourceTimelineFifteenDays: {
+    type: 'resourceTimeline',
     duration: projectCalendarScopes.fifteenDays.duration,
     dateIncrement: { weeks: 1 },
     slotHeaderFormat: [
@@ -118,9 +118,9 @@ export const projectResourceViews: Record<string, ViewOptions> = {
     ],
   },
 
-  resourceTimelineTwoMonths: { 
-    type: 'resourceTimeline', 
-    duration: projectCalendarScopes.twoMonths.duration, 
+  resourceTimelineTwoMonths: {
+    type: 'resourceTimeline',
+    duration: projectCalendarScopes.twoMonths.duration,
     dateAlignment: 'month',
     slotHeaderFormat: [
       {
@@ -183,7 +183,7 @@ export function projectCalendarRange(scope: ProjectCalendarScope, anchor: Date) 
 export function shiftProjectCalendarAnchor(anchor: Date, scope: ProjectCalendarScope, direction: number) {
   const year = anchor.getFullYear()
   const month = anchor.getMonth()
-  if (scope === 'fifteenDays') return new Date(year, month, anchor.getDate() + 15 * direction)
+  if (scope === 'fifteenDays') return new Date(year, month, anchor.getDate() + 7 * direction)
   if (scope === 'year') return new Date(year + direction, 0, 1)
-  return new Date(year, month + (scope === 'twoMonths' ? 2 : 1) * direction, 1)
+  return new Date(year, month + direction, 1)
 }

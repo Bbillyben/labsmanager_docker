@@ -547,10 +547,12 @@ def contracts(context, config):
 
 
 def employees(context, config):
+    print(f' context {context}')
+    print(f' config {config}')
     from staff.models import Employee, Employee_Status, Employee_Superior, Team, TeamMate
     today = timezone.localdate()
     qs = Employee.get_instances_for_user("view", context.user, Employee.objects.all())
-    if context.scope == "project" or "project_scope" in config:
+    if context.scope == "project" or ("project_scope" in config and config.get("project_scope", "all_visible") == "specific_project"):
         from project.models import Participant
         qs = qs.filter(pk__in=Participant.objects.filter(
             project_id__in=visible_projects(context, config).values("pk")

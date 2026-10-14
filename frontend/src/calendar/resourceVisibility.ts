@@ -1,7 +1,7 @@
 import type { CalendarEvent } from '../api/employees'
 
 export type ResourceVisibilityMode = 'period' | 'all' | 'today'
-export type CalendarResource = { id: string; title: string }
+export type CalendarResource = { id: string; title: string; employeeId?: string | number }
 export type CalendarRange = { from: string; to: string }
 
 function localDay(value: string) {

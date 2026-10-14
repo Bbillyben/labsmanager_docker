@@ -102,7 +102,7 @@ LabsManager is configured using environment variables, typically stored in a `.e
 
 Do not commit production secrets to the repository.
 
-Example:
+Example for the repository's Docker Compose deployment (replace the sample domain and secrets):
 
 ```
 # ---------------------------------------------------------------------
@@ -112,8 +112,8 @@ Example:
 SECRET_KEY=change-me
 DEBUG=false
 
-DJANGO_ALLOWED_HOSTS=localhost,example.org
-CSRF_TRUSTED_ORIGINS=https://example.org
+DJANGO_ALLOWED_HOSTS=labs.example.org
+CSRF_TRUSTED_ORIGINS=https://labs.example.org
 
 LABS_LOG_LEVEL=INFO
 
@@ -127,7 +127,7 @@ SQL_ENGINE=django.db.backends.postgresql
 LAB_DB_NAME=django_db
 LAB_DB_USER=djangoUser
 LAB_DB_PASSWORD=change-me
-LAB_DB_HOST=db
+LAB_DB_HOST=lab-db
 LAB_DB_PORT=5432
 
 
@@ -135,8 +135,10 @@ LAB_DB_PORT=5432
 # Docker / application
 # ---------------------------------------------------------------------
 
-LAB_WEB_PORT=80
+LAB_WEB_PORT=1337
 LAB_TAG=latest
+LAB_EXT_VOLUME=/srv/labsmanager/data
+LAB_TRUST_PROXY_SSL_HEADER=true
 
 
 # ---------------------------------------------------------------------
@@ -218,27 +220,9 @@ The application plugin registry is responsible for discovering and exposing plug
 
 ## Initial setup and database migrations
 
-Database migrations are intentionally **not executed automatically when containers start**.
+Migrations are intentionally **not executed automatically when containers start**. For a new instance, start PostgreSQL first, then run the one-off **invoke install** task in the application image before starting Gunicorn or the worker. The task performs migrations, Django checks and static collection, then loads the required **group-fixture** and **initial-report-data** fixtures. Use **invoke install --super-user** to create the first administrator during installation, or **invoke superuser** afterward. The exact Compose bootstrap command and the bare-metal layout are in the [current installation guide](https://labsmanager-doc.readthedocs.io/en/latest/admin/installation/).
 
-This prevents schema changes from being applied silently during deployment.
-
-Before starting a new application version, check whether migrations are required and apply them explicitly.
-
-For example:
-
-```
-docker compose exec lab-server python manage.py showmigrations
-```
-
-and, when appropriate:
-
-```
-docker compose exec lab-server python manage.py migrate
-```
-
-Initialisation of a completely empty database must remain supported.
-
-Deployment procedures may differ depending on the environment. Instance-specific commands, hostnames, paths, credentials, database dumps, and operational procedures are intentionally not documented in this README.
+For an existing instance, plan schema upgrades explicitly before restarting the application services; do not assume the container entrypoint will apply migrations.
 
 ---
 

@@ -61,6 +61,8 @@ COPY --from=frontend-build /build/frontend/dist/ ${LAB_MNG_DIR}/data/static/fron
 COPY requirements.txt ${LAB_HOME}/requirements.txt
 COPY gunicorn.conf.py ${LAB_HOME}/gunicorn.conf.py
 COPY init.sh ${LAB_MNG_DIR}/init.sh
+COPY refresh-react-static.sh ${LAB_MNG_DIR}/refresh-react-static.sh
+RUN chmod +x ${LAB_MNG_DIR}/refresh-react-static.sh
 COPY tasks.py ${LAB_HOME}/tasks.py
 
 # Server init entrypoint
