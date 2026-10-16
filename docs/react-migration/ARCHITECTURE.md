@@ -145,7 +145,7 @@ Les sous-routes et les collapsibles ont des rôles complémentaires : les sous-r
 
 `EmployeeMilestoneV1View` retourne tous les jalons affectés à l'Employee visible et annote chaque référence Project/Employee avec `can_view`, sans filtrer la collection selon ces droits indépendants.
 
-La classification est calculée côté Django, dans cet ordre : completed, overdue, due soon, planned, in progress. Le seuil due soon utilise `NOTIFICATION_ENDPOINTS_MILESTONES_STALE` résolu par `LMUserSetting` pour l'utilisateur courant. `start_date is None` produit `work_kind="milestone"`; une date de début produit `work_kind="task"`. Le type `q` autorise l'affichage de `quotity` comme progression ; le type `o` n'a pas de progression chiffrée pertinente.
+La classification est calculée côté Django, dans cet ordre : completed, overdue, due soon, planned, in progress. Le seuil due soon utilise `DASHBOARD_MILESTONES_STALE_TO_DAYS` résolu par `LMUserSetting` pour l'utilisateur courant, en jours. `start_date is None` produit `work_kind="milestone"`; une date de début produit `work_kind="task"`. Le type `q` autorise l'affichage de `quotity` comme progression ; le type `o` n'a pas de progression chiffrée pertinente.
 
 `PlanningMilestoneTable` regroupe les données selon les cinq états et conserve uniquement l'ouverture des groupes dans son état local. Ce composant et `MilestoneDetailSheet` consomment le contrat Planning commun ; ni le Sheet ni les sous-groupes ne sont persistés. Depuis R2.11-refactor-2, la liste compacte affiche aussi les Employees affectés.
 

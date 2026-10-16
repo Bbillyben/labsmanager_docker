@@ -189,8 +189,8 @@ def project_health_bars(context, config, portfolio):
     rows = portfolio["items"]
     project_ids = [int(item["key"]) for item in rows]
     today = timezone.localdate()
-    months = int(LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_MONTH", user=context.user, backup_value=1))
-    work_cutoff = today + timedelta(days=months * 30)  # Same default horizon as planning()/task-workload.
+    stale_days = int(LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_DAYS", user=context.user))
+    work_cutoff = today + timedelta(days=stale_days)
     work = {}
     for kind, is_task in (("tasks", True), ("milestones", False)):
         work[kind] = {row["project_id"]: row for row in Milestones.objects.filter(
@@ -301,8 +301,7 @@ def planning_queryset(context, config, *, tasks=False):
 
 def planning(context, config, *, tasks=False):
     from settings.models import LMUserSetting
-    stale_setting=LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_MONTH", user=context.user, backup_value=1)
-    stale_setting*=30
+    stale_setting = int(LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_DAYS", user=context.user))
 
     today = timezone.localdate()
     qs = planning_queryset(context, config, tasks=tasks)

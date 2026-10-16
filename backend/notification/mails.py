@@ -21,7 +21,7 @@ class NotificationMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
         
         sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
         milestone_enab =  LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES", user=user)
-        milestone_stale =  LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=user)
+        milestone_stale =  LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_DAYS", user=user)
         milestone_repeat =  LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT", user=user)
         participant_enab =  LMUserSetting.get_setting("NOTIFICATION_PROJECT_PARTICIPANT", user=user)
         employee_enab =  LMUserSetting.get_setting("NOTIFICATION_STAFF_EMPLOYEE", user=user)

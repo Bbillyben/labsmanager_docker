@@ -461,7 +461,7 @@ class DashboardBusinessSourceTests(TestCase):
         from project.models import Project
         from settings.models import LMUserSetting
         from staff.models import Employee
-        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_MONTH", value="1")
+        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_DAYS", value="30")
         near = Milestones.objects.create(project=self.project, name="Due tomorrow",
                                         start_date=self.today, end_date=self.today + timedelta(days=1))
         near.employee.add(self.subordinate)
@@ -644,7 +644,7 @@ class DashboardBusinessSourceTests(TestCase):
         self.project.start_date = self.today - timedelta(days=10)
         self.project.end_date = self.today + timedelta(days=10)
         self.project.save()
-        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_MONTH", value="1")
+        LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_DAYS", value="30")
         LMUserSetting.objects.create(user=self.user, key="DASHBOARD_CONTRACT_STALE_TO_MONTH", value="1")
         Milestones.objects.create(project=self.project, name="Late milestone", end_date=self.today - timedelta(days=1))
         Milestones.objects.create(project=self.project, name="Future milestone", end_date=self.today + timedelta(days=90))

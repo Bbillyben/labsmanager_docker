@@ -1885,9 +1885,13 @@ msgstr "Nombre de mois pour considérer imminent les contrats"
 msgid "Project Stale month"
 msgstr "Nombre de mois pour considérer imminent les projets"
 
-#: settings/models.py:1033
-msgid "Milestones Stale to month"
-msgstr "Nombre de mois pour considérer imminent les jalons"
+#: settings/models.py
+msgid "Milestone upcoming threshold (days)"
+msgstr "Délai d'imminence des jalons (jours)"
+
+#: settings/models.py
+msgid "Number of days before a milestone deadline at which it is considered upcoming, including in dashboards and notifications."
+msgstr "Nombre de jours avant l'échéance à partir duquel un jalon est considéré comme imminent, notamment dans les tableaux de bord et les notifications."
 
 #: settings/models.py:1039
 msgid "Milestones Stale from month"
@@ -2040,14 +2044,6 @@ msgstr "Notification de Jalon"
 #: settings/models.py:1143
 msgid "enable automatic mail notification on milestones event"
 msgstr "activer la notification automatique pour les jalons"
-
-#: settings/models.py:1149
-msgid "Milestones Stale status from ... days"
-msgstr "Délais pour considérer imminent les jalons"
-
-#: settings/models.py:1150
-msgid "Number of days to get in stale scope from now"
-msgstr "Nombre de jours pour considérer imminent les jalons"
 
 #: settings/models.py:1155
 msgid "Milestones Notfication repeat frequency"

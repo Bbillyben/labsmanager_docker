@@ -1,16 +1,11 @@
 import {
   Building2,
-  CalendarDays,
   ChartNoAxesCombined,
   FileSignature,
-  Landmark,
   Wallet,
   Receipt,
-  FlaskConical,
   Home,
   Upload,
-  Users,
-  UsersRound,
   Network,
   ShieldCheck,
 } from 'lucide-react'
@@ -20,6 +15,7 @@ import { useTranslation } from '../i18n/i18n'
 import styles from './Sidebar.module.css'
 import { FavoritesMenu } from './FavoritesMenu'
 import { SidebarGroup } from './SidebarGroup'
+import { CalendarDays, FlaskConical, Landmark, Users, UsersRound } from './sidebarIcons'
 
 type SidebarProps = { expanded: boolean; interactive: boolean; onRequestExpand: () => void; user: AuthenticatedUser }
 

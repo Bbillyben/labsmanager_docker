@@ -18,6 +18,7 @@ from django.utils import translation
 from labsmanager.email_report import periodic_funding_rows
 from labsmanager.email_urls import notification_destination
 from labsmanager.mails import SubscriptionMail
+from labsmanager.templatetags.email_tags import leave_calendar_day
 
 
 class EmployeeStub:
@@ -148,15 +149,176 @@ class PeriodicEmailTests(TestCase):
         self.assertIn("https://frontend.test/app/calendars", html)
         self.assertNotIn("/app/app/", html)
         self.assertLess(html.index("Project Milestones"), html.index("Employees Milestones"))
-        self.assertNotIn('table-layout:fixed', html)
         self.assertNotIn("None", html)
+        self.assertIn("Start Date", html)
+        self.assertNotIn('data-leave-calendar="weekly"', html)
+
+    def test_multiple_funds_follow_full_width_project_summary_and_precede_type_detail(self):
+        html = self.render()
+        block_start = html.index('data-project-financial-block="3"')
+        block = html[block_start:html.index("Project Milestones")]
+        self.assertLess(block.index("data-project-financial-summary"), block.index("data-project-fund-grid"))
+        self.assertLess(block.index("data-project-fund-grid"), block.index("data-project-financial-detail"))
+        self.assertEqual(block.count("<tr data-fund-pair>"), 1)
+        self.assertIn('data-fund-card="11"', block)
+        self.assertIn('data-fund-card="12"', block)
+        self.assertIn('width="50%"', block)
+        self.assertIn("Personnel", block)
+        self.assertIn("F-A", block)
+        self.assertIn("F-B", block)
+        self.assertEqual(block.count("Budget consumption"), 3)
+        self.assertIn("Available in focus", block)
+        self.assertIn("Funding pace", block)
+        self.assertEqual(block.count('data-fund-metrics="compact"'), 2)
+        self.assertIn(".fund-grid-column { display:block !important", html)
+
+    def test_project_without_reported_fund_keeps_its_summary(self):
+        project_rows, fund_rows = periodic_funding_rows([self.project], [])
+        context = self.context()
+        context.update({"project_report_rows": project_rows, "fund_report_rows": fund_rows})
+        with patch("plugin.templatetags.plugin_tags.registry.with_mixin", return_value=[]):
+            html = render_to_string("email/notification_email.html", context)
+        block = html[html.index('data-project-financial-block="3"'):html.index("Project Milestones")]
+        self.assertIn("Project Atlas", block)
+        self.assertEqual(block.count("Budget consumption"), 1)
+        self.assertNotIn("F-A", block)
+        self.assertNotIn("data-project-fund-grid", block)
+        self.assertNotIn("Project Fund overview", block)
+
+    def test_one_reported_fund_replaces_project_summary_and_keeps_type_detail(self):
+        with patch("labsmanager.email_report.get_project_fund_overviewReport_bytType", return_value=[{
+            "type_name": "Personnel", "type_focus": True, "total_amount": 100,
+            "total_expense": 25, "total_available": 75,
+        }]):
+            project_rows, fund_rows = periodic_funding_rows([self.project], self.funds[:1])
+        context = self.context()
+        context.update({"project_report_rows": project_rows, "fund_report_rows": fund_rows})
+        with patch("plugin.templatetags.plugin_tags.registry.with_mixin", return_value=[]):
+            html = render_to_string("email/notification_email.html", context)
+        block = html[html.index('data-project-financial-block="3"'):html.index("Project Milestones")]
+        self.assertIn("Project Atlas", block)
+        self.assertIn("F-A", block)
+        self.assertNotIn("F-B", block)
+        self.assertIn("Agency", block)
+        self.assertIn("University", block)
+        self.assertIn("Personnel", block)
+        self.assertEqual(block.count("Budget consumption"), 1)
+        self.assertNotIn("data-project-financial-summary", block)
+        self.assertNotIn("data-project-fund-grid", block)
+        self.assertLess(block.index('data-fund-card="11"'), block.index("data-project-financial-detail"))
+        self.assertIn('colspan="2" data-project-financial-detail', block)
+
+    def test_three_and_four_funds_keep_pairs_order_and_last_half_width(self):
+        for count in (3, 4):
+            with self.subTest(count=count):
+                funds = [self.fund(20 + index, f"F-{index + 1}", "10") for index in range(count)]
+                funds[-1].ref = "LONG-FUND-REFERENCE-2026-ALPHA"
+                with patch("labsmanager.email_report.get_project_fund_overviewReport_bytType", return_value=[{
+                    "type_name": "Personnel", "type_focus": True, "total_amount": count * 100,
+                    "total_expense": count * 10, "total_available": count * 90,
+                }]):
+                    project_rows, fund_rows = periodic_funding_rows([self.project], funds)
+                context = self.context()
+                context.update({"project_report_rows": project_rows, "fund_report_rows": fund_rows})
+                with patch("plugin.templatetags.plugin_tags.registry.with_mixin", return_value=[]):
+                    html = render_to_string("email/notification_email.html", context)
+                block = html[html.index('data-project-financial-block="3"'):html.index("Project Milestones")]
+                grid = block[block.index("data-project-fund-grid"):block.index("data-project-financial-detail")]
+                pairs = grid.split("<tr data-fund-pair>")[1:]
+                self.assertEqual(len(pairs), 2)
+                self.assertEqual([pair.count("data-fund-card=") for pair in pairs], [2, count - 2])
+                self.assertEqual(grid.count('class="fund-grid-spacer"'), count % 2)
+                self.assertEqual([grid.index(f'data-fund-card="{fund.pk}"') for fund in funds], sorted(
+                    grid.index(f'data-fund-card="{fund.pk}"') for fund in funds
+                ))
+                self.assertIn("LONG-FUND-REFERENCE-2026-ALPHA", grid)
+                self.assertIn("overflow-wrap:break-word", grid)
+                self.assertEqual(block.count("Budget consumption"), count + 1)
+                self.assertEqual(block.count('data-fund-metrics="compact"'), count)
+                self.assertIn("Personnel", block)
+
+    def test_multiple_projects_keep_their_own_funds_and_type_detail(self):
+        second_project = SimpleNamespace(pk=4, name="Project Borealis", start_date=self.start, end_date=self.end)
+        second_fund = self.fund(21, "F-C", "10")
+        second_fund.project_id = second_project.pk
+        second_fund.project = second_project
+        summaries = [
+            [{"type_name": "Personnel", "type_focus": True, "total_amount": 200,
+              "total_expense": 75, "total_available": 125}],
+            [{"type_name": "Equipment", "type_focus": False, "total_amount": 100,
+              "total_expense": 10, "total_available": 90}],
+        ]
+        with patch("labsmanager.email_report.get_project_fund_overviewReport_bytType", side_effect=summaries):
+            project_rows, fund_rows = periodic_funding_rows(
+                [self.project, second_project], [*self.funds, second_fund]
+            )
+        context = self.context()
+        context.update({"projects": [self.project, second_project],
+                        "funds": [*self.funds, second_fund],
+                        "project_report_rows": project_rows, "fund_report_rows": fund_rows})
+        with patch("plugin.templatetags.plugin_tags.registry.with_mixin", return_value=[]):
+            html = render_to_string("email/notification_email.html", context)
+        first_start = html.index('data-project-financial-block="3"')
+        second_start = html.index('data-project-financial-block="4"')
+        first_block = html[first_start:second_start]
+        second_block = html[second_start:html.index("Project Milestones")]
+        self.assertIn("Personnel", first_block)
+        self.assertIn("F-A", first_block)
+        self.assertIn("F-B", first_block)
+        self.assertEqual(first_block.count("Budget consumption"), 3)
+        self.assertNotIn("Equipment", first_block)
+        self.assertNotIn("F-C", first_block)
+        self.assertIn("Equipment", second_block)
+        self.assertIn("F-C", second_block)
+        self.assertEqual(second_block.count("Budget consumption"), 1)
+        self.assertNotIn("data-project-financial-summary", second_block)
+        self.assertNotIn("F-A", second_block)
 
     def test_calendar_leave_preference_keeps_employee_day_matrix(self):
         html = self.render(leave_format="calendar")
-        self.assertEqual(html.count('table-layout:fixed'), 2)
+        self.assertEqual(html.count('data-leave-calendar="weekly"'), 2)
+        self.assertEqual(html.count('data-leave-calendar="desktop"'), 2)
+        self.assertIn('width="140"', html)
         self.assertIn("Alice Martin", html)
-        self.assertIn("×", html)
+        self.assertIn('data-coverage="full"', html)
+        self.assertNotIn(">×<", html)
         self.assertNotIn("ITEMS :", html)
+
+    def test_calendar_keeps_long_names_order_half_days_and_every_date(self):
+        days = [date(2026, 10, 16) + timedelta(days=index) for index in range(10)]
+        class CalendarEmployee:
+            def __init__(self, pk, name):
+                self.pk = pk
+                self.name = name
+
+            def __str__(self):
+                return self.name
+
+        first = CalendarEmployee(31, "Gerica Olivier Delacroix")
+        second = CalendarEmployee(32, "Hanne Devos")
+        full = SimpleNamespace(start_date=days[0], end_date=days[2], start_period="ST", end_period="EN")
+        half = SimpleNamespace(start_date=days[3], end_date=days[4], start_period="MI", end_period="MI")
+        html = render_to_string("email/components/report_leave_calendar.html", {
+            "employee_leaves": {first: [full, half], second: []}, "days": days,
+        })
+        weekly = html.split('data-leave-calendar="desktop"')[0]
+        self.assertEqual(weekly.count('class="leave-calendar-grid"'), 2)
+        self.assertLess(weekly.index(first.name), weekly.index(second.name))
+        self.assertIn("word-break:normal", html)
+        self.assertNotIn("break-all", html)
+        self.assertEqual(html.count('data-coverage="full"'), 6)
+        self.assertEqual(html.count('data-coverage="pm"'), 2)
+        self.assertEqual(html.count('data-coverage="am"'), 2)
+        for day in days:
+            self.assertEqual(html.count(f'data-leave-day="{day.isoformat()}"'), 4)
+        self.assertIn("background:#f4f6f8", html)
+        self.assertIn("@media only screen and (min-width: 600px)", self.render(leave_format="calendar"))
+        self.assertEqual(leave_calendar_day(days[0], [SimpleNamespace(
+            start_date=days[0], end_date=days[0], start_period="ST", end_period="MI",
+        )]), "am")
+        self.assertEqual(leave_calendar_day(days[0], [SimpleNamespace(
+            start_date=days[0], end_date=days[0], start_period="MI", end_period="EN",
+        )]), "pm")
 
     def test_financial_labels_are_translated_in_french(self):
         with translation.override("fr"):

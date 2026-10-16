@@ -1029,11 +1029,11 @@ class LMUserSetting(BaseLabsManagerSetting):
             'validator': [int, MinValueValidator(0)]
         },
         
-        'DASHBOARD_MILESTONES_STALE_TO_MONTH': {
-            'name': _('Milestones Stale to month'),
-            'description': _('Number of month to get in stale scope from now'),
-            'default': 3,
-            'validator': [int, MinValueValidator(0)]
+        'DASHBOARD_MILESTONES_STALE_TO_DAYS': {
+            'name': _('Milestone upcoming threshold (days)'),
+            'description': _('Number of days before a milestone deadline at which it is considered upcoming, including in dashboards and notifications.'),
+            'default': 90,
+            'validator': [int, MinValueValidator(1)]
         },
         'DASHBOARD_MILESTONES_STALE_FROM_MONTH': {
             'name': _('Milestones Stale from month'),
@@ -1144,12 +1144,6 @@ class LMUserSetting(BaseLabsManagerSetting):
             'default': True,
             'validator': bool,
             # 'after_save': checkNotif,
-        },
-        'NOTIFICATION_ENDPOINTS_MILESTONES_STALE': {
-            'name': _('Milestones Stale status from ... days'),
-            'description': _('Number of days to get in stale scope from now'),
-            'default': 30,
-            'validator': [int, MinValueValidator(1)]
         },
         'NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT': {
             'name': _('Milestones Notfication repeat frequency'),

@@ -4,6 +4,8 @@ All notable changes to LabsManager are documented in this file.
 
 ## Unreleased
 
+> Validated in development; verification in real-world conditions remains pending.
+
 ### Added
 
 - React frontend integrated into the main LabsManager repository.
@@ -15,6 +17,10 @@ All notable changes to LabsManager are documented in this file.
 - Add, edit, and remove employee statuses from the employee page while retaining the current and historical status views.
 - New invitations open the React acceptance flow; existing Django invitation URLs remain compatible.
 - Administrators can prepare an Employee for an invitation, and superusers can assign Django groups. Registration automatically links the new account to the prepared Employee and assigns the selected groups.
+- The Home page shows recently opened destinations, quick access links, and help links in matching responsive cards.
+- Data consistency checks cover dates for contracts, projects, funds, tasks, milestones, and expenses, plus projects without a leader.
+- Project Planning supports individual and grouped date shifts for tasks and milestones, with a preview of affected dependencies.
+- Tasks and milestones record their validation date and validator, shown in their React detail view.
 
 ### Changed
 
@@ -26,6 +32,14 @@ All notable changes to LabsManager are documented in this file.
 - Main README updated for the new monorepo architecture.
 - Plugin discovery continues to use `data/plugins/` as the source of truth.
 - Legacy Django interface retained during the React migration.
+- Password reset and email confirmation links open the React flow; previously sent Django links remain usable.
+- Notification emails show clearer summaries for tasks, milestones, projects, and employees, with links to their React pages.
+- Periodic reports show Project and Fund finances, milestones, contracts, entrants, and employee absences in a compact layout; calendar absences show names and half-days.
+- Settings > Notifications groups existing preferences into three sections.
+- A single milestone proximity setting now governs dashboards and notifications, with a default of 90 days.
+- Fund and milestone dashboard widgets show expanded financial and deadline summaries.
+- New Employee, Leader, Lab Manager, and Project dashboards include the updated widget summaries.
+- Project and global Gantt views can hide tasks and milestones independently.
 
 ### Fixed
 
@@ -36,7 +50,7 @@ All notable changes to LabsManager are documented in this file.
 ### Pending
 
 - Add mail notification task.
-- Review stale-item checks for milestones and potentially funds.
+- Review stale-item checks for funds.
 
 ---
 

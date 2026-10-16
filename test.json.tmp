@@ -155842,15 +155842,6 @@
 },
 {
   "model": "settings.lmusersetting",
-  "pk": 10,
-  "fields": {
-    "value": "3",
-    "key": "DASHBOARD_MILESTONES_STALE_TO_MONTH",
-    "user": 17
-  }
-},
-{
-  "model": "settings.lmusersetting",
   "pk": 11,
   "fields": {
     "value": "0.2",
@@ -155891,15 +155882,6 @@
   "fields": {
     "value": "3",
     "key": "DASHBOARD_MILESTONES_STALE_FROM_MONTH",
-    "user": 18
-  }
-},
-{
-  "model": "settings.lmusersetting",
-  "pk": 16,
-  "fields": {
-    "value": "3",
-    "key": "DASHBOARD_MILESTONES_STALE_TO_MONTH",
     "user": 18
   }
 },
@@ -156031,15 +156013,6 @@
 },
 {
   "model": "settings.lmusersetting",
-  "pk": 31,
-  "fields": {
-    "value": "3",
-    "key": "DASHBOARD_MILESTONES_STALE_TO_MONTH",
-    "user": 20
-  }
-},
-{
-  "model": "settings.lmusersetting",
   "pk": 32,
   "fields": {
     "value": "3",
@@ -156098,15 +156071,6 @@
   "fields": {
     "value": "False",
     "key": "DASHBOARD_FUND_CONSOMATION_USE_STALE_PERIOD",
-    "user": 19
-  }
-},
-{
-  "model": "settings.lmusersetting",
-  "pk": 39,
-  "fields": {
-    "value": "3",
-    "key": "DASHBOARD_MILESTONES_STALE_TO_MONTH",
     "user": 19
   }
 },
@@ -156697,15 +156661,6 @@
 },
 {
   "model": "settings.lmusersetting",
-  "pk": 108,
-  "fields": {
-    "value": "3",
-    "key": "DASHBOARD_MILESTONES_STALE_TO_MONTH",
-    "user": 22
-  }
-},
-{
-  "model": "settings.lmusersetting",
   "pk": 109,
   "fields": {
     "value": "treshold",
@@ -156890,15 +156845,6 @@
   "fields": {
     "value": "3",
     "key": "DASHBOARD_MILESTONES_STALE_FROM_MONTH",
-    "user": 23
-  }
-},
-{
-  "model": "settings.lmusersetting",
-  "pk": 130,
-  "fields": {
-    "value": "3",
-    "key": "DASHBOARD_MILESTONES_STALE_TO_MONTH",
     "user": 23
   }
 },
@@ -157138,15 +157084,6 @@
 },
 {
   "model": "settings.lmusersetting",
-  "pk": 158,
-  "fields": {
-    "value": "3",
-    "key": "DASHBOARD_MILESTONES_STALE_TO_MONTH",
-    "user": 25
-  }
-},
-{
-  "model": "settings.lmusersetting",
   "pk": 159,
   "fields": {
     "value": "treshold",
@@ -157282,15 +157219,6 @@
 },
 {
   "model": "settings.lmusersetting",
-  "pk": 201,
-  "fields": {
-    "value": "20",
-    "key": "NOTIFICATION_ENDPOINTS_MILESTONES_STALE",
-    "user": 17
-  }
-},
-{
-  "model": "settings.lmusersetting",
   "pk": 202,
   "fields": {
     "value": "7",
@@ -157309,15 +157237,6 @@
 },
 {
   "model": "settings.lmusersetting",
-  "pk": 204,
-  "fields": {
-    "value": "30",
-    "key": "NOTIFICATION_ENDPOINTS_MILESTONES_STALE",
-    "user": 18
-  }
-},
-{
-  "model": "settings.lmusersetting",
   "pk": 205,
   "fields": {
     "value": "7",
@@ -157332,15 +157251,6 @@
     "value": "True",
     "key": "NOTIFICATION_ENDPOINTS_MILESTONES",
     "user": 18
-  }
-},
-{
-  "model": "settings.lmusersetting",
-  "pk": 207,
-  "fields": {
-    "value": "30",
-    "key": "NOTIFICATION_ENDPOINTS_MILESTONES_STALE",
-    "user": 19
   }
 },
 {

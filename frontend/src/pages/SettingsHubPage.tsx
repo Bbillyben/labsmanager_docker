@@ -27,6 +27,18 @@ function errorText(error: unknown, fallback: string) {
 
 const sections = ['user', 'interface', 'notifications', 'common', 'stale'] as const
 
+const activityNotificationKeys = new Set(['NOTIFICATION_PROJECT_PARTICIPANT',
+  'NOTIFICATION_STAFF_EMPLOYEE',
+  'NOTIFICATION_ENDPOINTS_MILESTONES_REPEAT',
+  'NOTIFICATION_ENDPOINTS_MILESTONES',
+])
+const periodicReportKeys = new Set([
+  'NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_REPEAT', 'NOTIFICATION_ENDPOINTS_MILESTONES_REPORT_HORIZON',
+  'NOTIFCATION_FREQ', 'NOTIFCATION_EMP_INCOMMING', 'NOTIFCATION_INC_LEAVE',
+  'NOTIFCATION_SUB_MILESTONES', 'NOTIFCATION_LEAVE_FORMAT',
+  'NOTIFCATION_LEAVE_REPORT_NONE', 'NOTIFCATION_LEAVE_TIMEFRAME',
+])
+
 export function SettingsHubPage() {
   const { t } = useTranslation()
   const auth = useAuth()
@@ -78,12 +90,28 @@ export function UserSettingsSection({ section }: { section: UserSettingSection }
     } finally { setPending(null) }
   }
 
+  const renderSetting = (setting: UserSettingData) => <SettingRow key={setting.key} setting={setting.key === 'LAB_THEME' && auth.status === 'authenticated' ? { ...setting, value: auth.user.theme } : setting} disabled={pending !== null} saving={pending === setting.key} error={errors[setting.key]} saved={saved === setting.key} onSave={(value) => save(setting.key, value)} />
+  const notificationSettings = resource.data?.settings ?? []
+  const notificationGroups = section === 'notifications' ? {
+    general: notificationSettings.filter((setting) => !activityNotificationKeys.has(setting.key) && !periodicReportKeys.has(setting.key)),
+    activity: notificationSettings.filter((setting) => activityNotificationKeys.has(setting.key)),
+    periodic: notificationSettings.filter((setting) => periodicReportKeys.has(setting.key)),
+  } : null
+
   return <section aria-label={t(`userSettings.${section}`)} className={styles.section}>
     <h2 className="text-lg font-semibold">{t(`userSettings.${section}`)}</h2>
     {resource.loading && <p role="status">{t('common.loading')}</p>}
     {!!resource.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={resource.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
-    {resource.data?.settings.map((setting) => <SettingRow key={setting.key} setting={setting.key === 'LAB_THEME' && auth.status === 'authenticated' ? { ...setting, value: auth.user.theme } : setting} disabled={pending !== null} saving={pending === setting.key} error={errors[setting.key]} saved={saved === setting.key} onSave={(value) => save(setting.key, value)} />)}
-    {section === 'notifications' && <NotificationTestActions />}
+    {notificationGroups ? <div className={styles.notificationGroups}>
+      {(['general', 'activity', 'periodic'] as const).map((group) => <section key={group} aria-label={t(`userSettings.notificationGroup.${group}`)} className={styles.notificationGroup}>
+        <div className={styles.notificationGroupHeader}>
+          <h3>{t(`userSettings.notificationGroup.${group}`)}</h3>
+          <p>{t(`userSettings.notificationGroup.${group}Description`)}</p>
+          {group === 'periodic' && <NotificationTestActions />}
+        </div>
+        <div>{notificationGroups[group].map(renderSetting)}</div>
+      </section>)}
+    </div> : resource.data?.settings.map(renderSetting)}
   </section>
 }
 

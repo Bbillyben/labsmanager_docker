@@ -1,0 +1,13 @@
+{% load i18n email_tags %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="leave-calendar-grid" style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;line-height:14px;">
+  <colgroup><col width="140" style="width:140px;">{% for day in grid_days %}<col width="14" style="width:14px;">{% endfor %}</colgroup>
+  <thead><tr style="background:#edf3f8;color:#36506a;">
+    <th width="140" align="left" valign="bottom" style="width:140px;padding:4px 2px;white-space:normal;word-break:normal;">{% trans "Employee" %}</th>
+    {% for day in grid_days %}<th width="14" align="center" valign="bottom" style="width:14px;padding:3px 0;font-size:9px;font-weight:400;{% if day|date:'w' == '0' or day|date:'w' == '6' %}background:#e7edf2;{% endif %}">{{ day|date:"d" }}</th>{% endfor %}
+  </tr></thead>
+  <tbody>{% for employee, leaves in employee_leaves.items %}<tr>
+    {% notification_email_link "employee" employee.pk as employee_url %}
+    <td width="140" valign="middle" style="width:140px;padding:4px 2px;border-bottom:1px solid #edf1f5;white-space:normal;word-break:normal;overflow-wrap:normal;"><a href="{{ employee_url }}" style="color:#456583;">{{ employee }}</a></td>
+    {% for day in grid_days %}{% leave_calendar_day day leaves as coverage %}<td width="14" align="center" valign="middle" data-leave-day="{{ day|date:'Y-m-d' }}" data-coverage="{{ coverage|default:'none' }}" style="width:14px;height:18px;padding:0;border-bottom:1px solid #edf1f5;{% if coverage == 'full' %}background:#dbeaf2;{% elif coverage %}background:#e7f0f5;color:#36506a;font-size:8px;font-weight:700;{% elif day|date:'w' == '0' or day|date:'w' == '6' %}background:#f4f6f8;{% endif %}">{% if coverage == 'am' %}AM{% elif coverage == 'pm' %}PM{% else %}&nbsp;{% endif %}</td>{% endfor %}
+  </tr>{% endfor %}</tbody>
+</table>

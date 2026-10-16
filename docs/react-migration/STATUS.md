@@ -51,7 +51,9 @@ Les chargements et erreurs des sous-ressources restent locaux. Le détail princi
 
 Le panneau Projets contient deux grandes sections internes persistantes : **Jalons et tâches** et **Participations projets**. Elles utilisent `PersistentCollapsibleSection`, avec une clé `localStorage` stable par type de section, commune à tous les Employee, un état ouvert à la première utilisation et toute la ligne de titre comme déclencheur accessible.
 
-Le tracker Jalons et tâches est alimenté par `GET /api/v1/employees/<id>/milestones/`. La classification est calculée par Django pour l'utilisateur courant, dans l'ordre completed, overdue, due soon, planned, in progress. Le seuil « échéance proche » vient de `NOTIFICATION_ENDPOINTS_MILESTONES_STALE` via `LMUserSetting`. L'interface groupe les éléments en En retard, Échéance proche, En cours, Planifiés et Terminés ; le groupe Terminés est replié initialement. `MilestoneDetailSheet` affiche le détail et, depuis R2.13c, l'édition partielle selon la capacité de chaque item.
+Le tracker Jalons et tâches est alimenté par `GET /api/v1/employees/<id>/milestones/`. La classification est calculée par Django pour l'utilisateur courant, dans l'ordre completed, overdue, due soon, planned, in progress. Le seuil « échéance proche » vient de `DASHBOARD_MILESTONES_STALE_TO_DAYS` via `LMUserSetting`. L'interface groupe les éléments en En retard, Échéance proche, En cours, Planifiés et Terminés ; le groupe Terminés est replié initialement. `MilestoneDetailSheet` affiche le détail et, depuis R2.13c, l'édition partielle selon la capacité de chaque item.
+
+Le seuil d'imminence des Milestones est configuré une seule fois dans Settings > Alertes d'échéance avec `DASHBOARD_MILESTONES_STALE_TO_DAYS` (90 jours par défaut). Dashboards, notifications et autres détections utilisent cette durée en jours. Les deux anciennes clés ont été supprimées avec leurs lignes persistées, sans reprise des valeurs utilisateur.
 
 Les règles de représentation sont conservées : `start_date is None` désigne un jalon, une date de début désigne une tâche/activité ; `type="q"` affiche `quotity` comme progression, tandis que `type="o"` n'affiche aucune progression chiffrée.
 
@@ -786,6 +788,8 @@ Contrôles R3.12 : 31 tests backend Global Search et 17 tests frontend Search/AP
 
 **Implémenté techniquement ; validation navigateur attendue.** La migration `common.0012_recentitem` est appliquée en développement et reste à appliquer lors d'un futur déploiement. `/app` affiche le Dashboard personnel par défaut, les autres tableaux, six destinations récemment ouvertes et des accès rapides ; aucun widget, favori ou annonce. Le frontend suit explicitement Project, Employee, Team, Organisation, Fund/Budget sélectionnés, Contract consulté, Calendar et les trois outils financiers. Search, Settings et Dashboard ne sont pas suivis. L'API `/api/v1/recent-items/` valide et revalide les droits, reconstruit les liens métier depuis les helpers partagés avec Global Search et ignore les entrées devenues invisibles ou supprimées. Aucun ContentType, GFK ou nouvelle dépendance.
 
+Les liens Accès rapides et Aide et support utilisent les mêmes mini-cartes et la même grille responsive que Reprendre. Les icônes des Accès rapides sont partagées avec le menu latéral ; les liens d'aide gardent leurs URLs et leur ouverture externe.
+
 Contrôles R3.13 : 16 tests backend Recent/Search et 73 tests frontend Home/hook/routeur/Funding/Budgets réussis ; TypeScript, ESLint ciblé, contrôle Django, cohérence des migrations, build Vite et `git diff --check` réussis. La migration est aussi appliquée à la base de test par `--keepdb`.
 
 ### R3.14 — Auth React final et thème utilisateur persistant
@@ -858,6 +862,16 @@ Les nouveaux liens de confirmation utilisent `REACT_PUBLIC_URL` et ouvrent un br
 ### Rapport périodique HTML — phase B
 
 `notification_email.html` utilise la même identité email avec des synthèses Project/Fund compactes, les montants et la ventilation par type conservés. Consommation financière, avancement temporel et rythme de financement restent distincts ; ce dernier reprend les seuils du Dashboard et ne porte que sur les Funds visibles. Les jalons, contrats et entrants sont resserrés ; les absences respectent toujours le choix liste/calendrier par Employee et les inclusions `mailsubscription` restent présentes. Les liens Project, Funding, Planning, Employee, Team et Calendar réutilisent le helper d'URL absolue. Prévisualisation Settings et envoi avec logo CID vérifiés par tests ciblés ; validation visuelle dans les clients mail encore attendue.
+
+Le reporting financier regroupe chaque Project dans un bloc responsive : les synthèses et la ventilation par type occupent successivement toute la largeur, avec calculs inchangés.
+
+La synthèse générale Project est masquée lorsqu’un seul Fund est effectivement reporté ; elle reste affichée avec zéro ou plusieurs Funds.
+
+Le mode calendrier des absences utilise une timeline à noms lisibles et indicateurs de demi-journée, découpée en blocs de sept jours sur écran étroit ; la préférence et le rendu liste restent inchangés.
+
+Le reporting financier affiche la synthèse Project sur toute la largeur pour plusieurs Funds, les Funds par paires puis la ventilation par type en pleine largeur ; un Fund unique occupe seul la largeur disponible.
+
+Settings > Notifications présente les préférences existantes en trois sections, classées selon leurs consommateurs réels ; clés, valeurs et sauvegarde immédiate restent inchangées.
 
 ### Audit des pages legacy avant Phase 2
 

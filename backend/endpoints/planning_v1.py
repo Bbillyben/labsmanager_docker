@@ -43,7 +43,7 @@ def preload_planning_items(queryset):
 def planning_serializer_context(user, scoped_queryset):
     """Provide viewer visibility and temporal settings for one authorized scope."""
     stale_days = LMUserSetting.get_setting(
-        "NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=user,
+        "DASHBOARD_MILESTONES_STALE_TO_DAYS", user=user,
     )
     return {
         "user": user,

@@ -24,13 +24,13 @@ def getDashboardMilestonesTimeSlot(request):
         return {}
     
     pastMonth = LMUserSetting.get_setting('DASHBOARD_MILESTONES_STALE_FROM_MONTH',user=request.user)
-    nextMonth= LMUserSetting.get_setting('DASHBOARD_MILESTONES_STALE_TO_MONTH',user=request.user)
+    nextDays= LMUserSetting.get_setting('DASHBOARD_MILESTONES_STALE_TO_DAYS',user=request.user)
     now = datetime.now()
     slot={}
     if pastMonth:
         slot["from"] =getDateToStale(-pastMonth)
-    if nextMonth and nextMonth > 0:
-        slot["to"]=getDateToStale(nextMonth)
+    if nextDays and nextDays > 0:
+        slot["to"]=datetime.now() + timedelta(days=nextDays)
     
     return slot   
 

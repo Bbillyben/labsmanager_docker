@@ -1,0 +1,44 @@
+{% load i18n email_tags %}
+{% project_reported_funds fund_rows row.object.pk as project_fund_rows %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" data-project-financial-block="{{ row.object.pk }}" style="width:100%;border-top:1px solid #dce4ec;border-bottom:1px solid #dce4ec;margin-top:7px;">
+  <tr>
+    <td colspan="2" style="padding:9px 0 5px;line-height:18px;overflow-wrap:anywhere;">
+      {% notification_email_link "project" row.object.pk as project_url %}
+      <a href="{{ project_url }}" style="color:#36506a;font-weight:700;text-decoration:underline;">{{ row.object.name }}</a><br>
+      <span style="color:#69788a;font-size:11px;line-height:16px;">{% if row.object.start_date %}{{ row.object.start_date|date:"DATE_FORMAT" }}{% else %}—{% endif %} – {% if row.object.end_date %}{{ row.object.end_date|date:"DATE_FORMAT" }}{% else %}—{% endif %}</span>
+    </td>
+  </tr>
+  {% if project_fund_rows|length != 1 %}
+  <tr><td colspan="2" data-project-financial-summary style="padding:0 0 5px;">
+    {% include "email/components/report_financial_summary.html" with row=row only %}
+  </td></tr>
+  {% endif %}
+  {% if project_fund_rows %}
+  <tr><td colspan="2" style="padding:5px 0 3px;">
+    {% if project_fund_rows|length > 1 %}<div style="margin:0 0 4px;padding-top:6px;border-top:1px solid #dce4ec;color:#43566d;font-size:11px;font-weight:700;">{% trans "Project Fund overview :" %}</div>{% endif %}
+    {% if project_fund_rows|length == 1 %}
+      {% for fund_row in project_fund_rows %}<div data-fund-card="{{ fund_row.object.pk }}" style="padding:2px 8px 5px;border:1px solid #e4ebf1;background:#f8fafc;">{% include "email/components/report_financial_row.html" with row=fund_row kind="fund" card=True only %}</div>{% endfor %}
+    {% else %}
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" data-project-fund-grid style="width:100%;table-layout:fixed;border-collapse:collapse;">
+      <colgroup><col width="50%"><col width="50%"></colgroup>
+      {% for fund_row in project_fund_rows %}
+      {% if forloop.counter0|divisibleby:2 %}<tr data-fund-pair>{% endif %}
+        <td class="fund-grid-column" data-fund-card="{{ fund_row.object.pk }}" width="50%" valign="top" style="width:50%;padding:3px;vertical-align:top;">
+          <div style="padding:2px 8px 5px;border:1px solid #e4ebf1;background:#f8fafc;">
+            {% include "email/components/report_financial_row.html" with row=fund_row kind="fund" card=True compact=True only %}
+          </div>
+        </td>
+      {% if forloop.last and not forloop.counter|divisibleby:2 %}<td class="fund-grid-spacer" width="50%" style="width:50%;font-size:0;line-height:0;">&nbsp;</td>{% endif %}
+      {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
+      {% endfor %}
+    </table>
+    {% endif %}
+  </td></tr>
+  {% endif %}
+  {% if row.type_summary %}
+  <tr><td colspan="2" data-project-financial-detail style="padding:8px 0 7px;">
+    <div style="margin:0 0 4px;color:#43566d;font-size:11px;font-weight:700;">{% trans "Funding by type" %}</div>
+    {% include "fund/fund_overview_type.html" with fs=row.type_summary only %}
+  </td></tr>
+  {% endif %}
+</table>

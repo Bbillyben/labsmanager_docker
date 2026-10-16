@@ -44,15 +44,48 @@ class UserSettingsV1Tests(APITestCase):
             {
                 "DASHBOARD_CONTRACT_STALE_TO_MONTH",
                 "DASHBOARD_PROJECT_STALE_TO_MONTH",
-                "DASHBOARD_MILESTONES_STALE_TO_MONTH",
+                "DASHBOARD_MILESTONES_STALE_TO_DAYS",
                 "DASHBOARD_FUND_STALE_TO_MONTH",
             },
         )
         self.assertTrue(all(item["type"] == "integer" for item in settings))
-        for key in ("DASHBOARD_MILESTONES_STALE_TO_MONTH", "DASHBOARD_FUND_STALE_TO_MONTH"):
+        for key in ("DASHBOARD_MILESTONES_STALE_TO_DAYS", "DASHBOARD_FUND_STALE_TO_MONTH"):
             response = self.client.patch(f"/api/v1/settings/user/stale/{key}/", {"value": 4}, format="json")
             self.assertEqual(response.status_code, 200, response.data)
             self.assertEqual(response.data["value"], 4)
+
+    def test_milestone_threshold_is_one_day_setting_and_old_keys_are_unavailable(self):
+        key = "DASHBOARD_MILESTONES_STALE_TO_DAYS"
+        self.assertEqual(LMUserSetting.get_setting_default(key), 90)
+        self.assertEqual(LMUserSetting.get_setting(key, user=self.user, create=False), 90)
+        self.assertNotIn("DASHBOARD_MILESTONES_STALE_TO_MONTH", LMUserSetting.SETTINGS)
+        self.assertNotIn("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", LMUserSetting.SETTINGS)
+        stale = self.client.get("/api/v1/settings/user/stale/").data["settings"]
+        notifications = self.client.get("/api/v1/settings/user/notifications/").data["settings"]
+        self.assertEqual([row["key"] for row in stale].count(key), 1)
+        self.assertEqual(next(row for row in stale if row["key"] == key)["value"], 90)
+        self.assertNotIn(key, [row["key"] for row in notifications])
+        self.assertNotIn("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", [row["key"] for row in notifications])
+        url = f"/api/v1/settings/user/stale/{key}/"
+        self.assertEqual(self.client.patch(url, {"value": 45}, format="json").data["value"], 45)
+        self.assertEqual(LMUserSetting.get_setting(key, user=self.user), 45)
+        stale_after_save = self.client.get("/api/v1/settings/user/stale/").data["settings"]
+        self.assertEqual(next(row for row in stale_after_save if row["key"] == key)["value"], 45)
+        self.assertEqual(self.client.patch(url, {"value": 0}, format="json").status_code, 400)
+        for section, old in (("stale", "DASHBOARD_MILESTONES_STALE_TO_MONTH"),
+                             ("notifications", "NOTIFICATION_ENDPOINTS_MILESTONES_STALE")):
+            self.assertEqual(self.client.patch(f"/api/v1/settings/user/{section}/{old}/", {"value": 7}, format="json").status_code, 404)
+
+    def test_old_milestone_threshold_migration_deletes_only_its_two_keys(self):
+        old_months = LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_MONTH", value="3")
+        old_days = LMUserSetting.objects.create(user=self.user, key="NOTIFICATION_ENDPOINTS_MILESTONES_STALE", value="30")
+        current = LMUserSetting.objects.create(user=self.user, key="DASHBOARD_MILESTONES_STALE_TO_DAYS", value="45")
+        unrelated = LMUserSetting.objects.create(user=self.user, key="DASHBOARD_PROJECT_STALE_TO_MONTH", value="3")
+        migration = import_module("settings.migrations.0010_remove_old_milestone_thresholds")
+        migration.remove_old_milestone_thresholds(apps, None)
+        self.assertFalse(LMUserSetting.objects.filter(pk__in=[old_months.pk, old_days.pk]).exists())
+        self.assertTrue(LMUserSetting.objects.filter(pk=current.pk).exists())
+        self.assertTrue(LMUserSetting.objects.filter(pk=unrelated.pk).exists())
 
     def test_choice_and_boolean_validation(self):
         interface = self.client.get("/api/v1/settings/user/interface/").data["settings"]

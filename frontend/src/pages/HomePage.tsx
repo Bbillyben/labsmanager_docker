@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, Copy, LayoutDashboard } from 'lucide-react'
+import { ArrowRight, BookOpen, Bug, Copy, LayoutDashboard, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { listDashboards, type DashboardSummary } from '../api/dashboards'
 import { listRecentItems, type RecentItem } from '../api/recentItems'
@@ -11,17 +11,23 @@ import { genericInfoIcon } from './genericInfoIcons'
 import { useTranslation, type TranslationKey } from '../i18n/i18n'
 import { PageHeader } from '../ui/PageHeader'
 import { Button } from '../ui/Button'
+import { CalendarDays, FlaskConical, Landmark, Users, UsersRound } from '../layout/sidebarIcons'
 import styles from './HomePage.module.css'
+
+function HomeLinkCard({ destination, external = false, icon: Icon, title, category, subtitle }: {
+  destination: string; external?: boolean; icon: LucideIcon; title: string; category?: string; subtitle?: string
+}) {
+  const contents = <><Icon aria-hidden="true" size={19} /><span>{category && <small>{category}</small>}<strong>{title}</strong>{subtitle && <small>{subtitle}</small>}</span><ArrowRight aria-hidden="true" size={16} /></>
+  return external
+    ? <a href={destination} rel="noopener noreferrer" target="_blank">{contents}</a>
+    : <Link to={destination}>{contents}</Link>
+}
 
 const recentTypeKeys: Record<string, TranslationKey> = {
   project: 'navigation.projects', employee: 'page.employees', fund: 'projectFunding.funds',
   budget: 'projectBudgets.budgets', contract: 'navigation.contracts', team: 'navigation.teams',
   institution: 'organization.institutions', funder: 'organization.funders', calendar: 'calendars.title',
   'fund-explorer': 'financial.fundItems', 'budget-explorer': 'financial.budgets', expenses: 'financial.expenses',
-}
-
-const databaseNames: Record<string, string> = {
-  postgresql: 'PostgreSQL', sqlite: 'SQLite', mysql: 'MySQL', oracle: 'Oracle', other: 'Other',
 }
 
 export function HomePage() {
@@ -64,12 +70,12 @@ export function HomePage() {
   const displayName = auth.user.employee ? auth.user.employee.first_name : [auth.user.first_name, auth.user.last_name].filter(Boolean).join(' ') || auth.user.username
   const primary = dashboards?.find((item) => item.is_default) ?? dashboards?.[0]
   const others = dashboards?.filter((item) => item.id !== primary?.id) ?? []
-  const quick: { key: TranslationKey; url: string }[] = []
-  if (auth.user.capabilities.view_calendar) quick.push({ key: 'calendars.title', url: '/calendars' })
-  if (auth.user.capabilities.view_project_list) quick.push({ key: 'navigation.projects', url: '/projects/' })
-  if (auth.user.capabilities.view_employee_list) quick.push({ key: 'page.employees', url: '/employees/' })
-  if (auth.user.capabilities.view_team_list) quick.push({ key: 'navigation.teams', url: '/teams/' })
-  quick.push({ key: 'financial.fundItems', url: '/tools/fund-items' })
+  const quick: { key: TranslationKey; url: string; icon: LucideIcon }[] = []
+  if (auth.user.capabilities.view_calendar) quick.push({ key: 'calendars.title', url: '/calendars', icon: CalendarDays })
+  if (auth.user.capabilities.view_project_list) quick.push({ key: 'navigation.projects', url: '/projects/', icon: FlaskConical })
+  if (auth.user.capabilities.view_employee_list) quick.push({ key: 'page.employees', url: '/employees/', icon: Users })
+  if (auth.user.capabilities.view_team_list) quick.push({ key: 'navigation.teams', url: '/teams/', icon: UsersRound })
+  quick.push({ key: 'financial.fundItems', url: '/tools/fund-items', icon: Landmark })
 
   return <main className={styles.home}>
     <PageHeader title={t('home.welcome', { name: displayName })} />
@@ -84,15 +90,15 @@ export function HomePage() {
           <LayoutDashboard aria-hidden="true" /><span>{t('home.createDashboard')}</span><ArrowRight aria-hidden="true" /></Link>)}
     </section>
     <section className={styles.section} aria-labelledby="home-recents"><h2 id="home-recents">{t('home.resume')}</h2>
-      {recents && (recents.length ? <ul className={styles.recents}>{recents.map((item) => {
+      {recents && (recents.length ? <ul className={styles.cards}>{recents.map((item) => {
         const Icon = genericInfoIcon(item.icon)
         const title = item.obj_id === null ? t(recentTypeKeys[item.url_id] ?? 'page.home') : item.title
-        return <li key={`${item.url_id}:${item.obj_id ?? ''}`}><Link to={item.url.startsWith('/app/') ? item.url.slice(4) : item.url}><Icon aria-hidden="true" size={19} /><span>{item.obj_id !== null && <small>{t(recentTypeKeys[item.url_id] ?? 'page.home')}</small>}<strong>{title}</strong>{item.subtitle && <small>{item.subtitle}</small>}</span><ArrowRight aria-hidden="true" size={16} /></Link></li>
+        return <li key={`${item.url_id}:${item.obj_id ?? ''}`}><HomeLinkCard destination={item.url.startsWith('/app/') ? item.url.slice(4) : item.url} icon={Icon} title={title} category={item.obj_id !== null ? t(recentTypeKeys[item.url_id] ?? 'page.home') : undefined} subtitle={item.subtitle} /></li>
       })}</ul> : <p className={styles.empty}>{t('home.noRecents')}</p>)}
     </section>
-    {quick.length > 0 && <section className={styles.section} aria-labelledby="home-quick"><h2 id="home-quick">{t('home.quickAccess')}</h2><div className={styles.inlineLinks}>{quick.map((item) => <Link key={item.url} to={item.url}>{t(item.key)}</Link>)}</div></section>}
+    {quick.length > 0 && <section className={styles.section} aria-labelledby="home-quick"><h2 id="home-quick">{t('home.quickAccess')}</h2><ul className={styles.cards}>{quick.map((item) => <li key={item.url}><HomeLinkCard destination={item.url} icon={item.icon} title={t(item.key)} /></li>)}</ul></section>}
     <section className={styles.section} aria-labelledby="home-help"><h2 id="home-help">{t('home.helpSupport')}</h2>
-      {systemInfo && systemInfo.help_links.length > 0 && <div className={styles.inlineLinks}>{systemInfo.help_links.map((link) => <a href={link.url} key={`${link.label}:${link.url}`} rel="noopener noreferrer" target="_blank">{link.label}</a>)}</div>}
+      {systemInfo && systemInfo.help_links.length > 0 && <ul className={styles.cards}>{systemInfo.help_links.map((link) => <li key={`${link.label}:${link.url}`}><HomeLinkCard destination={link.url} external icon={/issues|errors|erreurs/i.test(`${link.label} ${link.url}`) ? Bug : BookOpen} title={link.label} /></li>)}</ul>}
       
        {typeof systemInfo?.system_info.labsmanager_version === 'string' && (
         <p className={styles.version}>

@@ -63,8 +63,8 @@ def check_stale_milestones():
         subs_empl = visible_objects(user.user, 'employee', Employee.objects.filter(
             pk__in=subscription.objects.filter(user=user.user, content_type=content_type).values('object_id')
         )).values_list('pk', flat=True)
-        stale=LMUserSetting.get_setting("NOTIFICATION_ENDPOINTS_MILESTONES_STALE", user=user.user, backup_value=0)
-        deadline = cdate + relativedelta(days=stale)
+        stale=LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_DAYS", user=user.user)
+        deadline = cdate + timedelta(days=stale)
         milestonesE = Milestones.objects.filter(end_date__gte=cdate, end_date__lte=deadline, status= False).filter(Q(employee=emp) | Q(employee__id__in=subs_empl))
         
         # for project side

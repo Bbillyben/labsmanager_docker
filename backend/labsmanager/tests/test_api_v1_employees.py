@@ -902,7 +902,7 @@ class EmployeeMilestoneV1ApiTests(APITestCase):
         target = self.create_employee("State", "Viewer", user=user)
         project = Project.objects.create(name="State project")
         LMUserSetting.objects.create(
-            key="NOTIFICATION_ENDPOINTS_MILESTONES_STALE",
+            key="DASHBOARD_MILESTONES_STALE_TO_DAYS",
             value="3",
             user=user,
         )

@@ -77,7 +77,7 @@
 
 ## Employee Projects : lecture contextuelle et édition partielle R2.13c
 
-- La classification des jalons est autoritaire côté Django et dépend de l'utilisateur courant : completed, overdue, due soon, planned, puis in progress. Le seuil due soon vient de `NOTIFICATION_ENDPOINTS_MILESTONES_STALE` via `LMUserSetting`; React n'en recalcule pas la valeur.
+- La classification des jalons est autoritaire côté Django et dépend de l'utilisateur courant : completed, overdue, due soon, planned, puis in progress. Le seuil due soon vient de `DASHBOARD_MILESTONES_STALE_TO_DAYS` via `LMUserSetting`, en jours ; React n'en recalcule pas la valeur.
 - Pour les jalons, l'absence de `start_date` signifie milestone/jalon et sa présence signifie task/activity. `type="q"` utilise `quotity` comme progression ; `type="o"` n'affiche aucune progression numérique.
 - La collection de jalons reste contextuelle à l'Employee visible. Les marqueurs `can_view` des ressources liées déterminent seulement si une navigation indépendante peut être proposée ; ils ne filtrent pas les données nécessaires à la compréhension de la charge du subordonné.
 - R2.13c ajoute `can_change` par item via `endpoints.change_milestones`. Le scope Employee accepte seulement `desc`, `quotity` et `status` par PATCH, avec `save()` et la cohérence progression/terminé du Planning Project. Le Sheet commun reste en consultation par défaut ; aucune création, suppression ou mutation de dépendance n'est proposée depuis Employee. Project garde son CRUD complet ; le Gantt Employee reflète la relecture sans devenir éditable directement.
