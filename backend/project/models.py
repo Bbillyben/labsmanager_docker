@@ -16,7 +16,7 @@ import decimal
 import logging
 logger = logging.getLogger('labsmanager')
 
-class Institution(models.Model):
+class Institution(RightsCheckerMixin, models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Lab Institution")

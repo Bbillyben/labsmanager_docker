@@ -94,10 +94,9 @@ export function InvitationAcceptPage() {
   if (auth.status === 'error') return <ErrorState />
   if (auth.status === 'authenticated' && displayState !== 'complete') return <AuthFrame title={t('auth.invitationTitle')}><p role="status">{t('auth.invitationAuthenticated')}</p><Link className={styles.helpLink} to="/">{t('auth.invitationGoHome')}</Link></AuthFrame>
 
-  return <AuthFrame title={t('auth.invitationTitle')}>
+  return <AuthFrame title={t('auth.invitationTitle')} description={displayState === 'valid' ? t('auth.invitationDescription') : undefined}>
     {displayState === 'loading' && <p role="status">{t('common.loading')}</p>}
     {displayState === 'valid' && invitation && <form className={styles.form} onSubmit={(event) => void submit(event)} aria-busy={mutation.pending}>
-      <p>{t('auth.invitationDescription')}</p>
       <label htmlFor="invitation-email">{t('auth.email')}</label><input id="invitation-email" type="email" value={invitation.email} readOnly />
       {invitation.fields.username && <><label htmlFor="invitation-username">{t('auth.username')}</label><input id="invitation-username" autoComplete="username" required value={username} onChange={(event) => setUsername(event.target.value)} /></>}
       <label htmlFor="invitation-password">{t('auth.newPassword')}</label><input id="invitation-password" type="password" autoComplete="new-password" required value={password1} onChange={(event) => setPassword1(event.target.value)} />

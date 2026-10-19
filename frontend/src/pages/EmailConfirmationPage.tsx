@@ -66,17 +66,16 @@ export function EmailConfirmationPage() {
     try {
       const result = await confirmEmail()
       setState(result.state)
-      if (auth.status === 'authenticated') void auth.refresh().catch(() => {})
+      if (auth.status === 'authenticated') void auth.refresh().catch(() => { })
     } catch (error) { setState(stateFromError(error)) }
     finally { setPending(false) }
   }
 
   if (auth.status === 'loading') return <main className="centered-state"><LoadingState message={t('common.loadSession')} /></main>
   if (auth.status === 'error') return <ErrorState />
-  return <AuthFrame title={t('auth.emailConfirmTitle')}>
+  return <AuthFrame title={t('auth.emailConfirmTitle')} description={displayState === 'confirmation_required' ? `${t('auth.emailConfirmPrompt')}${email ? ` ${email}` : ''}` : undefined}>
     {displayState === 'loading' && <p role="status">{t('common.loading')}</p>}
     {displayState === 'confirmation_required' && <>
-      <p>{t('auth.emailConfirmPrompt')}{email ? ` ${email}` : ''}</p>
       <Button type="button" disabled={pending} onClick={() => void submit()}>{pending ? t('common.loading') : t('auth.emailConfirmAction')}</Button>
     </>}
     {displayState === 'confirmed' && <p role="status">{t('auth.emailConfirmed')}</p>}

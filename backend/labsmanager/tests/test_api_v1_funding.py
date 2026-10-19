@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -7,6 +8,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from expense.models import Expense, Expense_point
+from fund import api_v1 as funding_api
 from fund.models import Cost_Type, Fund, Fund_Institution, Fund_Item
 from project.models import Institution, Participant, Project
 from settings.models import LMProjectSetting
@@ -63,6 +65,44 @@ class ProjectFundingV1Tests(APITestCase):
         self.assertEqual(detail["expense_points"]["items"][0]["amount"], "-30.00")
         self.assertEqual(self.client.get(self.collection(self.hidden)).status_code, 404)
         self.assertEqual(self.client.get(self.fund_url(self.hidden_fund)).status_code, 404)
+
+    def test_organization_links_require_independent_view_rights_and_detail_access(self):
+        def organizations():
+            response = self.client.get(self.collection())
+            self.assertEqual(response.status_code, 200, response.data)
+            self.assertEqual([item["id"] for item in response.data["funds"]], [self.fund.pk])
+            return response.data["funds"][0]
+
+        initial = organizations()
+        self.assertEqual(initial["funder"], {"id": self.funder.pk, "short_name": "ANR", "name": "Agence", "can_view": False})
+        self.assertEqual(initial["institution"], {"id": self.institution.pk, "short_name": "ULF", "name": "Université", "can_view": False})
+        self.grant("view_fund_institution", "fund")
+        self.assertFalse(organizations()["funder"]["can_view"])
+        self.grant("display_infos", "common")
+        self.assertTrue(organizations()["funder"]["can_view"])
+        self.assertFalse(organizations()["institution"]["can_view"])
+        self.grant("view_institution", "project")
+        both = organizations()
+        self.assertTrue(both["funder"]["can_view"])
+        self.assertTrue(both["institution"]["can_view"])
+        detail = self.client.get(self.fund_url()).data["fund"]
+        self.assertTrue(detail["funder"]["can_view"])
+        self.assertTrue(detail["institution"]["can_view"])
+        self.user.user_permissions.remove(Permission.objects.get(content_type__app_label="fund", codename="view_fund_institution"))
+        self.user = get_user_model().objects.get(pk=self.user.pk)
+        self.client.force_login(self.user)
+        self.assertFalse(organizations()["funder"]["can_view"])
+        self.assertTrue(organizations()["institution"]["can_view"])
+
+    def test_organization_rights_are_evaluated_once_for_the_fund_collection(self):
+        Fund.objects.create(project=self.project, funder=self.funder, institution=self.institution, ref="B-2")
+        self.grant("display_infos", "common")
+        self.grant("view_institution", "project")
+        with patch.object(funding_api, "visible_funding_organization_ids", wraps=funding_api.visible_funding_organization_ids) as visible_ids:
+            response = self.client.get(self.collection())
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data["funds"]), 2)
+        self.assertEqual(visible_ids.call_count, 1)
 
     def test_fund_create_change_and_project_end_confirmation(self):
         url = self.collection()

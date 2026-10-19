@@ -39,7 +39,8 @@ All notable changes to LabsManager are documented in this file.
 - A single milestone proximity setting now governs dashboards and notifications, with a default of 90 days.
 - Fund and milestone dashboard widgets show expanded financial and deadline summaries.
 - New Employee, Leader, Lab Manager, and Project dashboards include the updated widget summaries.
-- Project and global Gantt views can hide tasks and milestones independently.
+- Project and global Gantt views can hide tasks and milestones independently.3
+- Inactive Hierarchy link is now editable
 
 ### Fixed
 
@@ -64,29 +65,29 @@ All notable changes to LabsManager are documented in this file.
 
 > Requires static update.
 
-- [FIX] User settings panel restored to full-panel display to prevent sliders and actions from being hidden.
-- [ADD] Server-side pagination for Bootstrap tables.
-- [ADD] Expense finder in Fund Explorer tools.
+- \[FIX] User settings panel restored to full-panel display to prevent sliders and actions from being hidden.
+- \[ADD] Server-side pagination for Bootstrap tables.
+- \[ADD] Expense finder in Fund Explorer tools.
 
 ## 0.9.5
 
 > Requires migration and static update.
 
-- [UPDATE] Breadcrumb list for unauthorized users on full lists.
-- [UPDATE] Subscription email display refined according to user permissions.
+- \[UPDATE] Breadcrumb list for unauthorized users on full lists.
+- \[UPDATE] Subscription email display refined according to user permissions.
 - [UPDATE] `CalendarEventMixin` updated to extract calendar type from the request.
-- [ADD] Configurable landing page after login.
-- [ADD] Bulk end-date update options in Project and Fund forms.
-- [ADD] Option to update employee exit date from contract end date.
-- [ADD] Expense imputation on budget lines.
-- [ADD] Milestone delay and validation actions.
-- [ADD] Milestone filters and export.
+- \[ADD] Configurable landing page after login.
+- \[ADD] Bulk end-date update options in Project and Fund forms.
+- \[ADD] Option to update employee exit date from contract end date.
+- \[ADD] Expense imputation on budget lines.
+- \[ADD] Milestone delay and validation actions.
+- \[ADD] Milestone filters and export.
 - [UPDATE] Login redirection using the `next` parameter.
-- [FIX] Leave creation issue from employee page.
-- [UPDATE] Milestones can now also represent tasks using a start date.
-- [ADD] Project, task, and milestone calendars on employee panels.
-- [ADD] Task and milestone filters.
-- [UPDATE] Project calendar printing.
+- \[FIX] Leave creation issue from employee page.
+- \[UPDATE] Milestones can now also represent tasks using a start date.
+- \[ADD] Project, task, and milestone calendars on employee panels.
+- \[ADD] Task and milestone filters.
+- \[UPDATE] Project calendar printing.
 
 ---
 

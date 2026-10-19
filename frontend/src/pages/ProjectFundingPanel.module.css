@@ -10,6 +10,9 @@
 .table thead th { font-weight: 600; background: var(--muted); }
 .table tbody tr[data-selected="true"] { background: var(--accent); }
 .table tbody tr:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.table a { text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.table a:hover { text-decoration-color: currentColor; }
+.table a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .table .number { text-align: right; font-variant-numeric: tabular-nums; }
 .table .actions { width: 2.8rem; }
 .actions > * { opacity: 0; }

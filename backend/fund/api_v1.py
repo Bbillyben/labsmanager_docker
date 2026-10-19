@@ -68,9 +68,26 @@ def cost_type_data(item):
     return {"id": item.pk, "short_name": item.short_name, "name": item.name}
 
 
-def fund_data(fund, user, change_project=None):
-    return {"id": fund.pk, "admin_url": get_admin_change_url(user, fund), "funder": {"id": fund.funder_id, "short_name": fund.funder.short_name, "name": fund.funder.name},
-            "institution": {"id": fund.institution_id, "short_name": fund.institution.short_name, "name": fund.institution.name},
+def visible_funding_organization_ids(user, funds):
+    if not user.has_perm("common.display_infos"):
+        return set(), set()
+    funder_ids = {fund.funder_id for fund in funds}
+    institution_ids = {fund.institution_id for fund in funds}
+    visible_funders = Fund_Institution.get_instances_for_user(
+        "view", user, Fund_Institution.objects.filter(pk__in=funder_ids)
+    ).values_list("pk", flat=True)
+    visible_institutions = Institution.get_instances_for_user(
+        "view", user, Institution.objects.filter(pk__in=institution_ids)
+    ).values_list("pk", flat=True)
+    return set(visible_funders), set(visible_institutions)
+
+
+def fund_data(fund, user, change_project=None, visible_organizations=None):
+    if visible_organizations is None:
+        visible_organizations = visible_funding_organization_ids(user, [fund])
+    visible_funders, visible_institutions = visible_organizations
+    return {"id": fund.pk, "admin_url": get_admin_change_url(user, fund), "funder": {"id": fund.funder_id, "short_name": fund.funder.short_name, "name": fund.funder.name, "can_view": fund.funder_id in visible_funders},
+            "institution": {"id": fund.institution_id, "short_name": fund.institution.short_name, "name": fund.institution.name, "can_view": fund.institution_id in visible_institutions},
             "ref": fund.ref, "start_date": fund.start_date, "end_date": fund.end_date,
             "amount": money(fund.amount), "expense": money(fund.expense),
             "available": money(amount(fund.amount) + amount(fund.expense)),
@@ -242,11 +259,12 @@ class FundingBase(APIView):
 class ProjectFundingView(FundingBase):
     def get(self, request, *args, **kwargs):
         funds = list(self.funds())
+        visible_organizations = visible_funding_organization_ids(request.user, funds)
         items = list(Fund_Item.objects.filter(fund__in=funds).select_related("type", "fund").order_by("type__short_name", "pk"))
         change_project = project_capabilities(request.user, self.project())["can_change"]
         return Response({"capabilities": {"can_add": fund_capabilities(request.user, self.project(), change_project=change_project)["can_add"]},
                          "project_dates": {"start_date": self.project().start_date, "end_date": self.project().end_date},
-                         "funds": [fund_data(fund, request.user, change_project) for fund in funds], "overview": overview(funds, items)})
+                         "funds": [fund_data(fund, request.user, change_project, visible_organizations) for fund in funds], "overview": overview(funds, items)})
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):

@@ -41,7 +41,7 @@ class Cost_Type(MPTTModel):
     def __str__(self):
         return f'{self.name}'
     
-class Fund_Institution(models.Model):
+class Fund_Institution(RightsCheckerMixin, models.Model):
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Funder Institution")

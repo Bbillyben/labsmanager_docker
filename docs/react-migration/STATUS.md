@@ -514,6 +514,8 @@ permissions et les API restent inchangés. Aucune migration ni dépendance. La
 validation navigateur R2.12c a été confirmée ; les contrôles automatisés sont
 consignés dans COMMANDES.md.
 
+Dans la liste des Funds, les noms du financeur et de l'institution gestionnaire ouvrent leur fiche React seulement si le droit `view` propre à chaque organisation et l'accès aux fiches d'organisation sont présents. Les noms restent visibles en texte simple sinon ; les droits sont évalués côté Django sur les identifiants groupés des Funds affichés.
+
 ### R2.13a — Menu d’entité et exports Project/Employee
 
 Les headers Project et Employee utilisent le même `EntityActionMenu`. Project
@@ -799,6 +801,10 @@ Contrôles R3.13 : 16 tests backend Recent/Search et 73 tests frontend Home/hook
 `LAB_THEME` n'accepte plus que `light`/`dark`, avec défaut `light`. `/me/` amorce le thème de l'utilisateur après connexion ou rechargement ; le menu et Settings > Interface utilisent la même API et reviennent à la valeur antérieure si l'écriture du menu échoue. Aucun choix de thème n'est stocké dans `localStorage` ; les pages anonymes sont claires. La migration de données `settings.0009_reset_lab_theme` supprime uniquement les anciennes lignes `LAB_THEME` ; elle est appliquée en développement et reste à appliquer lors d'un futur déploiement. `REACT_PUBLIC_URL` est la base publique canonique de React (`/app` inclus) pour les liens envoyés par e-mail. R3.14b : le lien e-mail ouvre React, qui échange le jeton par `/api` ; le pont Django répond en JSON et React navigue vers le formulaire sans jeton. La configuration de développement fixe `REACT_PUBLIC_URL` à `http://192.168.1.145:5173/app` ; sans configuration, aucune demande de reset n’envoie de lien. La validation d’un vrai courriel en navigateur reste attendue. Aucune migration de schéma ni dépendance nouvelle.
 
 Contrôles R3.14 : 22 tests backend et 45 tests frontend auth/routeur ciblés réussis ; TypeScript, ESLint ciblé, contrôle Django, build Vite et `git diff --check` réussis. La validation navigateur du courriel réel, du lien de retour vers React et de la persistance entre sessions reste à faire.
+
+Le fond aléatoire de Login est mutualisé avec les écrans React de réinitialisation du mot de passe, d'acceptation d'invitation et de confirmation d'email via un conteneur commun ; les formulaires et parcours restent inchangés.
+
+L'en-tête des cartes d'authentification réserve désormais une colonne au logo, à droite des titres et descriptions, y compris sur petit écran.
 
 
 ### R4.1 — Build Docker et pipeline static React

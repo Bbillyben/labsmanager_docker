@@ -75,7 +75,7 @@ class GlobalCalendarBase(APIView):
             start=start, end=end, filters=request.query_params,
         )
 
-
+from staff.models import Employee
 class GlobalEmployeeCalendar(GlobalCalendarBase):
     calendar_type = CalendarType.MAIN
 
@@ -90,10 +90,18 @@ class GlobalEmployeeCalendar(GlobalCalendarBase):
                       event.metadata.get("employee_id") is None
                       or str(event.metadata.get("employee_id")) in visible_ids
                   )]
+        visible_employees = Employee.get_instances_for_user(
+                        "view", request.user, Employee.objects.all()
+                    )
+        
         # The same filtered, visible queryset supplies both event labels and all
         # Resource rows, including Employees without Leave in this date range.
         resources = [
-            {"id": str(pk), "title": f"{first} {last}".strip()}
+            {
+                "id": str(pk), 
+                "title": f"{first} {last}".strip(),
+                "can_view": pk in visible_employees.values_list("pk")
+            }
             for pk, first, last in employees.order_by("first_name", "last_name", "pk")
             .values_list("pk", "first_name", "last_name")
         ]

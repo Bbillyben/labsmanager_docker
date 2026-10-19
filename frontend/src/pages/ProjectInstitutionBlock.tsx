@@ -11,6 +11,7 @@ import { NativeSelect } from '../components/ui/native-select'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
+import { Link } from 'react-router-dom'
 import type { EmployeeResource } from './useEmployeeResource'
 import styles from './ProjectOverview.module.css'
 
@@ -39,7 +40,11 @@ export function ProjectInstitutionBlock({ projectId, resource }: Props) {
   return <section ref={containerRef} className={`${styles.column} ${styles.section}`} aria-labelledby="project-institutions-heading">
     <h3 id="project-institutions-heading">{t('project.institutions')}</h3>
     {data.items.length ? <ul className={styles.items}>{data.items.map((item) => <li className={styles.item} key={item.id} {...rowProps(item.id, data.capabilities.can_change || data.capabilities.can_delete)}>
-      <div className={styles.itemMain}><strong>{item.institution.short_name}</strong><span>{item.institution.name}</span><small>{t(item.status === 'c' ? 'project.institutionCoordinator' : 'project.institutionParticipant')}</small></div>
+      <div className={styles.itemMain}>
+        {item.institution.can_view ? <Link to={`/organizations/institutions/${item.institution.id}`}>{item.institution.short_name}</Link> : <strong>{item.institution.short_name}</strong>}
+
+
+        <span>{item.institution.name}</span><small>{t(item.status === 'c' ? 'project.institutionCoordinator' : 'project.institutionParticipant')}</small></div>
       {(data.capabilities.can_change || data.capabilities.can_delete) && <div className={styles.actions}><ItemActionMenu label={t('common.actionsFor', { name: item.institution.short_name })} canChange={data.capabilities.can_change} canDelete={data.capabilities.can_delete}
         onOpen={() => setSelectedId(item.id)} onEdit={() => { focus.current = containerRef.current; setEditing(item) }} onDelete={() => { focus.current = containerRef.current; setDeleting(item) }} /></div>}
     </li>)}</ul> : <p className={styles.empty}>{t('project.noInstitutions')}</p>}

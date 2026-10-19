@@ -3,8 +3,9 @@ import { apiRequest } from './client'
 export type FundingCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
 export type CostType = { id: number; short_name: string; name: string }
 export type FundingInstitution = { id: number; short_name: string; name: string }
+export type FundingOrganization = FundingInstitution & { can_view: boolean }
 export type Amounts = { amount: string; expense: string; available: string }
-export type Fund = Amounts & { admin_url?: string | null; id: number; funder: FundingInstitution; institution: FundingInstitution; ref: string; start_date: string | null; end_date: string | null; is_active: boolean; capabilities: FundingCapabilities }
+export type Fund = Amounts & { admin_url?: string | null; id: number; funder: FundingOrganization; institution: FundingOrganization; ref: string; start_date: string | null; end_date: string | null; is_active: boolean; capabilities: FundingCapabilities }
 export type FundingRow = { type: CostType; cells: Record<string, Amounts>; total: Amounts }
 export type FundingOverview = { rows: FundingRow[]; fund_totals: Record<string, Amounts>; grand_total: Amounts }
 export type ProjectFunding = { capabilities: Pick<FundingCapabilities, 'can_add'>; project_dates: { start_date: string | null; end_date: string | null }; funds: Fund[]; overview: FundingOverview }

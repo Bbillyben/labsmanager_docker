@@ -124,6 +124,7 @@ export function SharedCalendar({ anchor, scope, viewMode, events, resources = em
       plugins={[dayGridPlugin, timelinePlugin, resourceTimelinePlugin, interactionPlugin, classicThemePlugin]}
       views={viewMode === 'resources' ? projectResourceViews : projectDayGridViews}
       resources={viewMode === 'resources' ? visibleResources : undefined}
+      resourceOrder="title"
       resourceCellContent={viewMode === 'resources' ? (info) => {
         if (!info.resource) return info.fieldValue
         const employeeId = employeeIdsByResource.get(info.resource.id)

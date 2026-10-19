@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { jsonResponse } from '../test/fixtures'
@@ -9,7 +10,7 @@ import { ProjectFundingPanel } from './ProjectFundingPanel'
 const full = { can_add: true, can_change: true, can_delete: true }
 const readonly = { can_add: false, can_change: false, can_delete: false }
 const costType = { id: 5, short_name: 'HR', name: 'Human resources' }
-const fund: Fund = { id: 7, funder: { id: 2, short_name: 'ANR', name: 'Agence' }, institution: { id: 3, short_name: 'UL', name: 'Université' }, ref: 'A-1', start_date: '2026-01-01', end_date: '2026-12-31', amount: '100.00', expense: '-30.00', available: '70.00', is_active: true, capabilities: full }
+const fund: Fund = { id: 7, funder: { id: 2, short_name: 'ANR', name: 'Agence', can_view: false }, institution: { id: 3, short_name: 'UL', name: 'Université', can_view: false }, ref: 'A-1', start_date: '2026-01-01', end_date: '2026-12-31', amount: '100.00', expense: '-30.00', available: '70.00', is_active: true, capabilities: full }
 const totals = { amount: '100.00', expense: '-30.00', available: '70.00' }
 const base: ProjectFunding = { capabilities: { can_add: true }, project_dates: { start_date: '2026-01-01', end_date: '2026-12-31' }, funds: [fund], overview: { rows: [{ type: costType, cells: { '7': totals }, total: totals }], fund_totals: { '7': totals }, grand_total: totals } }
 const detail: FundDetail = { fund, summary: base.overview.rows, total: totals, items: { capabilities: full, items: [{ id: 9, type: costType, entry_date: '2026-01-01', value_date: '2026-02-01', ...totals }] }, expense_points: { capabilities: { ...full, expense_mode: 's' }, items: [{ id: 10, type: costType, entry_date: '2026-01-01', value_date: '2026-02-01', amount: '-30.00' }] } }
@@ -34,13 +35,30 @@ function setup(data: ProjectFunding = base, fundDetail: FundDetail = detail, loa
     if (url.match(/\/funds\/7\/(items|expense-points)\/\d+\/$/) && method === 'DELETE') return new Response(null, { status: 204 })
     return jsonResponse({ detail: `Unexpected ${method} ${url}` }, 404)
   })
-  const view = render(<I18nProvider><ProjectFundingPanel projectId="3" /></I18nProvider>)
+  const view = render(<I18nProvider><MemoryRouter><ProjectFundingPanel projectId="3" /></MemoryRouter></I18nProvider>)
   return { ...view, fetchMock }
 }
 
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); window.history.replaceState({}, '', window.location.pathname) })
 
 describe('ProjectFundingPanel', () => {
+  it.each([
+    [true, true], [true, false], [false, true], [false, false],
+  ])('links each organization only when its own can_view is true (funder %s, institution %s)', async (funderCanView, institutionCanView) => {
+    const visibleFund: Fund = { ...fund, funder: { ...fund.funder, can_view: funderCanView }, institution: { ...fund.institution, can_view: institutionCanView } }
+    const { fetchMock } = setup({ ...base, funds: [visibleFund] })
+    const row = await screen.findByRole('row', { name: /ANR.*UL.*A-1/ })
+    const funderLink = within(row).queryByRole('link', { name: 'ANR' })
+    const institutionLink = within(row).queryByRole('link', { name: 'UL' })
+    if (funderCanView) expect(funderLink).toHaveAttribute('href', '/organizations/funders/2')
+    else { expect(funderLink).not.toBeInTheDocument(); expect(within(row).getByText('ANR')).toBeInTheDocument() }
+    if (institutionCanView) expect(institutionLink).toHaveAttribute('href', '/organizations/institutions/3')
+    else { expect(institutionLink).not.toBeInTheDocument(); expect(within(row).getByText('UL')).toBeInTheDocument() }
+    expect(row).toHaveTextContent('A-1')
+    expect(row).toHaveTextContent('70,00')
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/organizations/'))).toBe(false)
+  })
+
   it('selects the Fund addressed by a Global Search result URL and keeps Expenses visible in simple mode', async () => {
     window.history.replaceState({}, '', '/app/projects/3/funding#fund-row-7')
     setup()

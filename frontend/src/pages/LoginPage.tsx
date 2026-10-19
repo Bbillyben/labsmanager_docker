@@ -7,6 +7,8 @@ import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
 import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
+import { AuthBackground } from './AuthBackground'
+import { AuthCardHeader } from './AuthCardHeader'
 import styles from './LoginPage.module.css'
 
 type LoginLocationState = { from?: unknown }
@@ -56,14 +58,9 @@ export function LoginPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <AuthBackground>
       <section aria-labelledby="login-title" className={styles.card}>
-        <img alt="LabsManager" className={styles.logo} src={`${import.meta.env.BASE_URL}labsmanager-logo.png`} />
-        <div className={styles.heading}>
-          <p className={styles.eyebrow}>{t('auth.workspace')}</p>
-          <h1 id="login-title">{t('auth.login')}</h1>
-          <p>{t('auth.loginDescription')}</p>
-        </div>
+        <AuthCardHeader title={t('auth.login')} titleId="login-title" description={t('auth.loginDescription')} />
         {error && <p className={styles.error} role="alert">{error}</p>}
         <form className={styles.form} onSubmit={handleSubmit}>
           <label htmlFor="login-identifier">{t('auth.identifier')}</label>
@@ -74,6 +71,6 @@ export function LoginPage() {
         </form>
         <Link className={styles.helpLink} to="/password/reset">{t('auth.forgotPassword')}</Link>
       </section>
-    </main>
+    </AuthBackground>
   )
 }

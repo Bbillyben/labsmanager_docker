@@ -8,15 +8,15 @@ import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
 import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
+import { AuthBackground } from './AuthBackground'
+import { AuthCardHeader } from './AuthCardHeader'
 import styles from './LoginPage.module.css'
 
-export function AuthFrame({ title, children }: { title: string; children: React.ReactNode }) {
-  const { t } = useTranslation()
-  return <main className={styles.page}><section className={styles.card} aria-labelledby="auth-flow-title">
-    <img alt="LabsManager" className={styles.logo} src={`${import.meta.env.BASE_URL}labsmanager-logo.png`} />
-    <div className={styles.heading}><p className={styles.eyebrow}>{t('auth.workspace')}</p><h1 id="auth-flow-title">{title}</h1></div>
+export function AuthFrame({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return <AuthBackground><section className={styles.card} aria-labelledby="auth-flow-title">
+    <AuthCardHeader title={title} titleId="auth-flow-title" description={description} />
     {children}
-  </section></main>
+  </section></AuthBackground>
 }
 
 export function PasswordResetBridgePage() {
@@ -55,9 +55,8 @@ export function PasswordResetRequestPage() {
   if (auth.status === 'loading') return <main className="centered-state"><LoadingState message={t('common.loadSession')} /></main>
   if (auth.status === 'error') return <ErrorState />
 
-  return <AuthFrame title={t('auth.resetRequestTitle')}>
+  return <AuthFrame title={t('auth.resetRequestTitle')} description={sent ? undefined : t('auth.resetRequestDescription')}>
     {sent ? <p role="status">{t('auth.resetSent')}</p> : <>
-      <p>{t('auth.resetRequestDescription')}</p>
       <form className={styles.form} onSubmit={submit}>
         <label htmlFor="reset-email">{t('auth.email')}</label>
         <input id="reset-email" type="email" autoComplete="email" required autoFocus value={email} onChange={(event) => setEmail(event.target.value)} />

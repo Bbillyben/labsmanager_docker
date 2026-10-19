@@ -70,59 +70,59 @@ export function EmployeeOverview() {
 
   return <section aria-labelledby="employee-general-heading" className={styles.overviewSection}>
     <h2 className={styles.overviewHeading} id="employee-general-heading">{t('employee.general')}</h2>
-      <div className={styles.summaryGrid}>
-        <section className={styles.column} aria-labelledby="employee-information-heading">
-          <MiniHeading id="employee-information-heading">{t('employee.information')}</MiniHeading>
-          <dl className={styles.details}>
-            <InfoRow label={t('employee.identity')}><CopyableValue value={fullName(employee)} /></InfoRow>
-            <DateInfo label={t('employee.birthDate')} value={employee.birth_date} />
-            <InfoRow label={t('employee.email')}><CopyableValue value={employee.email}>{employee.email ? <a href={`mailto:${employee.email}`}>{employee.email}</a> : '—'}</CopyableValue></InfoRow>
-            <DateInfo label={t('employee.entryDate')} value={employee.entry_date} />
-            <DateInfo label={t('employee.exitDate')} value={employee.exit_date} />
-            <InfoRow label={t('employee.activity')}>{t(employee.is_active ? 'employee.active' : 'employee.inactive')}</InfoRow>
-          </dl>
-          <EmployeeGenericInfo employeeId={employeeId} key={employeeId} />
-          <div className={styles.indicators}>
-            <Indicator label={t('employee.contractQuotity')} value={quotity(employee.contract_quotity)} />
-            <Indicator label={t('employee.projectQuotity')} value={quotity(employee.project_quotity)} />
-            <Indicator label={t('employee.contributionQuotity')} value={quotity(employee.contribution_quotity)} />
-            <Indicator label={t('employee.activeMilestones')} value={String(employee.active_milestones_count)} />
-          </div>
-        </section>
-        <section ref={statusSection} tabIndex={-1} className={styles.column} aria-labelledby="employee-status-heading">
-          <div className={styles.relationshipHeading}><MiniHeading id="employee-status-heading">{t('employee.statuses')}</MiniHeading>
-            {statusCanAdd && <Button size="xs" variant="ghost" onClick={(event) => { statusFocus.current = event.currentTarget; setEditingStatus(null) }}><Plus aria-hidden="true" />{t('employee.addStatus')}</Button>}
-          </div>
-          <SecondaryResource resource={statuses}>{(items) => <StatusHistory items={items} canEdit={statusCanEdit} canDelete={statusCanDelete} focusRef={statusFocus}
-            actionOpen={editingStatus !== undefined || Boolean(deletingStatus)} onEdit={setEditingStatus} onDelete={setDeletingStatus} />}</SecondaryResource>
-          {Boolean(statuses.refreshError) && <div className={styles.localError} role="alert">{t('employee.secondaryError')} <Button size="xs" variant="ghost" onClick={() => void statuses.refresh()}>{t('common.retry')}</Button></div>}
-          {Boolean(statusOptions.error) && <div className={styles.localError} role="alert">{t('employee.statusOptionsError')} <Button size="xs" variant="ghost" onClick={statusOptions.retry}>{t('common.retry')}</Button></div>}
-        </section>
-        <section ref={hierarchySection} tabIndex={-1} className={styles.column} aria-labelledby="employee-hierarchy-heading">
-          <MiniHeading id="employee-hierarchy-heading">{t('employee.hierarchy')}</MiniHeading>
-          <SecondaryResource resource={hierarchy}>{(value) => <>
-            <RelationshipHistory items={value.superiors} title={t('employee.superiors')} direction="superior" canAdd={canAdd} canEdit={canEdit} canDelete={canDelete} focus={focus}
-              onAdd={() => setEditing({ direction: 'superior', relation: null })} onEdit={(relation) => setEditing({ direction: 'superior', relation })} onDelete={(relation) => setDeleting({ direction: 'superior', relation })} actionOpen={Boolean(editing || deleting)} />
-            <RelationshipHistory items={value.subordinates} title={t('employee.subordinates')} direction="subordinate" canAdd={canAdd} canEdit={canEdit} canDelete={canDelete} focus={focus}
-              onAdd={() => setEditing({ direction: 'subordinate', relation: null })} onEdit={(relation) => setEditing({ direction: 'subordinate', relation })} onDelete={(relation) => setDeleting({ direction: 'subordinate', relation })} actionOpen={Boolean(editing || deleting)} />
-          </>}</SecondaryResource>
-          {Boolean(hierarchy.refreshError) && <div className={styles.localError} role="alert">{t('employee.secondaryError')} <Button size="xs" variant="ghost" onClick={() => void hierarchy.refresh()}>{t('common.retry')}</Button></div>}
-        </section>
-      </div>
-      {editingStatus !== undefined && statusOptions.data && <EmployeeStatusSheet employeeId={employeeId} status={editingStatus} options={statusOptions.data}
-        defaultDates={{ start_date: employee.entry_date, end_date: employee.exit_date }} returnFocus={statusFocus}
-        onClose={() => setEditingStatus(undefined)} onSaved={() => { setEditingStatus(undefined); void statuses.refresh() }} />}
-      {deletingStatus && <ConfirmDialog title={t('employee.deleteStatus')}
-        description={t('employee.deleteStatusConfirm', { name: deletingStatus.type.name })}
-        pending={statusMutation.pending} error={statusMutation.error ? <Alert tone="danger">{[...normalizeMutationError(statusMutation.error).messages, ...Object.values(normalizeMutationError(statusMutation.error).fields).flat()].join(' ') || t('employee.statusSaveError')}</Alert> : undefined}
-        onCancel={() => setDeletingStatus(null)} onConfirm={() => void removeStatus()} returnFocus={statusFocus} />}
-      {editing && <EmployeeHierarchySheet employeeId={employeeId} direction={editing.direction} relation={editing.relation}
-        defaultDates={{ start_date: employee.entry_date, end_date: employee.exit_date }} returnFocus={focus}
-        onClose={() => setEditing(null)} onSaved={() => { setEditing(null); void hierarchy.refresh() }} />}
-      {deleting && <ConfirmDialog title={t(deleting.direction === 'superior' ? 'employee.removeSuperior' : 'employee.removeSubordinate')}
-        description={t('employee.removeHierarchyConfirm', { name: fullName(deleting.relation.employee) })}
-        pending={mutation.pending} error={mutationError ? <Alert tone="danger">{[...mutationError.messages, ...Object.values(mutationError.fields).flat()].join(' ') || t('employee.hierarchySaveError')}</Alert> : undefined}
-        onCancel={() => setDeleting(null)} onConfirm={() => void removeRelation()} returnFocus={focus} />}
+    <div className={styles.summaryGrid}>
+      <section className={styles.column} aria-labelledby="employee-information-heading">
+        <MiniHeading id="employee-information-heading">{t('employee.information')}</MiniHeading>
+        <dl className={styles.details}>
+          <InfoRow label={t('employee.identity')}><CopyableValue value={fullName(employee)} /></InfoRow>
+          <DateInfo label={t('employee.birthDate')} value={employee.birth_date} />
+          <InfoRow label={t('employee.email')}><CopyableValue value={employee.email}>{employee.email ? <a href={`mailto:${employee.email}`}>{employee.email}</a> : '—'}</CopyableValue></InfoRow>
+          <DateInfo label={t('employee.entryDate')} value={employee.entry_date} />
+          <DateInfo label={t('employee.exitDate')} value={employee.exit_date} />
+          <InfoRow label={t('employee.activity')}>{t(employee.is_active ? 'employee.active' : 'employee.inactive')}</InfoRow>
+        </dl>
+        <EmployeeGenericInfo employeeId={employeeId} key={employeeId} />
+        <div className={styles.indicators}>
+          <Indicator label={t('employee.contractQuotity')} value={quotity(employee.contract_quotity)} />
+          <Indicator label={t('employee.projectQuotity')} value={quotity(employee.project_quotity)} />
+          <Indicator label={t('employee.contributionQuotity')} value={quotity(employee.contribution_quotity)} />
+          <Indicator label={t('employee.activeMilestones')} value={String(employee.active_milestones_count)} />
+        </div>
+      </section>
+      <section ref={statusSection} tabIndex={-1} className={styles.column} aria-labelledby="employee-status-heading">
+        <div className={styles.relationshipHeading}><MiniHeading id="employee-status-heading">{t('employee.statuses')}</MiniHeading>
+          {statusCanAdd && <Button size="xs" variant="ghost" onClick={(event) => { statusFocus.current = event.currentTarget; setEditingStatus(null) }}><Plus aria-hidden="true" />{t('employee.addStatus')}</Button>}
+        </div>
+        <SecondaryResource resource={statuses}>{(items) => <StatusHistory items={items} canEdit={statusCanEdit} canDelete={statusCanDelete} focusRef={statusFocus}
+          actionOpen={editingStatus !== undefined || Boolean(deletingStatus)} onEdit={setEditingStatus} onDelete={setDeletingStatus} />}</SecondaryResource>
+        {Boolean(statuses.refreshError) && <div className={styles.localError} role="alert">{t('employee.secondaryError')} <Button size="xs" variant="ghost" onClick={() => void statuses.refresh()}>{t('common.retry')}</Button></div>}
+        {Boolean(statusOptions.error) && <div className={styles.localError} role="alert">{t('employee.statusOptionsError')} <Button size="xs" variant="ghost" onClick={statusOptions.retry}>{t('common.retry')}</Button></div>}
+      </section>
+      <section ref={hierarchySection} tabIndex={-1} className={styles.column} aria-labelledby="employee-hierarchy-heading">
+        <MiniHeading id="employee-hierarchy-heading">{t('employee.hierarchy')}</MiniHeading>
+        <SecondaryResource resource={hierarchy}>{(value) => <>
+          <RelationshipHistory items={value.superiors} title={t('employee.superiors')} direction="superior" canAdd={canAdd} canEdit={canEdit} canDelete={canDelete} focus={focus}
+            onAdd={() => setEditing({ direction: 'superior', relation: null })} onEdit={(relation) => setEditing({ direction: 'superior', relation })} onDelete={(relation) => setDeleting({ direction: 'superior', relation })} actionOpen={Boolean(editing || deleting)} />
+          <RelationshipHistory items={value.subordinates} title={t('employee.subordinates')} direction="subordinate" canAdd={canAdd} canEdit={canEdit} canDelete={canDelete} focus={focus}
+            onAdd={() => setEditing({ direction: 'subordinate', relation: null })} onEdit={(relation) => setEditing({ direction: 'subordinate', relation })} onDelete={(relation) => setDeleting({ direction: 'subordinate', relation })} actionOpen={Boolean(editing || deleting)} />
+        </>}</SecondaryResource>
+        {Boolean(hierarchy.refreshError) && <div className={styles.localError} role="alert">{t('employee.secondaryError')} <Button size="xs" variant="ghost" onClick={() => void hierarchy.refresh()}>{t('common.retry')}</Button></div>}
+      </section>
+    </div>
+    {editingStatus !== undefined && statusOptions.data && <EmployeeStatusSheet employeeId={employeeId} status={editingStatus} options={statusOptions.data}
+      defaultDates={{ start_date: employee.entry_date, end_date: employee.exit_date }} returnFocus={statusFocus}
+      onClose={() => setEditingStatus(undefined)} onSaved={() => { setEditingStatus(undefined); void statuses.refresh() }} />}
+    {deletingStatus && <ConfirmDialog title={t('employee.deleteStatus')}
+      description={t('employee.deleteStatusConfirm', { name: deletingStatus.type.name })}
+      pending={statusMutation.pending} error={statusMutation.error ? <Alert tone="danger">{[...normalizeMutationError(statusMutation.error).messages, ...Object.values(normalizeMutationError(statusMutation.error).fields).flat()].join(' ') || t('employee.statusSaveError')}</Alert> : undefined}
+      onCancel={() => setDeletingStatus(null)} onConfirm={() => void removeStatus()} returnFocus={statusFocus} />}
+    {editing && <EmployeeHierarchySheet employeeId={employeeId} direction={editing.direction} relation={editing.relation}
+      defaultDates={{ start_date: employee.entry_date, end_date: employee.exit_date }} returnFocus={focus}
+      onClose={() => setEditing(null)} onSaved={() => { setEditing(null); void hierarchy.refresh() }} />}
+    {deleting && <ConfirmDialog title={t(deleting.direction === 'superior' ? 'employee.removeSuperior' : 'employee.removeSubordinate')}
+      description={t('employee.removeHierarchyConfirm', { name: fullName(deleting.relation.employee) })}
+      pending={mutation.pending} error={mutationError ? <Alert tone="danger">{[...mutationError.messages, ...Object.values(mutationError.fields).flat()].join(' ') || t('employee.hierarchySaveError')}</Alert> : undefined}
+      onCancel={() => setDeleting(null)} onConfirm={() => void removeRelation()} returnFocus={focus} />}
   </section>
 }
 
@@ -148,7 +148,7 @@ function StatusHistory({ items, canEdit, canDelete, focusRef, actionOpen, onEdit
     previous={items.filter((item) => !item.is_active)}
     render={(item) => <div className={styles.relationRow} key={item.id}><div className={styles.relation}><strong>{item.type.name || item.type.code}</strong><small>{period(item.start_date, item.end_date, t)}</small></div>
       {(canEdit || canDelete) && <ItemActionMenu label={t('common.actionsFor', { name: item.type.name || item.type.code })} canChange={canEdit} canDelete={canDelete}
-        onOpen={() => {}} onTrigger={(trigger) => { focusRef.current = trigger }} finalFocus={() => !actionOpen}
+        onOpen={() => { }} onTrigger={(trigger) => { focusRef.current = trigger }} finalFocus={() => !actionOpen}
         onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />}</div>}
   />
 }
@@ -166,8 +166,8 @@ function RelationshipHistory({ items, title, direction, canAdd, canEdit, canDele
       empty={t('employee.noneCurrently')}
       previous={items.filter((item) => !item.is_active)}
       render={(item) => <div className={styles.relationRow} key={item.id}><div className={styles.relation}>{item.can_view === false ? <strong>{fullName(item.employee)}</strong> : <Link to={`/employees/${item.employee.id}`}>{fullName(item.employee)}</Link>}<small>{period(item.start_date, item.end_date, t)}</small></div>
-        {(canEdit || canDelete) && item.is_active && <ItemActionMenu label={t('common.actionsFor', { name: fullName(item.employee) })} canChange={canEdit} canDelete={canDelete}
-          onOpen={() => {}} onTrigger={(trigger) => { focusRef.current = trigger }} finalFocus={() => !actionOpen}
+        {(canEdit || canDelete) && <ItemActionMenu label={t('common.actionsFor', { name: fullName(item.employee) })} canChange={canEdit} canDelete={canDelete}
+          onOpen={() => { }} onTrigger={(trigger) => { focusRef.current = trigger }} finalFocus={() => !actionOpen}
           onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />}</div>}
     />
   </div>

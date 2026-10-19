@@ -119,7 +119,13 @@ class ProjectInstitutionV1Serializer(serializers.ModelSerializer):
         fields = ("id", "institution", "status", "status_label")
 
     def get_institution(self, item):
-        return {"id": item.institution_id, "short_name": item.institution.short_name, "name": item.institution.name}
+        instit = item.institution
+        return {
+            "id": item.institution_id, 
+            "short_name": instit.short_name, 
+            "name": instit.name,
+            "can_view": instit.pk in self.context.get("visible_institution_ids", set()),
+            }
 
 
 class ProjectParticipantV1Serializer(serializers.ModelSerializer):
@@ -409,6 +415,9 @@ class ProjectDetailV1View(ProjectV1QuerysetMixin, generics.RetrieveUpdateDestroy
         if self.request.method == "GET":
             context["visible_employee_ids"] = set(Employee.get_instances_for_user(
                 "view", self.request.user, Employee.objects.all()
+            ).values_list("pk", flat=True))
+            context["visible_institution_ids"] = set(Institution.get_instances_for_user(
+                "view", self.request.user, Institution.objects.all()
             ).values_list("pk", flat=True))
         return context
 
