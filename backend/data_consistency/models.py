@@ -12,8 +12,11 @@ class DataConsistencyException(models.Model):
     fund_id = models.BigIntegerField(null=True, blank=True)
     milestone_id = models.BigIntegerField(null=True, blank=True)
     expense_id = models.BigIntegerField(null=True, blank=True)
+    teammate_id = models.BigIntegerField(null=True, blank=True)
+    participant_id = models.BigIntegerField(null=True, blank=True)
+    team_id = models.BigIntegerField(null=True, blank=True)
     employee_id = models.BigIntegerField(null=True, blank=True)
-    project_id = models.BigIntegerField()
+    project_id = models.BigIntegerField(null=True, blank=True)
     accepted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     accepted_at = models.DateTimeField(default=timezone.now)
     reason = models.TextField(blank=True)
@@ -46,8 +49,26 @@ class DataConsistencyException(models.Model):
                 fields=("rule_key", "project_id"),
                 condition=Q(closed_at__isnull=True, contract_id__isnull=True,
                             fund_id__isnull=True, milestone_id__isnull=True,
-                            expense_id__isnull=True),
+                            expense_id__isnull=True, participant_id__isnull=True,
+                            teammate_id__isnull=True, employee_id__isnull=True),
                 name="unique_open_project_consistency_exception",
+            ),
+            models.UniqueConstraint(
+                fields=("rule_key", "employee_id"),
+                condition=Q(closed_at__isnull=True, employee_id__isnull=False,
+                            contract_id__isnull=True, participant_id__isnull=True,
+                            teammate_id__isnull=True),
+                name="unique_open_employee_consistency_exception",
+            ),
+            models.UniqueConstraint(
+                fields=("rule_key", "teammate_id"),
+                condition=Q(closed_at__isnull=True, teammate_id__isnull=False),
+                name="unique_open_teammate_consistency_exception",
+            ),
+            models.UniqueConstraint(
+                fields=("rule_key", "participant_id"),
+                condition=Q(closed_at__isnull=True, participant_id__isnull=False),
+                name="unique_open_participant_consistency_exception",
             ),
         ]
 

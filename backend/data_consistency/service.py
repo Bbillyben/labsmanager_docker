@@ -13,6 +13,7 @@ from project.models import Participant, Project
 from staff.models import Employee
 
 from .models import DataConsistencyException
+from .lifecycle import LIFECYCLE_DEFINITIONS
 
 CONTRACT_PARTICIPANT_RULE_KEY = "contract_employee_not_project_participant"
 CONTRACT_DATES_RULE_KEY = "contract_outside_project_dates"
@@ -30,10 +31,14 @@ IDENTITY_PATHS = {
     "milestone": {"milestone_id": "pk", "project_id": "project_id"},
     "expense": {"expense_id": "pk", "project_id": "fund_item__project_id"},
     "project": {"project_id": "pk"},
+    "employee": {"employee_id": "pk"},
+    "teammate": {"teammate_id": "pk", "team_id": "team_id", "employee_id": "employee_id"},
+    "participant": {"participant_id": "pk", "project_id": "project_id", "employee_id": "employee_id"},
 }
 OBJECT_ID_FIELDS = {
     "contract": "contract_id", "fund": "fund_id", "milestone": "milestone_id",
     "expense": "expense_id", "project": "project_id",
+    "employee": "employee_id", "teammate": "teammate_id", "participant": "participant_id",
 }
 
 
@@ -44,6 +49,7 @@ class ConsistencyRule:
     issues: object
     serialize: object
     object_type: str = "contract"
+    label: str = ""
 
 
 def outside_parent_dates(parent_path, start_field="start_date", end_field="end_date",
@@ -278,7 +284,7 @@ RULES = (
                     expense_fund_dates_issue, "expense"),
     ConsistencyRule(PROJECT_LEADER_RULE_KEY, "projects", projects_without_leader,
                     project_without_leader_issue, "project"),
-)
+) + tuple(ConsistencyRule(*definition) for definition in LIFECYCLE_DEFINITIONS)
 RULES_BY_KEY = {rule.key: rule for rule in RULES}
 
 
@@ -331,6 +337,7 @@ def summary(user):
         accepted_total += accepted_count
         categories[rule.category] = categories.get(rule.category, 0) + count
         rules.append({"rule_key": rule.key, "category": rule.category,
+                      "label": rule.label or rule.key.replace("_", " ").capitalize(),
                       "count": count, "accepted_count": accepted_count})
     return {
         "total": sum(categories.values()), "accepted_total": accepted_total,
