@@ -23,7 +23,7 @@ from leave.calendar import produce_leave_calendar_events
 from leave.models import Leave, Leave_Type
 from project.models import Participant, Project
 
-from .permissions_v1 import employee_detail_capabilities, generic_info_capabilities, leave_capabilities
+from .permissions_v1 import can_add_employee, employee_detail_capabilities, generic_info_capabilities, has_global_employee_visibility, leave_capabilities
 from .hierarchy_graph import would_create_cycle
 from .ressources import EmployeeResource
 from .filters_v1 import EmployeeListV1Filter
@@ -31,6 +31,7 @@ from .models import Employee, Employee_Status, Employee_Superior, Employee_Type,
 from .serializers_v1 import (
     EmployeeDetailV1Serializer,
     EmployeeDetailWriteV1Serializer,
+    EmployeeCreateV1Serializer,
     EmployeeContractDetailV1Serializer,
     EmployeeContractV1Serializer,
     EmployeeBudgetV1Serializer,
@@ -509,6 +510,29 @@ class EmployeeListV1View(EmployeeV1QuerysetMixin, generics.ListAPIView):
     search_fields = ("first_name", "last_name")
     ordering_fields = ("first_name", "last_name", "entry_date", "exit_date", "is_active")
     ordering = ("first_name", "last_name", "pk")
+
+    def get_paginated_response(self, data):
+        response = super().get_paginated_response(data)
+        response.data["capabilities"] = {"can_add": can_add_employee(self.request.user)}
+        return response
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        if not can_add_employee(request.user):
+            raise PermissionDenied()
+        if any(key in request.data for key in ("superior", "superior_id", "superiors", "employee_hierarchy")):
+            raise ValidationError({"superior": "Assign superiors after creating the employee."})
+        serializer = EmployeeCreateV1Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        employee = serializer.save()
+        if not has_global_employee_visibility(request.user):
+            creator = Employee.objects.filter(user=request.user).first()
+            if creator and not Employee_Superior.objects.filter(employee=employee, superior=creator).exists():
+                relation = Employee_Superior(employee=employee, superior=creator)
+                relation.full_clean()
+                relation.save()
+        return Response({"id": employee.pk, "first_name": employee.first_name,
+                         "last_name": employee.last_name}, status=201)
 
 
 class EmployeeListExportV1View(EmployeeListV1View):

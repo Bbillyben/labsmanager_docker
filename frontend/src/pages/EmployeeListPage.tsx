@@ -4,9 +4,9 @@ import { SortableTableHeader } from '../components/SortableTableHeader'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../components/ui/dropdown-menu'
 import { DropdownMenuSeparator } from '../components/ui/dropdown-menu'
 import { AdminObjectAction } from '../components/AdminObjectAction'
-import { Download, Ellipsis, ExternalLink, Pencil, X } from 'lucide-react'
+import { Download, Ellipsis, ExternalLink, Pencil, Plus, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { employeeQuery, getEmployee, getEmployeeFilterOptions, getEmployees, readEmployeeParams, type EmployeeDetail, type EmployeeFilterOptions, type EmployeeIdentity, type EmployeeListParams, type EmployeeListResponse, type EmployeeSortField } from '../api/employees'
 import { ApiError } from '../api/errors'
 import { LoadingState } from '../components/LoadingState'
@@ -37,6 +37,7 @@ type UpdateParams = (patch: Partial<EmployeeListParams>) => void
 
 export function EmployeeListPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [query, setQuery] = useSearchParams()
   const params = readEmployeeParams(query)
   const canonicalQuery = employeeQuery(params)
@@ -46,6 +47,9 @@ export function EmployeeListPage() {
   const [optionsRetry, setOptionsRetry] = useState(0)
   const [exportOpen, setExportOpen] = useState(false)
   const exportButton = useRef<HTMLButtonElement | null>(null)
+  const [canAdd, setCanAdd] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const createButton = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -77,6 +81,7 @@ export function EmployeeListPage() {
         </div>
       </form>
       <Button ref={exportButton} variant="secondary" onClick={() => setExportOpen(true)}><Download aria-hidden="true" />{t('listExport.title')}</Button>
+      {canAdd && <Button ref={createButton} onClick={() => setCreateOpen(true)}><Plus aria-hidden="true" />{t('employee.add')}</Button>}
       {filtered && <Button variant="ghost" onClick={reset}>{t('list.searchReset')}</Button>}
     </div>
     {optionsError && <Alert tone="danger">{t('employee.filterOptionsError')} <Button variant="ghost" onClick={() => { setOptionsError(false); setOptionsRetry((value) => value + 1) }}>{t('common.retry')}</Button></Alert>}
@@ -85,12 +90,13 @@ export function EmployeeListPage() {
       teams: options?.teams.map((item) => ({ value: String(item.id), label: item.name })) ?? [],
     }} query={new URLSearchParams(canonicalQuery)} onChange={setQuery} resetParameters={['offset']} />
     {params.search && <p className={styles.summary}>{t('list.searchSummary', { query: params.search })}</p>}
-    <EmployeeResults key={`${employeeQuery(params, true)}:${retry}`} params={params} update={update} filtered={filtered} reset={reset} retry={() => setRetry((value) => value + 1)} />
+    <EmployeeResults key={`${employeeQuery(params, true)}:${retry}`} params={params} update={update} filtered={filtered} reset={reset} retry={() => setRetry((value) => value + 1)} onCanAddChange={setCanAdd} />
     {exportOpen && <ListExportDialog entity="employees" listQuery={canonicalQuery} returnFocus={exportButton} onClose={() => setExportOpen(false)} />}
+    {createOpen && <EmployeeSheet employee={null} returnFocus={createButton} onClose={() => setCreateOpen(false)} onSaved={(id) => { setCreateOpen(false); navigate(employeeUrl(id), { state: { employeeListSearch: canonicalQuery, employeeCreated: true } }) }} />}
   </>
 }
 
-function EmployeeResults({ params, update, filtered, reset, retry }: { params: EmployeeListParams; update: UpdateParams; filtered: boolean; reset: () => void; retry: () => void }) {
+function EmployeeResults({ params, update, filtered, reset, retry, onCanAddChange }: { params: EmployeeListParams; update: UpdateParams; filtered: boolean; reset: () => void; retry: () => void; onCanAddChange: (allowed: boolean) => void }) {
   const { t, language } = useTranslation()
   const [result, setResult] = useState<EmployeeListResponse | null>(null)
   const [error, setError] = useState<unknown>(null)
@@ -112,11 +118,11 @@ function EmployeeResults({ params, update, filtered, reset, retry }: { params: E
   useEffect(() => {
     const controller = new AbortController()
     getEmployees(requestParams, controller.signal).then(
-      (data) => { if (!controller.signal.aborted) setResult(data) },
+      (data) => { if (!controller.signal.aborted) { setResult(data); onCanAddChange(Boolean(data.capabilities?.can_add)) } },
       (reason: unknown) => { if (!controller.signal.aborted) setError(reason) },
     )
     return () => controller.abort()
-  }, [requestParams, refreshVersion])
+  }, [requestParams, refreshVersion, onCanAddChange])
 
   if (error) return <div className={styles.feedback}><Alert tone="danger">{error instanceof ApiError && error.status === 403 ? t('employee.listForbidden') : t('employee.listLoadError')}</Alert><Button variant="ghost" onClick={retry}>{t('common.retry')}</Button></div>
   if (!result) return <div className={styles.loading}><LoadingState message={t('employee.listLoading')} /></div>

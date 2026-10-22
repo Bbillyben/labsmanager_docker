@@ -229,6 +229,7 @@ export type EmployeeListResponse = {
   next: string | null
   previous: string | null
   results: EmployeeListItem[]
+  capabilities: { can_add: boolean }
 }
 export type EmployeeFilterOptions = {
   statuses: Array<{ id: number; name: string }>
@@ -291,6 +292,11 @@ export function getEmployee(id: string, signal: AbortSignal) {
 
 export function updateEmployee(id: number, data: Partial<EmployeeDetailWrite>) {
   return apiRequest<EmployeeDetail>(`/api/v1/employees/${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+}
+
+export type EmployeeCreateWrite = EmployeeDetailWrite & { first_name: string; last_name: string }
+export function createEmployee(data: EmployeeCreateWrite) {
+  return apiRequest<EmployeeIdentity>('/api/v1/employees/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
 }
 
 export function getEmployeeStatuses(id: string, signal: AbortSignal) {

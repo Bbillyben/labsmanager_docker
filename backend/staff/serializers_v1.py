@@ -149,11 +149,18 @@ class EmployeeDetailWriteV1Serializer(serializers.ModelSerializer):
         fields = ("birth_date", "entry_date", "exit_date", "email", "is_active")
 
     def validate(self, attrs):
-        entry_date = attrs.get("entry_date", self.instance.entry_date)
-        exit_date = attrs.get("exit_date", self.instance.exit_date)
+        entry_date = attrs.get("entry_date", self.instance.entry_date if self.instance else None)
+        exit_date = attrs.get("exit_date", self.instance.exit_date if self.instance else None)
         if entry_date and exit_date and entry_date > exit_date:
             raise serializers.ValidationError({"exit_date": _("Exit date must be after entry date.")})
         return attrs
+
+
+class EmployeeCreateV1Serializer(EmployeeDetailWriteV1Serializer):
+    """Creation uses the same dates and validation as Employee editing."""
+
+    class Meta(EmployeeDetailWriteV1Serializer.Meta):
+        fields = ("first_name", "last_name") + EmployeeDetailWriteV1Serializer.Meta.fields
 
 
 class GenericInfoTypeV1Serializer(serializers.ModelSerializer):

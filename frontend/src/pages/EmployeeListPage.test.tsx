@@ -10,7 +10,7 @@ import type { EmployeeListItem, EmployeeListResponse } from '../api/employees'
 
 const alice: EmployeeListItem = { id: 1, first_name: 'Alice', last_name: 'Martin', entry_date: '2020-01-02', exit_date: null, is_active: true, current_statuses: [{ id: 3, code: 'RES', name: 'Chercheuse' }, { id: 4, code: 'ENG', name: 'Ingénieure' }], superiors: [{ id: 9, first_name: 'Marie', last_name: 'Curie' }] }
 const bob: EmployeeListItem = { ...alice, id: 2, first_name: 'Bob', last_name: 'Durand', is_active: false, current_statuses: [], superiors: [] }
-const collection = (results = [alice, bob], extra: Partial<EmployeeListResponse> = {}): EmployeeListResponse => ({ count: results.length, next: null, previous: null, results, ...extra })
+const collection = (results = [alice, bob], extra: Partial<EmployeeListResponse> = {}): EmployeeListResponse => ({ count: results.length, next: null, previous: null, results, capabilities: { can_add: false }, ...extra })
 
 function mockApi(response: (url: string, init?: RequestInit) => Promise<Response> = async () => jsonResponse(collection()), user = authenticatedUser) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => String(input) === '/api/v1/me/' ? Promise.resolve(jsonResponse(user)) : String(input).startsWith('/api/v1/dashboards/') ? Promise.resolve(jsonResponse([])) : String(input) === '/api/v1/employees/filter-options/' ? Promise.resolve(jsonResponse({ statuses: [{ id: 3, name: 'Chercheuse' }], teams: [{ id: 6, name: 'Recherche' }] })) : response(String(input), init))
@@ -32,6 +32,68 @@ async function filterActivity(value: string) {
 function query() { return new URLSearchParams(window.location.search) }
 
 describe('Employee R1', () => {
+  it('creates an Employee in a fresh Sheet and opens its detail', async () => {
+    const fetchMock = mockApi(async (url, init) => {
+      if (url === '/api/v1/employees/' && init?.method === 'POST') {
+        return jsonResponse({ id: 3, first_name: 'Cara', last_name: 'DUPONT' }, 201)
+      }
+      if (url === '/api/v1/employees/3/') return jsonResponse({ ...alice, id: 3, first_name: 'Cara', last_name: 'DUPONT', birth_date: null, email: null, contract_quotity: null, project_quotity: null, contribution_quotity: null, active_milestones_count: 0, capabilities: { can_change: false } })
+      if (url.endsWith('/statuses/options/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, types: [], contractuality: [] })
+      if (url.endsWith('/statuses/')) return jsonResponse([])
+      if (url.endsWith('/hierarchy/')) return jsonResponse({ superiors: [], subordinates: [] })
+      if (url.endsWith('/generic-info/')) return jsonResponse({ capabilities: { can_add: false }, items: [] })
+      return jsonResponse(collection([alice], { capabilities: { can_add: true } }))
+    })
+    renderAt()
+    const user = userEvent.setup()
+    await loaded()
+    const add = await screen.findByRole('button', { name: 'Ajouter un employé' })
+    await user.click(add)
+    const sheet = await screen.findByRole('dialog', { name: 'Ajouter un employé' })
+    expect(sheet).toHaveAttribute('data-slot', 'sheet-content')
+    expect(within(sheet).getByLabelText('Prénom')).toHaveValue('')
+    expect(within(sheet).getByLabelText('Nom')).toHaveValue('')
+    expect(within(sheet).getByRole('checkbox', { name: 'Actif' })).toBeChecked()
+    await user.type(within(sheet).getByLabelText('Prénom'), 'Cara')
+    await user.type(within(sheet).getByLabelText('Nom'), 'Dupont')
+    await user.click(within(sheet).getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url, init]) => String(url) === '/api/v1/employees/' && init?.method === 'POST' && JSON.parse(String(init.body)).first_name === 'Cara')).toBe(true))
+    expect(await screen.findByRole('heading', { name: 'Cara DUPONT' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/app/employees/3')
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/v1/employees/3/')).toBe(true)
+    expect(screen.getByText('Employé ajouté.')).toHaveAttribute('role', 'status')
+    expect(screen.queryByRole('dialog', { name: 'Ajouter un employé' })).not.toBeInTheDocument()
+  })
+
+  it('keeps creation unavailable without the list capability', async () => {
+    mockApi(async () => jsonResponse(collection([alice])))
+    renderAt()
+    await loaded()
+    expect(screen.queryByRole('button', { name: 'Ajouter un employé' })).not.toBeInTheDocument()
+  })
+
+  it('shows validation errors and resets an abandoned Employee draft', async () => {
+    const fetchMock = mockApi(async (url, init) => url === '/api/v1/employees/' && init?.method === 'POST'
+      ? jsonResponse({ first_name: ['Prénom invalide.'] }, 400)
+      : jsonResponse(collection([alice], { capabilities: { can_add: true } })))
+    renderAt()
+    const user = userEvent.setup()
+    await loaded()
+    const add = await screen.findByRole('button', { name: 'Ajouter un employé' })
+    await user.click(add)
+    let sheet = await screen.findByRole('dialog', { name: 'Ajouter un employé' })
+    await user.type(within(sheet).getByLabelText('Prénom'), 'Cara')
+    await user.type(within(sheet).getByLabelText('Nom'), 'Dupont')
+    await user.click(within(sheet).getByRole('button', { name: 'Enregistrer' }))
+    expect(await within(sheet).findByRole('alert')).toHaveTextContent('Prénom invalide.')
+    expect(window.location.pathname).toBe('/app/employees/')
+    await user.click(within(sheet).getByRole('button', { name: 'Annuler' }))
+    await user.click(add)
+    sheet = await screen.findByRole('dialog', { name: 'Ajouter un employé' })
+    expect(within(sheet).getByLabelText('Prénom')).toHaveValue('')
+    expect(within(sheet).getByLabelText('Nom')).toHaveValue('')
+    expect(fetchMock.mock.calls.filter(([url, init]) => String(url) === '/api/v1/employees/' && init?.method === 'POST')).toHaveLength(1)
+  })
   it('edits an authorized Employee from the row menu in the shared Sheet and refreshes the list', async () => {
     let email = 'alice@example.test'
     let listCalls = 0

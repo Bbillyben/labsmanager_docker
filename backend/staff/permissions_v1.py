@@ -1,5 +1,20 @@
 """Contextual Employee mutation capabilities shared with API enforcement."""
 from .rules import can_change_employee
+from .models import Employee
+
+
+def can_add_employee(user):
+    """Use the Employee creation rule already exposed by the legacy UI."""
+    return bool(user.is_authenticated and user.is_active
+                and user.has_perm("staff.add_employee")
+                and (user.has_perm("staff.change_employee")
+                     or Employee.objects.filter(user=user).exists()))
+
+
+def has_global_employee_visibility(user):
+    """Match the unfiltered Employee list/detail queryset permissions."""
+    return bool(user.is_staff or user.has_perm("staff.view_employee")
+                or user.has_perm("staff.change_employee"))
 
 
 def generic_info_capabilities(user, employee):

@@ -225,6 +225,84 @@ class EmployeeListV1ApiTests(APITestCase):
 
         self.assertEqual(response.status_code, 401)
 
+    def test_creation_capability_post_validation_and_denial(self):
+        user = self.create_user("employee-creator")
+        self.login(user)
+        self.assertFalse(self.client.get(self.url).json()["capabilities"]["can_add"])
+        self.assertEqual(self.client.post(self.url, {"first_name": "Cara", "last_name": "Dupont"}, format="json").status_code, 403)
+
+        user.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label="staff", codename__in=("add_employee", "change_employee")))
+        self.assertTrue(self.client.get(self.url).json()["capabilities"]["can_add"])
+        invalid = self.client.post(self.url, {"first_name": "Cara", "last_name": "Dupont",
+                                              "entry_date": "2026-10-22", "exit_date": "2026-10-21"}, format="json")
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn("exit_date", invalid.json())
+        self.assertFalse(Employee.objects.filter(first_name="Cara").exists())
+
+        created = self.client.post(self.url, {"first_name": "Cara", "last_name": "Dupont"}, format="json")
+        self.assertEqual(created.status_code, 201, created.content)
+        employee = Employee.objects.get(pk=created.json()["id"])
+        self.assertEqual((employee.first_name, employee.last_name, employee.is_active),
+                         ("Cara", "DUPONT", True))
+        self.assertFalse(Employee_Superior.objects.filter(employee=employee).exists())
+
+    def test_creator_with_linked_employee_keeps_legacy_superior_relation(self):
+        user = self.create_user("employee-linked-creator")
+        superior = self.create_employee("Alice", "Manager", user=user)
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="staff", codename="add_employee"))
+        self.login(user)
+        self.assertTrue(self.client.get(self.url).json()["capabilities"]["can_add"])
+        created = self.client.post(self.url, {"first_name": "Bob", "last_name": "Junior"}, format="json")
+        self.assertEqual(created.status_code, 201, created.content)
+        employee_id = created.json()["id"]
+        self.assertEqual(Employee_Superior.objects.filter(
+            superior=superior, employee_id=employee_id).count(), 1)
+        self.assertEqual(self.client.get(reverse("api_v1:employee-detail", args=(employee_id,))).status_code, 200)
+
+    def test_global_view_permission_skips_automatic_superior(self):
+        user = self.create_user("employee-global-creator")
+        self.create_employee("Alice", "Manager", user=user)
+        self.grant_global_view(user)
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="staff", codename="add_employee"))
+        self.login(user)
+        created = self.client.post(self.url, {"first_name": "Bob", "last_name": "Junior"}, format="json")
+        self.assertEqual(created.status_code, 201, created.content)
+        self.assertFalse(Employee_Superior.objects.filter(employee_id=created.json()["id"]).exists())
+
+    def test_creator_without_linked_employee_cannot_bypass_creation_rule(self):
+        user = self.create_user("employee-unlinked-creator")
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="staff", codename="add_employee"))
+        self.login(user)
+        self.assertFalse(self.client.get(self.url).json()["capabilities"]["can_add"])
+        self.assertEqual(self.client.post(self.url, {"first_name": "Bob", "last_name": "Junior"}, format="json").status_code, 403)
+        self.assertFalse(Employee.objects.filter(first_name="Bob", last_name="JUNIOR").exists())
+
+    def test_supplied_superior_is_rejected_without_creating_an_employee(self):
+        user = self.create_user("employee-explicit-superior")
+        superior = self.create_employee("Alice", "Manager", user=user)
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="staff", codename="add_employee"))
+        self.login(user)
+        response = self.client.post(self.url, {"first_name": "Bob", "last_name": "Junior",
+                                               "superior": superior.pk}, format="json")
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Employee.objects.filter(first_name="Bob", last_name="JUNIOR").exists())
+
+    def test_automatic_superior_failure_rolls_back_employee(self):
+        user = self.create_user("employee-relation-failure")
+        self.create_employee("Alice", "Manager", user=user)
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="staff", codename="add_employee"))
+        self.login(user)
+        with patch.object(Employee_Superior, "save", side_effect=RuntimeError("relation failure")):
+            with self.assertRaises(RuntimeError):
+                self.client.post(self.url, {"first_name": "Bob", "last_name": "Junior"}, format="json")
+        self.assertFalse(Employee.objects.filter(first_name="Bob", last_name="JUNIOR").exists())
+
     def test_global_permission_returns_all_employees(self):
         user = self.create_user("global-viewer")
         employees = [

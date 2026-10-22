@@ -46,6 +46,7 @@ export function EmployeeDetailPage() {
   ]
   return <EmployeeDetailContext.Provider value={{ employee: employee.data, employeeId, refreshEmployee: employee.refresh }}>
     <Link className={styles.back} to={`/employees/${typeof location.state?.employeeListSearch === 'string' && location.state.employeeListSearch ? `?${location.state.employeeListSearch}` : ''}`}><ArrowLeft aria-hidden="true" /> {t('common.backToEmployees')}</Link>
+    {location.state?.employeeCreated === true && <Alert tone="success">{t('employee.created')}</Alert>}
     <PageHeader
       title={name}
       actions={<div className="flex items-center gap-2"><ObjectPreferenceActions key={employee.data.id} type="employee" objectId={employee.data.id} /><EntityActionMenu label={t('reports.entityActions', { name })} groups={actionGroups} adminUrl={employee.data.admin_url} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => editing || exportFormat ? false : true} /></div>}
