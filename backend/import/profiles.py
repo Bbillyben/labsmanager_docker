@@ -73,7 +73,8 @@ class PluginImportProfile(ImportProfile):
     method: dict = None
 
     def metadata(self):
-        return {**super().metadata(), "plugin_import": True}
+        return {**super().metadata(), "plugin_import": True,
+                "plugin_name": str(self.plugin.human_name)}
 
     def prepare_dataset(self, dataset, option_data=None):
         prepared = self.plugin.prepare_dataset(dataset, self.method, option_data=option_data)

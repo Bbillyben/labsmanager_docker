@@ -23,6 +23,7 @@ from plugin.base.ImportMixin import ImportMixin
 
 
 class DemoImportPlugin(ImportMixin):
+    human_name = "Demo Import"
     import_method = [
         {"id": "expenses", "label": "Raw expenses", "resource": "ExpenseResource",
          "handler": "transform_expenses", "columns": {"Code": [" ID "], "Amount": ["Total"]}},
@@ -229,6 +230,7 @@ class ImportHubTests(APITestCase):
             profiles = self.client.get(self.url("profiles")).data["items"]
             self.assertIn("plugin:one:expenses", {item["key"] for item in profiles})
             self.assertIn("plugin:two:expenses", {item["key"] for item in profiles})
+            self.assertEqual({item["plugin_name"] for item in profiles if item.get("plugin_import")}, {"Demo Import"})
             other = get_user_model().objects.create_user("no-plugin-import")
             self.client.force_login(other)
             self.assertFalse(any(item.get("plugin_import") for item in self.client.get(self.url("profiles")).data["items"]))
@@ -244,6 +246,53 @@ class ImportHubTests(APITestCase):
         first.import_method = [{**first.import_method[0], "resource": "ExpenseResource", "handler": "unknown_handler"}]
         with patch("plugin.registry.registry.with_mixin", return_value=[first]):
             self.assertNotIn("plugin:one:expenses", {item["key"] for item in self.client.get(self.url("profiles")).data["items"]})
+
+    def test_same_method_id_in_two_plugins_keeps_each_import_separate(self):
+        first, second = DemoImportPlugin("one"), DemoImportPlugin("two")
+        first.human_name, second.human_name = "First import", "Second import"
+        for plugin in (first, second):
+            plugin.expense_type, plugin.fund_ref = self.type.short_name, self.fund.ref
+        first.get_import_template = lambda method: tablib.Dataset(headers=["First template"])
+        second.get_import_template = lambda method: tablib.Dataset(headers=["Second template"])
+        with patch("plugin.registry.registry.with_mixin", return_value=[first, second]), \
+                patch.object(first, "transform_expenses", wraps=first.transform_expenses) as first_handler, \
+                patch.object(second, "transform_expenses", wraps=second.transform_expenses) as second_handler:
+            items = {item["key"]: item for item in self.client.get(self.url("profiles")).data["items"]}
+            self.assertEqual(items["plugin:one:expenses"]["plugin_name"], "First import")
+            self.assertEqual(items["plugin:two:expenses"]["plugin_name"], "Second import")
+            self.assertEqual(tablib.import_set(self.client.get(self.url("template", "plugin:one:expenses")).content, format="xlsx").headers,
+                             ["First template"])
+            self.assertEqual(tablib.import_set(self.client.get(self.url("template", "plugin:two:expenses")).content, format="xlsx").headers,
+                             ["Second template"])
+            previews = {}
+            for slug in ("one", "two"):
+                key = f"plugin:{slug}:expenses"
+                raw = f"Code,Amount\n{slug.upper()}-1,10\n".encode()
+                upload = self.client.post(self.url("upload", key),
+                                          {"file": SimpleUploadedFile(f"{slug}.csv", raw)}, format="multipart")
+                self.assertEqual(upload.status_code, 200, upload.data)
+                previews[slug] = self.client.post(self.url("preview", key),
+                                                  {"import_token": upload.data["import_token"], "sheet": ""}, format="json")
+                self.assertEqual(previews[slug].status_code, 200, previews[slug].data)
+                other = "two" if slug == "one" else "one"
+                self.assertEqual(self.client.post(self.url("preview", f"plugin:{other}:expenses"),
+                                                  {"import_token": upload.data["import_token"], "sheet": ""}, format="json").status_code, 403)
+            first_handler.assert_called_once()
+            second_handler.assert_called_once()
+            self.assertEqual(self.client.post(self.url("commit", "plugin:two:expenses"),
+                                              {"import_token": previews["one"].data["import_token"]}, format="json").status_code, 403)
+            for slug in ("one", "two"):
+                result = self.client.post(self.url("commit", f"plugin:{slug}:expenses"),
+                                          {"import_token": previews[slug].data["import_token"]}, format="json")
+                self.assertEqual(result.status_code, 200, result.data)
+                self.assertEqual(result.data["rows"][0]["values"], previews[slug].data["rows"][0]["values"])
+                self.assertEqual(Expense.objects.filter(expense_id=f"{slug.upper()}-1").count(), 1)
+        with patch("plugin.registry.registry.with_mixin", return_value=[second]):
+            keys = {item["key"] for item in self.client.get(self.url("profiles")).data["items"]}
+            self.assertNotIn("plugin:one:expenses", keys)
+            self.assertIn("plugin:two:expenses", keys)
+            self.assertEqual(self.client.get(self.url("template", "plugin:one:expenses")).status_code, 404)
+            self.assertEqual(self.client.get(self.url("template", "plugin:two:expenses")).status_code, 200)
 
     def test_registry_permissions_and_templates(self):
         response = self.client.get(reverse("api_v1:import-profiles"))
