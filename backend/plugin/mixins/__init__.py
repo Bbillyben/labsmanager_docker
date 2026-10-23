@@ -8,6 +8,7 @@ from plugin.base.ReportMixin  import ReportMixin
 from plugin.base.UrlsMixin import UrlsMixin
 from plugin.base.DashboardPluginMixin import DashboardPluginMixin
 from plugin.base.SearchPluginMixin import SearchPluginMixin
+from plugin.base.ImportMixin import ImportMixin
 
 __all__ = [
     'SettingsMixin',
@@ -18,4 +19,5 @@ __all__ = [
     'UrlsMixin',
     'DashboardPluginMixin',
     'SearchPluginMixin',
+    'ImportMixin',
 ]

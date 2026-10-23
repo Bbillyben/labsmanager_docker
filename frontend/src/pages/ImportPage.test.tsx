@@ -32,6 +32,29 @@ beforeEach(() => Object.defineProperty(window.navigator, 'languages', { configur
 afterEach(() => vi.restoreAllMocks())
 
 describe('Import Hub', () => {
+  it('shows plugin eligibility, header position and blocks ambiguous imports', async () => {
+    const pluginStructure = { expected: ['Code', 'Amount'], recognized: { Code: ' ID ' }, aliases_used: { Code: ' ID ' }, missing: ['Amount'], extra: ['Other'], ambiguities: ['Amount: Total, Amount'], errors: ['Ambiguous amount'], warnings: ['Other ignored'], columns: 3, rows: 1, eligible: false }
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input)
+      if (url.endsWith('/profiles/')) return jsonResponse({ items: [{ key: 'plugin:demo:expenses', label: 'Raw expenses', description: 'Demo', formats: ['csv'], template_formats: ['xlsx'], preview_columns: [], plugin_import: true }] })
+      if (url.endsWith('/upload/')) return jsonResponse({ import_token: 'raw-token', filename: 'raw.csv', size: 42, format: 'csv', sheets: [''], structure: pluginStructure, sheet_structures: { '': pluginStructure } })
+      if (url.endsWith('/preview/')) return jsonResponse({ summary: { new: 0, update: 0, unchanged: 0, error: 0 }, rows: [], global_errors: ['Ambiguous amount'], can_commit: false, structure: pluginStructure, sheet: '' })
+      throw new Error(`${url}: ${init?.method}`)
+    })
+    render(<I18nProvider><ImportPage /></I18nProvider>)
+    const user = userEvent.setup()
+    await user.selectOptions(await screen.findByLabelText('Type d’import'), 'plugin:demo:expenses')
+    await user.upload(screen.getByLabelText('Choisir un fichier'), new File(['raw'], 'raw.csv'))
+    expect((await screen.findAllByText(/Code ←\s+ID/)).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Amount: Total, Amount/)).toBeInTheDocument()
+    await user.clear(screen.getByLabelText('Ligne des en-têtes'))
+    await user.type(screen.getByLabelText('Ligne des en-têtes'), '2')
+    await user.click(screen.getByRole('button', { name: 'Vérifier l’import' }))
+    expect(await screen.findByText('Ambiguous amount')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Confirmer l’import' })).not.toBeInTheDocument()
+    expect(fetch.mock.calls.some(([url, init]) => String(url).endsWith('/preview/') && String(init?.body).includes('"header_row":2'))).toBe(true)
+  })
+
   it('uses backend profiles and has a safe empty state', async () => {
     setup(true)
     expect(await screen.findByText('Aucun profil d’import autorisé.')).toBeInTheDocument()

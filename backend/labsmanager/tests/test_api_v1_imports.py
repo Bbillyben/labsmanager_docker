@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import SimpleTestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -18,6 +19,85 @@ from expense.resources import ExpensePointResource, ExpenseResource
 from settings.models import LMProjectSetting
 from staff.ressources import EmployeeAdminResource
 from staff.models import Employee
+from plugin.base.ImportMixin import ImportMixin
+
+
+class DemoImportPlugin(ImportMixin):
+    import_method = [
+        {"id": "expenses", "label": "Raw expenses", "resource": "ExpenseResource",
+         "handler": "transform_expenses", "columns": {"Code": [" ID "], "Amount": ["Total"]}},
+        {"id": "expenses-alt", "label": "Other expenses", "resource": "ExpenseResource",
+         "handler": "transform_expenses", "columns": {"Code": [], "Amount": []}},
+    ]
+
+    def __init__(self, slug="demo", active=True):
+        self.slug, self.active = slug, active
+        super().__init__()
+
+    def add_mixin(self, key, enabled, cls):
+        self.mixin_key = key
+
+    def mixin_enabled(self, key):
+        return key == self.mixin_key
+
+    def is_active(self):
+        return self.active
+
+    def transform_expenses(self, dataset, current_import_methode):
+        headers = ExpenseResource().export(queryset=Expense.objects.none()).headers
+        rows = []
+        for row in dataset.dict:
+            values = {"Expense Id": row["Code"], "Description": "Plugin import",
+                      "type": self.expense_type, "Amount": row["Amount"],
+                      "Ref": self.fund_ref, "date": "2026-03-01"}
+            rows.append([values.get(header, "") for header in headers])
+        return tablib.Dataset(*rows, headers=headers)
+
+
+class ImportMixinTests(SimpleTestCase):
+    def setUp(self):
+        self.plugin = DemoImportPlugin()
+        self.method = self.plugin.import_method[0]
+
+    def test_template_aliases_extra_columns_and_normalization(self):
+        self.assertEqual(self.plugin.get_import_template(self.method).headers, ["Code", "Amount"])
+        source = tablib.Dataset(["E-1", "10", "ignore"], headers=[" id ", " TOTAL ", "Extra"])
+        self.assertIs(self.plugin.prepare_dataset(source, self.method, {"header_row": 1}), source)
+        report = self.plugin.check_eligibility(source, self.method, {"header_row": 2})
+        self.assertTrue(report["eligible"])
+        self.assertEqual(report["aliases_used"], {"Code": " id ", "Amount": " TOTAL "})
+        self.assertEqual(report["extra"], ["Extra"])
+        normalized = self.plugin.normalize_columns(source, self.method)
+        self.assertEqual(normalized.headers, ["Code", "Amount"])
+        self.assertEqual(list(normalized[0]), ["E-1", "10"])
+
+    def test_missing_duplicate_and_conflicting_aliases_block(self):
+        missing = self.plugin.check_eligibility(tablib.Dataset(["E-1"], headers=["Code"]), self.method)
+        self.assertEqual(missing["missing"], ["Amount"])
+        duplicate = self.plugin.check_eligibility(tablib.Dataset(["E-1", "E-2", "10"],
+                                                                   headers=["Code", "ID", "Amount"]), self.method)
+        self.assertFalse(duplicate["eligible"])
+        self.assertTrue(duplicate["ambiguities"])
+        with self.assertRaises(ValueError):
+            self.plugin.normalize_columns(tablib.Dataset(["E-1", "E-2", "10"],
+                                                                  headers=["Code", "ID", "Amount"]), self.method)
+        conflicting = {**self.method, "columns": {"Code": ["Same"], "Amount": ["same"]}}
+        self.assertFalse(self.plugin.check_eligibility(tablib.Dataset(["x", "10"], headers=["Code", "Amount"]), conflicting)["eligible"])
+
+    def test_plugin_can_extend_generic_eligibility(self):
+        class Extended(DemoImportPlugin):
+            def check_eligibility(self, dataset, current_import_methode, option_data=None):
+                report = super().check_eligibility(dataset, current_import_methode, option_data)
+                report["warnings"].append("Custom check")
+                return report
+        report = Extended().check_eligibility(tablib.Dataset(["E-1", "10"], headers=["Code", "Amount"]), self.method)
+        self.assertEqual(report["warnings"], ["Custom check"])
+
+    def test_registry_exposes_only_active_import_plugins(self):
+        from plugin.registry import registry
+        active, inactive = DemoImportPlugin("active"), DemoImportPlugin("inactive", active=False)
+        with patch.object(registry, "check_reload"), patch.object(registry, "plugins", {"active": active, "inactive": inactive}):
+            self.assertEqual(registry.with_mixin("importmixin"), [active])
 
 class ImportHubTests(APITestCase):
     def setUp(self):
@@ -46,6 +126,124 @@ class ImportHubTests(APITestCase):
         response = self.client.post(self.url("upload"), {"file": file}, format="multipart")
         self.assertEqual(response.status_code, 200, response.data)
         return response.data
+
+    def test_plugin_methods_template_preview_and_confirm_saved_dataset(self):
+        plugin = DemoImportPlugin()
+        plugin.expense_type, plugin.fund_ref = self.type.short_name, self.fund.ref
+        with patch("plugin.registry.registry.with_mixin", return_value=[plugin]):
+            profiles = self.client.get(self.url("profiles")).data["items"]
+            self.assertEqual({p["key"] for p in profiles if p.get("plugin_import")},
+                             {"plugin:demo:expenses", "plugin:demo:expenses-alt"})
+            template = self.client.get(self.url("template", "plugin:demo:expenses"))
+            self.assertEqual(template.status_code, 200)
+            self.assertEqual(tablib.import_set(template.content, format="xlsx").headers, ["Code", "Amount"])
+            source = b"ignore,ignore\n ID , Total \nPLUGIN-1,10\n"
+            uploaded = self.client.post(self.url("upload", "plugin:demo:expenses"),
+                                        {"file": SimpleUploadedFile("raw.csv", source)}, format="multipart")
+            self.assertEqual(uploaded.status_code, 200, uploaded.data)
+            self.assertFalse(uploaded.data["structure"]["eligible"])
+            token = uploaded.data["import_token"]
+            with patch("plugin.registry.registry.with_mixin", return_value=[]):
+                self.assertEqual(self.client.post(self.url("preview", "plugin:demo:expenses"),
+                                                  {"import_token": token, "sheet": ""}, format="json").status_code, 404)
+            invalid = self.client.post(self.url("preview", "plugin:demo:expenses"),
+                                       {"import_token": token, "sheet": ""}, format="json")
+            self.assertFalse(invalid.data["can_commit"])
+            self.assertEqual(Expense.objects.filter(expense_id="PLUGIN-1").count(), 0)
+            preview = self.client.post(self.url("preview", "plugin:demo:expenses"),
+                                       {"import_token": token, "sheet": "", "header_row": 2}, format="json")
+            self.assertEqual(preview.status_code, 200, preview.data)
+            self.assertTrue(preview.data["structure"]["eligible"])
+            self.assertEqual(preview.data["structure"]["aliases_used"], {"Code": " ID ", "Amount": " Total "})
+            self.assertEqual(preview.data["summary"]["new"], 1)
+            self.assertEqual(Expense.objects.filter(expense_id="PLUGIN-1").count(), 0)
+            with patch.object(plugin, "transform_expenses", side_effect=AssertionError("Handler must not rerun")):
+                final = self.client.post(self.url("commit", "plugin:demo:expenses"),
+                                         {"import_token": preview.data["import_token"]}, format="json")
+            self.assertEqual(final.status_code, 200, final.data)
+            self.assertEqual(final.data["rows"][0]["values"], preview.data["rows"][0]["values"])
+            self.assertEqual(Expense.objects.filter(expense_id="PLUGIN-1").count(), 1)
+
+    def test_plugin_preparation_is_shared_by_eligibility_normalization_and_handler(self):
+        class PreparedPlugin(DemoImportPlugin):
+            def __init__(self):
+                super().__init__()
+                self.preparations = []
+                self.checked = []
+                self.normalized = []
+                self.handled = []
+
+            def prepare_dataset(self, dataset, current_import_methode, option_data=None):
+                self.preparations.append(option_data)
+                rows = [list(dataset.headers), *[list(row) for row in dataset]]
+                header = next(index for index, row in enumerate(rows)
+                              if [self._header(value) for value in row] == ["id", "total"])
+                return tablib.Dataset(*[row for row in rows[header + 1:] if any(value is not None and str(value).strip() for value in row)],
+                                      headers=rows[header])
+
+            def check_eligibility(self, dataset, current_import_methode, option_data=None):
+                self.checked.append((list(dataset.headers), option_data))
+                return super().check_eligibility(dataset, current_import_methode, option_data)
+
+            def normalize_columns(self, dataset, current_import_methode):
+                self.normalized.append(list(dataset.headers))
+                return super().normalize_columns(dataset, current_import_methode)
+
+            def transform_expenses(self, dataset, current_import_methode):
+                self.handled.append((list(dataset.headers), list(dataset[0])))
+                return super().transform_expenses(dataset, current_import_methode)
+
+        plugin = PreparedPlugin()
+        plugin.expense_type, plugin.fund_ref = self.type.short_name, self.fund.ref
+        raw = tablib.Dataset(headers=["", ""])
+        for row in (["", ""], [" ID ", " Total "], ["", ""], ["PREPARED-1", "10"]):
+            raw.append(row)
+        with patch("plugin.registry.registry.with_mixin", return_value=[plugin]):
+            uploaded = self.client.post(self.url("upload", "plugin:demo:expenses"),
+                                        {"file": SimpleUploadedFile("raw.xlsx", raw.export("xlsx"))}, format="multipart")
+            self.assertEqual(uploaded.status_code, 200, uploaded.data)
+            self.assertTrue(uploaded.data["structure"]["eligible"])
+            self.assertEqual(uploaded.data["structure"]["rows"], 1)
+            sheet = uploaded.data["sheets"][0]
+            preview = self.client.post(self.url("preview", "plugin:demo:expenses"),
+                                       {"import_token": uploaded.data["import_token"], "sheet": sheet}, format="json")
+            self.assertEqual(preview.status_code, 200, preview.data)
+            self.assertEqual(preview.data["summary"]["new"], 1)
+            self.assertEqual(len(plugin.preparations), 2)  # One parsed Dataset per upload and preview request.
+            self.assertEqual(plugin.checked[-1], ([" ID ", " Total "], {"sheet": sheet, "header_row": 1}))
+            self.assertEqual(plugin.normalized, [[" ID ", " Total "]])
+            self.assertEqual(plugin.handled, [(["Code", "Amount"], ["PREPARED-1", "10"])])
+            with patch.object(plugin, "prepare_dataset", side_effect=AssertionError("Do not prepare again")), \
+                    patch.object(plugin, "transform_expenses", side_effect=AssertionError("Do not transform again")):
+                final = self.client.post(self.url("commit", "plugin:demo:expenses"),
+                                         {"import_token": preview.data["import_token"]}, format="json")
+            self.assertEqual(final.status_code, 200, final.data)
+            self.assertEqual(final.data["rows"][0]["values"], preview.data["rows"][0]["values"])
+            self.assertEqual(Expense.objects.filter(expense_id="PREPARED-1").count(), 1)
+
+    def test_plugin_registry_scope_resource_and_permissions(self):
+        first, second = DemoImportPlugin("one"), DemoImportPlugin("two")
+        first.expense_type = second.expense_type = self.type.short_name
+        first.fund_ref = second.fund_ref = self.fund.ref
+        with patch("plugin.registry.registry.with_mixin", return_value=[first, second]):
+            profiles = self.client.get(self.url("profiles")).data["items"]
+            self.assertIn("plugin:one:expenses", {item["key"] for item in profiles})
+            self.assertIn("plugin:two:expenses", {item["key"] for item in profiles})
+            other = get_user_model().objects.create_user("no-plugin-import")
+            self.client.force_login(other)
+            self.assertFalse(any(item.get("plugin_import") for item in self.client.get(self.url("profiles")).data["items"]))
+            self.assertEqual(self.client.get(self.url("template", "plugin:one:expenses")).status_code, 403)
+        self.client.force_login(self.user)
+        with patch("plugin.registry.registry.with_mixin", return_value=[]):
+            self.assertEqual(self.client.get(self.url("template", "plugin:one:expenses")).status_code, 404)
+        first.import_method = [{**first.import_method[0], "resource": "UnknownResource"}]
+        with patch("plugin.registry.registry.with_mixin", return_value=[first]):
+            keys = {item["key"] for item in self.client.get(self.url("profiles")).data["items"]}
+            self.assertNotIn("plugin:one:expenses", keys)
+            self.assertIn("expense", keys)
+        first.import_method = [{**first.import_method[0], "resource": "ExpenseResource", "handler": "unknown_handler"}]
+        with patch("plugin.registry.registry.with_mixin", return_value=[first]):
+            self.assertNotIn("plugin:one:expenses", {item["key"] for item in self.client.get(self.url("profiles")).data["items"]})
 
     def test_registry_permissions_and_templates(self):
         response = self.client.get(reverse("api_v1:import-profiles"))

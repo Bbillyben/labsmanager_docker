@@ -48,17 +48,19 @@ export function ImportPage() {
   const [profile, setProfile] = useState('')
   const [upload, setUpload] = useState<ImportUpload | null>(null)
   const [sheet, setSheet] = useState('')
+  const [headerRow, setHeaderRow] = useState(1)
   const [preview, setPreview] = useState<ImportResult | null>(null)
   const [final, setFinal] = useState<ImportResult | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const selected = profiles?.find((item) => item.key === profile)
-  const structure = upload?.sheet_structures[sheet] ?? upload?.structure
+  const structure = preview?.structure ?? upload?.sheet_structures[sheet] ?? upload?.structure
+  const recognized = structure?.recognized ? Array.isArray(structure.recognized) ? structure.recognized : Object.entries(structure.recognized).map(([canonical, source]) => `${canonical} ← ${source}`) : []
 
   useEffect(() => { let mounted = true; getImportProfiles().then((data) => { if (mounted) setProfiles(data.items) }, (cause) => { if (mounted) setError(normalizeMutationError(cause).messages.join(' ') || t('import.loadError')) }); return () => { mounted = false } }, [t])
 
   async function run(action: () => Promise<void>) { if (pending) return; setPending(true); setError(''); try { await action() } catch (cause) { const normalized = normalizeMutationError(cause); setError([...normalized.messages, ...Object.values(normalized.fields).flat()].join(' ') || t('import.actionError')) } finally { setPending(false) } }
-  function reset(nextProfile: string) { setProfile(nextProfile); setUpload(null); setSheet(''); setPreview(null); setFinal(null); setError('') }
+  function reset(nextProfile: string) { setProfile(nextProfile); setUpload(null); setSheet(''); setHeaderRow(1); setPreview(null); setFinal(null); setError('') }
   function changeSheet(value: string) { setSheet(value); setPreview(null); setFinal(null) }
   const phase = final ? 4 : preview ? 3 : upload ? 2 : profile ? 1 : 0
 
@@ -69,11 +71,13 @@ export function ImportPage() {
     {profiles && profiles.length === 0 && <p>{t('import.noProfiles')}</p>}
     {profiles && profiles.length > 0 && <section className="grid gap-3"><label className="grid gap-1 max-w-md">{t('import.type')}<select className="rounded-md border border-input bg-background p-2" value={profile} onChange={(event) => reset(event.target.value)}><option value="">{t('import.chooseType')}</option>{profiles.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>{selected && <p className="text-sm text-muted-foreground">{selected.description} · {selected.formats.join(', ').toUpperCase()}</p>}</section>}
     {selected && !final && <section className="grid gap-4"><div className="flex flex-wrap gap-2">{selected.template_formats.map((format) => <Button key={format} onClick={() => void run(async () => saveFile(await getImportTemplate(profile, format), `${profile}-template.${format}`))}><Download aria-hidden="true" />{t('import.template')} {format.toUpperCase()}</Button>)}</div>
-      <label className="grid max-w-md gap-2 rounded-md border border-border p-4">{t('import.file')}<input type="file" accept={selected.formats.map((format) => `.${format}`).join(',')} disabled={pending} onChange={(event) => { const file = event.target.files?.[0]; setUpload(null); setPreview(null); setFinal(null); if (file) void run(async () => { const data = await uploadImport(profile, file); setUpload(data); setSheet(data.sheets[0] ?? '') }) }} /></label></section>}
+      <label className="grid max-w-md gap-2 rounded-md border border-border p-4">{t('import.file')}<input type="file" accept={selected.formats.map((format) => `.${format}`).join(',')} disabled={pending} onChange={(event) => { const file = event.target.files?.[0]; setUpload(null); setPreview(null); setFinal(null); setHeaderRow(1); if (file) void run(async () => { const data = await uploadImport(profile, file); setUpload(data); setSheet(data.sheets[0] ?? '') }) }} /></label></section>}
     {upload && !final && <section className="grid gap-3"><h2 className="text-lg font-semibold">{t('import.fileInfo')}</h2><p>{upload.filename} · {(upload.size / 1024).toFixed(1)} KB · {upload.format.toUpperCase()}</p>{upload.sheets.length > 1 && <label className="grid max-w-md gap-1">{t('import.sheet')}<select className="rounded-md border border-input bg-background p-2" value={sheet} onChange={(event) => changeSheet(event.target.value)}>{upload.sheets.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>}
+      {selected?.plugin_import && <label className="grid max-w-md gap-1">{t('import.headerRow')}<input className="rounded-md border border-input bg-background p-2" type="number" min={1} value={headerRow} onChange={(event) => { setHeaderRow(Number(event.target.value)); setPreview(null) }} /></label>}
       <p>{t('import.rows')}: {structure?.rows} · {t('import.columns')}: {structure?.columns}</p>
-      <p>{t('import.recognized')}: {structure?.recognized.join(', ') || '—'}</p><p>{t('import.missing')}: {structure?.missing.join(', ') || '—'}</p><p>{t('import.extra')}: {structure?.extra.join(', ') || '—'}</p>
-      {!preview && <Button disabled={pending} onClick={() => void run(async () => { const result = await previewImport(profile, upload.import_token, sheet); setPreview(result) })}><Upload aria-hidden="true" />{t('import.check')}</Button>}</section>}
+      <p>{t('import.recognized')}: {recognized.join(', ') || '—'}</p><p>{t('import.missing')}: {structure?.missing.join(', ') || '—'}</p><p>{t('import.extra')}: {structure?.extra.join(', ') || '—'}</p>
+      {selected?.plugin_import && <><p>{t('import.aliases')}: {Object.entries(structure?.aliases_used ?? {}).map(([canonical, source]) => `${canonical} ← ${source}`).join(', ') || '—'}</p><p>{t('import.ambiguities')}: {structure?.ambiguities?.join(', ') || '—'}</p>{structure?.warnings?.map((message) => <Alert key={message} tone="warning">{message}</Alert>)}</>}
+      {!preview && <Button disabled={pending || headerRow < 1} onClick={() => void run(async () => { const result = await previewImport(profile, upload.import_token, sheet, headerRow); setPreview(result) })}><Upload aria-hidden="true" />{t('import.check')}</Button>}</section>}
     {preview && !final && <section className="grid gap-5"><h2 className="text-lg font-semibold">{t('import.preview')}</h2>{preview.global_errors.map((message, index) => <Alert key={index} tone="danger">{message}</Alert>)}<ImportRowsTable result={preview} columns={selected?.preview_columns ?? []} />{preview.summary.error > 0 && <p className="text-sm text-muted-foreground">{t(preview.can_commit ? 'import.partialHint' : 'import.blocked')}</p>}
       <div className="flex flex-wrap gap-2">{preview.summary.error > 0 && preview.import_token && <Button disabled={pending} onClick={() => void run(async () => saveFile(await downloadImportErrors(profile, preview.import_token!), `${profile}-errors.csv`))}><Download aria-hidden="true" />{t('import.errorsDownload')}</Button>}{preview.can_commit && preview.import_token && <Button variant="primary" disabled={pending} onClick={() => void run(async () => setFinal(await commitImport(profile, preview.import_token!)))}>{t('import.confirm')}</Button>}</div></section>}
     {final && <section className="grid gap-5"><h2 className="text-lg font-semibold">{t('import.complete')}</h2>{final.global_errors.map((message, index) => <Alert key={index} tone="danger">{message}</Alert>)}<ImportRowsTable result={final} columns={selected?.preview_columns ?? []} /><Button onClick={() => reset(profile)}>{t('import.again')}</Button></section>}

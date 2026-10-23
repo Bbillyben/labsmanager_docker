@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from notification.models import UserNotification
 from notification.tasks import send_pending_notification
 from notification.utils import check_overdue_milestones, check_overload_employee, check_stale_milestones
-from plugin.models import PluginSetting
+from plugin.models import PluginConfig, PluginSetting
 from plugin.registry import registry
 from staff.models import Employee, InvitationProvisioning
 from staff.invitation_provisioning import assignable_groups, eligible_employee, save_provisioning
@@ -252,6 +252,27 @@ def plugin_data(key, plugin):
             "mixins": list(plugin.get_registered_mixins(with_cls=False))}
 
 
+def discovered_plugin_data(key, plugin, config):
+    if not isinstance(plugin, type):
+        data = plugin_data(key, plugin)
+    else:
+        # Inactive entries are plugin classes, not initialized instances.
+        mixin_keys = {"ImportMixin": "importmixin", "DashboardPluginMixin": "dashboard",
+                      "SearchPluginMixin": "search"}
+        mixins = [mixin_keys.get(base.__name__, base.__name__.removesuffix("Mixin").lower())
+                  for base in plugin.__mro__ if base.__module__.startswith("plugin.base.")]
+        data = {"key": key, "human_name": str(getattr(plugin, "TITLE", None) or plugin.NAME),
+                "description": str(getattr(plugin, "DESCRIPTION", "") or ""),
+                "author": str(getattr(plugin, "AUTHOR", "") or ""),
+                "pub_date": getattr(plugin, "PUBLISH_DATE", None),
+                "version": getattr(plugin, "VERSION", None),
+                "website": getattr(plugin, "WEBSITE", None),
+                "license": getattr(plugin, "LICENSE", None), "mixins": mixins}
+    data.update(active=key in registry.plugins, is_builtin=plugin.check_is_builtin(),
+                error=bool(config and config.active and key not in registry.plugins))
+    return data
+
+
 def plugin_errors():
     return [{"stage": str(stage), "name": str(name), "message": str(message)}
             for stage, errors in registry.errors.items() for entry in errors for name, message in entry.items()]
@@ -259,7 +280,10 @@ def plugin_errors():
 
 class AdminPlugins(StaffView):
     def get(self, request):
-        return Response({"results": [plugin_data(key, plugin) for key, plugin in registry.plugins.items()],
+        registry.check_reload()
+        configs = {config.key: config for config in PluginConfig.objects.filter(key__in=registry.plugins_full)}
+        return Response({"results": [discovered_plugin_data(key, plugin, configs.get(key))
+                                     for key, plugin in registry.plugins_full.items()],
                          "errors": plugin_errors()})
 
 
@@ -279,7 +303,7 @@ def plugin_or_404(key):
 class AdminPluginDetail(StaffView):
     def get(self, request, key):
         plugin = plugin_or_404(key)
-        data = plugin_data(key, plugin)
+        data = discovered_plugin_data(key, plugin, registry.get_plugin_config(key))
         sections = {}
         if plugin.mixin_enabled("settings"):
             config = registry.get_plugin_config(key)

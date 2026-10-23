@@ -25,7 +25,7 @@ from labsmanager.list_export_v1 import ListExportContentNegotiation
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .profiles import PROFILES
+from .profiles import PluginImportProfile, get_profiles
 
 
 FORMAT_CLASSES = {name: cls for name, cls in (
@@ -86,10 +86,13 @@ def _clean_expired():
             path.unlink(missing_ok=True)
 
 
-def _sign(user, profile, identifier, file_format, sheet=None, previewed=False, preview_id=None):
-    return signing.dumps({"user": user.pk, "profile": profile.key, "file": identifier,
-                          "format": file_format, "sheet": sheet, "previewed": previewed,
-                          "preview_id": preview_id}, salt=TOKEN_SALT)
+def _sign(user, profile, identifier, file_format, sheet=None, previewed=False, preview_id=None, header_row=1):
+    payload = {"user": user.pk, "profile": profile.key, "file": identifier,
+               "format": file_format, "sheet": sheet, "previewed": previewed,
+               "preview_id": preview_id}
+    if isinstance(profile, PluginImportProfile):
+        payload.update(header_row=header_row, resource=profile.resource_class.__name__, method=profile.method)
+    return signing.dumps(payload, salt=TOKEN_SALT)
 
 
 def _read_token(token, user, profile, *, previewed=None):
@@ -99,6 +102,10 @@ def _read_token(token, user, profile, *, previewed=None):
         raise ValidationError({"import_token": _("Invalid or expired import token")})
     if value.get("user") != user.pk or value.get("profile") != profile.key:
         raise PermissionDenied(_("This import does not belong to you"))
+    if isinstance(profile, PluginImportProfile) and (
+        value.get("resource") != profile.resource_class.__name__ or value.get("method") != profile.method
+    ):
+        raise ValidationError({"import_token": _("Import method has changed; upload the file again")})
     if previewed is not None and value.get("previewed") != previewed:
         raise ValidationError({"import_token": _("Preview the import before confirming")})
     path = _temp_path(value.get("file"))
@@ -117,16 +124,25 @@ def _datasets(data, file_format):
         raise ValidationError({"file": _("File cannot be read in the selected format")})
 
 
-def _dataset(value, path, *, sheet=None):
+def _dataset(value, path, *, sheet=None, header_row=None):
     datasets = _datasets(path.read_bytes(), value["format"])
     name = value.get("sheet") if sheet is None else sheet
     if name is None and len(datasets) == 1:
         name = next(iter(datasets))
     if name not in datasets:
         raise ValidationError({"sheet": _("Sheet not found")})
-    if not datasets[name].headers:
+    selected = datasets[name]
+    row_number = value.get("header_row", 1) if header_row is None else header_row
+    if not isinstance(row_number, int) or isinstance(row_number, bool) or row_number < 1:
+        raise ValidationError({"header_row": _("Invalid header row")})
+    if row_number > 1:
+        rows = list(selected)
+        if row_number > len(rows) + 1:
+            raise ValidationError({"header_row": _("Header row not found")})
+        selected = tablib.Dataset(*rows[row_number - 1:], headers=list(rows[row_number - 2]))
+    if not selected.headers:
         raise ValidationError({"sheet": _("Selected sheet has no header row")})
-    return datasets[name], name
+    return selected, name
 
 
 def _structure(resource, dataset):
@@ -158,6 +174,26 @@ def _preview_path(file_id, preview_id):
     except (TypeError, ValueError):
         raise ValidationError({"import_token": _("Invalid import token")})
     return TEMP_DIR / f"{file_id}.{preview_id}.errors"
+
+
+def _transformed_path(file_id, preview_id):
+    _preview_path(file_id, preview_id)
+    return TEMP_DIR / f"{file_id}.{preview_id}.xlsx"
+
+
+def _structure_for(item, dataset, option_data=None):
+    if isinstance(item, PluginImportProfile):
+        return item.check_eligibility(dataset, option_data)
+    return _structure(item.resource_class(), dataset)
+
+
+def _prepare_dataset(item, dataset, option_data=None):
+    if not isinstance(item, PluginImportProfile):
+        return dataset
+    try:
+        return item.prepare_dataset(dataset, option_data)
+    except ValueError as exc:
+        raise ValidationError({"file": str(exc)}) from exc
 
 
 def _error_message(row):
@@ -237,7 +273,7 @@ class ImportBase(APIView):
     permission_classes = [IsAuthenticated]
 
     def profile(self, request, profile):
-        item = PROFILES.get(profile)
+        item = get_profiles().get(profile)
         if item is None:
             raise NotFound()
         if not item.allowed(request.user):
@@ -247,7 +283,7 @@ class ImportBase(APIView):
 
 class ImportProfiles(ImportBase):
     def get(self, request):
-        return Response({"items": [p.metadata() for p in PROFILES.values() if p.allowed(request.user)]})
+        return Response({"items": [p.metadata() for p in get_profiles().values() if p.allowed(request.user)]})
 
 
 class ImportTemplate(ImportBase):
@@ -258,7 +294,8 @@ class ImportTemplate(ImportBase):
         if file_format not in item.template_formats:
             raise ValidationError({"format": _("Unsupported template format")})
         resource = item.resource_class()
-        dataset = resource.export(queryset=resource._meta.model.objects.none())
+        dataset = (item.plugin.get_import_template(item.method) if isinstance(item, PluginImportProfile)
+                   else resource.export(queryset=resource._meta.model.objects.none()))
         data = dataset.export(file_format)
         response = HttpResponse(data, content_type=FORMAT_CLASSES[file_format].CONTENT_TYPE)
         response["Content-Disposition"] = f'attachment; filename="{item.key}-template.{file_format}"'
@@ -290,35 +327,58 @@ class ImportUpload(ImportBase):
             datasets = _datasets(path.read_bytes(), file_format)
             if not datasets:
                 raise ValidationError({"file": _("No sheet found")})
-            if not any(sheet.headers for sheet in datasets.values()):
+            if not any(sheet.headers or (isinstance(item, PluginImportProfile) and len(sheet))
+                       for sheet in datasets.values()):
                 raise ValidationError({"file": _("No header row found")})
+            sheet_structures = {name: _structure_for(item, _prepare_dataset(item, sheet, {"sheet": name, "header_row": 1}))
+                                for name, sheet in datasets.items()}
         except Exception:
             path.unlink(missing_ok=True)
             raise
-        first = next(iter(datasets.values()))
         return Response({"import_token": _sign(request.user, item, identifier, file_format),
                          "filename": upload.name, "size": upload.size, "format": file_format,
-                         "sheets": list(datasets), "structure": _structure(item.resource_class(), first),
-                         "sheet_structures": {name: _structure(item.resource_class(), sheet) for name, sheet in datasets.items()}})
+                         "sheets": list(datasets), "structure": next(iter(sheet_structures.values())),
+                         "sheet_structures": sheet_structures})
 
 
 class ImportPreview(ImportBase):
     def post(self, request, profile):
         item = self.profile(request, profile)
         value, path = _read_token(request.data.get("import_token"), request.user, item, previewed=False)
-        dataset, sheet = _dataset(value, path, sheet=request.data.get("sheet"))
+        header_row = request.data.get("header_row", 1) if isinstance(item, PluginImportProfile) else 1
+        try:
+            header_row = int(header_row)
+        except (TypeError, ValueError):
+            raise ValidationError({"header_row": _("Invalid header row")})
+        dataset, sheet = _dataset(value, path, sheet=request.data.get("sheet"), header_row=header_row)
         resource = item.resource_class()
-        structure = _structure(resource, dataset)
+        option_data = {"sheet": sheet, "header_row": header_row}
+        dataset = _prepare_dataset(item, dataset, option_data)
+        structure = _structure_for(item, dataset, option_data)
+        if isinstance(item, PluginImportProfile):
+            if not structure["eligible"]:
+                return Response({"summary": {key: 0 for key in ("new", "update", "unchanged", "error")},
+                                 "rows": [], "global_errors": structure["errors"], "can_commit": False,
+                                 "structure": structure, "sheet": sheet})
+            try:
+                dataset = item.transform(dataset)
+            except ValueError as exc:
+                raise ValidationError({"file": str(exc)})
+            # Preview exactly the serialized dataset that confirmation will read.
+            transformed_bytes = dataset.export("xlsx")
+            dataset = tablib.import_set(transformed_bytes, format="xlsx")
         # Missing columns are reported; the Resource remains the authority on validity.
         result = resource.import_data(_import_dataset(resource, dataset), dry_run=True, raise_errors=False,
                                       file_name=path.name, user=request.user)
         normalized = _normalize(result, dataset, resource, item)
         preview_id = str(uuid.uuid4())
+        if isinstance(item, PluginImportProfile):
+            _transformed_path(value["file"], preview_id).write_bytes(transformed_bytes)
         errors = {row["row_number"]: row["error_message"] for row in normalized["rows"]
                   if row["state"] == "error"}
         _preview_path(value["file"], preview_id).write_text(json.dumps(errors), encoding="utf-8")
         return Response({**normalized, "structure": structure, "sheet": sheet,
-                         "import_token": _sign(request.user, item, value["file"], value["format"], sheet, True, preview_id)})
+                         "import_token": _sign(request.user, item, value["file"], value["format"], sheet, True, preview_id, header_row)})
 
 
 class ImportCommit(ImportBase):
@@ -331,7 +391,13 @@ class ImportCommit(ImportBase):
         except FileNotFoundError:
             raise ValidationError({"import_token": _("Import file has expired")})
         try:
-            dataset, _ = _dataset(value, claimed)
+            if isinstance(item, PluginImportProfile):
+                transformed = _transformed_path(value["file"], value.get("preview_id"))
+                if not transformed.is_file():
+                    raise ValidationError({"import_token": _("Preview has expired")})
+                dataset = tablib.import_set(transformed.read_bytes(), format="xlsx")
+            else:
+                dataset, _ = _dataset(value, claimed)
             resource = item.resource_class()
             result = resource.import_data(_import_dataset(resource, dataset), dry_run=False, raise_errors=False,
                                           rollback_on_validation_errors=True,
@@ -339,6 +405,8 @@ class ImportCommit(ImportBase):
         finally:
             claimed.unlink(missing_ok=True)
             for sidecar in TEMP_DIR.glob(f'{value["file"]}.*.errors'):
+                sidecar.unlink(missing_ok=True)
+            for sidecar in TEMP_DIR.glob(f'{value["file"]}.*.xlsx'):
                 sidecar.unlink(missing_ok=True)
         normalized = _normalize(result, dataset, resource, item)
         if result.has_errors() or result.has_validation_errors():
@@ -366,7 +434,13 @@ class ImportErrors(ImportBase):
     def get(self, request, profile):
         item = self.profile(request, profile)
         value, path = _read_token(request.query_params.get("import_token"), request.user, item, previewed=True)
-        dataset, _ = _dataset(value, path)
+        if isinstance(item, PluginImportProfile):
+            transformed = _transformed_path(value["file"], value.get("preview_id"))
+            if not transformed.is_file():
+                raise ValidationError({"import_token": _("Preview has expired")})
+            dataset = tablib.import_set(transformed.read_bytes(), format="xlsx")
+        else:
+            dataset, _ = _dataset(value, path)
         sidecar = _preview_path(value["file"], value.get("preview_id"))
         if not sidecar.is_file():
             raise ValidationError({"import_token": _("Preview has expired")})

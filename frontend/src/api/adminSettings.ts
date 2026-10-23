@@ -9,7 +9,7 @@ export type AdminInvitation = { id: number; email: string; created: string; sent
 export type AdminInvitationList = { results: AdminInvitation[]; group_options?: { id: number; name: string }[]; can_assign_groups?: boolean }
 export type PendingNotification = { id: number; user: string; source_type: string; action: string; object: string; created: string }
 export type PluginError = { stage: string; name: string; message: string }
-export type PluginSummary = { key: string; human_name: string; description: string; author: string; pub_date: string | null; version: string | null; website: string | null; license: string | null; mixins: string[] }
+export type PluginSummary = { key: string; human_name: string; description: string; author: string; pub_date: string | null; version: string | null; website: string | null; license: string | null; mixins: string[]; active: boolean; is_builtin: boolean; error: boolean }
 export type PluginDetail = PluginSummary & { sections: { settings?: UserSettingData[]; schedule?: { name: string; function: string; schedule_type: string; repeat: number | null; next_run: string | null; success: boolean }[]; urls?: { base_url: string; routes: { name: string; url: string; href: string | null }[] } } }
 
 export const getAdminSettings = (section: 'general' | 'plugins', signal: AbortSignal) => apiRequest<{ settings: UserSettingData[] }>(`${base}${section}/settings/`, { signal })
@@ -25,5 +25,6 @@ export const getAdminNotifications = (signal: AbortSignal) => apiRequest<{ resul
 export const runAdminNotificationAction = (action: 'check' | 'send') => apiRequest<{ counts?: Record<string, number>; sent?: number; results: PendingNotification[] }>(`${base}notifications/${action}/`, { method: 'POST' })
 export const getAdminPlugins = (signal: AbortSignal) => apiRequest<{ results: PluginSummary[]; errors: PluginError[] }>(`${base}plugins/`, { signal })
 export const reloadAdminPlugins = () => apiRequest<{ results: PluginSummary[]; errors: PluginError[] }>(`${base}plugins/reload/`, { method: 'POST' })
+export const setAdminPluginActive = (key: string, active: boolean) => apiRequest<{ active: boolean }>(`/api/plugin/${encodeURIComponent(key)}/activate/`, { method: 'PATCH', headers: json, body: JSON.stringify({ active }) })
 export const getAdminPlugin = (key: string, signal: AbortSignal) => apiRequest<PluginDetail>(`${base}plugins/${encodeURIComponent(key)}/`, { signal })
 export const updateAdminPluginSetting = (plugin: string, key: string, value: SettingValue) => apiRequest<UserSettingData>(`${base}plugins/${encodeURIComponent(plugin)}/settings/${encodeURIComponent(key)}/`, { method: 'PATCH', headers: json, body: JSON.stringify({ value }) })

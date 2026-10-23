@@ -7,13 +7,18 @@ import { I18nProvider } from '../i18n/I18nProvider'
 import { authenticatedUser, jsonResponse } from '../test/fixtures'
 import { AppRouter } from '../router/AppRouter'
 
-function renderAt(path: string, staff = true, invitationError = false, canAssignGroups = false) {
+function renderAt(path: string, staff = true, invitationError = false, canAssignGroups = false, pluginError = false, pluginHold?: Promise<void>) {
   window.history.pushState({}, '', path)
   const account = { ...authenticatedUser, is_staff: staff }
   const calls: string[] = []
   let invitationRows = [
     { id: 1, email: 'active@example.test', created: '2026-10-01T10:00:00Z', sent: '2026-10-01T10:01:00Z', accepted: false, key_expired: false, inviter: { id: 7, username: 'ada' } },
     { id: 2, email: 'expired@example.test', created: '2026-09-01T10:00:00Z', sent: '2026-09-01T10:01:00Z', accepted: true, key_expired: true, inviter: null },
+  ]
+  let plugins = [
+    { key: 'sample', human_name: 'Sample', description: 'Sample plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['settings', 'schedule', 'urls'], active: true, is_builtin: false, error: false },
+    { key: 'sifacexpenseimport', human_name: 'SifacExpenseImport', description: 'Import plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['import'], active: false, is_builtin: false, error: false },
+    { key: 'internal', human_name: 'Internal', description: '', author: '', pub_date: null, version: null, website: null, license: null, mixins: [], active: true, is_builtin: true, error: false },
   ]
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input)
@@ -44,7 +49,14 @@ function renderAt(path: string, staff = true, invitationError = false, canAssign
     if (url === '/api/v1/settings/admin/notifications/check/') return jsonResponse({ counts: { stale: 1, overdue: 0, overload: 0 }, results: [] })
     if (url === '/api/v1/settings/admin/notifications/send/') return jsonResponse({ sent: 1, results: [] })
     if (url === '/api/v1/settings/admin/plugins/settings/') return jsonResponse({ settings: [] })
-    if (url === '/api/v1/settings/admin/plugins/') return jsonResponse({ results: [{ key: 'sample', human_name: 'Sample', description: 'Sample plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['settings', 'schedule', 'urls'] }], errors: [] })
+    if (url === '/api/v1/settings/admin/plugins/') return jsonResponse({ results: plugins, errors: [] })
+    if (url === '/api/plugin/sample/activate/' || url === '/api/plugin/sifacexpenseimport/activate/') {
+      if (pluginHold) await pluginHold
+      if (pluginError) return jsonResponse({ detail: 'Activation failed' }, 400)
+      const active = (JSON.parse(String(init?.body)) as { active: boolean }).active
+      plugins = plugins.map((row) => row.key === url.split('/')[3] ? { ...row, active } : row)
+      return jsonResponse({ active })
+    }
     if (url === '/api/v1/settings/admin/plugins/reload/') return jsonResponse({ results: [], errors: [] })
     if (url === '/api/v1/settings/admin/plugins/sample/') return jsonResponse({ key: 'sample', human_name: 'Sample', description: 'Sample plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['settings', 'schedule', 'urls'], sections: { settings: [], schedule: [], urls: { base_url: '/plugin/sample/', routes: [] } } })
     throw new Error(url)
@@ -166,7 +178,50 @@ describe('Settings administration', () => {
   it('lists and reloads plugins', async () => {
     const calls = renderAt('/app/settings/admin/plugins')
     expect(await screen.findByRole('link', { name: 'Sample' })).toHaveAttribute('href', '/app/settings/admin/plugins/sample')
+    expect(screen.getByText('SifacExpenseImport')).toBeInTheDocument()
+    expect(screen.getByText('Inactif')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Désactiver' })?.closest('tr')?.textContent).not.toContain('Internal')
     await userEvent.click(screen.getByRole('button', { name: 'Recharger les plugins' }))
     expect(calls).toContain('POST /api/v1/settings/admin/plugins/reload/')
+  })
+
+  it('activates and deactivates discovered plugins after confirmation', async () => {
+    const calls = renderAt('/app/settings/admin/plugins')
+    const row = (await screen.findByText('SifacExpenseImport')).closest('tr')!
+    await userEvent.click(within(row).getByRole('button', { name: 'Activer' }))
+    expect(within(row).getByText('Inactif')).toBeInTheDocument()
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Activer' }))
+    expect(await within(row).findByText('Actif')).toBeInTheDocument()
+    expect(screen.getByText('Plugin activé.')).toBeInTheDocument()
+    await userEvent.click(within(row).getByRole('button', { name: 'Désactiver' }))
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Désactiver' }))
+    expect(await within(row).findByText('Inactif')).toBeInTheDocument()
+    expect(screen.getByText('Plugin désactivé.')).toBeInTheDocument()
+    expect(calls.filter((call) => call.includes('/api/plugin/sifacexpenseimport/activate/'))).toHaveLength(2)
+    expect(calls.filter((call) => call.includes('/plugins/reload/'))).toHaveLength(0)
+  })
+
+  it('keeps the plugin state and confirmation open when activation fails', async () => {
+    renderAt('/app/settings/admin/plugins', true, false, false, true)
+    const row = (await screen.findByText('SifacExpenseImport')).closest('tr')!
+    await userEvent.click(within(row).getByRole('button', { name: 'Activer' }))
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Activer' }))
+    expect(await screen.findByText('Activation failed')).toBeInTheDocument()
+    expect(within(row).getByText('Inactif')).toBeInTheDocument()
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+  })
+
+  it('disables actions while a plugin change is pending', async () => {
+    let release!: () => void
+    const hold = new Promise<void>((resolve) => { release = resolve })
+    renderAt('/app/settings/admin/plugins', true, false, false, false, hold)
+    const row = (await screen.findByText('SifacExpenseImport')).closest('tr')!
+    const reload = screen.getByRole('button', { name: 'Recharger les plugins' })
+    await userEvent.click(within(row).getByRole('button', { name: 'Activer' }))
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Activer' }))
+    expect(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Enregistrement…' })).toBeDisabled()
+    expect(reload).toBeDisabled()
+    release()
+    expect(await within(row).findByText('Actif')).toBeInTheDocument()
   })
 })

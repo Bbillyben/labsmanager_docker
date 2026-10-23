@@ -6,10 +6,12 @@ from django.utils import timezone
 from django_q.models import Schedule
 from invitations.models import Invitation
 from rest_framework.renderers import JSONRenderer
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from settings.models import LabsManagerSetting
 from staff.models import Employee
+from plugin.models import PluginConfig
+from plugin.base.ImportMixin import ImportMixin
 from plugin.registry import registry
 
 
@@ -96,6 +98,55 @@ class AdminSettingsV1Tests(APITestCase):
                     url = BASE + f"plugins/{key}/settings/{setting['key']}/"
                     self.assertEqual(self.client.patch(url, {"value": True}, format="json").status_code, 200)
                     self.assertEqual(self.client.patch(url, {"value": "true"}, format="json").status_code, 400)
+
+    def test_plugin_activation_uses_legacy_endpoint_and_persists_state(self):
+        config = PluginConfig.objects.create(key="test-admin-plugin", name="Test admin plugin")
+        url = "/api/plugin/test-admin-plugin/activate/"
+        self.client.force_login(self.reader)
+        self.assertEqual(self.client.patch(url, {"active": True}, format="json").status_code, 403)
+        config.refresh_from_db()
+        self.assertFalse(config.active)
+        strict = APIClient(enforce_csrf_checks=True)
+        strict.force_login(self.staff)
+        self.assertEqual(strict.patch(url, {"active": True}, format="json").status_code, 403)
+        config.refresh_from_db()
+        self.assertFalse(config.active)
+        self.client.force_login(self.staff)
+        with patch.object(registry, "reload_plugins") as reload:
+            self.assertEqual(self.client.patch(url, {"active": True}, format="json").status_code, 200)
+            config.refresh_from_db()
+            self.assertTrue(config.active)
+            self.assertEqual(self.client.patch(url, {"active": False}, format="json").status_code, 200)
+            config.refresh_from_db()
+            self.assertFalse(config.active)
+            self.assertEqual(reload.call_count, 2)
+        self.assertTrue(PluginConfig.objects.filter(pk=config.pk).exists())
+
+    def test_discovered_inactive_plugin_is_listed_without_initialization(self):
+        class InactivePlugin(ImportMixin):
+            NAME = "Import plugin"
+            TITLE = "Import plugin"
+            DESCRIPTION = "Inactive import"
+            AUTHOR = "Ada"
+            VERSION = "1"
+
+            @classmethod
+            def check_is_builtin(cls):
+                return False
+
+            def __init__(self):
+                raise AssertionError("Inactive plugins must not be initialized for the list")
+
+        PluginConfig.objects.create(key="inactive-import", name="Import plugin")
+        self.client.force_login(self.staff)
+        with patch.object(registry, "plugins_full", {"inactive-import": InactivePlugin}), \
+                patch.object(registry, "plugins", {}), patch.object(registry, "check_reload"):
+            response = self.client.get(BASE + "plugins/")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(response.data["results"][0]["key"], "inactive-import")
+        self.assertFalse(response.data["results"][0]["active"])
+        self.assertFalse(response.data["results"][0]["is_builtin"])
+        self.assertIn("importmixin", response.data["results"][0]["mixins"])
 
     def test_kiosk_and_frenchholiday_details_are_json_serializable(self):
         self.client.force_login(self.staff)

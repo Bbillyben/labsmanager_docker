@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Pencil, Plus, Unlink } from 'lucide-react'
-import { getAdminInvitations, getAdminNotifications, getAdminPlugin, getAdminPlugins, getAdminSettings, getAdminUsers, getEmployeeOptions, reloadAdminPlugins, removeExpiredAdminInvitations, runAdminNotificationAction, sendAdminInvitation, updateAdminInvitation, updateAdminPluginSetting, updateAdminSetting, updateAdminUserEmployee, type AdminInvitation, type AdminUser, type PluginDetail } from '../api/adminSettings'
+import { getAdminInvitations, getAdminNotifications, getAdminPlugin, getAdminPlugins, getAdminSettings, getAdminUsers, getEmployeeOptions, reloadAdminPlugins, removeExpiredAdminInvitations, runAdminNotificationAction, sendAdminInvitation, setAdminPluginActive, updateAdminInvitation, updateAdminPluginSetting, updateAdminSetting, updateAdminUserEmployee, type AdminInvitation, type AdminUser, type PluginDetail, type PluginSummary } from '../api/adminSettings'
 import type { UserSettingData } from '../api/userSettings'
 import type { SettingValue } from '../api/settings'
 import { normalizeMutationError } from '../api/errors'
@@ -179,12 +179,29 @@ export function AdminPluginsPage() {
   const { t } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getAdminPlugins(signal), [])
   const resource = useEmployeeResource('admin-plugins', loader)
-  const [pending, setPending] = useState(false)
+  const [pending, setPending] = useState<string | null>(null)
   const [error, setError] = useState('')
-  async function reload() { setPending(true); setError(''); try { const result = await reloadAdminPlugins(); resource.updateData(() => result) } catch (cause) { setError(errorText(cause, t('settings.saveError'))) } finally { setPending(false) } }
-  return <div className={styles.content}><AdminSettingsSection section="plugins" afterSave={resource.retry} /><section className={styles.section}><div className={styles.heading}><h3>{t('settingsAdmin.plugins')}</h3><Button disabled={pending} onClick={() => void reload()}>{t('settingsAdmin.reloadPlugins')}</Button></div>
-    {error && <Alert tone="danger">{error}</Alert>}{resource.loading && <p role="status">{t('common.loading')}</p>}{!!resource.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={resource.retry}>{t('common.retry')}</Button></Alert>}
-    {resource.data && <div className={styles.tableScroll}><table className={styles.table}><thead><tr><th>{t('settingsAdmin.plugin')}</th><th>{t('settingsAdmin.description')}</th><th>{t('settingsAdmin.mixins')}</th><th>{t('settingsAdmin.version')}</th><th>{t('settingsAdmin.author')}</th></tr></thead><tbody>{resource.data.results.map((row) => <tr key={row.key}><td><Link to={`/settings/admin/plugins/${encodeURIComponent(row.key)}`}>{row.human_name}</Link></td><td>{row.description}</td><td>{row.mixins.join(', ')}</td><td>{row.version || '—'}</td><td>{row.author}</td></tr>)}</tbody></table></div>}
+  const [message, setMessage] = useState('')
+  const [confirm, setConfirm] = useState<PluginSummary | null>(null)
+  const focus = useRef<HTMLElement | null>(null)
+  async function reload() { setPending('reload'); setError(''); setMessage(''); try { const result = await reloadAdminPlugins(); resource.updateData(() => result) } catch (cause) { setError(errorText(cause, t('settings.saveError'))) } finally { setPending(null) } }
+  async function changeState(row: PluginSummary) {
+    setPending(row.key); setError(''); setMessage('')
+    try {
+      await setAdminPluginActive(row.key, !row.active)
+      const result = await getAdminPlugins(new AbortController().signal)
+      resource.updateData(() => result)
+      const updated = result.results.find((item) => item.key === row.key)
+      if (!updated || updated.active === row.active) throw new Error(t('settingsAdmin.pluginStateError'))
+      setConfirm(null)
+      setMessage(t(updated.active ? 'settingsAdmin.pluginActivated' : 'settingsAdmin.pluginDeactivated'))
+    } catch (cause) { setError(errorText(cause, t('settings.saveError'))) }
+    finally { setPending(null) }
+  }
+  return <div className={styles.content}><AdminSettingsSection section="plugins" afterSave={resource.retry} /><section className={styles.section}><div className={styles.heading}><h3>{t('settingsAdmin.plugins')}</h3><Button disabled={pending !== null} onClick={() => void reload()}>{t('settingsAdmin.reloadPlugins')}</Button></div>
+    {message && <p role="status">{message}</p>}{error && !confirm && <Alert tone="danger">{error}</Alert>}{resource.loading && <p role="status">{t('common.loading')}</p>}{!!resource.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={resource.retry}>{t('common.retry')}</Button></Alert>}
+    {resource.data && <div className={styles.tableScroll}><table className={`${styles.table} ${styles.pluginTable}`}><thead><tr><th>{t('settingsAdmin.plugin')}</th><th>{t('settingsAdmin.description')}</th><th>{t('settingsAdmin.mixins')}</th><th>{t('settingsAdmin.version')}</th><th>{t('settingsAdmin.author')}</th><th>{t('settingsAdmin.pluginStatus')}</th><th>{t('settingsAdmin.action')}</th></tr></thead><tbody>{resource.data.results.map((row) => <tr key={row.key}><td>{row.active ? <Link to={`/settings/admin/plugins/${encodeURIComponent(row.key)}`}>{row.human_name}</Link> : row.human_name}</td><td>{row.description}</td><td>{row.mixins.join(', ')}</td><td>{row.version || '—'}</td><td>{row.author}</td><td><Badge variant={row.error ? 'destructive' : row.active ? 'default' : 'secondary'}>{t(row.error ? 'settingsAdmin.pluginError' : row.active ? 'settingsAdmin.pluginActive' : 'settingsAdmin.pluginInactive')}</Badge></td><td>{!row.is_builtin && <Button disabled={pending !== null} onClick={(event) => { focus.current = event.currentTarget; setError(''); setConfirm(row) }}>{t(row.active ? 'settingsAdmin.deactivatePlugin' : 'settingsAdmin.activatePlugin')}</Button>}</td></tr>)}</tbody></table></div>}
+    {confirm && <ConfirmDialog title={t(confirm.active ? 'settingsAdmin.deactivatePlugin' : 'settingsAdmin.activatePlugin')} description={`${t(confirm.active ? 'settingsAdmin.confirmDeactivatePlugin' : 'settingsAdmin.confirmActivatePlugin')} ${confirm.human_name}`} pending={pending !== null} error={error && <Alert tone="danger">{error}</Alert>} onCancel={() => { setConfirm(null); setError('') }} onConfirm={() => void changeState(confirm)} returnFocus={focus} confirmLabel={t(confirm.active ? 'settingsAdmin.deactivatePlugin' : 'settingsAdmin.activatePlugin')} />}
     {!!resource.data?.errors.length && <section className={styles.section}><h2>{t('settingsAdmin.pluginErrors')}</h2><div className={styles.tableScroll}><table className={styles.table}><thead><tr><th>{t('settingsAdmin.stage')}</th><th>{t('settingsAdmin.name')}</th><th>{t('settingsAdmin.message')}</th></tr></thead><tbody>{resource.data.errors.map((row, index) => <tr key={`${row.stage}-${row.name}-${index}`}><td>{row.stage}</td><td>{row.name}</td><td>{row.message}</td></tr>)}</tbody></table></div></section>}
   </section></div>
 }
