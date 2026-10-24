@@ -27,7 +27,7 @@ function mount(path = '/app/projects/3', language = 'fr-FR') {
   return render(<I18nProvider><BrowserRouter basename="/app"><AuthProvider><AppRouter /></AuthProvider></BrowserRouter></I18nProvider>)
 }
 
-function mockApi(initial: ProjectOverview = base, detailStatus = 200, options: { writeError?: boolean; refreshError?: boolean } = {}) {
+function mockApi(initial: ProjectOverview = base, detailStatus = 200, options: { writeError?: boolean; refreshError?: boolean; uiContributions?: unknown[] } = {}) {
   const state = structuredClone(initial)
   const projectSettings = [
     { key: 'EXPENSE_CALCULATION', name: 'Mode de calcul des dépenses', description: 'Source des dépenses.', type: 'choice', value: 's', default: 's', choices: [{ value: 's', label: 'Simple' }, { value: 'e', label: 'Dépenses individuelles' }, { value: 'h', label: 'Hybride' }] },
@@ -38,6 +38,8 @@ function mockApi(initial: ProjectOverview = base, detailStatus = 200, options: {
     const url = String(input), method = init?.method ?? 'GET'
     const body = init?.body ? JSON.parse(String(init.body)) : {}
     if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
+    if (url === '/api/v1/ui-contributions/project/3/') return jsonResponse({ contributions: options.uiContributions ?? [] })
+    if (url === '/api/v1/ui-contributions/project/3/plugin%3Ademo%3Afacts/') return jsonResponse({ format: 'text', text: 'Project plugin content' })
     if (url === '/api/v1/notes/project/3/') return jsonResponse({ capabilities: { can_add: false }, items: [] })
     if (url === '/api/v1/projects/3/settings/' && method === 'GET') return jsonResponse({ settings: projectSettings })
     const settingKey = url.match(/^\/api\/v1\/projects\/3\/settings\/([^/]+)\/$/)?.[1]
@@ -88,6 +90,18 @@ function mockApi(initial: ProjectOverview = base, detailStatus = 200, options: {
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear() })
 
 describe('ProjectSingle Overview', () => {
+  it('places plugin contributions in the Project action menu and overview', async () => {
+    mockApi(base, 200, { uiContributions: [
+      { id: 'plugin:demo:run', plugin_slug: 'demo', slot: 'project.detail.actions', type: 'action', label: 'Plugin Project action', icon: null, behavior: 'action', confirm: false, priority: 0 },
+      { id: 'plugin:demo:facts', plugin_slug: 'demo', slot: 'project.detail.sections', type: 'section', label: 'Plugin Project section', icon: null, behavior: null, confirm: false, priority: 0 },
+    ] })
+    mount()
+    expect(await screen.findByText('Project plugin content', {}, { timeout: 8000 })).toBeInTheDocument()
+    const trigger = screen.getByRole('button', { name: 'Actions pour Atlas' })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByRole('menuitem', { name: 'Plugin Project action' })).toBeInTheDocument()
+  })
   it('opens the Project Dashboard through its own tab and direct route', async () => {
     const { fetchMock } = mockApi(base)
     mount('/app/projects/3/dashboard')

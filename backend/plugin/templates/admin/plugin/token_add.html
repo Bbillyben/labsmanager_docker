@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block extrahead %}{{ block.super }}
+<script src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">{% endblock %}
+{% block content %}
+<form method="post" autocomplete="off">{% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="default">Create token</button>
+</form>
+{% endblock %}

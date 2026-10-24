@@ -23,6 +23,8 @@ Ce document décrit le **code courant**. « Extension » signifie ici un point d
 
 Le registre principal charge les plugins, suit leur état actif/inactif et expose les mixins aux sous-systèmes. Lire [registry.py](../../backend/plugin/registry.py), [plugin.py](../../backend/plugin/plugin.py), les classes de [base](../../backend/plugin/base/) et les [tests plugin](../../backend/plugin/tests.py). Ce registre n’autorise pas à contourner les permissions des données retournées par un plugin.
 
+`UIContributionMixin` enregistre `uicontribution` dans ce même registre. Le catalogue des slots et la validation des déclarations résident dans `plugin/ui_contributions.py` ; les fiches Project, Employee et Team consomment l'API v1 et les composants React communs. L'extension n'exécute aucun code frontend fourni par un plugin. Voir [le contrat des contributions React](UI_CONTRIBUTIONS.md).
+
 ### Registration / discovery et lifecycle
 
 Le loader découvre les modules plugin internes/externes, instancie leurs classes et enregistre les mixins déclarés par `add_mixin(key, fnc_enabled=True, cls=None)`. `MixinMeta.MIXIN_NAME` nomme le mixin ; la clé technique est celle de `add_mixin`, par exemple `dashboard`, `search` ou `calendarevent`. `mixin_enabled(key)` tient compte du booléen ou callable enregistré. `registry.with_mixin(mixin: str, active=True, builtin=None)` déclenche le rechargement nécessaire et ne renvoie que les plugins portant le mixin et, par défaut, actifs. Les familles `schedule`, `calendarevent`, `mailsubscription` sont aussi pilotées par leurs réglages `ENABLE_PLUGINS_*`. Dashboard et Search ne disposent pas d’un interrupteur de famille analogue dans ce filtre. La disponibilité dépend donc de l’état réel du plugin et du mixin.

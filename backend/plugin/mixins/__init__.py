@@ -9,6 +9,8 @@ from plugin.base.UrlsMixin import UrlsMixin
 from plugin.base.DashboardPluginMixin import DashboardPluginMixin
 from plugin.base.SearchPluginMixin import SearchPluginMixin
 from plugin.base.ImportMixin import ImportMixin
+from plugin.base.TokenMixin import TokenMixin
+from plugin.base.UIContributionMixin import UIContributionMixin
 
 __all__ = [
     'SettingsMixin',
@@ -20,4 +22,6 @@ __all__ = [
     'DashboardPluginMixin',
     'SearchPluginMixin',
     'ImportMixin',
+    'TokenMixin',
+    'UIContributionMixin',
 ]

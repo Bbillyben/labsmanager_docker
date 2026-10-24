@@ -6,6 +6,7 @@ import { createTeamCalendarLeave, deleteTeamCalendarLeave, getTeamCalendar, getT
 import { SharedCalendar, type ResourceVisibilityMode } from '../calendar/SharedCalendar'
 import { localToday } from '../calendar/resourceVisibility'
 import { CalendarPluginFilters, effectiveCalendarFilterValues, type CalendarFilterValues } from '../calendar/CalendarPluginFilters'
+import { CalendarPluginActions } from '../components/PluginContributions'
 import { useTranslation } from '../i18n/i18n'
 import { PrintButton } from '../print/PrintButton'
 import type { CalendarPrintState } from '../print/CalendarPrintView'
@@ -75,6 +76,7 @@ export function ProjectCalendarPanel({ projectId, teamId, contextName }: { proje
         {(['calendar', 'list', 'resources'] as const).map((item) => <Button aria-pressed={mode === item} key={item} onClick={() => setMode(item)} size="sm" variant={mode === item ? 'default' : 'ghost'}>{t(`projectCalendar.${item}`)}</Button>)}
       </div>
       {events.data && mode !== 'list' && <PrintButton disabled={mode === 'resources' && resourceVisibilityMode === 'today' && !todayCalendar.data} createRequest={() => ({ renderer: 'calendar', title: `${teamId ? t('team.leaves') : t('project.calendar')} — ${contextName ?? id}`, state: { scope, viewType: projectCalendarViewDefinition(scope, mode === 'resources' ? 'resources' : 'calendar').key, mode: mode === 'resources' ? 'resources' : 'calendar', range, events: events.data ?? [], resources: participants.data?.map((item) => ({ id: String(item.id), title: item.title })), todayEvents: todayCalendar.data ?? undefined, resourceVisibilityMode, employeeNames: Object.fromEntries(projectEmployeeNames), filters: effectiveFilters, selectedId: selected?.id ?? null } satisfies CalendarPrintState })} />}
+      {mode !== 'list' && <CalendarPluginActions calendarType={teamId ? 'team' : 'project'} objectId={Number(id)} />}
       {canCreate && <Button onClick={() => openCreate()} size="sm"><Plus aria-hidden="true" />{t('leaves.add')}</Button>}
     </div>
     <div className={styles.calendarToolbar}>

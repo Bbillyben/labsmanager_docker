@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -12,8 +13,8 @@ vi.mock('./EmployeeCalendar', () => ({ EmployeeCalendar: ({ events, onOpen }: { 
 vi.mock('@fullcalendar/react', () => ({ default: function MockCalendar({ initialView, events, resources }: { initialView: string; events: Array<{ id: string; display: string; resourceId?: string; resourceIds?: string[] }>; resources?: Array<{ id: string; title: string }> }) {
   return <div data-testid="shared-resource-calendar" data-view={initialView}>{resources?.map((item) => <span key={item.id} data-resource-id={item.id}>{item.title}</span>)}{events.map((item) => <span key={item.id} data-event-id={item.id} data-display={item.display} data-resource={item.resourceId ?? item.resourceIds?.join(',')} />)}</div>
 } }))
-vi.mock('../gantt/PlanningGanttView', () => ({ PlanningGanttView: ({ onSelect, showPrint }: { onSelect: (value: { kind: string; id: string }) => void; showPrint?: boolean }) =>
-  <div data-testid="shared-gantt" data-show-print={String(showPrint)}><button>Previous period</button><button>24 months</button><button onClick={() => onSelect({ kind: 'work', id: '9' })}>Open Work</button><button onClick={() => onSelect({ kind: 'project', id: '3' })}>Open Project</button></div> }))
+vi.mock('../gantt/PlanningGanttView', () => ({ PlanningGanttView: ({ onSelect, showPrint, toolbarActions }: { onSelect: (value: { kind: string; id: string }) => void; showPrint?: boolean; toolbarActions?: ReactNode }) =>
+  <div data-testid="shared-gantt" data-show-print={String(showPrint)}><button>Previous period</button><button>24 months</button>{toolbarActions}<button onClick={() => onSelect({ kind: 'work', id: '9' })}>Open Work</button><button onClick={() => onSelect({ kind: 'project', id: '3' })}>Open Project</button></div> }))
 vi.mock('./EmployeeLeaveSheet', () => ({ EmployeeLeaveSheet: ({ employeeName }: { employeeName: string }) => <div>Leave detail: {employeeName}</div> }))
 vi.mock('./MilestoneDetailSheet', () => ({ MilestoneDetailSheet: ({ milestone }: { milestone: { name: string } | null }) => milestone ? <div>Work detail: {milestone.name}</div> : null }))
 
@@ -24,6 +25,8 @@ function setup(path = '/app/calendars') {
   window.history.pushState({}, '', path)
   const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input)
+    if (url === '/api/v1/ui-contributions/calendar/main/0/') return jsonResponse({ contributions: [{ id: 'plugin:demo:calendar', plugin_slug: 'demo', slot: 'calendar.toolbar.actions', type: 'action', label: 'Subscribe', behavior: 'copy_url', icon: null, confirm: false, priority: 0 }] })
+    if (url === '/api/v1/ui-contributions/calendar/project_all/0/') return jsonResponse({ contributions: [{ id: 'plugin:demo:projects', plugin_slug: 'demo', slot: 'calendar.toolbar.actions', type: 'action', label: 'Project calendar', behavior: 'copy_url', icon: null, confirm: false, priority: 0 }] })
     if (url === '/api/v1/employees/filter-options/') return jsonResponse({ statuses: [{ id: 1, name: 'Staff' }], teams: [{ id: 2, name: 'Team' }] })
     if (url === '/api/v1/projects/filter-options/') return jsonResponse({ teams: [], funders: [], institutions: [] })
     if (url === '/api/v1/leave-types/') return jsonResponse([{ id: 7, name: 'Annual leave' }])
@@ -46,6 +49,20 @@ beforeEach(() => Object.defineProperty(window.navigator, 'languages', { configur
 afterEach(() => vi.restoreAllMocks())
 
 describe('Global calendars', () => {
+  it('loads global calendar plugin actions in the toolbar', async () => {
+    setup()
+    const trigger = await screen.findByRole('button', { name: 'Actions des plugins' })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('menuitem', { name: 'Subscribe' })).toBeInTheDocument()
+  })
+  it('loads the global Project calendar action in the Planning toolbar', async () => {
+    setup('/app/calendars?tab=projects')
+    const trigger = await screen.findByRole('button', { name: 'Actions des plugins' })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('menuitem', { name: 'Project calendar' })).toBeInTheDocument()
+  })
   it('presents the general calendar without filters or management controls, then restores them', async () => {
     const fetch = setup('/app/calendars?tab=employees&employees_date=2026-10-01&view=month')
     const user = userEvent.setup()

@@ -9,7 +9,8 @@ import { Alert } from '../ui/Alert'
 import { ActivityStatusBadge } from '../ui/ActivityStatusBadge'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
-import { EntityActionMenu, type EntityActionGroup } from '../components/EntityActionMenu'
+import type { EntityActionGroup } from '../components/EntityActionMenu'
+import { PluginContributionsProvider, PluginContributionSections, PluginEntityActions } from '../components/PluginContributions'
 import { ObjectPreferenceActions } from '../components/ObjectPreferenceActions'
 import { ReportExportDialog } from '../components/ReportExportDialog'
 import { SettingsSheet } from '../components/SettingsSheet'
@@ -81,9 +82,9 @@ export function ProjectDetailPage() {
       ...(project.capabilities.can_export_pdf ? [{ id: 'pdf', label: t('reports.pdf'), icon: <FileDown aria-hidden="true" />, onSelect: () => setExportFormat('pdf' as const) }] : []),
     ],
   ]
-  return <>
+  return <PluginContributionsProvider key={project.id} scope={{ entity: 'project', objectId: project.id }}>
     <Link className={styles.back} to={`/projects/${typeof location.state?.projectListSearch === 'string' && location.state.projectListSearch ? `?${location.state.projectListSearch}` : ''}`}><ArrowLeft aria-hidden="true" /> {t('project.backToProjects')}</Link>
-    <PageHeader title={project.name} meta={<div className={styles.headerMeta}><ActivityStatusBadge active={project.status} /><span>{t('project.dateRange', { start: dateLabel(project.start_date, language), end: dateLabel(project.end_date, language) })}</span></div>} actions={<div className="flex items-center gap-2"><ObjectPreferenceActions key={project.id} type="project" objectId={project.id} /><EntityActionMenu label={t('reports.entityActions', { name: project.name })} groups={actionGroups} adminUrl={project.admin_url} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => editing || exportFormat || settingsOpen ? false : true} /></div>} />
+    <PageHeader title={project.name} meta={<div className={styles.headerMeta}><ActivityStatusBadge active={project.status} /><span>{t('project.dateRange', { start: dateLabel(project.start_date, language), end: dateLabel(project.end_date, language) })}</span></div>} actions={<div className="flex flex-wrap items-center gap-2"><ObjectPreferenceActions key={project.id} type="project" objectId={project.id} /><PluginEntityActions label={t('reports.entityActions', { name: project.name })} groups={actionGroups} adminUrl={project.admin_url} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => editing || exportFormat || settingsOpen ? false : true} /></div>} />
     <nav aria-label={t('project.navigation')} className={styles.resourceNav}>
       <div className={styles.resourceNavScroll} tabIndex={0}>
         {sections.filter((section) => section.id !== 'funds' || project.funding_visible).map((section) => section.enabled
@@ -92,8 +93,9 @@ export function ProjectDetailPage() {
       </div>
     </nav>
     <div className={styles.panel}>{showPlanning ? <ProjectPlanningPanel key={contextVersion} projectId={projectId} contextName={project.name} /> : showCalendar ? <ProjectCalendarPanel key={`${contextVersion}:calendar`} projectId={projectId} contextName={project.name} /> : showFunding ? <ProjectFundingPanel key={contextVersion} projectId={projectId} /> : showBudgets ? <ProjectBudgetsPanel key={`${contextVersion}:budget`} projectId={projectId} kind="budget" /> : showContributions ? <ProjectBudgetsPanel key={`${contextVersion}:contribution`} projectId={projectId} kind="contribution" /> : showContracts ? <ContractSection key={`${contextVersion}:contracts`} scope={{ projectId }} /> : showDashboard ? <Suspense fallback={<LoadingState message={t('common.loading')} />}><DashboardPage projectId={projectId} /></Suspense> : showNotes ? <GenericNotes scope="project" objectId={projectId} /> : <ProjectOverview projectId={projectId} resource={resource} />}</div>
+    {(location.pathname === base || location.pathname === `${base}/`) && <PluginContributionSections />}
     {editing && <ProjectSheet project={project} returnFocus={actionTrigger} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); void resource.refresh() }} />}
     {exportFormat && <ReportExportDialog entity="project" id={project.id} format={exportFormat} title={t('reports.projectTitle', { format: t(exportFormat === 'word' ? 'reports.word' : 'reports.pdf') })} timeframe={false} returnFocus={actionTrigger} onClose={() => setExportFormat(null)} />}
     {settingsOpen && <SettingsSheet title={t('project.settings')} description={t('settings.sheetDescription')} load={(signal) => getProjectSettings(projectId, signal)} save={(key, value) => updateProjectSetting(projectId, key, value)} returnFocus={actionTrigger} onClose={(changed) => { setSettingsOpen(false); if (changed) { setContextVersion((value) => value + 1); void resource.refresh() } }} />}
-  </>
+  </PluginContributionsProvider>
 }

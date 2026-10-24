@@ -17,6 +17,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
 import os
 from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir
+from .plugin_package_runtime import bootstrap_package_path
 import logging
 
 from django.utils.translation import gettext_lazy as _
@@ -32,6 +33,10 @@ es_formats.DATETIME_FORMAT = "d M Y H:i:s"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+LAB_PLUGIN_PACKAGES_ROOT = get_setting(
+    'LAB_PLUGIN_PACKAGES_ROOT', 'plugin_packages_root', '/home/labsmanager/data/plugin-packages',
+)
+bootstrap_package_path(LAB_PLUGIN_PACKAGES_ROOT)
 
 
 

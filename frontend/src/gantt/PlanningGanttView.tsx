@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { CalendarEvent } from '../api/employees'
 import { useTranslation } from '../i18n/i18n'
 import { PrintButton } from '../print/PrintButton'
@@ -10,7 +10,7 @@ import type { GanttIdentity, LabsManagerGanttData } from './model'
 import { planningWindow, type PlanningMonths } from './planningWindow'
 import styles from './EmployeeGanttPanel.module.css'
 
-export function PlanningGanttView({ data, events, anchor, months, onAnchorChange, onMonthsChange, onSelect, printTitle, printFilters, showPrint = true }: {
+export function PlanningGanttView({ data, events, anchor, months, onAnchorChange, onMonthsChange, onSelect, printTitle, printFilters, showPrint = true, toolbarActions }: {
   data: LabsManagerGanttData | null
   events: CalendarEvent[]
   anchor: Date
@@ -21,6 +21,7 @@ export function PlanningGanttView({ data, events, anchor, months, onAnchorChange
   printTitle?: string
   printFilters?: Record<string, unknown>
   showPrint?: boolean
+  toolbarActions?: ReactNode
 }) {
   const { language, t } = useTranslation()
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -48,7 +49,7 @@ export function PlanningGanttView({ data, events, anchor, months, onAnchorChange
     </div><div className={styles.group}>
       <label className={styles.visibility}><input checked={showMilestones} onChange={(event) => setShowMilestones(event.target.checked)} type="checkbox" />{t('gantt.showMilestones')}</label>
       <label className={styles.visibility}><input checked={showTasks} onChange={(event) => setShowTasks(event.target.checked)} type="checkbox" />{t('gantt.showTasks')}</label>
-    </div>{data && showPrint && <PrintButton createRequest={() => ({ renderer: 'gantt', title: printTitle ?? t('calendars.projects'), state: { data, events, window, filters: printFilters, closedKeys: [...closedKeys] } satisfies GanttPrintState })} />}</div>
+    </div>{data && showPrint && <PrintButton createRequest={() => ({ renderer: 'gantt', title: printTitle ?? t('calendars.projects'), state: { data, events, window, filters: printFilters, closedKeys: [...closedKeys] } satisfies GanttPrintState })} />}{toolbarActions}</div>
     {data && <LabsManagerGantt data={data} events={events} dark={dark} window={window} visibility={{ showMilestones, showTasks }} onSelect={onSelect} closedKeys={closedKeys} onOpenChange={(key, open) => setClosedKeys((previous) => { const next = new Set(previous); if (open) next.delete(key); else next.add(key); return next })} />}
   </div>
 }

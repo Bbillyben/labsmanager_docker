@@ -8,11 +8,11 @@ from common.calendar.context import CalendarType
 from leave.models import Leave
 from labsmanager.admin_links_v1 import get_admin_change_url
 from project.models import Participant
-from staff.models import Team, TeamMate
+from staff.models import Employee, Team, TeamMate
 from rest_framework.exceptions import ValidationError
 
 
-def leave_to_calendar_event(leave, user=None):
+def leave_to_calendar_event(leave, user=None, *, detailed_title=None):
     """Convert one Leave while preserving its half-day domain markers."""
     start = datetime.combine(leave.start_date, time.min)
     if leave.start_period == "MI":
@@ -24,6 +24,22 @@ def leave_to_calendar_event(leave, user=None):
     else:
         end += timedelta(days=1)
 
+    metadata = {
+        "leave_id": leave.pk,
+        "admin_url": get_admin_change_url(user, leave),
+        "employee_id": leave.employee_id,
+        "leave_type_id": leave.type_id,
+        "leave_type_short_name": leave.type.short_name,
+        "leave_type_color": str(leave.type.color),
+        "start_date": leave.start_date.isoformat(),
+        "end_date": leave.end_date.isoformat(),
+        "start_period": leave.start_period,
+        "end_period": leave.end_period,
+        "day_count": leave.dayCount,
+    }
+    if detailed_title is not None:
+        metadata["detailed_title"] = detailed_title
+
     return LabsManagerCalendarEvent(
         id=f"leave:{leave.pk}",
         title=leave.type.name,
@@ -34,19 +50,7 @@ def leave_to_calendar_event(leave, user=None):
         all_day=leave.start_period == "ST" and leave.end_period == "EN",
         color=str(leave.type.color),
         description=leave.comment,
-        metadata={
-            "leave_id": leave.pk,
-            "admin_url": get_admin_change_url(user, leave),
-            "employee_id": leave.employee_id,
-            "leave_type_id": leave.type_id,
-            "leave_type_short_name": leave.type.short_name,
-            "leave_type_color": str(leave.type.color),
-            "start_date": leave.start_date.isoformat(),
-            "end_date": leave.end_date.isoformat(),
-            "start_period": leave.start_period,
-            "end_period": leave.end_period,
-            "day_count": leave.dayCount,
-        },
+        metadata=metadata,
     )
 
 
@@ -85,4 +89,19 @@ def produce_leave_calendar_events(context, service, employee_queryset=None):
             queryset = queryset.filter(end_date__gte=context.start)
         if context.end:
             queryset = queryset.filter(start_date__lte=context.end)
-    return [leave_to_calendar_event(leave, context.user) for leave in queryset.select_related("type", "employee").order_by("start_date", "start_period", "end_date", "pk")]
+    leaves = queryset.select_related("type", "employee").order_by("start_date", "start_period", "end_date", "pk")
+    if not context.include_details:
+        return [leave_to_calendar_event(leave, context.user) for leave in leaves]
+
+    leaves = list(leaves)
+    employee_ids = {leave.employee_id for leave in leaves}
+    visible_ids = set()
+    if employee_ids:
+        visible_ids = set(Employee.get_instances_for_user(
+            "view", context.user, Employee.objects.filter(pk__in=employee_ids)
+        ).values_list("pk", flat=True))
+    return [leave_to_calendar_event(
+        leave, context.user,
+        detailed_title=(f"{leave.employee.user_name} - {leave.type.name}"
+                        if leave.employee_id in visible_ids else None),
+    ) for leave in leaves]

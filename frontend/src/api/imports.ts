@@ -1,6 +1,6 @@
 import { apiFileRequest, apiRequest } from './client'
 
-export type ImportProfile = { key: string; label: string; description: string; formats: string[]; template_formats: string[]; preview_columns: { key: string; label: string }[]; plugin_import?: boolean }
+export type ImportProfile = { key: string; label: string; description: string; formats: string[]; template_formats: string[]; preview_columns: { key: string; label: string }[]; plugin_import?: boolean; plugin_name?: string }
 export type ImportStructure = { expected: string[]; recognized: string[] | Record<string, string>; missing: string[]; extra: string[]; columns: number; rows: number; eligible?: boolean; aliases_used?: Record<string, string>; ambiguities?: string[]; errors?: string[]; warnings?: string[] }
 export type ImportRow = { row_number: number; state: 'new' | 'update' | 'unchanged' | 'error'; identity: string; summary: string; error_message: string; diff: { field: string; old: string; new: string }[]; values: Record<string, string> }
 export type ImportResult = { summary: Record<ImportRow['state'], number>; rows: ImportRow[]; global_errors: string[]; can_commit: boolean; structure?: ImportStructure; sheet?: string; import_token?: string }

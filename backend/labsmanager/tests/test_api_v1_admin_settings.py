@@ -1,5 +1,6 @@
 from unittest.mock import patch
 from datetime import timedelta
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -12,6 +13,7 @@ from settings.models import LabsManagerSetting
 from staff.models import Employee
 from plugin.models import PluginConfig
 from plugin.base.ImportMixin import ImportMixin
+from plugin.dependencies import Candidate
 from plugin.registry import registry
 
 
@@ -99,6 +101,30 @@ class AdminSettingsV1Tests(APITestCase):
                     self.assertEqual(self.client.patch(url, {"value": True}, format="json").status_code, 200)
                     self.assertEqual(self.client.patch(url, {"value": "true"}, format="json").status_code, 400)
 
+    def test_plugin_origins_are_included_for_discovered_candidates(self):
+        backend = Path(__file__).resolve().parents[2]
+        self.client.force_login(self.staff)
+        discovered = self.client.get(BASE + 'plugins/')
+        self.assertEqual(discovered.status_code, 200, discovered.data)
+        origins = {row['key']: row['origin'] for row in discovered.data['results']}
+        self.assertEqual(origins['frenchholliday'], 'sample')
+        self.assertEqual(origins['icalexport'], 'builtin')
+        candidates = {
+            'frenchholliday': Candidate('frenchholliday', backend / 'plugin/samples/FrenchHollidayPlugin', 'FrenchHollidayPlugin'),
+            'icalexport': Candidate('icalexport', backend / 'plugin/builtin/ICalExport', 'ICalExport'),
+            'external': Candidate('external', backend / 'data/plugins/External', 'External'),
+        }
+        with patch.object(registry, 'plugins_full', {}), patch.object(registry, 'check_reload'), \
+                patch('settings.admin_api_v1.discover_candidates', return_value=candidates), \
+                patch('settings.admin_api_v1.diagnose', return_value=None):
+            response = self.client.get(BASE + 'plugins/')
+        self.assertEqual(response.status_code, 200, response.data)
+        rows = {row['key']: row for row in response.data['results']}
+        self.assertEqual({key: row['origin'] for key, row in rows.items()},
+                         {'frenchholliday': 'sample', 'icalexport': 'builtin', 'external': 'external'})
+        self.assertEqual({key: row['is_builtin'] for key, row in rows.items()},
+                         {'frenchholliday': False, 'icalexport': True, 'external': False})
+
     def test_plugin_activation_uses_legacy_endpoint_and_persists_state(self):
         config = PluginConfig.objects.create(key="test-admin-plugin", name="Test admin plugin")
         url = "/api/plugin/test-admin-plugin/activate/"
@@ -134,6 +160,10 @@ class AdminSettingsV1Tests(APITestCase):
             def check_is_builtin(cls):
                 return False
 
+            @classmethod
+            def check_is_sample(cls):
+                return False
+
             def __init__(self):
                 raise AssertionError("Inactive plugins must not be initialized for the list")
 
@@ -143,10 +173,11 @@ class AdminSettingsV1Tests(APITestCase):
                 patch.object(registry, "plugins", {}), patch.object(registry, "check_reload"):
             response = self.client.get(BASE + "plugins/")
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data["results"][0]["key"], "inactive-import")
-        self.assertFalse(response.data["results"][0]["active"])
-        self.assertFalse(response.data["results"][0]["is_builtin"])
-        self.assertIn("importmixin", response.data["results"][0]["mixins"])
+        plugin = next(row for row in response.data["results"] if row["key"] == "inactive-import")
+        self.assertFalse(plugin["active"])
+        self.assertFalse(plugin["is_builtin"])
+        self.assertEqual(plugin["origin"], "external")
+        self.assertIn("importmixin", plugin["mixins"])
 
     def test_kiosk_and_frenchholiday_details_are_json_serializable(self):
         self.client.force_login(self.staff)

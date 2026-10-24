@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block extrahead %}{{ block.super }}
+<script src="{% static 'plugin/js/token_copy.js' %}" defer></script>
+{% endblock %}
+{% block content %}
+<p>Copy this token now. Its secret will not be shown again.</p>
+<p><input id="created-plugin-token" type="text" readonly autocomplete="off" spellcheck="false" value="{{ secret }}" size="90" aria-label="New plugin token"></p>
+<p><button id="copy-plugin-token" type="button">Copy token</button> <span id="copy-plugin-token-status" role="status" aria-live="polite"></span></p>
+<p><a href="{% url 'admin:plugin_pluginaccesstoken_changelist' %}">Return to plugin tokens</a></p>
+{% endblock %}

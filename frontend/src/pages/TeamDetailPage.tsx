@@ -8,7 +8,7 @@ import { useMutation } from '../api/useMutation'
 import { GenericNotes } from '../components/GenericNotes'
 import { ConfirmDialog } from '../components/common/ConfirmDialog'
 import { ItemActionMenu } from '../components/ItemActionMenu'
-import { EntityActionMenu } from '../components/EntityActionMenu'
+import { PluginContributionsProvider, PluginContributionSections, PluginEntityActions } from '../components/PluginContributions'
 import { ObjectPreferenceActions } from '../components/ObjectPreferenceActions'
 import { LoadingState } from '../components/LoadingState'
 import { useTranslation } from '../i18n/i18n'
@@ -45,12 +45,13 @@ export function TeamDetailPage() {
   const selected = sections.some((section) => section.path === tab) ? tab : ''
   if (team.loading) return <LoadingState message={t('team.loading')} />
   if (team.error || !team.data) return <div className={styles.mainError}><Alert tone="danger">{team.error instanceof ApiError && team.error.status === 404 ? t('team.notFound') : t('team.loadError')}</Alert><Button onClick={team.retry}>{t('common.retry')}</Button></div>
-  return <>
+  return <PluginContributionsProvider key={team.data.id} scope={{ entity: 'team', objectId: team.data.id }}>
     <Link className={styles.back} to={`/teams/${typeof location.state?.teamListSearch === 'string' && location.state.teamListSearch ? `?${location.state.teamListSearch}` : ''}`}><ArrowLeft aria-hidden="true" />{t('team.back')}</Link>
-    <PageHeader title={team.data.name} actions={<div className="flex items-center gap-2"><ObjectPreferenceActions key={team.data.id} type="team" objectId={team.data.id} /><EntityActionMenu label={t('common.actionsFor', { name: team.data.name })} groups={[]} adminUrl={team.data.admin_url} /></div>} />
+    <PageHeader title={team.data.name} actions={<div className="flex flex-wrap items-center gap-2"><ObjectPreferenceActions key={team.data.id} type="team" objectId={team.data.id} /><PluginEntityActions label={t('common.actionsFor', { name: team.data.name })} groups={[]} adminUrl={team.data.admin_url} /></div>} />
     <nav aria-label={t('team.navigation')} className={styles.resourceNav}><div className={styles.resourceNavScroll} tabIndex={0}>{sections.map((section) => <NavLink end key={section.path} to={section.path ? `/teams/${teamId}/${section.path}` : `/teams/${teamId}`} state={location.state} className={section.path === selected ? `${styles.resourceLink} ${styles.resourceLinkActive}` : styles.resourceLink}>{t(section.label)}</NavLink>)}</div></nav>
     <div className={styles.panel}>{selected === 'leaves' ? <ProjectCalendarPanel teamId={teamId} contextName={team.data.name} /> : selected === 'projects' ? <TeamProjectsPanel teamId={teamId} /> : selected === 'budget' ? <TeamBudgetPanel teamId={teamId} /> : selected === 'notes' ? <GenericNotes scope="team" objectId={teamId} /> : <TeamInformation teamId={teamId} team={team.data} refresh={() => void team.refresh()} />}</div>
-  </>
+    {selected === '' && <PluginContributionSections />}
+  </PluginContributionsProvider>
 }
 
 function TeamInformation({ teamId, team, refresh }: { teamId: string; team: Team; refresh: () => void }) {

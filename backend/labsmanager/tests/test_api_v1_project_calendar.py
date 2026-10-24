@@ -3,6 +3,8 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -45,8 +47,47 @@ class ProjectCalendarV1Tests(APITestCase):
         self.assertEqual(event["metadata"]["employee_id"], self.employee.pk)
         self.assertEqual(event["color"], "#336699")
         self.assertEqual(event["kind"], "leave")
+        self.assertNotIn("detailed_title", event["metadata"])
         self.assertFalse(self.client.get(self.url("participants/")).json()[0]["capabilities"]["can_add"])
         self.assertEqual(self.client.get(f"/api/v1/projects/999999/calendar/", {"from": "2026-09-01", "to": "2026-09-30"}).status_code, 404)
+
+    @patch("common.calendar.service.CalendarService.get_plugin_events", return_value=[])
+    def test_detailed_leave_title_requires_employee_visibility(self, _plugins):
+        self.grant("project", "view_project")
+        query = {"from": "2026-09-01", "to": "2026-09-30", "include_details": "1"}
+        restricted = self.client.get(self.url(), query)
+        self.assertEqual(restricted.status_code, 200)
+        self.assertEqual(restricted.data[0]["title"], "Paid leave")
+        self.assertNotIn("detailed_title", restricted.data[0]["metadata"])
+
+        self.grant("staff", "view_employee")
+        detailed = self.client.get(self.url(), query)
+        self.assertEqual(detailed.data[0]["title"], "Paid leave")
+        self.assertEqual(detailed.data[0]["metadata"]["detailed_title"], "Ada READER - Paid leave")
+
+    def test_detailed_titles_use_batched_employee_visibility(self):
+        self.grant("staff", "view_employee")
+        for index in range(8):
+            employee = Employee.objects.create(first_name=f"Member{index}", last_name="Reader")
+            Participant.objects.create(project=self.project, employee=employee)
+            Leave.objects.create(employee=employee, type=self.leave_type,
+                                 start_date=date(2026, 9, 10), end_date=date(2026, 9, 12))
+        context = CalendarContext(calendar_type=CalendarType.PROJECT, user=self.user,
+                                  project_id=self.project.pk, include_details=True)
+        with patch("leave.calendar.get_admin_change_url", return_value=None), CaptureQueriesContext(connection) as queries:
+            events = produce_leave_calendar_events(context, CalendarService(plugins=[]))
+        self.assertEqual(len(events), 9)
+        self.assertTrue(all("detailed_title" in event.metadata for event in events))
+        self.assertLessEqual(len(queries), 5)
+
+    def test_ordinary_leave_production_skips_detail_permission_lookup(self):
+        context = CalendarContext(calendar_type=CalendarType.PROJECT, user=self.user,
+                                  project_id=self.project.pk)
+        with patch("leave.calendar.Employee.get_instances_for_user") as visible:
+            events = produce_leave_calendar_events(context, CalendarService(plugins=[]))
+        visible.assert_not_called()
+        self.assertEqual(events[0].title, "Paid leave")
+        self.assertNotIn("detailed_title", events[0].metadata)
 
     @patch("common.calendar.service.CalendarService.get_plugin_events")
     def test_plugin_events_are_aggregated_after_core_events(self, plugin_events):

@@ -32,11 +32,28 @@ class CalendarServiceTests(SimpleTestCase):
         context = CalendarContext(
             CalendarType.EMPLOYEE, user=object(), employee_id=42
         )
+        self.assertFalse(context.include_details)
         service = CalendarService(plugins=[Plugin])
 
         self.assertEqual(service.filter_calendar_queryset([1], context), [1, 42])
         self.assertEqual(service.get_events(context), [event])
         self.assertEqual(event.as_dict()["source"], "sample")
+
+    def test_plugin_can_optionally_supply_a_detailed_title(self):
+        class Plugin:
+            @classmethod
+            def get_calendar_events(cls, context):
+                metadata = {"detailed_title": "Extended label"} if context.include_details else {}
+                return [LabsManagerCalendarEvent(
+                    id="plugin:1", title="Ordinary label", start=date(2026, 9, 1), metadata=metadata,
+                )]
+
+        service = CalendarService(plugins=[Plugin])
+        ordinary = service.get_events(CalendarContext(CalendarType.MAIN, user=object()))[0]
+        detailed = service.get_events(CalendarContext(CalendarType.MAIN, user=object(), include_details=True))[0]
+        self.assertEqual(ordinary.title, detailed.title)
+        self.assertNotIn("detailed_title", ordinary.metadata)
+        self.assertEqual(detailed.metadata["detailed_title"], "Extended label")
 
     def test_collects_filters_and_ignores_plugins_without_filters(self):
         calendar_filter = LabsManagerCalendarFilter(

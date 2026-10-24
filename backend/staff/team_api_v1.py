@@ -338,7 +338,9 @@ class TeamCalendarBaseV1View(TeamBaseV1View):
                 raise ValidationError({"to": "Must be on or after from."})
         return CalendarContext(calendar_type=CalendarType.TEAM, team_id=team.pk,
                                user=self.request.user, start=start, end=end,
-                               filters=self.request.query_params)
+                               filters=self.request.query_params,
+                               include_details=self.request.query_params.get("include_details") == "1",
+                               consumer=self.request.query_params.get("consumer", "labsmanager"))
 
 
 class TeamCalendarV1View(TeamCalendarBaseV1View):

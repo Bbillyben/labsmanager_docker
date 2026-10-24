@@ -5,6 +5,7 @@ import { getEmployeeFilterOptions, getLeaveTypes, type CalendarEvent, type Calen
 import { getProjectFilterOptions } from '../api/projects'
 import { getGlobalCalendarFilters, getGlobalEmployeeCalendar, getGlobalProjectPlanning, globalCalendarQuery } from '../api/globalCalendars'
 import { CalendarPluginFilters, effectiveCalendarFilterValues, type CalendarFilterValues } from '../calendar/CalendarPluginFilters'
+import { CalendarPluginActions } from '../components/PluginContributions'
 import { SharedCalendar, type ResourceVisibilityMode } from '../calendar/SharedCalendar'
 import { localToday } from '../calendar/resourceVisibility'
 import { employeeFilterSources } from '../config/employeeFilterSources'
@@ -186,6 +187,7 @@ export function GlobalCalendarsPage() {
         <strong>{rangeLabel(range, language)}</strong>
         <div aria-label={t('projectCalendar.period')} className={styles.segmented} role="group">{projectCalendarScopeOrder.map((value) => <Button aria-pressed={scope === value} key={value} onClick={() => setParameter('view', value)} variant={scope === value ? 'secondary' : 'ghost'}>{t(projectCalendarScopes[value].label)}</Button>)}</div>
         {employeeData.data && !presentation && <PrintButton disabled={calendarMode === 'resources' && resourceVisibilityMode === 'today' && !todayData.data} createRequest={() => ({ renderer: 'calendar', title: t('calendars.general'), state: { scope, viewType: projectCalendarViewDefinition(scope, calendarMode).key, mode: calendarMode, range, events: employeeData.data?.events ?? [], resources: employeeData.data?.resources ?? [], todayEvents: todayData.data?.events, resourceVisibilityMode, employeeNames: Object.fromEntries(employeeNames), filters: { ...Object.fromEntries(apiFilters(catalog.employees, canonicalQuery, 'employees')), ...effectivePluginValues }, selectedId: selectedLeave?.id ?? null } satisfies CalendarPrintState })} />}
+        {!presentation && <CalendarPluginActions calendarType="main" objectId={0} />}
       </div>
       {Boolean(employeeData.error) && <Alert tone="danger">{t('calendars.loadError')} <Button onClick={employeeData.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
       {calendarMode === 'resources' && resourceVisibilityMode === 'today' && Boolean(todayData.error) && <Alert tone="danger">{t('calendars.loadError')} <Button onClick={todayData.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
@@ -198,7 +200,7 @@ export function GlobalCalendarsPage() {
     {tab === 'projects' && <section aria-label={t('calendars.projects')}>
       {Boolean(projectData.error) && <Alert tone="danger">{t('calendars.loadError')} <Button onClick={projectData.retry} variant="ghost">{t('common.retry')}</Button></Alert>}
       {projectData.loading && <p role="status">{t('common.loading')}</p>}
-      <PlanningGanttView data={ganttData} events={projectData.data?.events ?? []} anchor={anchor} months={months} onAnchorChange={setAnchor} onMonthsChange={(value: PlanningMonths) => setParameter('months', String(value))} printTitle={t('calendars.projects')} printFilters={{ ...Object.fromEntries(apiFilters(catalog.projects, canonicalQuery, 'projects')), ...effectivePluginValues }} showPrint={!presentation} onSelect={(identity) => {
+      <PlanningGanttView data={ganttData} events={projectData.data?.events ?? []} anchor={anchor} months={months} onAnchorChange={setAnchor} onMonthsChange={(value: PlanningMonths) => setParameter('months', String(value))} printTitle={t('calendars.projects')} printFilters={{ ...Object.fromEntries(apiFilters(catalog.projects, canonicalQuery, 'projects')), ...effectivePluginValues }} showPrint={!presentation} toolbarActions={!presentation ? <CalendarPluginActions calendarType="project_all" objectId={0} /> : undefined} onSelect={(identity) => {
         if (identity.kind === 'project') navigate(`/projects/${identity.id}`)
         if (identity.kind === 'work') setSelectedWork(projectData.data?.items.find((item) => String(item.id) === identity.id) ?? null)
       }} />

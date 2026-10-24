@@ -19,6 +19,7 @@ class SettingsMixin:
     """Mixin that enables global settings for the plugin."""
 
     SETTINGS: dict[str, SettingsKeyType] = {}
+    USER_SETTINGS: dict[str, SettingsKeyType] = {}
 
     class MixinMeta:
         """Meta for mixin."""
@@ -30,7 +31,8 @@ class SettingsMixin:
         super().__init__(*args, **kwargs)
         self.add_mixin('settings', 'has_settings', __class__)
         self.settings = getattr(self, 'SETTINGS', {})
-        
+        self.user_settings = getattr(self, 'USER_SETTINGS', {})
+
 
     @classmethod
     def _activate_mixin(cls, registry, plugins, *args, **kwargs):
@@ -42,11 +44,13 @@ class SettingsMixin:
         logger.debug('Activating plugin settings')
 
         registry.mixins_settings = {}
+        registry.mixins_user_settings = {}
 
         for slug, plugin in plugins:
             if plugin.mixin_enabled('settings'):
                 plugin_setting = plugin.settings
                 registry.mixins_settings[slug] = plugin_setting
+                registry.mixins_user_settings[slug] = plugin.user_settings
 
     @classmethod
     def _deactivate_mixin(cls, registry, **kwargs):
@@ -54,11 +58,55 @@ class SettingsMixin:
         logger.debug('Deactivating plugin settings')
         # clear settings cache
         registry.mixins_settings = {}
+        registry.mixins_user_settings = {}
 
     @property
     def has_settings(self):
         """Does this plugin use custom global settings."""
-        return bool(self.settings)
+        return bool(self.settings or self.user_settings)
+
+    def get_user_setting(self, key, user):
+        """Read a personal setting without creating a row for its default."""
+        from plugin.models import UserPluginSetting
+
+        if user is None or not user.is_authenticated:
+            raise ValueError('An authenticated user is required')
+        if key.upper() not in self.user_settings:
+            raise KeyError(key)
+        return UserPluginSetting.get_setting(key, plugin=self.plugin_config(), user=user, create=False)
+
+    def get_user_settings(self, user):
+        """Return the user's declared settings with effective values."""
+        return {key: self.get_user_setting(key, user) for key in self.user_settings}
+
+    def set_user_setting(self, key, value, user):
+        """Validate and save a personal setting for an explicit user."""
+        from plugin.models import UserPluginSetting
+
+        if user is None or not user.is_authenticated:
+            raise ValueError('An authenticated user is required')
+        key = key.upper()
+        if key not in self.user_settings:
+            raise KeyError(key)
+        plugin = self.plugin_config()
+        setting = UserPluginSetting.get_setting_object(key, plugin=plugin, user=user, create=False)
+        if setting is None:
+            setting = UserPluginSetting(key=key, plugin=plugin, user=user)
+        setting.value = str(value)
+        setting.save()
+        return self.get_user_setting(key, user)
+
+    def reset_user_setting(self, key, user):
+        """Remove a personal override and return its declared default."""
+        from plugin.models import UserPluginSetting
+
+        if user is None or not user.is_authenticated:
+            raise ValueError('An authenticated user is required')
+        key = key.upper()
+        if key not in self.user_settings:
+            raise KeyError(key)
+        UserPluginSetting.objects.filter(plugin=self.plugin_config(), user=user, key=key).delete()
+        return self.get_user_setting(key, user)
 
     def get_setting(self, key, cache=False, backup_value=None):
         """Return the 'value' of the setting associated with this plugin.

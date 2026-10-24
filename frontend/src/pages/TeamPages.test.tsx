@@ -31,6 +31,25 @@ describe('Team pages', () => {
   beforeEach(() => { Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] }) })
   afterEach(() => vi.restoreAllMocks())
 
+  it('places plugin contributions in the Team action menu and overview', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/teams/4/') return jsonResponse(team)
+      if (url === '/api/v1/ui-contributions/team/4/') return jsonResponse({ contributions: [
+        { id: 'plugin:demo:run', plugin_slug: 'demo', slot: 'team.detail.actions', type: 'action', label: 'Plugin Team action', icon: null, behavior: 'action', confirm: false, priority: 0 },
+        { id: 'plugin:demo:facts', plugin_slug: 'demo', slot: 'team.detail.sections', type: 'section', label: 'Plugin Team section', icon: null, behavior: null, confirm: false, priority: 0 },
+      ] })
+      if (url === '/api/v1/ui-contributions/team/4/plugin%3Ademo%3Afacts/') return jsonResponse({ format: 'text', text: 'Team plugin content' })
+      throw Error(url)
+    })
+    mount('/teams/4')
+    expect(await screen.findByText('Team plugin content')).toBeInTheDocument()
+    const trigger = screen.getByRole('button', { name: 'Actions pour Atlas' })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByRole('menuitem', { name: 'Plugin Team action' })).toBeInTheDocument()
+  })
+
   it('keeps Team filters and ordering in the URL and links to detail', async () => {
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => jsonResponse({ count: 1, next: null, previous: null, results: [team], capabilities: { can_add: false, can_choose_leader: false, default_leader: null } }))
     Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:team-export') })

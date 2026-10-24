@@ -73,6 +73,8 @@ class GlobalCalendarBase(APIView):
         return CalendarContext(
             calendar_type=self.calendar_type, user=request.user,
             start=start, end=end, filters=request.query_params,
+            include_details=request.query_params.get("include_details") == "1",
+            consumer=request.query_params.get("consumer", "labsmanager"),
         )
 
 from staff.models import Employee

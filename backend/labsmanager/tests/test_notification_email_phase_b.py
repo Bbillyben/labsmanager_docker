@@ -380,6 +380,8 @@ class PeriodicEmailTests(TestCase):
             self.assertIn(b'/static/img/labsmanager/labsmanager-logo.png', response.content)
             sent = SubscriptionMail().send("recipient@example.test", user=self.user, embedImg=True)
         self.assertEqual(sent, 1)
+        self.assertIn("Here is your LabsManager subscription report.", mail.outbox[-1].body)
+        self.assertNotIn("<table", mail.outbox[-1].body)
         html = mail.outbox[-1].alternatives[0][0]
         image = mail.outbox[-1].attachments[0]
         self.assertIn(f'cid:{image["Content-ID"].strip("<>")}', html)

@@ -1,9 +1,7 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Pencil, Plus, Unlink } from 'lucide-react'
-import { getAdminInvitations, getAdminNotifications, getAdminPlugin, getAdminPlugins, getAdminSettings, getAdminUsers, getEmployeeOptions, reloadAdminPlugins, removeExpiredAdminInvitations, runAdminNotificationAction, sendAdminInvitation, setAdminPluginActive, updateAdminInvitation, updateAdminPluginSetting, updateAdminSetting, updateAdminUserEmployee, type AdminInvitation, type AdminUser, type PluginDetail, type PluginSummary } from '../api/adminSettings'
-import type { UserSettingData } from '../api/userSettings'
-import type { SettingValue } from '../api/settings'
+import { getAdminInvitations, getAdminNotifications, getAdminPlugin, getAdminPlugins, getAdminSettings, getAdminUsers, getEmployeeOptions, installAdminPluginDependencies, reloadAdminPlugins, removeExpiredAdminInvitations, runAdminNotificationAction, sendAdminInvitation, setAdminPluginActive, updateAdminInvitation, updateAdminPluginSetting, updateAdminSetting, updateAdminUserEmployee, type AdminInvitation, type AdminUser, type PluginDetail, type PluginSummary } from '../api/adminSettings'
 import { normalizeMutationError } from '../api/errors'
 import { EntityActionMenu } from '../components/EntityActionMenu'
 import { ConfirmDialog } from '../components/common/ConfirmDialog'
@@ -14,31 +12,13 @@ import { useTranslation } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { useEmployeeResource } from './useEmployeeResource'
-import { SettingRow } from './SettingsHubPage'
+import { SettingList } from '../components/SettingList'
+import { PluginTokensSection } from '../components/PluginTokensSection'
 import styles from './SettingsHubPage.module.css'
 
 function errorText(error: unknown, fallback: string) {
   const parsed = normalizeMutationError(error)
   return [...parsed.messages, ...Object.values(parsed.fields).flat()].join(' ') || fallback
-}
-
-function SettingList({ settings, onChange }: { settings: UserSettingData[]; onChange: (key: string, value: SettingValue) => Promise<UserSettingData> }) {
-  const { t } = useTranslation()
-  const [values, setValues] = useState(settings)
-  const [pending, setPending] = useState<string | null>(null)
-  const [error, setError] = useState<Record<string, string>>({})
-  const [saved, setSaved] = useState<string | null>(null)
-  async function save(key: string, value: SettingValue) {
-    setPending(key); setSaved(null); setError((old) => ({ ...old, [key]: '' }))
-    try {
-      const result = await onChange(key, value)
-      setValues((old) => old.map((row) => row.key === key ? result : row))
-      setSaved(key)
-      return result
-    } catch (cause) { setError((old) => ({ ...old, [key]: errorText(cause, t('settings.saveError')) })); return null }
-    finally { setPending(null) }
-  }
-  return <div>{values.map((setting) => <SettingRow key={setting.key} setting={setting} disabled={pending !== null} saving={pending === setting.key} saved={saved === setting.key} error={error[setting.key]} onSave={(value) => save(setting.key, value)} />)}</div>
 }
 
 export function AdminSettingsSection({ section, afterSave }: { section: 'general' | 'plugins'; afterSave?: () => void }) {
@@ -200,7 +180,7 @@ export function AdminPluginsPage() {
   }
   return <div className={styles.content}><AdminSettingsSection section="plugins" afterSave={resource.retry} /><section className={styles.section}><div className={styles.heading}><h3>{t('settingsAdmin.plugins')}</h3><Button disabled={pending !== null} onClick={() => void reload()}>{t('settingsAdmin.reloadPlugins')}</Button></div>
     {message && <p role="status">{message}</p>}{error && !confirm && <Alert tone="danger">{error}</Alert>}{resource.loading && <p role="status">{t('common.loading')}</p>}{!!resource.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={resource.retry}>{t('common.retry')}</Button></Alert>}
-    {resource.data && <div className={styles.tableScroll}><table className={`${styles.table} ${styles.pluginTable}`}><thead><tr><th>{t('settingsAdmin.plugin')}</th><th>{t('settingsAdmin.description')}</th><th>{t('settingsAdmin.mixins')}</th><th>{t('settingsAdmin.version')}</th><th>{t('settingsAdmin.author')}</th><th>{t('settingsAdmin.pluginStatus')}</th><th>{t('settingsAdmin.action')}</th></tr></thead><tbody>{resource.data.results.map((row) => <tr key={row.key}><td>{row.active ? <Link to={`/settings/admin/plugins/${encodeURIComponent(row.key)}`}>{row.human_name}</Link> : row.human_name}</td><td>{row.description}</td><td>{row.mixins.join(', ')}</td><td>{row.version || '—'}</td><td>{row.author}</td><td><Badge variant={row.error ? 'destructive' : row.active ? 'default' : 'secondary'}>{t(row.error ? 'settingsAdmin.pluginError' : row.active ? 'settingsAdmin.pluginActive' : 'settingsAdmin.pluginInactive')}</Badge></td><td>{!row.is_builtin && <Button disabled={pending !== null} onClick={(event) => { focus.current = event.currentTarget; setError(''); setConfirm(row) }}>{t(row.active ? 'settingsAdmin.deactivatePlugin' : 'settingsAdmin.activatePlugin')}</Button>}</td></tr>)}</tbody></table></div>}
+    {resource.data && <div className={styles.tableScroll}><table className={`${styles.table} ${styles.pluginTable}`}><thead><tr><th>{t('settingsAdmin.plugin')}</th><th>{t('settingsAdmin.description')}</th><th>{t('settingsAdmin.mixins')}</th><th>{t('settingsAdmin.version')}</th><th>{t('settingsAdmin.author')}</th><th>{t('settingsAdmin.pluginStatus')}</th><th>{t('settingsAdmin.action')}</th></tr></thead><tbody>{resource.data.results.map((row) => <tr key={row.key}><td><div className={styles.pluginName}><Link to={`/settings/admin/plugins/${encodeURIComponent(row.key)}`}>{row.human_name}</Link>{row.origin === 'sample' && <Badge variant="secondary">{t('pluginSettings.sample')}</Badge>}{row.origin === 'builtin' && <Badge variant="outline">{t('pluginSettings.builtin')}</Badge>}</div></td><td>{row.description}</td><td>{row.mixins.join(', ')}</td><td>{row.version || '—'}</td><td>{row.author}</td><td><Badge variant={row.error ? 'destructive' : row.active ? 'default' : 'secondary'}>{t(row.error ? 'settingsAdmin.pluginError' : row.active ? 'settingsAdmin.pluginActive' : 'settingsAdmin.pluginInactive')}</Badge>{row.dependencies && row.dependencies.state !== 'none' && <span> · {t(`settingsAdmin.dependencies.${row.dependencies.state}`)}</span>}</td><td>{!row.is_builtin && <Button disabled={pending !== null || (!row.active && !!row.dependencies && !['none', 'satisfied'].includes(row.dependencies.state))} onClick={(event) => { focus.current = event.currentTarget; setError(''); setConfirm(row) }}>{t(row.active ? 'settingsAdmin.deactivatePlugin' : 'settingsAdmin.activatePlugin')}</Button>}</td></tr>)}</tbody></table></div>}
     {confirm && <ConfirmDialog title={t(confirm.active ? 'settingsAdmin.deactivatePlugin' : 'settingsAdmin.activatePlugin')} description={`${t(confirm.active ? 'settingsAdmin.confirmDeactivatePlugin' : 'settingsAdmin.confirmActivatePlugin')} ${confirm.human_name}`} pending={pending !== null} error={error && <Alert tone="danger">{error}</Alert>} onCancel={() => { setConfirm(null); setError('') }} onConfirm={() => void changeState(confirm)} returnFocus={focus} confirmLabel={t(confirm.active ? 'settingsAdmin.deactivatePlugin' : 'settingsAdmin.activatePlugin')} />}
     {!!resource.data?.errors.length && <section className={styles.section}><h2>{t('settingsAdmin.pluginErrors')}</h2><div className={styles.tableScroll}><table className={styles.table}><thead><tr><th>{t('settingsAdmin.stage')}</th><th>{t('settingsAdmin.name')}</th><th>{t('settingsAdmin.message')}</th></tr></thead><tbody>{resource.data.errors.map((row, index) => <tr key={`${row.stage}-${row.name}-${index}`}><td>{row.stage}</td><td>{row.name}</td><td>{row.message}</td></tr>)}</tbody></table></div></section>}
   </section></div>
@@ -211,15 +191,46 @@ export function AdminPluginDetailPage() {
   const { t, language } = useTranslation()
   const loader = useCallback((key: string, signal: AbortSignal) => getAdminPlugin(key, signal), [])
   const resource = useEmployeeResource(pluginKey, loader)
+  const refreshDependencies = resource.refresh
   const data: PluginDetail | null = resource.data
+  const [confirmInstall, setConfirmInstall] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const [installError, setInstallError] = useState('')
+  const focus = useRef<HTMLElement | null>(null)
+  const dependencyState = data?.dependencies?.state
+  useEffect(() => {
+    if (dependencyState !== 'queued' && dependencyState !== 'running') return
+    const timer = window.setInterval(() => { void refreshDependencies() }, 3000)
+    return () => window.clearInterval(timer)
+  }, [dependencyState, refreshDependencies])
+  async function installDependencies() {
+    setInstalling(true); setInstallError('')
+    try {
+      const dependencies = await installAdminPluginDependencies(pluginKey)
+      resource.updateData((current) => ({ ...current, dependencies }))
+      setConfirmInstall(false)
+    } catch (cause) { setInstallError(errorText(cause, t('settings.saveError'))) }
+    finally { setInstalling(false) }
+  }
   return <div className={styles.content}><Link to="/settings/admin/plugins">← {t('settingsAdmin.plugins')}</Link>
     {resource.loading && <p role="status">{t('common.loading')}</p>}{!!resource.error && <Alert tone="danger">{t('settings.loadError')} <Button onClick={resource.retry}>{t('common.retry')}</Button></Alert>}
     {data && <><section className={styles.section}><h2>{data.human_name}</h2><dl className={styles.facts}>{([
       ['description', data.description], ['author', data.author], ['version', data.version], ['published', data.pub_date ? new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(new Date(data.pub_date)) : null], ['website', data.website], ['license', data.license], ['mixins', data.mixins.join(', ')],
     ] as const).map(([label, value]) => <div key={label}><dt>{t(`settingsAdmin.${label}`)}</dt><dd>{label === 'website' && value ? <a href={value} target="_blank" rel="noreferrer">{value}</a> : value || '—'}</dd></div>)}</dl></section>
+      {data.dependencies && <section className={styles.section}><div className={styles.heading}><h2>{t('settingsAdmin.dependencies')}</h2><Button onClick={() => void resource.refresh()}>{t('common.retry')}</Button></div>
+        <p role="status">{t(`settingsAdmin.dependencies.${data.dependencies.state}`)}</p>
+        {data.dependencies.state === 'failed' && data.dependencies.operation?.message && <p>{data.dependencies.operation.message}</p>}
+        {data.dependencies.restart_required && <Alert tone="warning">{t('settingsAdmin.dependenciesRestartHelp')}</Alert>}
+        {data.dependencies.errors.map((error) => <Alert key={error} tone="danger">{error}</Alert>)}
+        {data.dependencies.requirements.length > 0 && <div className={styles.tableScroll}><table className={styles.table}><thead><tr><th>{t('settingsAdmin.name')}</th><th>{t('settingsAdmin.requiredVersion')}</th><th>{t('settingsAdmin.installedVersion')}</th><th>{t('settingsAdmin.diskVersion')}</th><th>{t('settingsAdmin.pluginStatus')}</th></tr></thead><tbody>{data.dependencies.requirements.map((row) => <tr key={row.name}><td>{row.name}</td><td>{row.required}</td><td>{row.installed_version || '—'}</td><td>{row.on_disk_version || '—'}</td><td>{t(`settingsAdmin.dependencies.${row.state}`)}</td></tr>)}</tbody></table></div>}
+        {data.dependencies.can_install && <Button disabled={installing} onClick={(event) => { focus.current = event.currentTarget; setConfirmInstall(true) }}>{t('settingsAdmin.installDependencies')}</Button>}
+        {installError && !confirmInstall && <Alert tone="danger">{installError}</Alert>}
+      </section>}
       {data.sections.settings && <section className={styles.section}><h2>{t('settingsAdmin.settings')}</h2><SettingList key={pluginKey} settings={data.sections.settings} onChange={(key, value) => updateAdminPluginSetting(pluginKey, key, value)} /></section>}
+      {data.sections.tokens && <PluginTokensSection key={`${pluginKey}-plugin`} pluginKey={pluginKey} kind="plugin" />}
       {data.sections.schedule && <section className={styles.section}><h2>{t('settingsAdmin.schedule')}</h2><div className={styles.tableScroll}><table className={styles.table}><thead><tr><th>{t('settingsAdmin.name')}</th><th>{t('settingsAdmin.function')}</th><th>{t('settingsAdmin.scheduleType')}</th><th>{t('settingsAdmin.repeat')}</th><th>{t('settingsAdmin.nextRun')}</th><th>{t('settingsAdmin.success')}</th></tr></thead><tbody>{data.sections.schedule.map((row) => <tr key={row.name}><td>{row.name}</td><td>{row.function}</td><td>{row.schedule_type}</td><td>{row.repeat ?? '—'}</td><td>{row.next_run ? new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(row.next_run)) : '—'}</td><td>{row.success ? '✓' : '—'}</td></tr>)}</tbody></table></div></section>}
       {data.sections.urls && <section className={styles.section}><h2>{t('settingsAdmin.urls')}</h2><p>{t('settingsAdmin.baseUrl')}: {data.sections.urls.base_url}</p><div className={styles.tableScroll}><table className={styles.table}><thead><tr><th>{t('settingsAdmin.name')}</th><th>{t('settingsAdmin.url')}</th><th>{t('settingsAdmin.action')}</th></tr></thead><tbody>{data.sections.urls.routes.map((row) => <tr key={`${row.name}-${row.url}`}><td>{row.name}</td><td>{row.url}</td><td>{row.href && <a href={row.href} target="_blank" rel="noreferrer">{t('settingsAdmin.openNewTab')}</a>}</td></tr>)}</tbody></table></div></section>}
+      {confirmInstall && <ConfirmDialog title={t('settingsAdmin.installDependencies')} description={`${t('settingsAdmin.confirmInstallDependencies')} ${data.dependencies?.requirements.map((row) => `${row.name} ${row.required}`).join(', ')}`} pending={installing} error={installError && <Alert tone="danger">{installError}</Alert>} onCancel={() => { setConfirmInstall(false); setInstallError('') }} onConfirm={() => void installDependencies()} returnFocus={focus} confirmLabel={t('settingsAdmin.installDependencies')} />}
     </>}
   </div>
 }

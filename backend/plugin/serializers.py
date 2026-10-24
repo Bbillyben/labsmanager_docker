@@ -104,5 +104,9 @@ class PluginActivateSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         """Apply the new 'active' value to the plugin instance."""
+        if validated_data.get('active', True):
+            from plugin.dependencies import activation_ready
+            if not activation_ready(instance.key):
+                raise serializers.ValidationError({'active': 'Plugin dependencies are unavailable or require an application restart.'})
         instance.activate(validated_data.get('active', True))
         return instance

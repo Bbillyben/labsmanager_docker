@@ -35,4 +35,6 @@ def legacy_calendar_context(request):
         start=_date_time(filters.get("start")),
         end=_date_time(filters.get("end")),
         filters=filters,
+        include_details=filters.get("include_details") == "1",
+        consumer=filters.get("consumer", "labsmanager"),
     )

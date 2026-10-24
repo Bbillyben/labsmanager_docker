@@ -40,6 +40,7 @@ services:
         volumes:
             # Data volume must map to /home/lab/data
             - lab_data:/home/labsmanager/data/
+            - lab_plugin_packages:/home/labsmanager/plugin-packages/
         restart: unless-stopped
         healthcheck:
             test: ["CMD", "python3", "-c", "import http.client; c=http.client.HTTPConnection('127.0.0.1',8000,timeout=3); c.request('GET','/api/v1/me/'); s=c.getresponse().status; c.close(); raise SystemExit(0 if s in (200,301,302,400,401,403) else 1)"]
@@ -63,6 +64,7 @@ services:
         volumes:
             # Data volume must map to /home/lab/data
             - lab_data:/home/labsmanager/data/
+            - lab_plugin_packages:/home/labsmanager/plugin-packages/
         restart: unless-stopped
     lab-proxy:
         container_name: lab-proxy
@@ -90,6 +92,8 @@ services:
         restart: unless-stopped
 
 volumes:
+    lab_plugin_packages:
+        driver: local
     # Persistent data, stored external to the container(s)
     lab_data:
         driver: local

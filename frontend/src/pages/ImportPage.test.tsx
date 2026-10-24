@@ -36,13 +36,20 @@ describe('Import Hub', () => {
     const pluginStructure = { expected: ['Code', 'Amount'], recognized: { Code: ' ID ' }, aliases_used: { Code: ' ID ' }, missing: ['Amount'], extra: ['Other'], ambiguities: ['Amount: Total, Amount'], errors: ['Ambiguous amount'], warnings: ['Other ignored'], columns: 3, rows: 1, eligible: false }
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input)
-      if (url.endsWith('/profiles/')) return jsonResponse({ items: [{ key: 'plugin:demo:expenses', label: 'Raw expenses', description: 'Demo', formats: ['csv'], template_formats: ['xlsx'], preview_columns: [], plugin_import: true }] })
+      if (url.endsWith('/profiles/')) return jsonResponse({ items: [
+        { key: 'expense', label: 'Dépenses', description: 'Native', formats: ['csv'], template_formats: ['csv'], preview_columns: [] },
+        { key: 'plugin:demo:expenses', label: 'Raw expenses', plugin_name: 'Demo Import', description: 'Demo', formats: ['csv'], template_formats: ['xlsx'], preview_columns: [], plugin_import: true },
+        { key: 'plugin:second:expenses', label: 'Raw expenses', plugin_name: 'Second Import', description: 'Second', formats: ['csv'], template_formats: ['xlsx'], preview_columns: [], plugin_import: true },
+      ] })
       if (url.endsWith('/upload/')) return jsonResponse({ import_token: 'raw-token', filename: 'raw.csv', size: 42, format: 'csv', sheets: [''], structure: pluginStructure, sheet_structures: { '': pluginStructure } })
       if (url.endsWith('/preview/')) return jsonResponse({ summary: { new: 0, update: 0, unchanged: 0, error: 0 }, rows: [], global_errors: ['Ambiguous amount'], can_commit: false, structure: pluginStructure, sheet: '' })
       throw new Error(`${url}: ${init?.method}`)
     })
     render(<I18nProvider><ImportPage /></I18nProvider>)
     const user = userEvent.setup()
+    expect(await screen.findByRole('option', { name: 'Dépenses' })).toHaveValue('expense')
+    expect(screen.getByRole('option', { name: 'Raw expenses — Demo Import' })).toHaveValue('plugin:demo:expenses')
+    expect(screen.getByRole('option', { name: 'Raw expenses — Second Import' })).toHaveValue('plugin:second:expenses')
     await user.selectOptions(await screen.findByLabelText('Type d’import'), 'plugin:demo:expenses')
     await user.upload(screen.getByLabelText('Choisir un fichier'), new File(['raw'], 'raw.csv'))
     expect((await screen.findAllByText(/Code ←\s+ID/)).length).toBeGreaterThan(0)

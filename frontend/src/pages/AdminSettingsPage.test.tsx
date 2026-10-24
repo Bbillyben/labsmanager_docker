@@ -16,10 +16,12 @@ function renderAt(path: string, staff = true, invitationError = false, canAssign
     { id: 2, email: 'expired@example.test', created: '2026-09-01T10:00:00Z', sent: '2026-09-01T10:01:00Z', accepted: true, key_expired: true, inviter: null },
   ]
   let plugins = [
-    { key: 'sample', human_name: 'Sample', description: 'Sample plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['settings', 'schedule', 'urls'], active: true, is_builtin: false, error: false },
-    { key: 'sifacexpenseimport', human_name: 'SifacExpenseImport', description: 'Import plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['import'], active: false, is_builtin: false, error: false },
-    { key: 'internal', human_name: 'Internal', description: '', author: '', pub_date: null, version: null, website: null, license: null, mixins: [], active: true, is_builtin: true, error: false },
+    { key: 'sample', human_name: 'Sample', description: 'Sample plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['settings', 'schedule', 'urls'], active: true, is_builtin: false, origin: 'sample', error: false },
+    { key: 'sifacexpenseimport', human_name: 'SifacExpenseImport', description: 'Import plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['import'], active: false, is_builtin: false, origin: 'external', error: false },
+    { key: 'internal', human_name: 'Internal', description: '', author: '', pub_date: null, version: null, website: null, license: null, mixins: [], active: true, is_builtin: true, origin: 'builtin', error: false },
   ]
+  let dependencyState = 'missing'
+  const dependencies = () => ({ key: 'broken', human_name: 'Broken plugin', state: dependencyState, requirements: [{ name: 'icalendar', required: '==7.3.0', installed_version: null, on_disk_version: null, state: 'missing' }], errors: [], restart_required: false, can_install: dependencyState === 'missing', operation: dependencyState === 'queued' ? { state: 'queued', message: 'Installation queued.' } : null })
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input)
     calls.push(`${init?.method ?? 'GET'} ${url}`)
@@ -59,6 +61,8 @@ function renderAt(path: string, staff = true, invitationError = false, canAssign
     }
     if (url === '/api/v1/settings/admin/plugins/reload/') return jsonResponse({ results: [], errors: [] })
     if (url === '/api/v1/settings/admin/plugins/sample/') return jsonResponse({ key: 'sample', human_name: 'Sample', description: 'Sample plugin', author: 'Ada', pub_date: null, version: '1', website: null, license: null, mixins: ['settings', 'schedule', 'urls'], sections: { settings: [], schedule: [], urls: { base_url: '/plugin/sample/', routes: [] } } })
+    if (url === '/api/v1/settings/admin/plugins/broken/dependencies/install/' && init?.method === 'POST') { dependencyState = 'queued'; return jsonResponse(dependencies(), 202) }
+    if (url === '/api/v1/settings/admin/plugins/broken/') return jsonResponse({ key: 'broken', human_name: 'Broken plugin', description: '', author: '', pub_date: null, version: null, website: null, license: null, mixins: [], active: false, is_builtin: false, error: true, sections: {}, dependencies: dependencies() })
     throw new Error(url)
   })
   render(<I18nProvider><BrowserRouter basename="/app"><AuthProvider><AppRouter /></AuthProvider></BrowserRouter></I18nProvider>)
@@ -68,6 +72,16 @@ function renderAt(path: string, staff = true, invitationError = false, canAssign
 beforeEach(() => { vi.restoreAllMocks(); Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] }) })
 
 describe('Settings administration', () => {
+  it('shows missing plugin requirements and starts a confirmed installation', async () => {
+    const calls = renderAt('/app/settings/admin/plugins/broken')
+    expect(await screen.findAllByText('Dépendances manquantes')).toHaveLength(2)
+    expect(screen.getByText('icalendar')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Installer les dépendances' }))
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('icalendar ==7.3.0')
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Installer les dépendances' }))
+    expect(await screen.findByText('Installation en attente')).toBeInTheDocument()
+    expect(calls).toContain('POST /api/v1/settings/admin/plugins/broken/dependencies/install/')
+  })
   it('shows the group only to staff and protects direct routes', async () => {
     renderAt('/app/settings/stale', false)
     expect(await screen.findByRole('heading', { name: 'Alertes d’échéance' })).toBeInTheDocument()
@@ -178,6 +192,9 @@ describe('Settings administration', () => {
   it('lists and reloads plugins', async () => {
     const calls = renderAt('/app/settings/admin/plugins')
     expect(await screen.findByRole('link', { name: 'Sample' })).toHaveAttribute('href', '/app/settings/admin/plugins/sample')
+    expect(within(screen.getByRole('link', { name: 'Sample' }).closest('tr')!).getAllByText('Sample')).toHaveLength(2)
+    expect(within(screen.getByRole('link', { name: 'Internal' }).closest('tr')!).getByText('Built-in')).toBeInTheDocument()
+    expect(within(screen.getByRole('link', { name: 'SifacExpenseImport' }).closest('tr')!).queryByText(/^(Sample|Built-in)$/)).not.toBeInTheDocument()
     expect(screen.getByText('SifacExpenseImport')).toBeInTheDocument()
     expect(screen.getByText('Inactif')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Désactiver' })?.closest('tr')?.textContent).not.toContain('Internal')

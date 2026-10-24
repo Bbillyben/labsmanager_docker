@@ -69,13 +69,15 @@ const milestones = [
   { id: 24, name: 'Jalon terminé', desc: null, start_date: null, end_date: '2026-08-01', status: true, type: 'q', quotity: '1.000', display_state: 'completed', days_to_due: -50, work_kind: 'milestone', project: { id: 10, name: 'Projet Atlas', can_view: false }, employees: [] },
 ]
 
-type Payloads = { detail?: unknown; statuses?: unknown; hierarchy?: unknown; genericInfo?: unknown; projects?: unknown; milestones?: unknown | (() => Response); milestonePatchError?: boolean; workload?: unknown; contracts?: unknown; contributions?: unknown; contributionWorkload?: unknown; budgets?: unknown; calendar?: unknown; calendarFilters?: unknown }
+type Payloads = { detail?: unknown; statuses?: unknown; hierarchy?: unknown; genericInfo?: unknown; projects?: unknown; milestones?: unknown | (() => Response); milestonePatchError?: boolean; workload?: unknown; contracts?: unknown; contributions?: unknown; contributionWorkload?: unknown; budgets?: unknown; calendar?: unknown; calendarFilters?: unknown; uiContributions?: unknown[] }
 function mockApi(payloads: Payloads = {}) {
   const workState = Array.isArray(payloads.milestones) ? structuredClone(payloads.milestones) : structuredClone(milestones)
   let detailState = structuredClone(payloads.detail ?? detail)
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input), method = init?.method ?? 'GET'
     if (url === '/api/v1/me/') return jsonResponse(authenticatedUser)
+    if (url === '/api/v1/ui-contributions/employee/12/') return jsonResponse({ contributions: payloads.uiContributions ?? [] })
+    if (url === '/api/v1/ui-contributions/employee/12/plugin%3Ademo%3Afacts/') return jsonResponse({ format: 'text', text: 'Employee plugin content' })
     if (url === '/api/v1/notes/employee/12/') return jsonResponse({ capabilities: { can_add: false }, items: [] })
     if (url.startsWith('/api/v1/reports/employee/')) return jsonResponse({ templates: [{ id: 9, name: 'Rapport employé' }] })
     if (url.endsWith('/statuses/options/')) return jsonResponse({ capabilities: { can_add: false, can_change: false, can_delete: false }, types: [], contractuality: [] })
@@ -120,6 +122,18 @@ function renderAt(id = 12, panel = '') {
 }
 
 describe('Employee R2 detail', () => {
+  it('places plugin contributions in the Employee action menu and overview', async () => {
+    mockApi({ uiContributions: [
+      { id: 'plugin:demo:run', plugin_slug: 'demo', slot: 'employee.detail.actions', type: 'action', label: 'Plugin Employee action', icon: null, behavior: 'action', confirm: false, priority: 0 },
+      { id: 'plugin:demo:facts', plugin_slug: 'demo', slot: 'employee.detail.sections', type: 'section', label: 'Plugin Employee section', icon: null, behavior: null, confirm: false, priority: 0 },
+    ] })
+    renderAt()
+    expect(await screen.findByText('Employee plugin content', {}, { timeout: 8000 })).toBeInTheDocument()
+    const trigger = screen.getByRole('button', { name: 'Actions pour Jean Dupont' })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(await screen.findByRole('menuitem', { name: 'Plugin Employee action' })).toBeInTheDocument()
+  })
   it('lets an authorized staff user edit and refresh Employee details', async () => {
     const fetchMock = mockApi({ detail: { ...detail, capabilities: { can_change: true, can_export_word: false, can_export_pdf: false } } })
     renderAt()

@@ -904,3 +904,19 @@ Le tableau Planning Project ouvre un mode de sélection temporaire pour décaler
 ### Planning Gantt — visibilité des jalons et tâches
 
 La toolbar commune Project/global permet de masquer indépendamment Jalons et Tâches, tous deux visibles par défaut. Le filtre reste local au Gantt : les lignes et périodes Project, les données Planning, le tableau et le rendu Print complet ne changent pas ; les dépendances vers des éléments masqués ne sont pas rendues. Le choix reste actif pendant les changements de fenêtre tant que la vue est montée. Le Gantt Employee conserve son comportement actuel. **Implémenté techniquement ; validation navigateur Project et multiprojet attendue.**
+
+### Plugin settings personnels et tokens
+
+`UserPluginSetting` étend `SettingsMixin` aux préférences par utilisateur. `TokenMixin` fournit les tokens techniques et personnels, avec scopes facultatifs, validation explicite, API backend et création à secret affiché une seule fois dans Django Admin. Les migrations `plugin.0002` et `plugin.0003` sont requises. Settings > Mes plugins liste les plugins actifs avec capacités personnelles et ouvre leurs préférences et tokens ; le détail Admin affiche les tokens techniques lorsque le plugin les autorise. Les deux vues React partagent la gestion des tokens, avec révélation unique du secret. Voir [la documentation développeur](PLUGIN_USER_SETTINGS_AND_TOKENS.md). Validation navigateur attendue.
+
+### Contributions UI des plugins
+
+`UIContributionMixin` déclare des actions et sections React sur six slots Project, Employee et Team, sans code JavaScript plugin. Le catalogue extensible vérifie les déclarations des plugins actifs, l'API v1 résout les objets selon les droits de consultation existants, et les handlers reçoivent la requête et le contexte validé. Les actions rejoignent `EntityActionMenu` ; les sections de l'overview se chargent séparément. Le plugin externe `TestUIContribution` installé sur la VM couvre les six slots pour la validation navigateur. Voir [le contrat développeur](UI_CONTRIBUTIONS.md). Validation navigateur encore attendue.
+
+Contrôles ciblés : neuf tests Django, quatre tests du composant React et trois tests d'intégration des fiches réussis ; TypeScript, ESLint ciblé, contrôle Django et `git diff --check` réussis.
+
+Le registre UI comprend désormais aussi `calendar.toolbar.actions` et `user.plugin.settings.actions`. Les calendriers React Employee, Project, Team et généraux affichent les actions actives dans leurs barres d'outils ; « Mes plugins » peut présenter plusieurs actions propres au plugin, sans retirer préférences ni tokens. Les handlers reçoivent le `CalendarContext` ou le plugin propriétaire après validation backend. [La synthèse calendrier](UI_CONTRIBUTIONS.md#point-dentrée-calendrier-pour-un-futur-export-ics) précise le point de départ pour un futur export ICS ; aucun export n'est développé dans ce lot. Validation navigateur des nouveaux slots attendue.
+
+Contrôles de cette extension : douze tests Django ciblés, tests React du composant, de « Mes plugins » et des calendriers ciblés, TypeScript, ESLint ciblé et `git diff --check` réussis.
+
+Le gestionnaire central des dépendances Python des plugins lit `requirements.txt` avant import, expose le diagnostic dans l'administration React et lance l'installation uniquement sur demande explicite d'un administrateur. Les releases sont publiées atomiquement dans `LAB_PLUGIN_PACKAGES_ROOT`, monté sur un volume Docker dédié ; un redémarrage du serveur et du worker reste nécessaire. Une installation locale hors ligne a validé la publication ; le verrou du cœur fixe désormais `tzdata==2025.3`, compatible avec `icalendar==7.3.0`, mais les environnements existants nécessitent un déploiement avant l'installation d'ICalExport. Voir [la documentation dédiée](PLUGIN_DEPENDENCIES.md). Validation manuelle Docker et bare metal encore attendue.

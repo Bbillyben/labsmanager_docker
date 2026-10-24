@@ -1,5 +1,6 @@
 
 import datetime
+from io import StringIO
 from django.contrib.sites.models import Site
 from labsmanager import settings
 from django.core.mail import send_mail, EmailMultiAlternatives
@@ -208,7 +209,7 @@ class BodyTableMail(BaseMail):
             table_end = html_content.find("</table>", table_start) + len("</table>")
 
             # Add the text between the previous table and the current table to the result
-            result += html_content[last_table_end:table_start]
+            result += super().render_body(html_content[last_table_end:table_start])
 
             # Append the table data to the result
             result += table.to_string(index=False) + "\n\n"
@@ -216,15 +217,14 @@ class BodyTableMail(BaseMail):
             last_table_end = table_end
 
         # Add the remaining text after the last table
-        result += html_content[last_table_end:]
+        result += super().render_body(html_content[last_table_end:])
 
         return result
     
     def render_body(self, html, **kwargs):
         try:
-            tablesPD = pd.read_html(html)
+            tablesPD = pd.read_html(StringIO(html))
             body = self.concatenate_tables_with_text(tablesPD, html)
-            body = super().render_body(body, **kwargs)
         except ValueError:
             return super().render_body(html, **kwargs)
         return body

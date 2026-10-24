@@ -14,6 +14,7 @@ import {
 } from '../api/employees'
 import { normalizeMutationError } from '../api/errors'
 import { CalendarPluginFilters, effectiveCalendarFilterValues, type CalendarFilterValues } from '../calendar/CalendarPluginFilters'
+import { CalendarPluginActions } from '../components/PluginContributions'
 import { halfDayLabel } from '../calendar/halfDayPresentation'
 import { useTranslation } from '../i18n/i18n'
 import { PrintButton } from '../print/PrintButton'
@@ -104,6 +105,7 @@ export function EmployeeLeaves() {
       </div>
       <LeaveFilters filters={filters} onChange={setFilters} types={knownTypes} />
       {mode === 'calendar' && resource.data && <PrintButton createRequest={() => ({ renderer: 'calendar', title: `${t('employee.navLeaves')} — ${employee.first_name} ${employee.last_name}`, state: { scope, viewType: projectCalendarViewDefinition(scope, 'calendar').key, mode: 'calendar', range: calendarBounds, events: resource.data as CalendarEvent[], filters: { ...filters, ...effectiveCalendarFilters }, selectedId: selected ? String(selected.id) : null } satisfies CalendarPrintState })} />}
+      {mode === 'calendar' && <CalendarPluginActions calendarType="employee" objectId={Number(employeeId)} />}
       {capabilities.data?.can_add && <Button onClick={() => openCreate()} size="sm"><Plus aria-hidden="true" />{t('leaves.add')}</Button>}
       {Boolean(capabilities.error) && <div className={styles.error} role="alert">{t('leaves.capabilitiesError')} <Button onClick={capabilities.retry} size="xs" variant="ghost">{t('common.retry')}</Button></div>}
     </div>

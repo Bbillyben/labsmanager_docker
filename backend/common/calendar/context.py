@@ -38,3 +38,5 @@ class CalendarContext:
     project_id: int | None = None
     team_id: int | None = None
     filters: Mapping[str, Any] = field(default_factory=dict)
+    include_details: bool = False
+    consumer: str = "labsmanager"

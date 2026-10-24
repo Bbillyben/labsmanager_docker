@@ -136,6 +136,12 @@ class PluginConfig(models.Model):
         """Extend save method to reload plugins if the 'active' status changes."""
         reload = kwargs.pop('no_reload', False)  # check if no_reload flag is set
 
+        if self.active and not self.__org_active and not self.is_builtin():
+            from plugin.dependencies import activation_ready
+            from django.core.exceptions import ValidationError
+            if not activation_ready(self.key):
+                raise ValidationError({'active': 'Plugin dependencies are unavailable or require an application restart.'})
+
         super().save(force_insert, force_update, *args, **kwargs)
 
         if self.is_builtin():
@@ -234,3 +240,73 @@ class PluginSetting(BaseLabsManagerSetting):
                     kwargs['settings'] = mixin_settings.get(plugin.key, {})
 
         return super().get_setting_definition(key, **kwargs)
+
+
+class UserPluginSetting(BaseLabsManagerSetting):
+    """A plugin setting owned by one authenticated user."""
+
+    typ = 'user_plugin'
+    extra_unique_fields = ['plugin', 'user']
+
+    plugin = models.ForeignKey(PluginConfig, related_name='user_settings', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='plugin_settings', on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['plugin', 'user', 'key'], name='unique_user_plugin_setting')]
+
+    @classmethod
+    def get_setting_definition(cls, key, **kwargs):
+        if 'settings' not in kwargs:
+            plugin = kwargs.get('plugin')
+            if plugin:
+                kwargs['settings'] = getattr(registry, 'mixins_user_settings', {}).get(plugin.key, {})
+        return super().get_setting_definition(key, **kwargs)
+
+
+class PluginAccessToken(models.Model):
+    """Hashed secret for one plugin, optionally owned by one user."""
+
+    class Kind(models.TextChoices):
+        PLUGIN = 'plugin', 'Plugin'
+        USER = 'user', 'User'
+
+    plugin = models.ForeignKey(PluginConfig, related_name='access_tokens', on_delete=models.CASCADE)
+    kind = models.CharField(max_length=6, choices=Kind.choices)
+    user = models.ForeignKey(User, related_name='plugin_access_tokens', null=True, blank=True, on_delete=models.CASCADE)
+    name = models.CharField(max_length=150)
+    public_id = models.CharField(max_length=64, unique=True, editable=False)
+    secret_hash = models.CharField(max_length=255, editable=False)
+    scopes = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Plugin token'
+        verbose_name_plural = 'Plugin tokens'
+        constraints = [models.CheckConstraint(
+            check=(models.Q(kind='plugin', user__isnull=True) | models.Q(kind='user', user__isnull=False)),
+            name='plugin_token_kind_owner',
+        )]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if (self.kind == self.Kind.PLUGIN) != (self.user_id is None):
+            raise ValidationError({'user': 'Token kind and owner are inconsistent.'})
+        if not isinstance(self.scopes, list) or any(not isinstance(scope, str) for scope in self.scopes) or len(set(self.scopes)) != len(self.scopes):
+            raise ValidationError({'scopes': 'Scopes must be a list of distinct names.'})
+        if self.pk:
+            original = type(self).objects.filter(pk=self.pk).values('plugin_id', 'kind', 'user_id', 'public_id', 'secret_hash', 'scopes', 'revoked_at').first()
+            if original:
+                immutable = ('plugin_id', 'kind', 'user_id', 'public_id', 'secret_hash', 'scopes')
+                if any(getattr(self, field) != original[field] for field in immutable):
+                    raise ValidationError('Token identity, secret and scopes cannot be changed.')
+                if original['revoked_at'] is not None and self.revoked_at != original['revoked_at']:
+                    raise ValidationError('Token revocation cannot be undone.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)

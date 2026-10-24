@@ -36,9 +36,10 @@ const leave = {
 }
 const holiday = { id: 'holiday:1', title: 'Holiday', start: date, end: nextDate, source: 'plugin', kind: 'holiday', all_day: true, color: '#aaaaaa', description: null, display: 'background', metadata: {} }
 
-function mockApi(canAdd: boolean, withReadOnlyParticipant = false) {
+function mockApi(canAdd: boolean, withReadOnlyParticipant = false, withPluginAction = false) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input)
+    if (url === '/api/v1/ui-contributions/calendar/project/4/') return jsonResponse({ contributions: withPluginAction ? [{ id: 'plugin:demo:subscribe', plugin_slug: 'demo', slot: 'calendar.toolbar.actions', type: 'action', label: 'Subscribe', behavior: 'copy_url', icon: null, confirm: false, priority: 0 }] : [] })
     if (url.includes('/participants/')) return jsonResponse([{ id: 12, title: 'Ada Reader', capabilities: { can_add: canAdd, can_change: canAdd, can_delete: canAdd } }, ...(withReadOnlyParticipant ? [{ id: 13, title: 'Grace Viewer', capabilities: { can_add: false, can_change: false, can_delete: false } }] : [])])
     if (url.includes('/filters/')) return jsonResponse([])
     if (url.includes('/leave-types/')) return jsonResponse([{ id: 3, name: 'Paid leave', short_name: 'CP', color: '#336699', parent_id: null, depth: 0 }])
@@ -50,6 +51,15 @@ function mockApi(canAdd: boolean, withReadOnlyParticipant = false) {
 describe('Project Calendar', () => {
   beforeEach(() => { Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] }) })
   afterEach(() => vi.restoreAllMocks())
+
+  it('places plugin actions in the calendar toolbar only when available', async () => {
+    mockApi(false, false, true)
+    render(<I18nProvider><ProjectCalendarPanel projectId="4" /></I18nProvider>)
+    const trigger = await screen.findByRole('button', { name: 'Actions des plugins' })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('menuitem', { name: 'Subscribe' })).toBeInTheDocument()
+  })
 
   it('prints the current month and already loaded filtered events in a static preview', async () => {
     mockApi(false)

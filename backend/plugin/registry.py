@@ -477,6 +477,14 @@ class PluginsRegistry:
 
         logger.info("Loading plugin '%s'", plg_key)
 
+        from plugin.dependencies import activation_ready
+        if not activation_ready(plg_key):
+            plg_db = configs.get(plg_key) or self.get_plugin_config(plg_key, plg_name)
+            self.plugins_full[plg_key] = plugin
+            self.plugins_inactive[plg_key] = plg_db
+            log_error({plg_key: 'Plugin dependencies are unavailable or require an application restart.'}, reference='init')
+            return
+
         if plg_key in configs:
             plg_db = configs[plg_key]
         else:

@@ -87,6 +87,8 @@ class NotificationEmailPhaseATests(TestCase):
         self.assertEqual(result, 1)
         sent = mail.outbox[-1]
         html = sent.alternatives[0][0]
+        self.assertIn("Here are your LabsManager notifications.", sent.body)
+        self.assertNotIn("<table", sent.body)
         self.assertNotIn("https://frontend.test/static/img/labsmanager/labsmanager-logo.png", html)
         self.assertNotIn('src="/static/img/labsmanager/labsmanager-logo.png"', html)
         self.assertEqual(len(sent.attachments), 1)

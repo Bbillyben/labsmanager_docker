@@ -42,6 +42,8 @@ class ProjectCalendarBaseV1View(APIView):
             end=end,
             project_id=project.pk,
             filters=self.request.query_params,
+            include_details=self.request.query_params.get("include_details") == "1",
+            consumer=self.request.query_params.get("consumer", "labsmanager"),
         )
 
 

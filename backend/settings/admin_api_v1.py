@@ -10,12 +10,15 @@ from invitations.utils import get_invitation_model
 from rest_framework import permissions, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication
+from rest_framework import status
 
 from notification.models import UserNotification
 from notification.tasks import send_pending_notification
 from notification.utils import check_overdue_milestones, check_overload_employee, check_stale_milestones
 from plugin.models import PluginConfig, PluginSetting
 from plugin.registry import registry
+from plugin.dependencies import discover_candidates, diagnose, request_install
 from staff.models import Employee, InvitationProvisioning
 from staff.invitation_provisioning import assignable_groups, eligible_employee, save_provisioning
 
@@ -268,7 +271,9 @@ def discovered_plugin_data(key, plugin, config):
                 "version": getattr(plugin, "VERSION", None),
                 "website": getattr(plugin, "WEBSITE", None),
                 "license": getattr(plugin, "LICENSE", None), "mixins": mixins}
-    data.update(active=key in registry.plugins, is_builtin=plugin.check_is_builtin(),
+    is_builtin = plugin.check_is_builtin()
+    data.update(active=key in registry.plugins, is_builtin=is_builtin,
+                origin='sample' if plugin.check_is_sample() else 'builtin' if is_builtin else 'external',
                 error=bool(config and config.active and key not in registry.plugins))
     return data
 
@@ -281,9 +286,27 @@ def plugin_errors():
 class AdminPlugins(StaffView):
     def get(self, request):
         registry.check_reload()
+        candidates = discover_candidates()
         configs = {config.key: config for config in PluginConfig.objects.filter(key__in=registry.plugins_full)}
-        return Response({"results": [discovered_plugin_data(key, plugin, configs.get(key))
-                                     for key, plugin in registry.plugins_full.items()],
+        results = []
+        for key, candidate in candidates.items():
+            plugin = registry.plugins_full.get(key)
+            data = discovered_plugin_data(key, plugin, configs.get(key)) if plugin else {
+                "key": key, "human_name": candidate.title, "description": "", "author": "",
+                "pub_date": None, "version": None, "website": None, "license": None,
+                "mixins": [], "active": False, "is_builtin": "plugin/builtin/" in str(candidate.directory),
+                "origin": "sample" if "plugin/samples/" in str(candidate.directory) else
+                          "builtin" if "plugin/builtin/" in str(candidate.directory) else "external",
+                "error": True,
+            }
+            data["dependencies"] = diagnose(key, candidates)
+            results.append(data)
+        for key, plugin in registry.plugins_full.items():
+            if key not in candidates:
+                data = discovered_plugin_data(key, plugin, configs.get(key))
+                data["dependencies"] = None
+                results.append(data)
+        return Response({"results": results,
                          "errors": plugin_errors()})
 
 
@@ -302,28 +325,56 @@ def plugin_or_404(key):
 
 class AdminPluginDetail(StaffView):
     def get(self, request, key):
-        plugin = plugin_or_404(key)
+        registry.check_reload()
+        candidates = discover_candidates()
+        plugin = registry.plugins_full.get(key)
+        if plugin is None:
+            candidate = candidates.get(key)
+            if candidate is None:
+                raise Http404
+            return Response({"key": key, "human_name": candidate.title, "description": "", "author": "",
+                             "pub_date": None, "version": None, "website": None, "license": None,
+                             "mixins": [], "active": False, "is_builtin": "plugin/builtin/" in str(candidate.directory),
+                             "origin": "sample" if "plugin/samples/" in str(candidate.directory) else
+                                       "builtin" if "plugin/builtin/" in str(candidate.directory) else "external",
+                             "error": True, "sections": {}, "dependencies": diagnose(key, candidates)})
         data = discovered_plugin_data(key, plugin, registry.get_plugin_config(key))
+        data["dependencies"] = diagnose(key, candidates)
         sections = {}
-        if plugin.mixin_enabled("settings"):
+        if not isinstance(plugin, type) and plugin.mixin_enabled("settings"):
             config = registry.get_plugin_config(key)
             definitions = registry.mixins_settings.get(key, {})
             sections["settings"] = [setting_data(PluginSetting, name, plugin=config) for name, definition in definitions.items() if not definition.get("hidden")]
-        if plugin.mixin_enabled("schedule"):
+        if not isinstance(plugin, type) and plugin.mixin_enabled("schedule"):
             from django_q.models import Schedule
             names = plugin.get_task_names()
             sections["schedule"] = [{"name": task.name, "function": task.func, "schedule_type": task.schedule_type,
                                       "repeat": task.repeats, "next_run": task.next_run, "success": bool(task.success())}
                                      for task in Schedule.objects.filter(name__in=names)]
-        if plugin.mixin_enabled("urls"):
+        if not isinstance(plugin, type) and plugin.mixin_enabled("urls"):
             base = "/" + plugin.base_url.strip("/") + "/"
             sections["urls"] = {"base_url": base, "routes": [
                 {"name": str(pattern.name or ""), "url": str(pattern.pattern),
                  "href": base + str(pattern.pattern) if "<" not in str(pattern.pattern) else None}
                 for pattern in plugin.urls or [] if hasattr(pattern, "pattern")
             ]}
+        if not isinstance(plugin, type) and plugin.mixin_enabled("token") and getattr(plugin, "TOKEN_CONFIG", {}).get("plugin") is True:
+            sections["tokens"] = True
         data["sections"] = sections
         return Response(data)
+
+
+class AdminPluginDependencyInstall(StaffView):
+    authentication_classes = (SessionAuthentication,)
+
+    def post(self, request, key):
+        if request.data not in ({}, None):
+            raise serializers.ValidationError("No arguments are accepted.")
+        try:
+            diagnostic = request_install(key)
+        except ValueError as exc:
+            raise serializers.ValidationError({"dependencies": str(exc)}) from exc
+        return Response(diagnostic, status=status.HTTP_202_ACCEPTED)
 
 
 class AdminPluginSetting(StaffView):

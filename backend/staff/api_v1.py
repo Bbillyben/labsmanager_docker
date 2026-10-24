@@ -401,6 +401,8 @@ class EmployeeCalendarV1View(EmployeeLeaveQuerysetMixin, APIView):
             end=end,
             employee_id=employee.pk if gantt else self.kwargs["pk"],
             filters=request.query_params,
+            include_details=request.query_params.get("include_details") == "1",
+            consumer=request.query_params.get("consumer", "labsmanager"),
         )
         service = CalendarService()
         core_events = [] if gantt else produce_leave_calendar_events(context, service)
@@ -421,6 +423,8 @@ class EmployeeCalendarFilterV1View(EmployeeLeaveQuerysetMixin, APIView):
             user=request.user,
             employee_id=employee.pk,
             filters=request.query_params,
+            include_details=request.query_params.get("include_details") == "1",
+            consumer=request.query_params.get("consumer", "labsmanager"),
         )
         filters = CalendarService().get_filters(context)
         return Response([calendar_filter.as_dict() for calendar_filter in filters])

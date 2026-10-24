@@ -310,6 +310,8 @@ typing-extensions==4.12.2
     # via
     #   asgiref
     #   python-docx
+tzdata==2025.3
+    # compatible with pandas and plugin dependencies
 urllib3==1.26.5
     # via
     #   -r requirements.in

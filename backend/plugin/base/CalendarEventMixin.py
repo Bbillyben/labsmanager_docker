@@ -61,7 +61,15 @@ class CalendarEventMixin:
 
     @classmethod
     def get_calendar_events(cls, context):
-        """Return normalized events for a :class:`CalendarContext`."""
+        """Return normalized events for a :class:`CalendarContext`.
+
+        Providers may add metadata["detailed_title"] when context.include_details
+        is true. Existing providers need no change; title remains the ordinary
+        calendar label. LabsManagerCalendarEvent is frozen, so replace an event
+        instead of assigning to its fields or assuming metadata is mutable.
+        context.consumer defaults to "labsmanager"; providers may return no
+        events for other consumers such as "ical". It never changes permissions.
+        """
         return []
 
     @classmethod
@@ -129,6 +137,8 @@ class CalendarEventMixin:
             calendar_type=CalendarType.from_value(calendar_type),
             user=request.user,
             filters=request_filters,
+            include_details=request_filters.get("include_details") == "1",
+            consumer=request_filters.get("consumer", "labsmanager"),
         )
         normalized = {item.id: item for item in cls.get_calendar_filters(context)}
         source = getattr(cls, "SLUG", getattr(cls, "slug", cls.__name__.lower()))

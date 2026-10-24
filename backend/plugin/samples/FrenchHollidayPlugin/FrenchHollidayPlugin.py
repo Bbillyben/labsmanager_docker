@@ -210,14 +210,23 @@ class FrenchHollidayPlugin(DashboardPluginMixin, CalendarEventMixin, SettingsMix
 
     @classmethod
     def get_calendar_events(cls, context):
-        print(f'###################>>>>>>>>>>>>>>>>>>>>>>>>>>><  get_calendar_events : {context.calendar_type}')
-        if context.calendar_type in (
-            CalendarType.PROJECT_ALL,
-            # CalendarType.PROJECT,
-            CalendarType.EMPLOYEE_PROJECT,
-        ):
+        # print(f">>>>>>>>>>>>>>>>>< plugin holliday  / context : {context}")
+        if context.consumer != "labsmanager":
             return []
-        return cls.get_vacation_events(context)
+        
+        if context.calendar_type in (
+            # CalendarType.PROJECT_ALL,
+            # # CalendarType.PROJECT,
+            # CalendarType.EMPLOYEE_PROJECT,
+            CalendarType.EMPLOYEE,
+            CalendarType.EMPLOYEE_GANTT,            
+            CalendarType.MAIN,
+            CalendarType.TEAM,
+            
+        ):
+            return cls.get_vacation_events(context)
+        return []
+        
 
     @classmethod
     def get_calendar_filters(cls, context):

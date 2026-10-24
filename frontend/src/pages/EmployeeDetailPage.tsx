@@ -8,7 +8,8 @@ import { useTranslation, type TranslationKey } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
-import { EntityActionMenu, type EntityActionGroup } from '../components/EntityActionMenu'
+import type { EntityActionGroup } from '../components/EntityActionMenu'
+import { PluginContributionsProvider, PluginContributionSections, PluginEntityActions } from '../components/PluginContributions'
 import { ObjectPreferenceActions } from '../components/ObjectPreferenceActions'
 import { ReportExportDialog } from '../components/ReportExportDialog'
 import { StatusBadge } from '../ui/StatusBadge'
@@ -44,12 +45,12 @@ export function EmployeeDetailPage() {
       ...(employee.data.capabilities?.can_export_pdf ? [{ id: 'pdf', label: t('reports.pdf'), icon: <FileDown aria-hidden="true" />, onSelect: () => setExportFormat('pdf' as const) }] : []),
     ],
   ]
-  return <EmployeeDetailContext.Provider value={{ employee: employee.data, employeeId, refreshEmployee: employee.refresh }}>
+  return <PluginContributionsProvider key={employee.data.id} scope={{ entity: 'employee', objectId: employee.data.id }}><EmployeeDetailContext.Provider value={{ employee: employee.data, employeeId, refreshEmployee: employee.refresh }}>
     <Link className={styles.back} to={`/employees/${typeof location.state?.employeeListSearch === 'string' && location.state.employeeListSearch ? `?${location.state.employeeListSearch}` : ''}`}><ArrowLeft aria-hidden="true" /> {t('common.backToEmployees')}</Link>
     {location.state?.employeeCreated === true && <Alert tone="success">{t('employee.created')}</Alert>}
     <PageHeader
       title={name}
-      actions={<div className="flex items-center gap-2"><ObjectPreferenceActions key={employee.data.id} type="employee" objectId={employee.data.id} /><EntityActionMenu label={t('reports.entityActions', { name })} groups={actionGroups} adminUrl={employee.data.admin_url} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => editing || exportFormat ? false : true} /></div>}
+      actions={<div className="flex flex-wrap items-center gap-2"><ObjectPreferenceActions key={employee.data.id} type="employee" objectId={employee.data.id} /><PluginEntityActions label={t('reports.entityActions', { name })} groups={actionGroups} adminUrl={employee.data.admin_url} onTrigger={(trigger) => { actionTrigger.current = trigger }} finalFocus={() => editing || exportFormat ? false : true} /></div>}
       meta={<div className={styles.headerMeta}>
         <StatusBadge tone={employee.data.is_active ? 'success' : 'neutral'}>{t(employee.data.is_active ? 'employee.active' : 'employee.inactive')}</StatusBadge>
         {employee.data.current_statuses.map((status) => <StatusBadge key={status.id}>{status.name || status.code}</StatusBadge>)}
@@ -57,9 +58,10 @@ export function EmployeeDetailPage() {
     />
     <EmployeeResourceNav employeeId={employeeId} />
     <div className={styles.panel}><Outlet /></div>
+    {(location.pathname === `/employees/${employeeId}` || location.pathname === `/employees/${employeeId}/`) && <PluginContributionSections />}
     {editing && <EmployeeSheet employee={employee.data} returnFocus={actionTrigger} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); void employee.refresh() }} />}
     {exportFormat && <ReportExportDialog entity="employee" id={employee.data.id} format={exportFormat} title={t('reports.employeeTitle', { format: t(exportFormat === 'word' ? 'reports.word' : 'reports.pdf') })} timeframe returnFocus={actionTrigger} onClose={() => setExportFormat(null)} />}
-  </EmployeeDetailContext.Provider>
+  </EmployeeDetailContext.Provider></PluginContributionsProvider>
 }
 
 const resourceLinks: Array<{ path: string; label: TranslationKey; end?: boolean }> = [

@@ -49,6 +49,7 @@ export function SettingsHubPage() {
     <div className={styles.layout}>
       <nav aria-label={t('userSettings.navigation')} className={styles.navigation}>
         {sections.map((section) => <NavLink key={section} to={`/settings/${section}`}>{t(`userSettings.${section}`)}</NavLink>)}
+        <NavLink to="/settings/my-plugins">{t('pluginSettings.mine')}</NavLink>
         {lists.data && lists.data.groups.length > 0 && <><span className={styles.navHeading}>{t('mutableLists.group')}</span>
           {lists.data.groups.map((group) => <NavLink key={group.key} to={`/settings/lists/${group.key}`}>{group.label}</NavLink>)}
         </>}
@@ -171,7 +172,7 @@ function NotificationTestActions() {
   </div>
 }
 
-export function SettingRow({ setting, disabled, saving, error, saved, onSave }: { setting: UserSettingData; disabled: boolean; saving: boolean; error?: string; saved: boolean; onSave: (value: SettingValue) => Promise<UserSettingData | null> }) {
+export function SettingRow({ setting, disabled, saving, error, saved, onSave, onReset }: { setting: UserSettingData; disabled: boolean; saving: boolean; error?: string; saved: boolean; onSave: (value: SettingValue) => Promise<UserSettingData | null>; onReset?: () => Promise<UserSettingData | null> }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState(String(setting.value))
   const editable = ['integer', 'decimal', 'string', 'color'].includes(setting.type)
@@ -183,12 +184,17 @@ export function SettingRow({ setting, disabled, saving, error, saved, onSave }: 
     const result = await onSave(setting.type === 'integer' || setting.type === 'decimal' ? Number(draft) : draft)
     if (result) setDraft(String(result.value))
   }
+  async function resetDraft() {
+    const result = await onReset?.()
+    if (result) setDraft(String(result.value))
+  }
   return <div className={styles.row}>
     <div><label htmlFor={`user-setting-${setting.key}`} className="font-medium">{setting.name}</label><p className={styles.description}>{setting.description}</p></div>
     <div className={styles.actions}>
       {setting.type === 'boolean' && <input id={`user-setting-${setting.key}`} type="checkbox" role="switch" checked={setting.value === true} disabled={readOnly} onChange={(event) => void onSave(event.target.checked)} />}
       {setting.type === 'choice' && <select id={`user-setting-${setting.key}`} className="h-9 rounded-md border border-input bg-background px-3" value={String(setting.value)} disabled={readOnly} onChange={(event) => void onSave(event.target.value)}>{setting.choices.map((choice) => <option key={choice.value} value={choice.value}>{choice.label}</option>)}</select>}
       {editable && <><Input id={`user-setting-${setting.key}`} type={setting.type === 'integer' || setting.type === 'decimal' ? 'number' : setting.type === 'color' ? 'color' : 'text'} value={draft} disabled={readOnly} onChange={(event) => setDraft(event.target.value)} onBlur={() => void saveDraft()} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur() }} />{setting.units && <span className={styles.description}>{setting.units}</span>}</>}
+      {onReset && setting.value !== setting.default && <Button variant="ghost" disabled={readOnly} onClick={() => void resetDraft()}>{t('pluginSettings.reset')}</Button>}
       {saving && <span role="status" className={styles.feedback}>{t('settings.saving')}</span>}
       {saved && <span role="status" className={styles.feedback}>{t('userSettings.saved')}</span>}
       {error && <span role="alert" className={styles.error}>{error}</span>}
