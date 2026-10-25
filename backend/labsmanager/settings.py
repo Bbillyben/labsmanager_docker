@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 from django.core.exceptions import ImproperlyConfigured
 from django.conf.locale.es import formats as es_formats  # to set dateformat over the app
 import os
-from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir
+from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir,get_data_dir
 from .plugin_package_runtime import bootstrap_package_path
 import logging
 
@@ -32,10 +32,39 @@ logger = logging.getLogger('labsmanager')
 es_formats.DATETIME_FORMAT = "d M Y H:i:s"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-LAB_PLUGIN_PACKAGES_ROOT = get_setting(
-    'LAB_PLUGIN_PACKAGES_ROOT', 'plugin_packages_root', '/home/labsmanager/data/plugin-packages',
-)
+
+
+DATA_ROOT = get_data_dir()
+MEDIA_ROOT = get_media_dir()
+MEDIA_URL = 'media/'
+
+FIXTURE_DIRS =[
+    os.path.join(BASE_DIR, 'labsmanager', 'fixtures'), 
+    # BASE_DIR / "labsmanager" / "fixture",
+]
+
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
+
+
+# Static files (CSS, JavaScript, Images)
+
+STATIC_ROOT = get_static_dir() # '/home/labsmanager/data/static/'
+
+STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "data" / "static",
+]
+
+
+LAB_PLUGIN_PACKAGES_ROOT = get_data_dir()
+
 bootstrap_package_path(LAB_PLUGIN_PACKAGES_ROOT)
 
 
@@ -170,8 +199,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 
-MEDIA_ROOT = get_media_dir()
-MEDIA_URL = 'media/'
+
 
 # FOR CSP policies
 use_csp = get_boolean_setting('ADMIN_USE_CSP', 'admin_use_csp', False)
@@ -285,15 +313,7 @@ TEMPLATES = [
 ]
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'  # to allow django find widget template
 
-FIXTURE_DIRS =[
-    os.path.join(BASE_DIR, 'labsmanager', 'fixtures'), 
-    # BASE_DIR / "labsmanager" / "fixture",
-]
 
-
-LOCALE_PATHS = [
-    os.path.join(BASE_DIR, 'locale'),
-]
 
 WSGI_APPLICATION = 'labsmanager.wsgi.application'
 
@@ -407,15 +427,7 @@ LANGUAGES = [
 ]
 
 
-# Static files (CSS, JavaScript, Images)
 
-STATIC_ROOT = get_static_dir() # '/home/labsmanager/data/static/'
-
-STATIC_URL = 'static/'
-
-STATICFILES_DIRS = [
-    BASE_DIR / "data" / "static",
-]
 
 # Color Themes Directory
 STATIC_COLOR_THEMES_DIR = os.path.join(STATIC_ROOT, 'css', 'color-themes')
@@ -563,6 +575,7 @@ logger.debug(f'  - MEDIA_ROOT: {MEDIA_ROOT}')
 logger.debug(f'  - STATICFILES_DIRS: {STATICFILES_DIRS}')
 logger.debug(f'  - STATIC_COLOR_THEMES_DIR: {STATIC_COLOR_THEMES_DIR}')
 logger.debug(f'  - FIXTURE_DIRS: {FIXTURE_DIRS}')
+logger.debug(f'  - PLUGIN-PACKAGE: {LAB_PLUGIN_PACKAGES_ROOT}')
 logger.debug('=========  =========  =========')
 
 

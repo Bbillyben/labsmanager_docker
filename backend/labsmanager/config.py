@@ -166,6 +166,29 @@ def get_boolean_setting(env_var=None, config_key=None, default_value=False):
     return is_true(get_setting(env_var, config_key, default_value))
 
 
+def get_data_dir(create=True) -> Path:
+    """Return the absolute path of the persistent LabsManager data directory."""
+
+    dd = get_setting(
+        'LABSMANAGER_DATA_ROOT',
+        'data_root',
+    )
+
+    if not dd:
+        # LAB_EXT_VOLUME is the host path of the Docker volume.
+        # Inside Docker, the volume is mounted at /home/labsmanager/data.
+        if os.getenv('LAB_EXT_VOLUME'):
+            dd = '/home/labsmanager/data'
+        else:
+            dd = get_media_dir(create=False).parent
+
+    dd = Path(dd).resolve()
+
+    if create:
+        ensure_dir(dd)
+
+    return dd
+
 def get_media_dir(create=True):
     """Return the absolute path for the 'media' directory (where uploaded files are stored)"""
 
