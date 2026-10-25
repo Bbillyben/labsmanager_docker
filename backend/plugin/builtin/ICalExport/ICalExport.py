@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.translation import get_language
 from icalendar import Calendar, Event
 
+from labsmanager.email_urls import django_email_url
 from labsmanager.react_urls import react_public_url
 from plugin import LabManagerPlugin, registry
 from plugin.mixins import TokenMixin, UIContributionMixin, UrlsMixin
@@ -380,4 +381,4 @@ class ICalExport(UrlsMixin, TokenMixin, UIContributionMixin, LabManagerPlugin):
                                           user=request.user, scopes=["ics"])
         signature = signing.Signer(salt=SIGNING_SALT).sign(f"{token.public_id}:{selected}:{object_id}")
         path_url = f"/{self.base_url}ics/{selected}/{object_id}/"
-        return {"url": request.build_absolute_uri(f"{path_url}?{urlencode({'token': secret, 'scope': signature})}")}
+        return {"url": django_email_url(f"{path_url}?{urlencode({'token': secret, 'scope': signature})}")}

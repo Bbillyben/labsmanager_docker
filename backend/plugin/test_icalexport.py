@@ -9,6 +9,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 
 from django.contrib.auth import get_user_model
+from django.contrib.sites.models import Site
 from django.http import Http404
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
@@ -485,6 +486,46 @@ class ICalExportTests(TestCase):
         self.config.active = False
         with self.assertRaises(Http404):
             self._feed(url)
+
+    def test_subscription_url_uses_public_django_origin_in_https_and_http(self):
+        for react_base, site_domain, expected_origin in (
+            ("https://labs.example.org/app", "labs.example.org", "https://labs.example.org"),
+            ("http://frontend.example:5173/app", "backend.example:7000", "http://backend.example:7000"),
+        ):
+            with self.subTest(react_base=react_base), override_settings(REACT_PUBLIC_URL=react_base, SITE_ID=1):
+                Site.objects.update_or_create(pk=1, defaults={"domain": site_domain, "name": "LabsManager"})
+                Site.objects.clear_cache()
+                url = self._subscription("project")
+                parsed = urlsplit(url)
+                self.assertEqual(f"{parsed.scheme}://{parsed.netloc}", expected_origin)
+                self.assertEqual(parsed.path, f"/plugin/icalexport/ics/project/{self.project.pk}/")
+                self.assertNotIn("/app/", parsed.path)
+                self.assertNotIn("/plugin/plugin/", parsed.path)
+                self.assertIn("%3A", parsed.query)
+                self.assertEqual(set(parse_qs(parsed.query)), {"token", "scope"})
+                self.assertTrue(parse_qs(parsed.query)["token"][0])
+                self.assertEqual(self._feed(url).status_code, 200)
+                if parsed.scheme == "https":
+                    feed = Calendar.from_ical(self._feed(url).content)
+                    item = next(event for event in feed.walk("VEVENT")
+                                if str(event.get("SUMMARY")) == "Échéance, test")
+                    self.assertEqual(str(item.get("URL")),
+                                     f"https://labs.example.org/app/projects/{self.project.pk}/tasks")
+                    self.assertIn(str(item.get("URL")), str(item.get("DESCRIPTION")))
+
+    @override_settings(REACT_PUBLIC_URL="https://labs.example.org/app", SITE_ID=1)
+    def test_subscription_url_encodes_token_and_scope_without_changing_path(self):
+        Site.objects.update_or_create(pk=1, defaults={"domain": "labs.example.org", "name": "LabsManager"})
+        Site.objects.clear_cache()
+        with patch.object(self.plugin, "create_token",
+                          return_value=(SimpleNamespace(public_id="public-id"), "secret+/=&")):
+            url = self._subscription("team-projects")
+        parsed = urlsplit(url)
+        self.assertEqual(parsed.path, f"/plugin/icalexport/ics/team-projects/{self.team.pk}/")
+        self.assertIn("token=secret%2B%2F%3D%26", parsed.query)
+        self.assertEqual(parse_qs(parsed.query)["token"], ["secret+/=&"])
+        self.assertIn("%3A", parsed.query)
+        self.assertTrue(parse_qs(parsed.query)["scope"][0].startswith("public-id:team-projects:"))
 
     def test_actions_cover_all_contexts_in_two_languages(self):
         with override("fr"):
