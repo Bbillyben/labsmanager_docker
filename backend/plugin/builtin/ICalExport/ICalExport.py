@@ -2,8 +2,9 @@
 
 from datetime import date, datetime, timedelta, timezone as datetime_timezone
 from hashlib import sha256
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
+from django.conf import settings
 from django.core import signing
 from django.http import Http404, HttpRequest, HttpResponse, QueryDict
 from django.urls import path
@@ -11,6 +12,7 @@ from django.utils import timezone
 from django.utils.translation import get_language
 from icalendar import Calendar, Event
 
+from labsmanager.react_urls import react_public_url
 from plugin import LabManagerPlugin, registry
 from plugin.mixins import TokenMixin, UIContributionMixin, UrlsMixin
 from plugin.tokens import TokenError
@@ -20,17 +22,20 @@ CALENDARS = frozenset({
     "planning", "absences", "project", "employee-projects", "employee-absences",
     "team-projects", "team-absences",
 })
+PROJECT_CALENDARS = frozenset({"project", "employee-projects", "team-projects"})
 SCOPED = frozenset({"project", "employee-projects", "employee-absences", "team-projects", "team-absences"})
 SIGNING_SALT = "plugin.icalexport.subscription"
 
 
-def _invoke(view, user, start, end, *, include_details=False, **kwargs):
+def _invoke(view, user, start, end, *, include_details=False, context=None, **kwargs):
     """Read the same authorized and serialized provider used by the React page."""
     request = HttpRequest()
     request.method = "GET"
     request.path = "/"
     request.GET = QueryDict(mutable=True)
     request.GET.update({"from": start.isoformat(), "to": end.isoformat(), "consumer": "ical"})
+    if context is not None:
+        request.GET["context"] = context
     if include_details:
         request.GET["include_details"] = "1"
     request.user = user
@@ -46,11 +51,12 @@ def _dates():
 
 
 def _records(calendar, object_id, user):
+    from common.calendar import CalendarType
     from common.global_calendar_api_v1 import GlobalEmployeeCalendar, GlobalProjectPlanning
     from endpoints.api_v1 import ProjectPlanningV1View
     from project.calendar_api_v1 import ProjectCalendarV1View
-    from staff.api_v1 import EmployeeCalendarV1View, EmployeeProjectParticipationV1View
-    from staff.team_api_v1 import TeamCalendarV1View, TeamProjectsV1View
+    from staff.api_v1 import EmployeeCalendarV1View, EmployeeMilestoneV1View
+    from staff.team_api_v1 import TeamCalendarV1View
 
     start, end = _dates()
     items, events = [], []
@@ -75,23 +81,52 @@ def _records(calendar, object_id, user):
         employee_ids = set(team_members(Team.objects.get(pk=object_id)).values_list("pk", flat=True))
         events = _scoped_events(events, team_id=object_id, employee_ids=employee_ids)
     elif calendar == "employee-projects":
-        participations = _invoke(EmployeeProjectParticipationV1View, user, start, end, pk=object_id)
-        ids = {row["project"]["id"] for row in participations if row["project"]["can_view"]}
-        for project_id in sorted(ids):
-            items.extend(_invoke(ProjectPlanningV1View, user, start, end, pk=project_id)["items"])
-            project_events = _invoke(ProjectCalendarV1View, user, start, end, project_id=project_id, include_details=True)
-            events.extend(event for event in _scoped_events(project_events, project_id=project_id)
-                          if event.get("kind") != "leave")
+        items = [item for item in _invoke(EmployeeMilestoneV1View, user, start, end, pk=object_id)
+                 if _item_in_window(item, start, end)]
+        events = _invoke(
+            EmployeeCalendarV1View, user, start, end, pk=object_id,
+            context=CalendarType.EMPLOYEE_GANTT.value, include_details=True,
+        )
     elif calendar == "team-projects":
-        projects = _invoke(TeamProjectsV1View, user, start, end, team_id=object_id)
-        for project_id in sorted({row["id"] for row in projects}):
-            items.extend(_invoke(ProjectPlanningV1View, user, start, end, pk=project_id)["items"])
-            project_events = _invoke(ProjectCalendarV1View, user, start, end, project_id=project_id, include_details=True)
-            events.extend(event for event in _scoped_events(project_events, project_id=project_id)
-                          if event.get("kind") != "leave")
+        from django.db.models import Q
+        from django.shortcuts import get_object_or_404
+        from endpoints.models import Milestones
+        from endpoints.planning_serializers_v1 import PlanningMilestoneV1Serializer
+        from endpoints.planning_v1 import planning_serializer_context, preload_planning_items
+        from project.models import Project
+        from staff.team_api_v1 import team_members, team_queryset
+
+        team = get_object_or_404(team_queryset(user), pk=object_id)
+        member_ids = set(team_members(team).values_list("pk", flat=True))
+        visible_projects = Project.get_instances_for_user("view", user, Project.objects.all())
+        assigned = Milestones.objects.filter(
+            employee__pk__in=member_ids, project__in=visible_projects,
+        ).filter(
+            Q(start_date__lte=end) | Q(start_date__isnull=True),
+            Q(end_date__gte=start) | Q(end_date__isnull=True),
+        ).distinct()
+        serialized = PlanningMilestoneV1Serializer(
+            preload_planning_items(assigned), many=True,
+            context=planning_serializer_context(user, assigned),
+        ).data
+        for row in serialized:
+            if not _item_in_window(row, start, end):
+                continue
+            item = dict(row)
+            assignees = [employee for employee in item["employees"] if employee["id"] in member_ids]
+            if assignees and all(employee["can_view"] for employee in assignees):
+                names = [f"{employee['first_name']} {employee['last_name']}".strip()
+                         for employee in assignees]
+                if all(names):
+                    item["ical_assignees"] = names
+            items.append(item)
+        team_events = _invoke(TeamCalendarV1View, user, start, end,
+                              team_id=object_id, include_details=True)
+        events = _scoped_events(team_events, team_id=object_id)
     else:
         raise Http404
-    return items, [event for event in events if _event_in_window(event, start, end)]
+    return items, [event for event in events if _event_in_window(event, start, end)
+                   and (calendar not in PROJECT_CALENDARS or event.get("kind") != "leave")]
 
 
 def _event_in_window(event, start, end):
@@ -102,6 +137,12 @@ def _event_in_window(event, start, end):
     event_start = event_start.date() if isinstance(event_start, datetime) else event_start
     event_end = event_end.date() if isinstance(event_end, datetime) else event_end
     return event_start <= end and event_end >= start
+
+
+def _item_in_window(item, start, end):
+    item_start = _date(item.get("start_date") or item.get("end_date"))
+    item_end = _date(item.get("end_date")) or item_start
+    return item_start is not None and item_start <= end and item_end >= start
 
 
 def _scoped_events(events, *, project_id=None, team_id=None, employee_ids=None):
@@ -127,7 +168,7 @@ def _date(value):
     return datetime.fromisoformat(value) if "T" in value else date.fromisoformat(value)
 
 
-def _add_event(ical, uid, title, start, end, description="", all_day=True):
+def _add_event(ical, uid, title, start, end, description="", all_day=True, url=None):
     if start is None:
         return
     event = Event()
@@ -154,15 +195,59 @@ def _add_event(ical, uid, title, start, end, description="", all_day=True):
         event.add("dtend", end.astimezone(datetime_timezone.utc))
     if description:
         event.add("description", str(description))
+    if url:
+        event.add("url", url)
     ical.add_component(event)
 
 
-def build_ical(items, events, name="LabsManager"):
+def _calendar_name(calendar, object_id):
+    if calendar == "planning":
+        return "LabsManager - Planning général"
+    if calendar == "absences":
+        return "LabsManager - Absences générales"
+    if calendar == "project":
+        from project.models import Project
+        return f"LabsManager - Projet : {Project.objects.get(pk=object_id).name}"
+    if calendar.startswith("employee-"):
+        from staff.models import Employee
+        employee = Employee.objects.get(pk=object_id)
+        subject = employee.user_name
+    else:
+        from staff.models import Team
+        subject = Team.objects.get(pk=object_id).name
+    category = "Projets" if calendar.endswith("projects") else "Absences"
+    return f"LabsManager - {category} : {subject}"
+
+
+def _public_react_url(path):
+    public = urlsplit(settings.REACT_PUBLIC_URL.strip())
+    if public.scheme not in ("http", "https") or not public.netloc:
+        return None
+    return react_public_url(path)
+
+
+def _description_with_link(description, url):
+    if not url:
+        return description
+    return f"{description}\n\nOuvrir dans LabsManager :\n{url}" if description else f"Ouvrir dans LabsManager :\n{url}"
+
+
+def build_ical(items, events, name="LabsManager", *, calendar=None, object_id=0, user=None):
     ical = Calendar()
     ical.add("prodid", "-//LabsManager//ICalExport//EN")
     ical.add("version", "2.0")
     ical.add("calscale", "GREGORIAN")
+    ical.add("name", name)
     ical.add("x-wr-calname", name)
+    visible_employee_ids = set()
+    if user is not None:
+        from staff.models import Employee
+        leave_employee_ids = {(event.get("metadata") or {}).get("employee_id") for event in events
+                              if event.get("source", "core") == "core" and event.get("kind") == "leave"}
+        if leave_employee_ids:
+            visible_employee_ids = set(Employee.get_instances_for_user(
+                "view", user, Employee.objects.filter(pk__in=leave_employee_ids)
+            ).values_list("pk", flat=True))
     seen = set()
     for item in items:
         uid = f"planning:{item['id']}"
@@ -174,7 +259,19 @@ def build_ical(items, events, name="LabsManager"):
         if not start:
             continue
         end = _date(end) + timedelta(days=1) if end else _date(start) + timedelta(days=1)
-        _add_event(ical, uid, item.get("name"), start, end, item.get("desc") or "")
+        project = item.get("project") or {}
+        title = item.get("name") or ""
+        if calendar in ("planning", "employee-projects", "team-projects") and project.get("name"):
+            title = f"{project['name']} - {title}"
+        if calendar == "team-projects" and item.get("ical_assignees"):
+            title = f"{title} ({', '.join(item['ical_assignees'])})"
+        url = None
+        if project.get("can_view") and project.get("id"):
+            url = _public_react_url(f"projects/{project['id']}/tasks")
+        elif calendar == "employee-projects":
+            url = _public_react_url(f"employees/{object_id}/projects")
+        description = _description_with_link(item.get("desc") or "", url)
+        _add_event(ical, uid, title, start, end, description, url=url)
     for source in events:
         uid = f"event:{source.get('source', 'core')}:{source['id']}"
         if uid in seen:
@@ -184,8 +281,15 @@ def build_ical(items, events, name="LabsManager"):
         end = _date(source.get("end"))
         # The calendar domain already expresses all-day ends as exclusive.
         summary = (source.get("metadata") or {}).get("detailed_title") or source.get("title")
+        metadata = source.get("metadata") or {}
+        url = None
+        if source.get("source", "core") == "core" and source.get("kind") == "leave":
+            employee_id = metadata.get("employee_id")
+            if employee_id in visible_employee_ids:
+                url = _public_react_url(f"employees/{employee_id}/leaves")
         _add_event(ical, uid, summary, start, end,
-                   source.get("description") or "", source.get("all_day", True))
+                   _description_with_link(source.get("description") or "", url),
+                   source.get("all_day", True), url=url)
     return ical.to_ical()
 
 
@@ -205,7 +309,10 @@ def ics_feed(request, calendar, object_id):
     except (TokenError, signing.BadSignature):
         raise Http404 from None
     items, events = _records(calendar, object_id, owner.user)
-    response = HttpResponse(build_ical(items, events), content_type="text/calendar; charset=utf-8")
+    name = _calendar_name(calendar, object_id)
+    response = HttpResponse(build_ical(items, events, name, calendar=calendar,
+                                       object_id=object_id, user=owner.user),
+                            content_type="text/calendar; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="labsmanager.ics"'
     response["Cache-Control"] = "private, no-store"
     return response
@@ -230,9 +337,9 @@ class ICalExport(UrlsMixin, TokenMixin, UIContributionMixin, LabManagerPlugin):
             "planning": ("S’abonner au Planning général", "Subscribe to general Planning"),
             "absences": ("S’abonner aux absences générales", "Subscribe to general absences"),
             "project": ("S’abonner aux échéances du projet", "Subscribe to project deadlines"),
-            "employee-projects": ("S’abonner aux projets de l’employé", "Subscribe to employee projects"),
+            "employee-projects": ("S’abonner aux tâches et jalons de l’employé", "Subscribe to employee tasks and milestones"),
             "employee-absences": ("S’abonner aux absences de l’employé", "Subscribe to employee absences"),
-            "team-projects": ("S’abonner aux projets de l’équipe", "Subscribe to team projects"),
+            "team-projects": ("S’abonner aux tâches et jalons de l’équipe", "Subscribe to team tasks and milestones"),
             "team-absences": ("S’abonner aux absences de l’équipe", "Subscribe to team absences"),
             "current": ("S’abonner à ce calendrier", "Subscribe to this calendar"),
         }
