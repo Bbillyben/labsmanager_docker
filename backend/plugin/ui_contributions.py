@@ -17,7 +17,8 @@ from plugin.registry import registry
 logger = logging.getLogger(__name__)
 IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]+$")
 ICONS = frozenset({"calendar", "copy", "external-link", "link", "info", "play"})
-BEHAVIORS = frozenset({"copy_url", "open_url", "action"})
+NAVIGATION_LOCATIONS = frozenset({"calendars"})
+BEHAVIORS = frozenset({"copy_url", "open_url", "action", "module"})
 FORMATS = frozenset({"text", "properties", "items", "links"})
 
 
@@ -44,14 +45,20 @@ def resolve_team(request, object_id):
 
 # A new React extension point is declared here, independently of the mixin.
 SLOTS = {
+    "plugin.page": Slot("plugin", "page", None),
     "project.detail.actions": Slot("project", "action", resolve_project),
     "project.detail.sections": Slot("project", "section", resolve_project),
+    "project.detail.tabs": Slot("project", "tab", resolve_project),
     "employee.detail.actions": Slot("employee", "action", resolve_employee),
     "employee.detail.sections": Slot("employee", "section", resolve_employee),
+    "employee.detail.tabs": Slot("employee", "tab", resolve_employee),
     "team.detail.actions": Slot("team", "action", resolve_team),
     "team.detail.sections": Slot("team", "section", resolve_team),
+    "team.detail.tabs": Slot("team", "tab", resolve_team),
     "calendar.toolbar.actions": Slot("calendar", "action", None),
+    "published-calendar.actions": Slot("published-calendar", "action", None),
     "user.plugin.settings.actions": Slot("user-plugin", "action", None),
+    "user.plugin.settings.panels": Slot("user-plugin", "tab", None),
 }
 DETAIL_ENTITIES = frozenset({"project", "employee", "team"})
 
@@ -113,8 +120,23 @@ def _definition(plugin, raw):
         raise ValueError("Unknown slot or invalid contribution type")
     if not isinstance(label, str) or not label.strip() or len(label) > 150:
         raise ValueError("Invalid contribution label")
-    if not isinstance(handler, str) or not IDENTIFIER.fullmatch(handler) or handler.startswith("_") or not callable(getattr(plugin, handler, None)):
-        raise ValueError("Invalid contribution handler")
+    behavior = raw.get("behavior", "action") if kind == "action" else None
+    if kind in ("action", "section"):
+        if not isinstance(handler, str) or not IDENTIFIER.fullmatch(handler) or handler.startswith("_") or not callable(getattr(plugin, handler, None)):
+            raise ValueError("Invalid contribution handler")
+    elif handler is not None:
+        raise ValueError("React contributions do not use server handlers")
+    module = raw.get("module")
+    component = raw.get("component")
+    api_version = raw.get("api_version")
+    react_module = kind in ("page", "tab") or (kind == "action" and behavior == "module")
+    if react_module:
+        if (not isinstance(module, str) or not IDENTIFIER.fullmatch(module)
+                or not isinstance(component, str) or not IDENTIFIER.fullmatch(component)
+                or component.startswith("_") or api_version != 1):
+            raise ValueError("Invalid React module declaration")
+    elif any(key in raw for key in ("module", "component", "api_version")):
+        raise ValueError("Unsupported React module option")
     visible = raw.get("visible")
     if visible is not None and (not isinstance(visible, str) or not IDENTIFIER.fullmatch(visible) or visible.startswith("_") or not callable(getattr(plugin, visible, None))):
         raise ValueError("Invalid visibility handler")
@@ -124,7 +146,6 @@ def _definition(plugin, raw):
     icon = raw.get("icon")
     if icon is not None and icon not in ICONS:
         raise ValueError("Unknown icon")
-    behavior = raw.get("behavior", "action") if kind == "action" else None
     if kind == "action" and behavior not in BEHAVIORS:
         raise ValueError("Unknown action behavior")
     confirm = raw.get("confirm", False)
@@ -132,12 +153,39 @@ def _definition(plugin, raw):
         raise ValueError("Invalid confirmation flag")
     if kind == "section" and ("behavior" in raw or confirm or icon):
         raise ValueError("Unsupported section option")
+    if kind in ("page", "tab") and ("behavior" in raw or "confirm" in raw or icon):
+        raise ValueError("Unsupported React contribution option")
+    if kind == "action" and behavior == "module" and confirm:
+        raise ValueError("React module actions handle confirmation inside their module")
+    navigation = raw.get("navigation")
+    if "navigation" in raw:
+        if kind != "page" or not isinstance(navigation, dict) or set(navigation) - {"location", "labels", "icon", "order"}:
+            raise ValueError("Invalid page navigation")
+        location = navigation.get("location")
+        if not isinstance(location, str) or location not in NAVIGATION_LOCATIONS:
+            raise ValueError("Unknown navigation location")
+        labels = navigation.get("labels", {})
+        if (not isinstance(labels, dict) or set(labels) - {"fr", "en"}
+                or any(not isinstance(value, str) or not value.strip() or len(value) > 150 for value in labels.values())):
+            raise ValueError("Invalid navigation labels")
+        nav_icon = navigation.get("icon")
+        if nav_icon is not None and (not isinstance(nav_icon, str) or nav_icon not in ICONS):
+            raise ValueError("Unknown navigation icon")
+        order = navigation.get("order", 0)
+        if type(order) is not int or not -1000 <= order <= 1000:
+            raise ValueError("Invalid navigation order")
+        navigation = {"location": navigation["location"], "labels": {key: value.strip() for key, value in labels.items()},
+                      "icon": nav_icon, "order": order}
     return {
         "id": f"plugin:{plugin.slug}:{local_id}", "plugin_slug": plugin.slug,
         "local_id": local_id, "slot": slot, "type": kind,
         "label": label.strip(), "icon": icon, "behavior": behavior,
         "confirm": confirm, "priority": priority,
         "handler": handler, "visible": visible,
+        "module": module if react_module else None,
+        "component": component if react_module else None,
+        "api_version": api_version if react_module else None,
+        "navigation": navigation,
     }
 
 
@@ -182,7 +230,13 @@ def is_visible(plugin, item, request, context):
 
 
 def public_data(item):
-    return {key: value for key, value in item.items() if key not in ("handler", "visible", "local_id")}
+    data = {key: value for key, value in item.items() if key not in ("handler", "visible", "local_id")}
+    if item["type"] in ("page", "tab"):
+        data["local_id"] = item["local_id"]
+    else:
+        for key in ("module", "component", "api_version"):
+            data.pop(key, None)
+    return data
 
 
 def safe_url(value):
@@ -201,6 +255,8 @@ def action_result(item, result):
         raise ValueError("Action result must be a dictionary")
     if item["behavior"] in ("copy_url", "open_url"):
         return {"url": safe_url(result.get("url"))}
+    if item["behavior"] == "module" and "url" in result:
+        return {"url": safe_url(result["url"])}
     message = result.get("message", "")
     if not isinstance(message, str) or len(message) > 500:
         raise ValueError("Invalid action message")

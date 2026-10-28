@@ -6,6 +6,7 @@ import { getProjectFilterOptions } from '../api/projects'
 import { getGlobalCalendarFilters, getGlobalEmployeeCalendar, getGlobalProjectPlanning, globalCalendarQuery } from '../api/globalCalendars'
 import { CalendarPluginFilters, effectiveCalendarFilterValues, type CalendarFilterValues } from '../calendar/CalendarPluginFilters'
 import { CalendarPluginActions } from '../components/PluginContributions'
+import { CalendarPageNavigation } from '../components/CalendarPageNavigation'
 import { SharedCalendar, type ResourceVisibilityMode } from '../calendar/SharedCalendar'
 import { localToday } from '../calendar/resourceVisibility'
 import { employeeFilterSources } from '../config/employeeFilterSources'
@@ -168,10 +169,7 @@ export function GlobalCalendarsPage() {
   return <main className={presentation ? 'dashboard-presentation dashboard-presentation-overlay grid gap-5' : 'grid gap-5'}>
     <div hidden={presentation}><PageHeader title={t('calendars.title')} actions={<Button ref={enterPresentationButton} onClick={() => { setSelectedLeave(null); setSelectedWork(null); setPresentation(true) }} variant="secondary"><Presentation aria-hidden="true" />{t('dashboard.presentation')}</Button>} /></div>
     {presentation && <header className="dashboard-presentation-header"><Button ref={exitPresentationButton} onClick={() => setPresentation(false)} variant="ghost"><ArrowLeft aria-hidden="true" />{t('dashboard.exitPresentation')}</Button><h1>{t('calendars.title')}</h1></header>}
-    <div aria-label={t('calendars.title')} className={styles.segmented} role="group">
-      <Button aria-pressed={tab === 'employees'} onClick={() => setTab('employees')} variant={tab === 'employees' ? 'default' : 'ghost'}>{t('calendars.general')}</Button>
-      <Button aria-pressed={tab === 'projects'} onClick={() => setTab('projects')} variant={tab === 'projects' ? 'default' : 'ghost'}>{t('calendars.projects')}</Button>
-    </div>
+    <CalendarPageNavigation active={tab} onSelectNative={setTab} />
     {Boolean(options.error) && <Alert tone="danger">{t('calendars.optionsError')} <Button onClick={() => setOptionsAttempt((value) => value + 1)} variant="ghost">{t('common.retry')}</Button></Alert>}
     <div hidden={presentation}><FilterBar catalogue={catalog[tab]} sources={tab === 'employees' ? employeeFilterSources : projectFilterSources} choiceOptions={choices} query={canonicalQuery} onChange={setQuery} /></div>
     {Boolean(pluginDefinitions.error) && <Alert tone="danger">{t('leaves.pluginFiltersError')} <Button onClick={pluginDefinitions.retry} variant="ghost">{t('common.retry')}</Button></Alert>}

@@ -1,10 +1,14 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { jsonResponse } from '../test/fixtures'
-import { CalendarPluginActions, PluginContributionsProvider, PluginContributionSections, PluginEntityActions, UserPluginActions } from './PluginContributions'
+import { CalendarPluginActions, PluginContributionsProvider, PluginContributionSections, PluginEntityActions, PluginEntityTabs, UserPluginActions } from './PluginContributions'
 import type { UIContribution, UIEntity } from '../api/uiContributions'
+import { loadPluginComponent } from './pluginModuleLoader'
+
+vi.mock('./pluginModuleLoader', () => ({ loadPluginComponent: vi.fn() }))
 
 const contribution = (slug: string, id: string, entity: UIEntity, type: 'action' | 'section', label: string, behavior: UIContribution['behavior'] = null, confirm = false): UIContribution => ({
   id: `plugin:${slug}:${id}`, plugin_slug: slug, slot: `${entity}.detail.${type}s`, type,
@@ -21,6 +25,60 @@ function mount(entity: UIEntity) {
 describe('React plugin contributions', () => {
   beforeEach(() => { Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] }) })
   afterEach(() => vi.restoreAllMocks())
+
+  it('adds a contextual Employee tab link without loading its module', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ contributions: [
+      { id: 'plugin:demo:employee-tab', plugin_slug: 'demo', local_id: 'employee-tab',
+        slot: 'employee.detail.tabs', type: 'tab', label: 'Demo tab', icon: null, behavior: null,
+        confirm: false, priority: 0, module: 'main', component: 'EmployeeTab', api_version: 1 },
+    ] }))
+    render(<I18nProvider><MemoryRouter><PluginContributionsProvider scope={{ entity: 'employee', objectId: 42 }}>
+      <PluginEntityTabs base="/employees/42" linkClassName="link" activeClassName="active" />
+    </PluginContributionsProvider></MemoryRouter></I18nProvider>)
+    expect(await screen.findByRole('link', { name: 'Demo tab' })).toHaveAttribute('href', '/employees/42/plugins/demo/employee-tab')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('loads an independent React action only when opened, passes context and closes it', async () => {
+    const action = contribution('demo', 'dialog', 'project', 'action', 'Open demo', 'module')
+    const detailUrl = '/api/v1/ui-contributions/project/42/plugin%3Ademo%3Adialog/'
+    const descriptor = { ...action, module: 'main', component: 'DemoDialog', api_version: 1,
+      module_url: '/static/plugins/demo/assets/main.js', css_urls: [], asset_version: '1',
+      context: { entity: 'project', objectId: 42, name: 'Visible project', actionUrl: detailUrl } }
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/ui-contributions/project/42/') return jsonResponse({ contributions: [action] })
+      if (url === detailUrl) return jsonResponse(descriptor)
+      throw Error(url)
+    })
+    vi.mocked(loadPluginComponent).mockResolvedValue(({ context, onClose }) => <div role="dialog">
+      <span>{context.name}</span><button onClick={onClose}>Close demo</button>
+    </div>)
+    mount('project')
+    await screen.findByRole('button', { name: 'Entity actions' })
+    expect(loadPluginComponent).not.toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Entity actions' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Open demo' }))
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Visible project')
+    expect(loadPluginComponent).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
+    await userEvent.click(screen.getByRole('button', { name: 'Close demo' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it.each([['team', 'teams'], ['project', 'projects']] as const)('adds only visible %s tabs from contribution metadata', async (entity, plural) => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ contributions: [
+      { id: `plugin:calendars:${entity}-calendars`, plugin_slug: 'calendars', local_id: `${entity}-calendars`,
+        slot: `${entity}.detail.tabs`, type: 'tab', label: 'Calendars', icon: null, behavior: null,
+        confirm: false, priority: 0, module: 'main', component: 'ContextTab', api_version: 1 },
+    ] }))
+    render(<I18nProvider><MemoryRouter><PluginContributionsProvider scope={{ entity, objectId: 42 }}>
+      <PluginEntityTabs base={`/${plural}/42`} linkClassName="link" activeClassName="active" />
+    </PluginContributionsProvider></MemoryRouter></I18nProvider>)
+    expect(await screen.findByRole('link', { name: 'Calendars' })).toHaveAttribute('href', `/${plural}/42/plugins/calendars/${entity}-calendars`)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 
   it('keeps same local ids from two plugins distinct and copies a Project URL', async () => {
     const copy = vi.fn(() => true)

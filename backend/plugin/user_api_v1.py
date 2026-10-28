@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from plugin.models import UserPluginSetting
 from plugin.registry import registry
-from plugin.ui_contributions import declared_contributions
+from plugin.ui_contributions import declared_contributions, is_visible
 from settings.admin_api_v1 import save_setting, setting_data
 
 
@@ -30,16 +30,21 @@ class UserPlugins(APIView):
         registry.check_reload()
         action_plugins = {plugin.slug for plugin, item in declared_contributions()
                           if item['slot'] == 'user.plugin.settings.actions'}
+        panel_plugins = {plugin.slug for plugin, item in declared_contributions()
+                         if item['slot'] == 'user.plugin.settings.panels'
+                         and is_visible(plugin, item, request, {'plugin': plugin, 'plugin_key': plugin.slug})}
         results = []
         for key, plugin in registry.plugins.items():
             settings_available = plugin.mixin_enabled('settings') and bool(
                 getattr(registry, 'mixins_user_settings', {}).get(key, {}))
             tokens_available = plugin.mixin_enabled('token') and getattr(plugin, 'TOKEN_CONFIG', {}).get('user') is True
             actions_available = key in action_plugins
-            if settings_available or tokens_available or actions_available:
+            panels_available = key in panel_plugins
+            if settings_available or tokens_available or actions_available or panels_available:
                 results.append({'key': key, 'human_name': str(plugin.human_name),
                                 'description': str(plugin.description), 'user_settings': settings_available,
-                                'user_tokens': tokens_available, 'ui_actions': actions_available})
+                                'user_tokens': tokens_available, 'ui_actions': actions_available,
+                                'ui_panels': panels_available})
         return Response({'results': sorted(results, key=lambda item: item['human_name'].casefold())})
 
 

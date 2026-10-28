@@ -1,0 +1,13 @@
+.root { display: grid; gap: var(--space-3, .75rem); min-width: 0; }
+.toolbar, .navigation, .group { display: flex; align-items: center; gap: var(--space-2, .5rem); flex-wrap: wrap; }
+.toolbar { justify-content: space-between; }
+.navigation strong { font-size: .9rem; font-weight: 600; }
+.canvas { overflow-x: auto; min-width: 0; border: 1px solid var(--border); border-radius: .6rem; padding: var(--space-3, .75rem); background: var(--background); }
+.canvas :global(.fc) { min-width: 35rem; }
+.canvas :global(.fc-event) { cursor: pointer; }
+.listContent { display: inline-flex; gap: .55rem; flex-wrap: wrap; align-items: baseline; }
+.listContent span { color: var(--muted-foreground); }
+.print { border: 0; padding: 0; overflow: visible; print-color-adjust: exact; }
+.print :global(.fc) { min-width: 0; height: auto; }
+.print :global(.fc-event) { break-inside: avoid; }
+@media print { .canvas { overflow: visible; print-color-adjust: exact; } .canvas :global(.fc-event) { break-inside: avoid; } }

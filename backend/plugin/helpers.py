@@ -172,13 +172,16 @@ def get_modules(pkg, path=None):
     """Get all modules in a package."""
     context = {}
 
+    prefix = f'{pkg.__name__}.' if path is None else ''
     if path is None:
         path = pkg.__path__
     elif type(path) is not list:
         path = [path]
-    for finder, name, _ in pkgutil.walk_packages(path):
+    for finder, name, _ in pkgutil.walk_packages(path, prefix=prefix):
         try:
-            if sys.version_info < (3, 12):
+            if name in sys.modules:
+                module = sys.modules[name]
+            elif sys.version_info < (3, 12):
                 module = finder.find_module(name).load_module(name)
             else:
                 spec = finder.find_spec(name)

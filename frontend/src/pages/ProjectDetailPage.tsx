@@ -10,7 +10,8 @@ import { ActivityStatusBadge } from '../ui/ActivityStatusBadge'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
 import type { EntityActionGroup } from '../components/EntityActionMenu'
-import { PluginContributionsProvider, PluginContributionSections, PluginEntityActions } from '../components/PluginContributions'
+import { PluginContributionsProvider, PluginContributionSections, PluginEntityActions, PluginEntityTabs } from '../components/PluginContributions'
+import { EntityPluginTab } from './PluginPage'
 import { ObjectPreferenceActions } from '../components/ObjectPreferenceActions'
 import { ReportExportDialog } from '../components/ReportExportDialog'
 import { SettingsSheet } from '../components/SettingsSheet'
@@ -55,6 +56,7 @@ export function ProjectDetailPage() {
   const showCalendar = location.pathname.endsWith('/calendar')
   const showNotes = location.pathname.endsWith('/notes')
   const showDashboard = location.pathname.endsWith('/dashboard')
+  const isPluginTab = location.pathname.includes(`/projects/${projectId}/plugins/`)
   const resource = useEmployeeResource(projectId, getProject)
   useTrackRecent('project', Number(projectId), Boolean(resource.data))
   const [editing, setEditing] = useState(false)
@@ -90,9 +92,10 @@ export function ProjectDetailPage() {
         {sections.filter((section) => section.id !== 'funds' || project.funding_visible).map((section) => section.enabled
           ? <NavLink className={({ isActive }) => `${styles.resourceLink} ${isActive ? styles.resourceLinkActive : ''}`} end key={section.id} to={section.id === 'tasks' ? `${base}/tasks` : section.id === 'calendar' ? `${base}/calendar` : section.id === 'funds' ? `${base}/funding` : section.id === 'budgets' ? `${base}/budgets` : section.id === 'contributions' ? `${base}/contributions` : section.id === 'contracts' ? `${base}/contracts` : section.id === 'dashboard' ? `${base}/dashboard` : section.id === 'notes' ? `${base}/notes` : base} state={location.state}>{t(section.label)}</NavLink>
           : <button disabled aria-disabled="true" className={styles.resourceLink} key={section.id} title={t('project.unavailableSection')} type="button">{t(section.label)}</button>)}
+        <PluginEntityTabs base={base} linkClassName={styles.resourceLink} activeClassName={styles.resourceLinkActive} state={location.state} />
       </div>
     </nav>
-    <div className={styles.panel}>{showPlanning ? <ProjectPlanningPanel key={contextVersion} projectId={projectId} contextName={project.name} /> : showCalendar ? <ProjectCalendarPanel key={`${contextVersion}:calendar`} projectId={projectId} contextName={project.name} /> : showFunding ? <ProjectFundingPanel key={contextVersion} projectId={projectId} /> : showBudgets ? <ProjectBudgetsPanel key={`${contextVersion}:budget`} projectId={projectId} kind="budget" /> : showContributions ? <ProjectBudgetsPanel key={`${contextVersion}:contribution`} projectId={projectId} kind="contribution" /> : showContracts ? <ContractSection key={`${contextVersion}:contracts`} scope={{ projectId }} /> : showDashboard ? <Suspense fallback={<LoadingState message={t('common.loading')} />}><DashboardPage projectId={projectId} /></Suspense> : showNotes ? <GenericNotes scope="project" objectId={projectId} /> : <ProjectOverview projectId={projectId} resource={resource} />}</div>
+    <div className={styles.panel}>{isPluginTab ? <EntityPluginTab entity="project" /> : showPlanning ? <ProjectPlanningPanel key={contextVersion} projectId={projectId} contextName={project.name} /> : showCalendar ? <ProjectCalendarPanel key={`${contextVersion}:calendar`} projectId={projectId} contextName={project.name} /> : showFunding ? <ProjectFundingPanel key={contextVersion} projectId={projectId} /> : showBudgets ? <ProjectBudgetsPanel key={`${contextVersion}:budget`} projectId={projectId} kind="budget" /> : showContributions ? <ProjectBudgetsPanel key={`${contextVersion}:contribution`} projectId={projectId} kind="contribution" /> : showContracts ? <ContractSection key={`${contextVersion}:contracts`} scope={{ projectId }} /> : showDashboard ? <Suspense fallback={<LoadingState message={t('common.loading')} />}><DashboardPage projectId={projectId} /></Suspense> : showNotes ? <GenericNotes scope="project" objectId={projectId} /> : <ProjectOverview projectId={projectId} resource={resource} />}</div>
     {(location.pathname === base || location.pathname === `${base}/`) && <PluginContributionSections />}
     {editing && <ProjectSheet project={project} returnFocus={actionTrigger} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); void resource.refresh() }} />}
     {exportFormat && <ReportExportDialog entity="project" id={project.id} format={exportFormat} title={t('reports.projectTitle', { format: t(exportFormat === 'word' ? 'reports.word' : 'reports.pdf') })} timeframe={false} returnFocus={actionTrigger} onClose={() => setExportFormat(null)} />}

@@ -21,6 +21,8 @@ class DemoPlugin:
     UI_CONTRIBUTIONS = [
         {"id": "shared", "slot": "project.detail.actions", "type": "action", "label": "Copy Project",
          "behavior": "copy_url", "handler": "run_project", "visible": "can_show"},
+        {"id": "react_action", "slot": "project.detail.actions", "type": "action", "label": "Open demo",
+         "behavior": "module", "handler": "run_project", "module": "main", "component": "DemoDialog", "api_version": 1},
         {"id": "project_section", "slot": "project.detail.sections", "type": "section",
          "label": "Project facts", "handler": "project_section"},
         {"id": "employee_action", "slot": "employee.detail.actions", "type": "action",
@@ -85,10 +87,35 @@ class UIContributionTests(APITestCase):
         base = f"/api/v1/ui-contributions/{entity}/{obj.pk}/"
         return base + (f"plugin:alpha:{contribution}/" if contribution else "")
 
-    def test_eight_slots_and_mixin_registration(self):
+    def test_detail_slots_and_mixin_registration(self):
         existing = {f"{entity}.detail.{kind}s" for entity in ("project", "employee", "team") for kind in ("action", "section")}
-        self.assertEqual(set(SLOTS), existing | {"calendar.toolbar.actions", "user.plugin.settings.actions"})
-        self.assertEqual(len(self.client.get("/api/v1/ui-contributions/slots/").json()["slots"]), 8)
+        self.assertEqual(set(SLOTS), existing | {"calendar.toolbar.actions", "published-calendar.actions", "user.plugin.settings.actions", "user.plugin.settings.panels", "plugin.page", *(f"{entity}.detail.tabs" for entity in ("employee", "team", "project"))})
+        self.assertEqual(len(self.client.get("/api/v1/ui-contributions/slots/").json()["slots"]), 14)
+
+    def test_react_action_module_is_discovered_and_loaded_only_on_open(self):
+        url = self.url("project", self.project, "react_action")
+        with patch("plugin.ui_api_v1.module_assets", return_value={
+            "module_url": "/static/plugins/alpha/assets/main.js", "css_urls": [], "asset_version": "1",
+        }) as assets:
+            listed = self.client.get(self.url("project", self.project))
+            self.assertEqual(listed.status_code, 200)
+            item = next(row for row in listed.json()["contributions"] if row["id"].endswith("react_action"))
+            self.assertEqual(item["behavior"], "module")
+            self.assertNotIn("module_url", item)
+            self.assertEqual(self.plugin.calls, [])
+            assets.assert_not_called()
+            opened = self.client.get(url)
+            self.assertEqual(opened.status_code, 200)
+            self.assertEqual(opened.json()["context"], {
+                "entity": "project", "objectId": self.project.pk, "name": str(self.project),
+                "actionUrl": url,
+            })
+            self.assertEqual(opened.json()["component"], "DemoDialog")
+            self.assertEqual(self.plugin.calls, [])
+            assets.assert_called_once()
+        with patch("plugin.ui_api_v1.module_assets", side_effect=ValueError("missing")):
+            self.assertEqual(self.client.get(url).status_code, 502)
+        self.assertEqual(self.client.post(url).status_code, 200)
 
         class Standalone(UIContributionMixin):
             def add_mixin(self, key, enabled, cls):
@@ -112,7 +139,7 @@ class UIContributionTests(APITestCase):
         self.assertIn("plugin:alpha:shared", identities)
         self.assertIn("plugin:beta:shared", identities)
         self.assertEqual(identities.count("plugin:alpha:shared"), 1)
-        self.assertEqual(len(identities), 7)
+        self.assertEqual(len(identities), 8)
         with patch.object(registry, "with_mixin", return_value=[]) as active_plugins:
             self.assertEqual(self.client.get(self.url("project", self.project)).json()["contributions"], [])
             active_plugins.assert_called_with("uicontribution", active=True)
@@ -125,7 +152,7 @@ class UIContributionTests(APITestCase):
         ]:
             listed = self.client.get(self.url(entity, obj))
             self.assertEqual(listed.status_code, 200)
-            self.assertEqual(len(listed.json()["contributions"]), 2)
+            self.assertEqual(len(listed.json()["contributions"]), 3 if entity == "project" else 2)
             self.assertEqual(self.client.get(self.url(entity, obj, section)).status_code, 200)
             action_response = self.client.post(self.url(entity, obj, action))
             self.assertEqual(action_response.status_code, 200)
@@ -153,6 +180,110 @@ class UIContributionTests(APITestCase):
         self.assertEqual(self.client.get(self.url("project", self.project, "project_section")).status_code, 502)
         self.assertEqual(self.client.post(self.url("project", self.project, "shared")).status_code, 200)
         self.assertEqual(self.client.post(self.url("project", self.project, "delete_everything")).status_code, 404)
+
+    def test_react_page_and_employee_tab_are_authorized(self):
+        self.plugin.UI_CONTRIBUTIONS = [
+            {"id": "page", "slot": "plugin.page", "type": "page", "label": "Demo page",
+             "module": "main", "component": "Page", "api_version": 1, "visible": "can_show"},
+            {"id": "tab", "slot": "employee.detail.tabs", "type": "tab", "label": "Demo tab",
+             "module": "main", "component": "EmployeeTab", "api_version": 1, "visible": "can_show"},
+        ]
+        assets = {"module_url": "/static/plugins/alpha/assets/main-123.js?v=123",
+                  "css_urls": ["/static/plugins/alpha/assets/main-123.css?v=123"], "asset_version": "123"}
+        with patch("plugin.ui_api_v1.module_assets", return_value=assets) as resolver:
+            listed = self.client.get("/api/v1/ui-contributions/pages/")
+            self.assertEqual([item["local_id"] for item in listed.json()["contributions"]], ["page"])
+            detail = self.client.get("/api/v1/ui-contributions/pages/alpha/page/")
+            self.assertEqual(detail.status_code, 200)
+            self.assertEqual(detail.json()["module_url"], assets["module_url"])
+            self.assertEqual(detail["Cache-Control"], "no-store")
+            tab_url = self.url("employee", self.employee, "tab")
+            listed = self.client.get(self.url("employee", self.employee))
+            self.assertEqual(listed.json()["contributions"][0]["type"], "tab")
+            tab = self.client.get(tab_url)
+            self.assertEqual(tab.status_code, 200)
+            self.assertEqual(tab.json()["context"], {"entity": "employee", "objectId": self.employee.pk})
+            self.assertEqual(self.client.get(self.url("employee", self.hidden_employee, "tab")).status_code, 404)
+            self.plugin.allowed = False
+            self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/alpha/page/").status_code, 404)
+            self.assertEqual(self.client.get(tab_url).status_code, 404)
+            self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"], [])
+            self.assertEqual(resolver.call_count, 2)
+        with patch.object(registry, "with_mixin", return_value=[]):
+            self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"], [])
+            self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/alpha/page/").status_code, 404)
+
+    def test_page_navigation_metadata_uses_existing_visibility_and_route(self):
+        page = {"id": "page", "slot": "plugin.page", "type": "page", "label": "Fallback",
+                "module": "main", "component": "Page", "api_version": 1, "visible": "can_show",
+                "navigation": {"location": "calendars", "labels": {"fr": "Calendrier", "en": "Calendar"},
+                               "icon": "calendar", "order": 2}}
+        self.plugin.UI_CONTRIBUTIONS = [page]
+        with patch("plugin.ui_api_v1.module_assets") as assets:
+            listed = self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"]
+            self.assertEqual(listed[0]["id"], "plugin:alpha:page")
+            self.assertEqual(listed[0]["navigation"], page["navigation"])
+            assets.assert_not_called()
+            self.plugin.allowed = False
+            self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"], [])
+            self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/alpha/page/").status_code, 404)
+        with patch.object(registry, "with_mixin", return_value=[]):
+            self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"], [])
+        self.plugin.allowed = True
+        self.plugin.UI_CONTRIBUTIONS = [{key: value for key, value in page.items() if key != "navigation"}]
+        self.assertIsNone(self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"][0]["navigation"])
+
+    def test_page_navigation_rejects_invalid_metadata_without_hiding_other_pages(self):
+        page = {"id": "valid", "slot": "plugin.page", "type": "page", "label": "Fallback",
+                "module": "main", "component": "Page", "api_version": 1}
+        invalid = [
+            {"location": "unknown"}, {"location": []},
+            {"location": "calendars", "icon": "delete"}, {"location": "calendars", "icon": []},
+            {"location": "calendars", "labels": {"fr": " "}},
+            {"location": "calendars", "labels": {"de": "Kalender"}},
+            {"location": "calendars", "order": True},
+            {"location": "calendars", "order": 1001},
+            {"location": "calendars", "target": "/admin/"},
+        ]
+        self.plugin.UI_CONTRIBUTIONS = [page, *({**page, "id": f"bad-{index}", "navigation": data} for index, data in enumerate(invalid))]
+        self.assertEqual([item["local_id"] for item in self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"]], ["valid"])
+        self.plugin.UI_CONTRIBUTIONS = [{**page, "id": "second", "navigation": {"location": "calendars", "labels": {"fr": "Agenda"}, "order": 0}},
+                                        {**page, "navigation": {"location": "calendars", "order": 0}}]
+        self.assertEqual([item["id"] for item in self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"]],
+                         ["plugin:alpha:second", "plugin:alpha:valid"])
+
+    def test_team_and_project_tabs_use_the_same_visibility_and_direct_route(self):
+        self.plugin.UI_CONTRIBUTIONS = [
+            {"id": f"{entity}_tab", "slot": f"{entity}.detail.tabs", "type": "tab",
+             "label": "Demo tab", "module": "main", "component": "ContextTab", "api_version": 1,
+             "visible": "can_show"}
+            for entity in ("team", "project")
+        ]
+        assets = {"module_url": "/static/plugins/alpha/assets/main-123.js?v=123",
+                  "css_urls": [], "asset_version": "123"}
+        with patch("plugin.ui_api_v1.module_assets", return_value=assets) as resolver:
+            for entity, obj, hidden in (("team", self.team, self.hidden_team),
+                                        ("project", self.project, self.hidden_project)):
+                item_id = f"{entity}_tab"
+                listed = self.client.get(self.url(entity, obj))
+                self.assertEqual([item["local_id"] for item in listed.json()["contributions"]], [item_id])
+                self.assertEqual(resolver.call_count, (0 if entity == "team" else 1))
+                detail = self.client.get(self.url(entity, obj, item_id))
+                self.assertEqual(detail.status_code, 200)
+                self.assertEqual(detail.json()["context"], {"entity": entity, "objectId": obj.pk})
+                self.assertEqual(self.client.get(self.url(entity, hidden, item_id)).status_code, 404)
+            self.plugin.allowed = False
+            self.assertEqual(self.client.get(self.url("team", self.team)).json()["contributions"], [])
+            self.assertEqual(self.client.get(self.url("project", self.project, "project_tab")).status_code, 404)
+
+    def test_invalid_react_module_declarations_are_isolated(self):
+        self.plugin.UI_CONTRIBUTIONS = [
+            {"id": "wrong-api", "slot": "plugin.page", "type": "page", "label": "Bad",
+             "module": "main", "component": "Page", "api_version": 2},
+            {"id": "remote", "slot": "plugin.page", "type": "page", "label": "Bad",
+             "module": "https://example.com/script.js", "component": "Page", "api_version": 1},
+        ]
+        self.assertEqual(self.client.get("/api/v1/ui-contributions/pages/").json()["contributions"], [])
         self.assertEqual(self.client.get(self.url("project", self.project)).status_code, 200)
 
     def test_plugin_cannot_return_executable_urls(self):
@@ -252,3 +383,34 @@ class UIContributionTests(APITestCase):
             self.assertEqual([(item['key'], item['ui_actions']) for item in results], [('alpha', True)])
             with patch.object(registry, 'with_mixin', return_value=[]):
                 self.assertEqual(self.client.get('/api/v1/plugins/mine/').json()['results'], [])
+
+    def test_settings_panel_is_discovered_and_loaded_only_for_its_active_plugin(self):
+        self.plugin.UI_CONTRIBUTIONS = [{
+            'id': 'settings', 'slot': 'user.plugin.settings.panels', 'type': 'tab',
+            'label': 'Settings', 'module': 'main', 'component': 'SettingsPanel', 'api_version': 1,
+            'visible': 'can_show',
+        }]
+        self.plugin.human_name = 'Panel demo'
+        self.plugin.description = ''
+        self.plugin.mixin_enabled = lambda _name: False
+        base = '/api/v1/ui-contributions/user-plugin/alpha/panels/'
+        with patch.object(registry, 'plugins', {'alpha': self.plugin}), patch.object(registry, 'check_reload'), \
+                patch.object(registry, 'with_mixin', return_value=[self.plugin]), \
+                patch.object(registry, 'get_plugin', side_effect=lambda key, active=None: self.plugin if key == 'alpha' else None), \
+                patch('plugin.ui_api_v1.module_assets', return_value={
+                    'module_url': '/static/plugins/alpha/assets/main.js', 'css_urls': [], 'asset_version': 'abc',
+                }):
+            results = self.client.get('/api/v1/plugins/mine/').json()['results']
+            self.assertEqual([(item['key'], item['ui_panels']) for item in results], [('alpha', True)])
+            self.assertEqual([item['local_id'] for item in self.client.get(base).json()['contributions']], ['settings'])
+            detail = self.client.get(base + 'settings/')
+            self.assertEqual(detail.status_code, 200)
+            self.assertEqual(detail.json()['context'], {'pluginKey': 'alpha'})
+            self.assertEqual(self.client.get(base + 'missing/').status_code, 404)
+            self.assertEqual(self.client.get('/api/v1/ui-contributions/user-plugin/beta/panels/').status_code, 404)
+            self.plugin.allowed = False
+            self.assertEqual(self.client.get(base).json()['contributions'], [])
+            self.assertEqual(self.client.get(base + 'settings/').status_code, 404)
+            self.assertEqual(self.client.get('/api/v1/plugins/mine/').json()['results'], [])
+        self.client.logout()
+        self.assertIn(self.client.get(base).status_code, (401, 403))

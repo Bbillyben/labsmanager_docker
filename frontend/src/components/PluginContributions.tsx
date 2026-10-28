@@ -1,6 +1,7 @@
 import { CalendarDays, Copy, ExternalLink, Info, Link as LinkIcon, Play } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react'
-import { getUIContributions, getUISection, runUIAction, type UIContribution, type UIContributionScope, type UICalendarType, type UISection } from '../api/uiContributions'
+import { getUIActionModule, getUIContributions, getUISection, runUIAction, type UIContribution, type UIContributionScope, type UICalendarType, type UIModuleDescriptor, type UISection } from '../api/uiContributions'
 import { useTranslation } from '../i18n/i18n'
 import { useEmployeeResource } from '../pages/useEmployeeResource'
 import { Alert } from '../ui/Alert'
@@ -8,6 +9,7 @@ import { Button } from '../ui/Button'
 import { ConfirmDialog } from './common/ConfirmDialog'
 import { EntityActionMenu, type EntityActionGroup } from './EntityActionMenu'
 import { copyPluginToken } from './copyPluginToken'
+import { PluginModule } from './PluginModule'
 
 type ContributionContext = { scope: UIContributionScope; actionSlot: string; sectionSlot: string | null; items: UIContribution[]; error: unknown; retry: () => void }
 const Context = createContext<ContributionContext | null>(null)
@@ -18,18 +20,35 @@ function useContributions() {
   return context
 }
 
+export function PluginEntityTabs({ base, linkClassName, activeClassName, state }: { base: string; linkClassName: string; activeClassName: string; state?: unknown }) {
+  const { items, scope } = useContributions()
+  const slot = 'entity' in scope ? `${scope.entity}.detail.tabs` : null
+  return <>{items.filter((item) => item.type === 'tab' && item.slot === slot && item.local_id).map((item) => <NavLink
+    className={({ isActive }) => `${linkClassName} ${isActive ? activeClassName : ''}`}
+    key={item.id}
+    to={`${base}/plugins/${encodeURIComponent(item.plugin_slug)}/${encodeURIComponent(item.local_id!)}`}
+    state={state}
+  >{item.label}</NavLink>)}</>
+}
+
 export function PluginContributionsProvider({ scope, children }: { scope: UIContributionScope; children: ReactNode }) {
   const entity = 'entity' in scope ? scope.entity : null
   const calendarType = 'calendarType' in scope ? scope.calendarType : null
   const pluginKey = 'pluginKey' in scope ? scope.pluginKey : null
+  const providerSlug = 'providerSlug' in scope ? scope.providerSlug : null
+  const calendarId = 'calendarId' in scope ? scope.calendarId : null
   const objectId = 'objectId' in scope ? scope.objectId : null
   const stableScope = useMemo((): UIContributionScope => entity !== null
     ? { entity, objectId: objectId! }
-    : calendarType !== null ? { calendarType, objectId: objectId! } : { pluginKey: pluginKey! }, [entity, calendarType, pluginKey, objectId])
-  const key = entity !== null ? `${entity}:${objectId}` : calendarType !== null ? `calendar:${calendarType}:${objectId}` : `plugin:${pluginKey}`
+    : calendarType !== null ? { calendarType, objectId: objectId! }
+      : providerSlug !== null ? { providerSlug, calendarId: calendarId! }
+        : { pluginKey: pluginKey! }, [entity, calendarType, pluginKey, providerSlug, calendarId, objectId])
+  const key = entity !== null ? `${entity}:${objectId}` : calendarType !== null ? `calendar:${calendarType}:${objectId}`
+    : providerSlug !== null ? `published:${providerSlug}:${calendarId}` : `plugin:${pluginKey}`
   const loader = useCallback((_key: string, signal: AbortSignal) => getUIContributions(stableScope, signal), [stableScope])
   const resource = useEmployeeResource(key, loader)
-  const actionSlot = entity !== null ? `${entity}.detail.actions` : calendarType !== null ? 'calendar.toolbar.actions' : 'user.plugin.settings.actions'
+  const actionSlot = entity !== null ? `${entity}.detail.actions` : calendarType !== null ? 'calendar.toolbar.actions'
+    : providerSlug !== null ? 'published-calendar.actions' : 'user.plugin.settings.actions'
   const sectionSlot = entity !== null ? `${entity}.detail.sections` : null
   return <Context.Provider value={{ scope: stableScope, actionSlot, sectionSlot, items: resource.data?.contributions ?? [], error: resource.error, retry: resource.retry }}>{children}</Context.Provider>
 }
@@ -40,7 +59,7 @@ const icons: Record<string, ReactNode> = {
   info: <Info aria-hidden="true" />, play: <Play aria-hidden="true" />,
 }
 
-export function PluginEntityActions({ groups, ...props }: ComponentProps<typeof EntityActionMenu> & { groups: EntityActionGroup[] }) {
+export function PluginEntityActions({ groups, presentation = 'menu', ...props }: ComponentProps<typeof EntityActionMenu> & { groups: EntityActionGroup[]; presentation?: 'menu' | 'buttons' }) {
   const { scope, actionSlot, items } = useContributions()
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState<UIContribution | null>(null)
@@ -49,6 +68,7 @@ export function PluginEntityActions({ groups, ...props }: ComponentProps<typeof 
   const [error, setError] = useState('')
   const [manualUrl, setManualUrl] = useState('')
   const [openUrl, setOpenUrl] = useState('')
+  const [actionModule, setActionModule] = useState<UIModuleDescriptor | null>(null)
   const focus = useRef<HTMLElement | null>(null)
   const actions = items.filter((item) => item.slot === actionSlot && item.type === 'action')
 
@@ -57,6 +77,10 @@ export function PluginEntityActions({ groups, ...props }: ComponentProps<typeof 
     setPending(true); setError(''); setFeedback(''); setManualUrl(''); setOpenUrl('')
     let windowForUrl: Window | null = null
     try {
+      if (item.behavior === 'module') {
+        setActionModule(await getUIActionModule(scope, item.id))
+        return
+      }
       if (item.behavior === 'open_url') {
         windowForUrl = window.open('about:blank', '_blank')
         if (windowForUrl) windowForUrl.opener = null
@@ -86,12 +110,15 @@ export function PluginEntityActions({ groups, ...props }: ComponentProps<typeof 
     onSelect: () => { if (item.confirm) setConfirming(item); else void execute(item) },
   }))
   return <>
-    <EntityActionMenu {...props} groups={[...groups, pluginGroup]} onTrigger={(trigger) => { focus.current = trigger; props.onTrigger?.(trigger) }} />
+    {presentation === 'buttons' ? actions.map((item) => <Button key={item.id} disabled={pending}
+      onClick={() => void execute(item)}>{item.label}</Button>)
+      : <EntityActionMenu {...props} groups={[...groups, pluginGroup]} onTrigger={(trigger) => { focus.current = trigger; props.onTrigger?.(trigger) }} />}
     {feedback && <span role="status" className="max-w-64 break-words text-sm text-muted-foreground">{feedback}</span>}
     {error && <span role="alert" className="max-w-64 break-words text-sm text-destructive">{error}</span>}
     {manualUrl && <label className="text-sm">{t('pluginUI.manualCopy')}<input className="ml-2 max-w-48 rounded border bg-background p-1" readOnly value={manualUrl} onFocus={(event) => event.currentTarget.select()} /></label>}
     {openUrl && <a href={openUrl} target="_blank" rel="noopener noreferrer">{t('pluginUI.openLink')}</a>}
     {confirming && <ConfirmDialog title={confirming.label} description={t('pluginUI.confirm', { name: confirming.label })} pending={pending} onCancel={() => setConfirming(null)} onConfirm={() => void execute(confirming)} returnFocus={focus} confirmLabel={t('pluginUI.run')} />}
+    {actionModule && <PluginModule descriptor={actionModule} onClose={() => setActionModule(null)} />}
   </>
 }
 
@@ -133,6 +160,21 @@ export function CalendarPluginActions({ calendarType, objectId }: { calendarType
   return <PluginContributionsProvider key={`${calendarType}:${objectId}`} scope={{ calendarType, objectId }}>
     <PluginEntityActions groups={[]} label={t('pluginUI.actions')} />
   </PluginContributionsProvider>
+}
+
+export function PluginPublishedCalendarActions({ providerSlug, calendarId }: { providerSlug: string; calendarId: string }) {
+  return <PluginContributionsProvider key={`${providerSlug}:${calendarId}`} scope={{ providerSlug, calendarId }}>
+    <PublishedCalendarActionButtons />
+  </PluginContributionsProvider>
+}
+
+function PublishedCalendarActionButtons() {
+  const { error, retry } = useContributions()
+  const { t } = useTranslation()
+  return <>
+    {!!error && <Alert tone="danger">{t('pluginUI.loadError')} <Button variant="ghost" onClick={retry}>{t('common.retry')}</Button></Alert>}
+    <PluginEntityActions groups={[]} presentation="buttons" label={t('pluginUI.actions')} />
+  </>
 }
 
 export function UserPluginActions({ pluginKey, className }: { pluginKey: string; className?: string }) {

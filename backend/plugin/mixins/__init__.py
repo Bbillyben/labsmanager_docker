@@ -11,6 +11,9 @@ from plugin.base.SearchPluginMixin import SearchPluginMixin
 from plugin.base.ImportMixin import ImportMixin
 from plugin.base.TokenMixin import TokenMixin
 from plugin.base.UIContributionMixin import UIContributionMixin
+from plugin.base.ModelMixin import ModelMixin
+from plugin.base.PublishedCalendarMixin import PublishedCalendarMixin
+from plugin.base.CalendarSubscriptionMixin import CalendarSubscriptionMixin
 
 __all__ = [
     'SettingsMixin',
@@ -24,4 +27,7 @@ __all__ = [
     'ImportMixin',
     'TokenMixin',
     'UIContributionMixin',
+    'ModelMixin',
+    'PublishedCalendarMixin',
+    'CalendarSubscriptionMixin',
 ]

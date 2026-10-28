@@ -9,7 +9,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { PageHeader } from '../ui/PageHeader'
 import type { EntityActionGroup } from '../components/EntityActionMenu'
-import { PluginContributionsProvider, PluginContributionSections, PluginEntityActions } from '../components/PluginContributions'
+import { PluginContributionsProvider, PluginContributionSections, PluginEntityActions, PluginEntityTabs } from '../components/PluginContributions'
 import { ObjectPreferenceActions } from '../components/ObjectPreferenceActions'
 import { ReportExportDialog } from '../components/ReportExportDialog'
 import { StatusBadge } from '../ui/StatusBadge'
@@ -86,6 +86,7 @@ function EmployeeResourceNav({ employeeId }: { employeeId: string }) {
         to={item.path ? `${base}/${item.path}` : base}
         state={location.state}
       >{t(item.label)}</NavLink>)}
+      <PluginEntityTabs base={base} linkClassName={styles.resourceLink} activeClassName={styles.resourceLinkActive} state={location.state} />
     </div>
   </nav>
 }

@@ -14,6 +14,7 @@ from django.http import Http404
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 from django.utils.translation import override
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from common.calendar import LabsManagerCalendarEvent
 from endpoints.models import Milestones
@@ -22,13 +23,16 @@ from plugin.helpers import get_plugins
 from plugin.models import PluginAccessToken, PluginConfig
 from plugin.plugin import LabManagerPlugin
 from plugin.registry import registry
+from plugin.ui_api_v1 import UIContributionDetail, UIUserPluginActions
+from plugin.ui_contributions import _definition
+from plugin.published_calendar_api_v1 import PublishedCalendarSubscriptions
 from project.models import Participant, Project
 from staff.models import Employee, Team, TeamMate
 
 ICALENDAR_AVAILABLE = find_spec("icalendar") is not None
 if ICALENDAR_AVAILABLE:
     from icalendar import Calendar
-    from plugin.builtin.ICalExport.ICalExport import ICalExport, _records, _scoped_events, build_ical, ics_feed
+    from plugin.builtin.ICalExport.ICalExport import ICalExport, _records, _scoped_events, build_ical, build_published_ical, ics_feed, published_ics_feed
 
 
 @skipUnless(ICALENDAR_AVAILABLE, "Install the sample's requirements.txt to run iCalendar tests")
@@ -70,8 +74,8 @@ class ICalExportTests(TestCase):
             scoped_patch.start()
             self.addCleanup(scoped_patch.stop)
 
-    def _subscription(self, calendar, object_id=0):
-        request = RequestFactory().post("/api/v1/ui-contributions/")
+    def _subscription(self, calendar, object_id=0, **request_kwargs):
+        request = RequestFactory().post("/api/v1/ui-contributions/", **request_kwargs)
         request.user = self.user
         context = {"slot": "user.plugin.settings.actions", "contribution": {"local_id": calendar}}
         if calendar not in ("planning", "absences"):
@@ -85,6 +89,157 @@ class ICalExportTests(TestCase):
         calendar, object_id = parts.path.rstrip("/").split("/")[-2:]
         request = RequestFactory().get(parts.path + "?" + parts.query)
         return ics_feed(request, calendar, int(object_id))
+
+    @override_settings(REACT_PUBLIC_URL="https://labs.example.org/app",
+                       ALLOWED_HOSTS=["labs.example.org", "testserver"])
+    def test_published_calendars_have_independent_tokens_and_stable_event_uids(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        class Provider:
+            slug = "anothercalendar"
+            allowed = True
+            incarnation = "first-instance"
+
+            def get_published_calendar(self, user, calendar_id):
+                if not self.allowed:
+                    raise Http404
+                return PublishedCalendar(calendar_id, f"Calendar {calendar_id}", incarnation=self.incarnation)
+
+            def get_published_events(self, user, calendar_id, start, end):
+                return [LabsManagerCalendarEvent(
+                    id="stable-event", title=f"Événement {calendar_id}",
+                    start=timezone.now(), end=timezone.now() + timedelta(hours=2), all_day=False,
+                    description="À vérifier, ici", metadata={"last_modified": timezone.now()},
+                )]
+
+        provider = Provider()
+        with patch("plugin.published_calendars.providers", return_value=[provider]):
+            request = RequestFactory().post("/api/v1/published-calendars/", secure=True,
+                                            HTTP_HOST="labs.example.org")
+            request.user = self.user
+            first = self.plugin.create_published_subscription(request, provider.slug, "1")["url"]
+            second = self.plugin.create_published_subscription(request, provider.slug, "2")["url"]
+            self.assertNotEqual(first, second)
+            self.assertEqual(urlsplit(first).scheme, "https")
+            self.assertIn("/ics/external/anothercalendar/1/", urlsplit(first).path)
+            self.assertIn("token", parse_qs(urlsplit(first).query))
+            self.assertIn("scope", parse_qs(urlsplit(first).query))
+
+            def feed(url):
+                parts = urlsplit(url)
+                request = RequestFactory().get(parts.path + "?" + parts.query)
+                return published_ics_feed(request, provider.slug, parts.path.rstrip("/").split("/")[-1])
+
+            parsed = Calendar.from_ical(feed(first).content)
+            event = next(item for item in parsed.walk("VEVENT"))
+            self.assertEqual(str(event["SUMMARY"]), "Événement 1")
+            self.assertEqual(str(event["DESCRIPTION"]), "À vérifier, ici")
+            self.assertIn("LAST-MODIFIED", event)
+            self.assertEqual(event["UID"], next(item for item in Calendar.from_ical(feed(first).content).walk("VEVENT"))["UID"])
+            self.assertNotEqual(event["UID"], next(item for item in Calendar.from_ical(feed(second).content).walk("VEVENT"))["UID"])
+            with self.assertRaises(Http404):
+                parts = urlsplit(first)
+                published_ics_feed(RequestFactory().get(parts.path.replace("/1/", "/2/") + "?" + parts.query),
+                                   provider.slug, "2")
+            provider.allowed = False
+            with self.assertRaises(Http404):
+                feed(first)
+            provider.allowed = True
+            provider.incarnation = "replacement-instance"
+            with self.assertRaises(Http404):
+                feed(first)
+
+    def test_published_ics_handles_all_day_empty_and_visible_assignees(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        calendar = PublishedCalendar("1", "Équipe — réunions")
+        self.assertEqual(len(list(Calendar.from_ical(build_published_ical("source", calendar, [])).walk("VEVENT"))), 0)
+        event = LabsManagerCalendarEvent(
+            id="1", title="Réunion, été", description="À suivre", start=self.today,
+            end=self.today + timedelta(days=2), all_day=True,
+            metadata={"assignees": [{"name": "Ada Émile"}]},
+        )
+        parsed = Calendar.from_ical(build_published_ical("source", calendar, [event, event]))
+        entries = list(parsed.walk("VEVENT"))
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].decoded("DTSTART"), self.today)
+        self.assertEqual(entries[0].decoded("DTEND"), self.today + timedelta(days=2))
+        self.assertEqual(str(entries[0]["SUMMARY"]), "Réunion, été")
+        self.assertIn("Ada Émile", str(entries[0]["DESCRIPTION"]))
+        self.assertNotIn("ATTENDEE", entries[0])
+        with override("fr"):
+            french = next(item for item in Calendar.from_ical(
+                build_published_ical("source", calendar, [event])).walk("VEVENT"))
+        self.assertIn("Employés affectés", str(french["DESCRIPTION"]))
+
+    @override_settings(REACT_PUBLIC_URL="https://labs.example.org/app")
+    def test_published_description_reuses_native_links_without_duplicates(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        event = LabsManagerCalendarEvent(
+            id="one", title="Réunion — été", description="À vérifier, ici",
+            start=self.today, end=self.today + timedelta(days=1),
+            metadata={"links": ["employees/4/plugins/calendars/employee-calendars",
+                                "teams/2/plugins/calendars/team-calendars",
+                                "employees/4/plugins/calendars/employee-calendars"]},
+        )
+        parsed = Calendar.from_ical(build_published_ical("calendars", PublishedCalendar("1", "Équipe"), [event]))
+        item = next(row for row in parsed.walk("VEVENT"))
+        description = str(item["DESCRIPTION"])
+        self.assertIn("À vérifier, ici", description)
+        self.assertEqual(description.count("https://labs.example.org/app/employees/4/plugins/calendars/employee-calendars"), 1)
+        self.assertIn("https://labs.example.org/app/teams/2/plugins/calendars/team-calendars", description)
+        self.assertEqual(str(item["SUMMARY"]), "Réunion — été")
+        self.assertEqual(str(item["UID"]), f"{sha256(b'published:calendars:1:one').hexdigest()}@labsmanager")
+
+    def test_published_assigned_filter_preserves_token_scope_and_rejects_invalid_values(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        today = self.today
+        class Provider:
+            slug = "source"
+            supported = True
+            calls = []
+
+            def get_published_calendar(self, user, calendar_id):
+                return PublishedCalendar(calendar_id, "Shifts",
+                                         options=("assigned_to_me",) if self.supported else ())
+
+            def get_published_events(self, user, calendar_id, start, end, *, options=None):
+                self.calls.append(options)
+                if options and options.get("assigned_to_me"):
+                    return []
+                return [LabsManagerCalendarEvent(id="one", title="Event", start=today,
+                                                  end=today + timedelta(days=1))]
+
+        provider = Provider()
+        request = RequestFactory().post("/", HTTP_HOST="testserver")
+        request.user = self.user
+        request.data = {"assigned_to_me": True}
+        with patch("plugin.published_calendars.providers", return_value=[provider]):
+            url = self.plugin.create_published_subscription(request, "source", "1")["url"]
+            parts = urlsplit(url)
+            self.assertEqual(parse_qs(parts.query)["assigned_to_me"], ["1"])
+            def feed(suffix=""):
+                return published_ics_feed(RequestFactory().get(parts.path + "?" + parts.query + suffix), "source", "1")
+            self.assertEqual(len(list(Calendar.from_ical(feed().content).walk("VEVENT"))), 0)
+            self.assertEqual(provider.calls[-1], {"assigned_to_me": True})
+            plain = parts.path + "?" + parts.query.replace("&assigned_to_me=1", "")
+            self.assertEqual(len(list(Calendar.from_ical(published_ics_feed(
+                RequestFactory().get(plain), "source", "1").content).walk("VEVENT"))), 1)
+            self.assertEqual(len(list(Calendar.from_ical(published_ics_feed(
+                RequestFactory().get(plain + "&assigned_to_me=0"), "source", "1").content).walk("VEVENT"))), 1)
+            self.assertEqual(feed("&assigned_to_me=0").status_code, 400)
+            self.assertEqual(feed("&assigned_to_me=invalid").status_code, 400)
+            provider.supported = False
+            self.assertEqual(feed().status_code, 400)
+        local_calendar = PublishedCalendar("1", "Local", timezone="Europe/Paris")
+        utc_start = datetime(2026, 1, 1, 23, tzinfo=datetime_timezone.utc)
+        shifted = LabsManagerCalendarEvent(id="2", title="Local day", start=utc_start,
+                                           end=utc_start + timedelta(days=1), all_day=True)
+        local_entry = next(item for item in Calendar.from_ical(
+            build_published_ical("source", local_calendar, [shifted])).walk("VEVENT"))
+        self.assertEqual(local_entry.decoded("DTSTART"), date(2026, 1, 2))
 
     def test_discovered_builtin_is_classified_and_active(self):
         from plugin import builtin
@@ -487,15 +642,20 @@ class ICalExportTests(TestCase):
         with self.assertRaises(Http404):
             self._feed(url)
 
-    def test_subscription_url_uses_public_django_origin_in_https_and_http(self):
-        for react_base, site_domain, expected_origin in (
-            ("https://labs.example.org/app", "labs.example.org", "https://labs.example.org"),
-            ("http://frontend.example:5173/app", "backend.example:7000", "http://backend.example:7000"),
+    def test_subscription_url_uses_request_origin_in_https_and_http(self):
+        for react_base, request_host, forwarded_proto, expected_origin in (
+            ("https://labs.example.org/app", "labs.example.org", "https", "https://labs.example.org"),
+            ("http://localhost:8000/app", "localhost:8000", "http", "http://localhost:8000"),
         ):
-            with self.subTest(react_base=react_base), override_settings(REACT_PUBLIC_URL=react_base, SITE_ID=1):
-                Site.objects.update_or_create(pk=1, defaults={"domain": site_domain, "name": "LabsManager"})
+            with self.subTest(react_base=react_base), override_settings(
+                REACT_PUBLIC_URL=react_base, SITE_ID=1,
+                ALLOWED_HOSTS=["labs.example.org", "localhost", "testserver"],
+                SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https"),
+            ):
+                Site.objects.update_or_create(pk=1, defaults={"domain": "example.com", "name": "LabsManager"})
                 Site.objects.clear_cache()
-                url = self._subscription("project")
+                url = self._subscription("project", HTTP_HOST=request_host,
+                                         HTTP_X_FORWARDED_PROTO=forwarded_proto)
                 parsed = urlsplit(url)
                 self.assertEqual(f"{parsed.scheme}://{parsed.netloc}", expected_origin)
                 self.assertEqual(parsed.path, f"/plugin/icalexport/ics/project/{self.project.pk}/")
@@ -513,13 +673,79 @@ class ICalExportTests(TestCase):
                                      f"https://labs.example.org/app/projects/{self.project.pk}/tasks")
                     self.assertIn(str(item.get("URL")), str(item.get("DESCRIPTION")))
 
-    @override_settings(REACT_PUBLIC_URL="https://labs.example.org/app", SITE_ID=1)
+    def test_subscription_api_returns_request_origin_for_all_native_and_external_feeds(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        class Provider:
+            slug = "calendar-source"
+
+            def get_published_calendar(self, user, calendar_id):
+                return PublishedCalendar(calendar_id, "External calendar")
+
+        settings = {
+            "SITE_ID": 1,
+            "ALLOWED_HOSTS": ["labs.example.org", "localhost", "testserver"],
+            "SECURE_PROXY_SSL_HEADER": ("HTTP_X_FORWARDED_PROTO", "https"),
+        }
+        origins = (
+            ("localhost:8000", "http", "http://localhost:8000"),
+            ("labs.example.org", "https", "https://labs.example.org"),
+        )
+        provider = Provider()
+        with override_settings(**settings), patch.object(self.plugin, "subscription_available", return_value=True), \
+                patch("plugin.published_calendars.providers", return_value=[provider]), \
+                patch("plugin.published_calendar_api_v1.subscription_consumer", return_value=self.plugin):
+            Site.objects.update_or_create(pk=1, defaults={"domain": "example.com", "name": "LabsManager"})
+            Site.objects.clear_cache()
+            for host, proto, origin in origins:
+                for calendar, entity, obj in (
+                    ("planning", None, None), ("absences", None, None),
+                    ("project", "project", self.project),
+                    ("employee-projects", "employee", self.employee),
+                    ("employee-absences", "employee", self.employee),
+                    ("team-projects", "team", self.team),
+                    ("team-absences", "team", self.team),
+                ):
+                    with self.subTest(origin=origin, calendar=calendar):
+                        raw = next(item for item in self.plugin.UI_CONTRIBUTIONS
+                                   if item["id"] == calendar.replace("-", "_"))
+                        item = _definition(self.plugin, raw)
+                        request = APIRequestFactory().post("/api/v1/ui-contributions/", HTTP_HOST=host,
+                                                           HTTP_X_FORWARDED_PROTO=proto)
+                        force_authenticate(request, user=self.user)
+                        with patch("plugin.ui_api_v1.declared_contributions", return_value=[(self.plugin, item)]):
+                            if entity is None:
+                                response = UIUserPluginActions.as_view()(
+                                    request, plugin_key="icalexport", identity=item["id"])
+                            else:
+                                with patch("plugin.ui_api_v1.resolve_context", return_value={entity: obj}):
+                                    response = UIContributionDetail.as_view()(
+                                        request, entity=entity, object_id=obj.pk, identity=item["id"])
+                        self.assertEqual(response.status_code, 200)
+                        url = response.data["url"]
+                        self.assertTrue(url.startswith(origin + "/plugin/icalexport/ics/"), url)
+                        self.assertNotIn("example.com", url)
+                        self.assertEqual(set(parse_qs(urlsplit(url).query)), {"token", "scope"})
+
+                request = APIRequestFactory().post("/api/v1/published-calendars/calendar-source/one/subscriptions/",
+                                                   HTTP_HOST=host, HTTP_X_FORWARDED_PROTO=proto)
+                force_authenticate(request, user=self.user)
+                response = PublishedCalendarSubscriptions.as_view()(
+                    request, provider_slug=provider.slug, calendar_id="one")
+                self.assertEqual(response.status_code, 201)
+                url = response.data["url"]
+                self.assertTrue(url.startswith(origin + "/plugin/icalexport/ics/external/calendar-source/one/"), url)
+                self.assertNotIn("example.com", url)
+                self.assertEqual(set(parse_qs(urlsplit(url).query)), {"token", "scope"})
+
+    @override_settings(REACT_PUBLIC_URL="https://labs.example.org/app", SITE_ID=1,
+                       ALLOWED_HOSTS=["labs.example.org", "testserver"])
     def test_subscription_url_encodes_token_and_scope_without_changing_path(self):
-        Site.objects.update_or_create(pk=1, defaults={"domain": "labs.example.org", "name": "LabsManager"})
+        Site.objects.update_or_create(pk=1, defaults={"domain": "example.com", "name": "LabsManager"})
         Site.objects.clear_cache()
         with patch.object(self.plugin, "create_token",
                           return_value=(SimpleNamespace(public_id="public-id"), "secret+/=&")):
-            url = self._subscription("team-projects")
+            url = self._subscription("team-projects", HTTP_HOST="labs.example.org")
         parsed = urlsplit(url)
         self.assertEqual(parsed.path, f"/plugin/icalexport/ics/team-projects/{self.team.pk}/")
         self.assertIn("token=secret%2B%2F%3D%26", parsed.query)
@@ -532,10 +758,10 @@ class ICalExportTests(TestCase):
             french = self.plugin.UI_CONTRIBUTIONS
         with override("en"):
             english = self.plugin.UI_CONTRIBUTIONS
-        self.assertEqual(len(french), 8)
+        self.assertEqual(len(french), 9)
         self.assertEqual({row["slot"] for row in french}, {
             "user.plugin.settings.actions", "calendar.toolbar.actions", "project.detail.actions",
-            "employee.detail.actions", "team.detail.actions",
+            "employee.detail.actions", "team.detail.actions", "published-calendar.actions",
         })
         self.assertNotEqual(french[0]["label"], english[0]["label"])
         self.assertIn("tâches et jalons", next(row["label"] for row in french

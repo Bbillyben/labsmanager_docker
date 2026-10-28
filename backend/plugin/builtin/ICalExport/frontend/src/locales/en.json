@@ -1,0 +1,11 @@
+{
+  "title": "Subscribe to calendar",
+  "calendar": "Calendar",
+  "assignedOnly": "Only events assigned to me",
+  "creating": "Creating…",
+  "createLink": "Create link",
+  "createError": "Unable to create the link.",
+  "subscriptionLink": "Subscription link",
+  "copy": "Copy",
+  "copied": "Link copied."
+}

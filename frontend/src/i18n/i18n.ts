@@ -532,6 +532,7 @@ export const translations = {
     'pluginSettings.sample': 'Sample',
     'pluginSettings.builtin': 'Built-in',
     'pluginSettings.preferences': 'Mes préférences',
+    'pluginSettings.settings': 'Paramètres',
     'pluginSettings.reset': 'Réinitialiser',
     'pluginSettings.empty': 'Aucun plugin personnel disponible.',
     'pluginSettings.loadError': 'Impossible de charger les plugins ou préférences.',
@@ -574,6 +575,10 @@ export const translations = {
     'pluginUI.sectionError': 'Impossible de charger cette section du plugin.',
     'pluginUI.loadError': 'Impossible de charger les contributions des plugins.',
     'pluginUI.empty': 'Aucune information à afficher.',
+    'pluginUI.moduleError': 'Impossible de charger le module du plugin.',
+    'pluginUI.pageError': 'Cette page de plugin est indisponible ou inaccessible.',
+    'pluginUI.tabError': 'Cet onglet de plugin est indisponible ou inaccessible.',
+    'pluginUI.pages': 'Pages des plugins',
 
     'calendars.title': 'Calendriers',
     'calendars.general': 'Calendrier général',
@@ -2187,6 +2192,7 @@ export const translations = {
     'pluginSettings.sample': 'Sample',
     'pluginSettings.builtin': 'Built-in',
     'pluginSettings.preferences': 'My preferences',
+    'pluginSettings.settings': 'Settings',
     'pluginSettings.reset': 'Reset',
     'pluginSettings.empty': 'No personal plugins available.',
     'pluginSettings.loadError': 'Unable to load plugins or preferences.',
@@ -2229,6 +2235,10 @@ export const translations = {
     'pluginUI.sectionError': 'Unable to load this plugin section.',
     'pluginUI.loadError': 'Unable to load plugin contributions.',
     'pluginUI.empty': 'Nothing to display.',
+    'pluginUI.moduleError': 'Unable to load the plugin module.',
+    'pluginUI.pageError': 'This plugin page is unavailable or inaccessible.',
+    'pluginUI.tabError': 'This plugin tab is unavailable or inaccessible.',
+    'pluginUI.pages': 'Plugin pages',
 
     'calendars.title': 'Calendars',
     'calendars.general': 'General calendar',
@@ -3320,11 +3330,15 @@ export type I18nContextValue = {
   t: (key: TranslationKey, variables?: Record<string, string | number>) => string
 }
 
-export function translate(language: Language, key: TranslationKey, variables: Record<string, string | number> = {}) {
+export function interpolate(text: string, variables: Record<string, string | number> = {}) {
   return Object.entries(variables).reduce(
-    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
-    translations[language][key] as string,
+    (result, [name, value]) => result.replaceAll(`{${name}}`, String(value)),
+    text,
   )
+}
+
+export function translate(language: Language, key: TranslationKey, variables: Record<string, string | number> = {}) {
+  return interpolate(translations[language][key] as string, variables)
 }
 
 export function browserLanguage(): Language {

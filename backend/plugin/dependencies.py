@@ -1,6 +1,5 @@
 """Read and install ordinary plugin requirements without importing plugin code."""
 
-import ast
 import fcntl
 import importlib.metadata as metadata
 import json
@@ -23,6 +22,8 @@ from django.utils.text import slugify
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.utils import canonicalize_name
 from labsmanager import plugin_package_runtime as runtime
+from labsmanager.plugin_model_apps import literal_metadata
+from django.core.exceptions import ImproperlyConfigured
 
 
 KEY = re.compile(r"^[a-z0-9][a-z0-9-]*$")
@@ -63,18 +64,10 @@ def _static_identity(directory):
     """Read literal SLUG/NAME declarations; this never executes plugin code."""
     for source in sorted(directory.glob("*.py")):
         try:
-            tree = ast.parse(source.read_text(encoding="utf-8"))
-        except (OSError, SyntaxError, UnicodeError):
+            declarations = list(literal_metadata(source))
+        except ImproperlyConfigured:
             continue
-        for node in tree.body:
-            if not isinstance(node, ast.ClassDef):
-                continue
-            values = {}
-            for statement in node.body:
-                if isinstance(statement, ast.Assign) and isinstance(statement.value, ast.Constant):
-                    for target in statement.targets:
-                        if isinstance(target, ast.Name) and target.id in ("SLUG", "NAME", "TITLE"):
-                            values[target.id] = statement.value.value
+        for _, _, values in declarations:
             if isinstance(values.get("SLUG"), str) or isinstance(values.get("NAME"), str):
                 name = values.get("SLUG") or values.get("NAME")
                 return slugify(name), str(values.get("TITLE") or values.get("NAME") or directory.name)

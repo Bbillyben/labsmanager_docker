@@ -5,7 +5,7 @@ import type { UserSettingData } from './userSettings'
 const json = { 'Content-Type': 'application/json' }
 const pluginBase = (key: string) => `/api/v1/plugins/${encodeURIComponent(key)}/`
 
-export type PersonalPlugin = { key: string; human_name: string; description: string; user_settings: boolean; user_tokens: boolean; ui_actions?: boolean }
+export type PersonalPlugin = { key: string; human_name: string; description: string; user_settings: boolean; user_tokens: boolean; ui_actions?: boolean; ui_panels?: boolean }
 export type PluginTokenKind = 'plugin' | 'user'
 export type TokenScope = { name: string; label: string; description: string }
 export type PluginToken = {

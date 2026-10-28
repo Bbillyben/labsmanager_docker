@@ -419,10 +419,38 @@ class PluginsRegistry:
                         handle_error(error, do_raise=False, log_name='discovery')
 
         # Log collected plugins
+        self._validate_model_apps(collected_plugins)
         logger.info('Collected %s plugins', len(collected_plugins))
         logger.debug(', '.join([a.__module__ for a in collected_plugins]))
 
         return collected_plugins
+
+    @staticmethod
+    def _validate_model_apps(collected_plugins):
+        """Match the normal registry with apps found statically before setup."""
+        from django.core.exceptions import ImproperlyConfigured
+        from plugin.mixins import ModelMixin
+
+        declarations = settings.PLUGIN_MODEL_APPS
+        matched = set()
+        for plugin in collected_plugins:
+            if not issubclass(plugin, ModelMixin):
+                continue
+            slug = slugify(plugin.SLUG or plugin.NAME)
+            declaration = declarations.get(slug)
+            if declaration is None or plugin.DJANGO_APP != declaration.app_config:
+                raise ImproperlyConfigured(
+                    f"ModelMixin plugin {slug!r} does not match its early Django app declaration"
+                )
+            app = apps.get_app_config(declaration.label)
+            if app.name != declaration.name or app.__class__.__module__ + '.' + app.__class__.__name__ != declaration.app_config:
+                raise ImproperlyConfigured(f"ModelMixin AppConfig mismatch for {slug!r}")
+            if slug in matched:
+                raise ImproperlyConfigured(f"Duplicate ModelMixin plugin slug {slug!r}")
+            matched.add(slug)
+        missing = set(declarations) - matched
+        if missing:
+            raise ImproperlyConfigured(f"ModelMixin plugins not loaded by registry: {', '.join(sorted(missing))}")
 
     def discover_mixins(self):
         """Discover all mixins from plugins and register them."""

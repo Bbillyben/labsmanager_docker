@@ -3,20 +3,23 @@
 from datetime import date, datetime, timedelta, timezone as datetime_timezone
 from hashlib import sha256
 from urllib.parse import urlencode, urlsplit
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.core import signing
-from django.http import Http404, HttpRequest, HttpResponse, QueryDict
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBadRequest, QueryDict
 from django.urls import path
 from django.utils import timezone
 from django.utils.translation import get_language
-from icalendar import Calendar, Event
+from icalendar import Calendar, Event, vCalAddress, vText
+from rest_framework.exceptions import ValidationError
 
-from labsmanager.email_urls import django_email_url
 from labsmanager.react_urls import react_public_url
 from plugin import LabManagerPlugin, registry
-from plugin.mixins import TokenMixin, UIContributionMixin, UrlsMixin
+from plugin.mixins import CalendarSubscriptionMixin, TokenMixin, UIContributionMixin, UrlsMixin
+from plugin.published_calendars import get_calendar, get_events
 from plugin.tokens import TokenError
+from settings.accessor import get_global_setting
 
 
 CALENDARS = frozenset({
@@ -169,7 +172,8 @@ def _date(value):
     return datetime.fromisoformat(value) if "T" in value else date.fromisoformat(value)
 
 
-def _add_event(ical, uid, title, start, end, description="", all_day=True, url=None):
+def _add_event(ical, uid, title, start, end, description="", all_day=True, url=None,
+               last_modified=None, attendees=()):
     if start is None:
         return
     event = Event()
@@ -198,6 +202,14 @@ def _add_event(ical, uid, title, start, end, description="", all_day=True, url=N
         event.add("description", str(description))
     if url:
         event.add("url", url)
+    if last_modified:
+        event.add("last-modified", last_modified)
+    for person in attendees:
+        if isinstance(person, dict) and person.get("email"):
+            attendee = vCalAddress(f"MAILTO:{person['email']}")
+            if person.get("name"):
+                attendee.params["CN"] = vText(person["name"])
+            event.add("attendee", attendee)
     ical.add_component(event)
 
 
@@ -233,13 +245,18 @@ def _description_with_link(description, url):
     return f"{description}\n\nOuvrir dans LabsManager :\n{url}" if description else f"Ouvrir dans LabsManager :\n{url}"
 
 
-def build_ical(items, events, name="LabsManager", *, calendar=None, object_id=0, user=None):
+def _new_calendar(name):
     ical = Calendar()
     ical.add("prodid", "-//LabsManager//ICalExport//EN")
     ical.add("version", "2.0")
     ical.add("calscale", "GREGORIAN")
     ical.add("name", name)
     ical.add("x-wr-calname", name)
+    return ical
+
+
+def build_ical(items, events, name="LabsManager", *, calendar=None, object_id=0, user=None):
+    ical = _new_calendar(name)
     visible_employee_ids = set()
     if user is not None:
         from staff.models import Employee
@@ -294,6 +311,40 @@ def build_ical(items, events, name="LabsManager", *, calendar=None, object_id=0,
     return ical.to_ical()
 
 
+def build_published_ical(provider_slug, calendar, events):
+    """Serialize the shared event contract with the same ICS writer as native feeds."""
+    ical = _new_calendar(calendar.name)
+    seen = set()
+    for source in events:
+        if source.id in seen:
+            continue
+        seen.add(source.id)
+        metadata = source.metadata or {}
+        assignees = metadata.get("assignees") or ()
+        description = source.description or ""
+        links = metadata.get("links") or ()
+        if isinstance(links, (list, tuple)):
+            seen_links = set()
+            for path in links:
+                if not isinstance(path, str) or not path or path in seen_links:
+                    continue
+                seen_links.add(path)
+                description = _description_with_link(description, _public_react_url(path))
+        names = [person.get("name") for person in assignees if isinstance(person, dict) and person.get("name")]
+        if names:
+            label = "Employés affectés" if (get_language() or "").startswith("fr") else "Assigned employees"
+            description = f"{description}\n\n{label}: {', '.join(names)}" if description else f"{label}: {', '.join(names)}"
+        start, end = source.start, source.end
+        if source.all_day and calendar.timezone:
+            zone = ZoneInfo(calendar.timezone)
+            start = start.astimezone(zone) if isinstance(start, datetime) and timezone.is_aware(start) else start
+            end = end.astimezone(zone) if isinstance(end, datetime) and timezone.is_aware(end) else end
+        _add_event(ical, f"published:{provider_slug}:{calendar.id}:{source.id}", source.title,
+                   start, end, description, source.all_day,
+                   url=metadata.get("url"), last_modified=metadata.get("last_modified"), attendees=assignees)
+    return ical.to_ical()
+
+
 def ics_feed(request, calendar, object_id):
     if calendar not in CALENDARS or (calendar in SCOPED) != (object_id > 0):
         raise Http404
@@ -319,17 +370,54 @@ def ics_feed(request, calendar, object_id):
     return response
 
 
-class ICalExport(UrlsMixin, TokenMixin, UIContributionMixin, LabManagerPlugin):
+def published_ics_feed(request, provider_slug, calendar_id):
+    plugin = registry.get_plugin("icalexport", active=True)
+    if plugin is None:
+        raise Http404
+    try:
+        owner = plugin.validate_token(request.GET.get("token", ""), kind="user", required_scopes=["ics"])
+        provider, calendar = get_calendar(owner.user, provider_slug, calendar_id)
+        expected = f"{owner.public_id}:published:{provider_slug}:{calendar_id}:{calendar.incarnation or ''}"
+        if signing.Signer(salt=SIGNING_SALT).unsign(request.GET.get("scope", "")) != expected:
+            raise Http404
+        selected = request.GET.getlist("assigned_to_me")
+        if len(selected) > 1 or (selected and selected[0] not in ("0", "1")):
+            return HttpResponseBadRequest("Invalid assigned_to_me value")
+        if selected == ["1"] and "assigned_to_me" not in calendar.options:
+            return HttpResponseBadRequest("Unsupported assigned_to_me option")
+        start, last = _dates()
+        lower = timezone.make_aware(datetime.combine(start, datetime.min.time()))
+        upper = timezone.make_aware(datetime.combine(last + timedelta(days=1), datetime.min.time()))
+        events = get_events(owner.user, provider.slug, calendar.id, lower, upper,
+                            options={"assigned_to_me": True} if selected == ["1"] else None)
+        body = build_published_ical(provider.slug, calendar, events)
+    except (TokenError, signing.BadSignature, ValueError):
+        raise Http404 from None
+    response = HttpResponse(body, content_type="text/calendar; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="labsmanager.ics"'
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
+class ICalExport(UrlsMixin, TokenMixin, CalendarSubscriptionMixin, UIContributionMixin, LabManagerPlugin):
     NAME = "ICalExport"
     SLUG = "icalexport"
     TITLE = "iCalendar Export"
     AUTHOR = "LabsManager contributors"
     DESCRIPTION = "Read-only personal iCalendar subscriptions"
     VERSION = "1.0.0"
-    URLS = [path("ics/<str:calendar>/<int:object_id>/", ics_feed, name="icalexport-feed")]
+    subscription_format = "ics"
+    URLS = [path("ics/<str:calendar>/<int:object_id>/", ics_feed, name="icalexport-feed"),
+            path("ics/external/<str:provider_slug>/<str:calendar_id>/", published_ics_feed, name="icalexport-published-feed")]
     TOKEN_CONFIG = {"plugin": False, "user": True, "scopes": {
         "ics": {"user": True, "label": "iCalendar subscription", "description": "Read-only calendar feed"},
     }}
+
+    def subscription_available(self):
+        return bool(get_global_setting("ENABLE_PLUGINS_URL"))
+
+    def subscription_visible(self, request, context):
+        return self.subscription_available()
 
     @property
     def UI_CONTRIBUTIONS(self):
@@ -351,18 +439,23 @@ class ICalExport(UrlsMixin, TokenMixin, UIContributionMixin, LabManagerPlugin):
             "employee.detail.actions": ["employee-projects", "employee-absences"],
             "team.detail.actions": ["team-projects", "team-absences"],
             "calendar.toolbar.actions": ["current"],
+            "published-calendar.actions": ["published"],
         }
         for slot, calendars in slots.items():
             for calendar in calendars:
                 declarations.append({
                     "id": calendar.replace("-", "_"), "slot": slot, "type": "action",
-                    "label": labels[calendar][0 if french else 1], "icon": "copy",
-                    "behavior": "copy_url", "handler": "create_subscription",
+                    "label": ("S’abonner" if french else "Subscribe") if calendar == "published" else labels[calendar][0 if french else 1],
+                    "icon": "copy", "behavior": "module", "handler": "create_subscription",
+                    "module": "main", "component": "SubscriptionDialog", "api_version": 1,
+                    "visible": "subscription_visible",
                 })
         return declarations
 
     def create_subscription(self, request, context):
         slot = context["slot"]
+        if slot == "published-calendar.actions":
+            return self.create_published_subscription(request, context["provider"].slug, context["calendar"].id)
         selected = context["contribution"]["local_id"].replace("_", "-")
         if selected == "current":
             selected = {
@@ -381,4 +474,19 @@ class ICalExport(UrlsMixin, TokenMixin, UIContributionMixin, LabManagerPlugin):
                                           user=request.user, scopes=["ics"])
         signature = signing.Signer(salt=SIGNING_SALT).sign(f"{token.public_id}:{selected}:{object_id}")
         path_url = f"/{self.base_url}ics/{selected}/{object_id}/"
-        return {"url": django_email_url(f"{path_url}?{urlencode({'token': secret, 'scope': signature})}")}
+        return {"url": request.build_absolute_uri(f"{path_url}?{urlencode({'token': secret, 'scope': signature})}")}
+
+    def create_published_subscription(self, request, provider_slug, calendar_id):
+        _, calendar = get_calendar(request.user, provider_slug, calendar_id)
+        assigned = getattr(request, "data", {}).get("assigned_to_me", False)
+        if type(assigned) is not bool or (assigned and "assigned_to_me" not in calendar.options):
+            raise ValidationError({"assigned_to_me": "Unsupported option"})
+        token, secret = self.create_token(kind="user", name=f"{provider_slug} / {calendar.name}",
+                                          user=request.user, scopes=["ics"])
+        signature = signing.Signer(salt=SIGNING_SALT).sign(
+            f"{token.public_id}:published:{provider_slug}:{calendar_id}:{calendar.incarnation or ''}")
+        path_url = f"/{self.base_url}ics/external/{provider_slug}/{calendar_id}/"
+        parameters = {"token": secret, "scope": signature}
+        if assigned:
+            parameters["assigned_to_me"] = "1"
+        return {"url": request.build_absolute_uri(f"{path_url}?{urlencode(parameters)}")}

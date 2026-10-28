@@ -28,7 +28,11 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@labsmanager/plugin-ui": ["./src/plugin-api.ts"],
+      "@labsmanager/plugin-calendar": ["./src/plugin-calendar.ts"],
+      "react": ["./node_modules/@types/react/index.d.ts"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime.d.ts"]
     }
   },
   "include": [

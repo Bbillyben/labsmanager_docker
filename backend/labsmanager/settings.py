@@ -18,6 +18,7 @@ from django.conf.locale.es import formats as es_formats  # to set dateformat ove
 import os
 from .config import get_setting, get_boolean_setting, get_media_dir, get_static_dir,get_data_dir
 from .plugin_package_runtime import bootstrap_package_path
+from .plugin_model_apps import discover_model_apps, discover_plugin_static_dirs
 import logging
 
 from django.utils.translation import gettext_lazy as _
@@ -109,6 +110,19 @@ logger.debug('ALLOWED_HOSTS :'+str(ALLOWED_HOSTS))
 
 # Application definition
 
+PLUGINS_ENABLED = get_boolean_setting('LABSMANAGER_PLUGINS_ENABLED', 'plugin_enable', False)
+PLUGIN_DIR = get_setting('LABSMANAGER_PLUGIN_DIR', 'plugin_dir')
+PLUGIN_MODEL_APPS = discover_model_apps(
+    BASE_DIR,
+    [directory.strip() for directory in PLUGIN_DIR.split(',') if directory.strip()]
+    if PLUGINS_ENABLED and PLUGIN_DIR else (),
+)
+STATICFILES_DIRS.extend(discover_plugin_static_dirs(
+    BASE_DIR,
+    [directory.strip() for directory in PLUGIN_DIR.split(',') if directory.strip()]
+    if PLUGINS_ENABLED and PLUGIN_DIR else (),
+))
+
 INSTALLED_APPS = [
     # Django Base
     'django.contrib.admin',
@@ -170,6 +184,7 @@ INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
         
 ]
+INSTALLED_APPS.extend(app.app_config for app in PLUGIN_MODEL_APPS.values())
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -580,12 +595,10 @@ logger.debug('=========  =========  =========')
 
 
 # For plugins 
-PLUGINS_ENABLED = get_boolean_setting('LABSMANAGER_PLUGINS_ENABLED', 'plugin_enable', False)
 TESTING = False
 PLUGIN_TESTING = False
 PLUGIN_TESTING_SETUP = False
 PLUGIN_RETRY = True
-PLUGIN_DIR = get_setting('LABSMANAGER_PLUGIN_DIR', 'plugin_dir')
 TESTING_ENV = False
 logger.debug('=========  Plugins  =========')
 logger.debug(f'  - PLUGINS_ENABLED: {PLUGINS_ENABLED}')

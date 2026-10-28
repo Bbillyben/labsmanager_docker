@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { jsonResponse } from '../test/fixtures'
 import { UserPluginDetailPage, UserPluginsPage } from './UserPluginsPage'
+import { loadPluginComponent } from '../components/pluginModuleLoader'
+
+vi.mock('../components/pluginModuleLoader', () => ({ loadPluginComponent: vi.fn() }))
 
 const plugins = [
   { key: 'demo', human_name: 'Demo plugin', description: 'Personal features', user_settings: true, user_tokens: true },
@@ -23,8 +26,23 @@ describe('Personal plugin settings pages', () => {
   beforeEach(() => { Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] }) })
   afterEach(() => vi.restoreAllMocks())
 
+  it('loads an authorized plugin settings panel through the shared module loader', async () => {
+    vi.mocked(loadPluginComponent).mockResolvedValue(({ context }) => <p>Calendar settings for {context.pluginKey}</p>)
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === '/api/v1/plugins/mine/') return jsonResponse({ results: [{ key: 'calendars', human_name: 'Calendars', description: '', user_settings: false, user_tokens: false, ui_panels: true }] })
+      if (url === '/api/v1/ui-contributions/user-plugin/calendars/panels/') return jsonResponse({ contributions: [{ id: 'plugin:calendars:settings', local_id: 'settings', slot: 'user.plugin.settings.panels', type: 'tab', label: 'Settings' }] })
+      if (url === '/api/v1/ui-contributions/user-plugin/calendars/panels/settings/') return jsonResponse({ id: 'plugin:calendars:settings', plugin_slug: 'calendars', local_id: 'settings', slot: 'user.plugin.settings.panels', type: 'tab', label: 'Settings', module_url: '/static/plugins/calendars/assets/main.js', css_urls: [], asset_version: 'abc', component: 'SettingsPanel', context: { pluginKey: 'calendars' } })
+      throw Error(url)
+    })
+    mount('/settings/my-plugins/calendars')
+    expect(await screen.findByText('Calendar settings for calendars')).toBeInTheDocument()
+    expect(loadPluginComponent).toHaveBeenCalledTimes(1)
+  })
+
   it('does not show origin badges in personal settings', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/ui-contributions/pages/') return jsonResponse({ contributions: [] })
       if (String(input) === '/api/v1/plugins/mine/') return jsonResponse({ results: [
         { ...plugins[0], key: 'sample', human_name: 'Sample plugin' },
         { ...plugins[0], key: 'builtin', human_name: 'Built-in plugin' },
@@ -42,6 +60,7 @@ describe('Personal plugin settings pages', () => {
   it('lists only the personal plugins supplied by active capability discovery and opens a dedicated page', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input)
+      if (url === '/api/v1/ui-contributions/pages/') return jsonResponse({ contributions: [] })
       if (url === '/api/v1/plugins/mine/') return jsonResponse({ results: plugins })
       if (url === '/api/v1/plugins/demo/user-settings/') return jsonResponse({ settings: [setting] })
       if (url === '/api/v1/plugins/demo/tokens/user/') return jsonResponse({ scopes: [], tokens: [] })
@@ -54,6 +73,19 @@ describe('Personal plugin settings pages', () => {
     expect(await screen.findByRole('heading', { name: 'My preferences' })).toBeInTheDocument()
     expect(await screen.findByRole('region', { name: 'My tokens' })).toBeInTheDocument()
     expect(screen.getByLabelText('Colour')).toHaveValue('blue')
+  })
+
+  it('lists an authorized standalone page even for a plugin without personal settings', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === '/api/v1/plugins/mine/') return jsonResponse({ results: [] })
+      if (String(input) === '/api/v1/ui-contributions/pages/') return jsonResponse({ contributions: [
+        { id: 'plugin:modelexample:example-page', plugin_slug: 'modelexample', local_id: 'example-page',
+          slot: 'plugin.page', type: 'page', label: 'Model Example', icon: null, behavior: null, confirm: false, priority: 0 },
+      ] })
+      throw Error(String(input))
+    })
+    mount('/settings/my-plugins')
+    expect(await screen.findByRole('link', { name: 'Model Example' })).toHaveAttribute('href', '/plugins/modelexample/example-page')
   })
 
   it('updates a personal preference and restores its default through the existing setting row', async () => {

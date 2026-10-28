@@ -74,7 +74,9 @@ describe('AppRouter', () => {
     expect(await screen.findByText('Aucun résultat pour « atlas »')).toBeInTheDocument()
   })
   it('opens the personal Dashboard directly for an authenticated user without the legacy Dashboard capability', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    // Resolve the lazy module before measuring the page's authenticated data load.
+    await import('../dashboard/DashboardPage')
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input)
       if (url === '/api/v1/me/') return jsonResponse(userWithoutNavigationCapabilities)
       if (url === '/api/v1/dashboards/') return jsonResponse([])
@@ -83,6 +85,7 @@ describe('AppRouter', () => {
     })
     renderAt('/app/dashboard')
     expect(await screen.findByText('Choisissez votre tableau de bord initial')).toBeInTheDocument()
+    expect(fetch.mock.calls.map(([input]) => String(input))).toEqual(expect.arrayContaining(['/api/v1/dashboards/', '/api/v1/dashboards/catalog/']))
     expect(screen.getByRole('link', { name: 'Tableau de bord' })).toHaveAttribute('href', '/app/dashboard')
   })
   it('opens the presentation route without Sidebar or Topbar', async () => {

@@ -95,7 +95,8 @@ from settings.admin_api_v1 import (
 from settings.account_api_v1 import UserAccountV1View, UserPasswordV1View, UserEmailsV1View, UserEmailDetailV1View
 from plugin.user_api_v1 import UserPlugins, UserPluginSettings, UserPluginSettingDetail
 from plugin.token_api_v1 import TokenCollection, TokenDetail
-from plugin.ui_api_v1 import UISlots, UIContributions, UIContributionDetail, UICalendarActions, UIUserPluginActions
+from plugin.published_calendar_api_v1 import PublishedCalendarSubscriptions
+from plugin.ui_api_v1 import UISlots, UIContributions, UIContributionDetail, UICalendarActions, UIPublishedCalendarActions, UIUserPluginActions, UIUserPluginPanels, UIPages, UIPageDetail
 from settings.mutable_lists_api_v1 import MutableListsRegistryV1View, MutableListCollectionV1View, MutableListDetailV1View
 from infos.api_v1 import GenericNotesCollectionV1View, GenericNoteDetailV1View
 from infos.organization_api_v1 import (
@@ -110,6 +111,8 @@ app_name = "api_v1"
 import_api = import_module("import.api_v1")
 
 urlpatterns = [
+    path("published-calendars/subscriptions/", PublishedCalendarSubscriptions.as_view(), name="published-calendar-subscriptions"),
+    path("published-calendars/<str:provider_slug>/<str:calendar_id>/subscriptions/", PublishedCalendarSubscriptions.as_view(), name="published-calendar-subscription-create"),
     path("auth/invitations/bridge/", InvitationBridgeV1View.as_view(), name="invitation-bridge"),
     path("auth/invitations/current/", InvitationSignupV1View.as_view(), name="invitation-signup"),
     path("data-consistency/summary/", DataConsistencySummary.as_view(), name="data-consistency-summary"),
@@ -155,9 +158,15 @@ urlpatterns = [
     path("plugins/<str:key>/tokens/<str:kind>/", TokenCollection.as_view(), name="plugin-token-collection"),
     path("plugins/<str:key>/tokens/<str:kind>/<str:public_id>/", TokenDetail.as_view(), name="plugin-token-detail"),
     path("ui-contributions/slots/", UISlots.as_view(), name="ui-contribution-slots"),
+    path("ui-contributions/pages/", UIPages.as_view(), name="ui-plugin-pages"),
+    path("ui-contributions/pages/<str:plugin_slug>/<str:page_id>/", UIPageDetail.as_view(), name="ui-plugin-page-detail"),
     path("ui-contributions/calendar/<str:calendar_type>/<int:object_id>/", UICalendarActions.as_view(), name="ui-calendar-actions"),
     path("ui-contributions/calendar/<str:calendar_type>/<int:object_id>/<str:identity>/", UICalendarActions.as_view(), name="ui-calendar-action-detail"),
+    path("ui-contributions/published-calendar/<str:provider_slug>/<str:calendar_id>/", UIPublishedCalendarActions.as_view(), name="ui-published-calendar-actions"),
+    path("ui-contributions/published-calendar/<str:provider_slug>/<str:calendar_id>/<str:identity>/", UIPublishedCalendarActions.as_view(), name="ui-published-calendar-action-detail"),
     path("ui-contributions/user-plugin/<str:plugin_key>/", UIUserPluginActions.as_view(), name="ui-user-plugin-actions"),
+    path("ui-contributions/user-plugin/<str:plugin_key>/panels/", UIUserPluginPanels.as_view(), name="ui-user-plugin-panels"),
+    path("ui-contributions/user-plugin/<str:plugin_key>/panels/<str:panel_id>/", UIUserPluginPanels.as_view(), name="ui-user-plugin-panel-detail"),
     path("ui-contributions/user-plugin/<str:plugin_key>/<str:identity>/", UIUserPluginActions.as_view(), name="ui-user-plugin-action-detail"),
     path("ui-contributions/<str:entity>/<int:object_id>/", UIContributions.as_view(), name="ui-contributions"),
     path("ui-contributions/<str:entity>/<int:object_id>/<str:identity>/", UIContributionDetail.as_view(), name="ui-contribution-detail"),

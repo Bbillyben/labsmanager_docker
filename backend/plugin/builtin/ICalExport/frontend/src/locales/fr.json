@@ -1,0 +1,11 @@
+{
+  "title": "S’abonner au calendrier",
+  "calendar": "Calendrier",
+  "assignedOnly": "Uniquement les événements qui me concernent",
+  "creating": "Création…",
+  "createLink": "Créer le lien",
+  "createError": "Impossible de créer le lien.",
+  "subscriptionLink": "Lien d’abonnement",
+  "copy": "Copier",
+  "copied": "Lien copié."
+}

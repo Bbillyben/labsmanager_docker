@@ -25,6 +25,7 @@ function setup(path = '/app/calendars') {
   window.history.pushState({}, '', path)
   const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input)
+    if (url === '/api/v1/ui-contributions/pages/') return jsonResponse({ contributions: [] })
     if (url === '/api/v1/ui-contributions/calendar/main/0/') return jsonResponse({ contributions: [{ id: 'plugin:demo:calendar', plugin_slug: 'demo', slot: 'calendar.toolbar.actions', type: 'action', label: 'Subscribe', behavior: 'copy_url', icon: null, confirm: false, priority: 0 }] })
     if (url === '/api/v1/ui-contributions/calendar/project_all/0/') return jsonResponse({ contributions: [{ id: 'plugin:demo:projects', plugin_slug: 'demo', slot: 'calendar.toolbar.actions', type: 'action', label: 'Project calendar', behavior: 'copy_url', icon: null, confirm: false, priority: 0 }] })
     if (url === '/api/v1/employees/filter-options/') return jsonResponse({ statuses: [{ id: 1, name: 'Staff' }], teams: [{ id: 2, name: 'Team' }] })
