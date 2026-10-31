@@ -9,6 +9,7 @@ const stateKeys: Record<PlanningMilestoneState, TranslationKey> = {
   completed: 'employee.stateCompleted',
 }
 
+/** Choose the display state for a milestone using its dates and status. */
 export function milestoneStateKey(state: PlanningMilestoneState) {
   return stateKeys[state]
 }

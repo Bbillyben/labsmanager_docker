@@ -19,6 +19,7 @@ export type CalendarPrintState = {
   selectedId?: string | null
 }
 
+/** Render calendar events in a print-specific layout. */
 export function CalendarPrintView({ state, onReady }: PrintRendererProps<CalendarPrintState>) {
   const { language, t } = useTranslation()
   const definition = projectCalendarViewDefinition(state.scope, state.mode)

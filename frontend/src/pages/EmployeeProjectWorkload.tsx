@@ -8,6 +8,7 @@ import { workloadWindow } from './projectWorkloadWindow'
 
 type State = { key: string; data: ProjectWorkload | null; error: unknown }
 
+/** Visualize an Employee’s Project workload over time. */
 export function EmployeeProjectWorkload({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation()
   const [preset, setPreset] = useState<WorkloadPreset>('year')

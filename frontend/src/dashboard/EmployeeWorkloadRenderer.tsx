@@ -7,6 +7,7 @@ import styles from './EmployeeWorkloadRenderer.module.css'
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 type Bar = { key: string; label: string; value: number }
 
+/** Visualize workload distribution across Employees. */
 export function EmployeeWorkloadRenderer({ widget, size, mode = 'view' }: Props) {
   const { t } = useTranslation()
   const metricLabel = (key: string) => key === 'project_allocation' ? t('dashboard.workload.metric.project_allocation')

@@ -11,6 +11,7 @@ import { PageHeader } from '../ui/PageHeader'
 const states = ['all', 'new', 'update', 'unchanged', 'error'] as const
 type Filter = typeof states[number]
 
+/** Download an import template or row-error file returned by the API. */
 function saveFile(file: { blob: Blob; filename: string | null }, fallback: string) {
   const url = URL.createObjectURL(file.blob)
   const anchor = document.createElement('a')
@@ -22,6 +23,7 @@ function saveFile(file: { blob: Blob; filename: string | null }, fallback: strin
   window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
+/** Render previewed import rows, changes, and validation errors. */
 function ImportRowsTable({ result, columns }: { result: ImportResult; columns: ImportProfile['preview_columns'] }) {
   const { t } = useTranslation()
   const [filter, setFilter] = useState<Filter>('all')

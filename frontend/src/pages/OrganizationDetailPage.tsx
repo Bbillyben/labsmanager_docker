@@ -38,6 +38,7 @@ const tabs = [
 ] as const
 const money = (value: string, language: string) => new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(Number(value))
 
+/** Show an organization’s information, contacts, Projects, and Contracts. */
 export function OrganizationDetailPage({ kind }: { kind: OrganizationKind }) {
   const { t } = useTranslation()
   const { organizationId = '' } = useParams()
@@ -71,11 +72,13 @@ export function OrganizationDetailPage({ kind }: { kind: OrganizationKind }) {
   </>
 }
 
+/** Fetch organization form options only when the detail view needs them. */
 function useOptions(kind: OrganizationKind, organizationId: string) {
   const loader = useCallback((id: string, signal: AbortSignal) => getOrganizationOptions(kind, id, signal), [kind])
   return useEmployeeResource(organizationId, loader)
 }
 
+/** Show the organization’s typed information and available actions. */
 function InformationPanel({ kind, organizationId, name, shortName }: { kind: OrganizationKind; organizationId: string; name: string; shortName: string }) {
   const { t, language } = useTranslation()
   const options = useOptions(kind, organizationId)
@@ -95,6 +98,7 @@ function InformationPanel({ kind, organizationId, name, shortName }: { kind: Org
 function Metric({ label, value }: { label: string; value: string | number }) { return <div className="border-l border-border pl-3"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="font-semibold">{value}</dd></div> }
 
 type InfoCollectionProps = { kind: OrganizationKind; organizationId: string; options: OrganizationOptions; contactId?: number }
+/** List typed organization information and permitted actions. */
 function InfoCollection({ kind, organizationId, options, contactId }: InfoCollectionProps) {
   const { t } = useTranslation()
   const loader = useCallback((id: string, signal: AbortSignal) => contactId === undefined ? getOrganizationInfos(kind, id, signal) : getContactInfos(kind, id, contactId, signal), [kind, contactId])
@@ -116,6 +120,7 @@ function InfoCollection({ kind, organizationId, options, contactId }: InfoCollec
   </section>
 }
 
+/** Load and manage contacts for the selected organization. */
 function ContactsPanel({ kind, organizationId }: { kind: OrganizationKind; organizationId: string }) {
   const { t } = useTranslation()
   const options = useOptions(kind, organizationId)
@@ -147,6 +152,7 @@ function ProjectsPanel({ kind, organizationId }: { kind: OrganizationKind; organ
   return <section><h2 className={styles.overviewHeading}>{t('organization.projects')}</h2>{resource.error ? <Alert tone="danger">{t('organization.loadError')}</Alert> : !resource.data ? <LoadingState message={t('common.loading')} /> : resource.data.length ? <ProjectListTable projects={resource.data} /> : <p>{t('organization.noProjects')}</p>}</section>
 }
 
+/** Show visible Contracts connected to the organization. */
 function ContractsPanel({ kind, organizationId }: { kind: OrganizationKind; organizationId: string }) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<number | null>(null)

@@ -3,6 +3,7 @@ import { planningFilterQuery, type EmployeeMilestoneWrite, type PlanningFilters,
 import { employeeFilters } from '../config/employeeFilters'
 import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../filters/url'
 
+/** Fields used to identify an Employee in lists and links. */
 export type EmployeeIdentity = { id: number; first_name: string; last_name: string }
 export type EmployeeStatus = { id: number; code: string; name: string }
 /** Employee row with backend-calculated edit capability and current relations. */
@@ -25,6 +26,7 @@ export type EmployeeDetail = EmployeeListItem & {
   contribution_quotity: string | null
   active_milestones_count: number
 }
+/** Editable Employee fields accepted by the detail API. */
 export type EmployeeDetailWrite = Pick<EmployeeDetail, 'birth_date' | 'entry_date' | 'exit_date' | 'email' | 'is_active'>
 export type EmployeeStatusHistoryItem = {
   id: number
@@ -255,6 +257,7 @@ function integer(value: string | null, fallback: number, minimum: number) {
   return value !== null && /^\d+$/.test(value) && Number.isSafeInteger(number) && number >= minimum ? number : fallback
 }
 
+/** Parse Employee list search, ordering, filters, and paging from the URL. */
 export function readEmployeeParams(query: URLSearchParams): EmployeeListParams {
   query = withFilterDefaults(employeeFilters(), query)
   const ordering = query.get('ordering') ?? ''
@@ -267,6 +270,7 @@ export function readEmployeeParams(query: URLSearchParams): EmployeeListParams {
   }
 }
 
+/** Serialize Employee list parameters into a stable query string. */
 export function employeeQuery(params: EmployeeListParams, forApi = false) {
   const query = new URLSearchParams()
   if (params.search) query.set('search', params.search)
@@ -290,6 +294,7 @@ export function getEmployeeFilterOptions(signal: AbortSignal) {
   return apiRequest<EmployeeFilterOptions>('/api/v1/employees/filter-options/', { signal })
 }
 
+/** Fetch one Employee detail under the current session’s permissions. */
 export function getEmployee(id: string, signal: AbortSignal) {
   return apiRequest<EmployeeDetail>(`/api/v1/employees/${encodeURIComponent(id)}/`, { signal })
 }
@@ -393,6 +398,7 @@ export function getEmployeeContributionWorkload(id: string, range: { start: stri
 }
 
 export type EmployeeLeaveFilters = { from?: string; to?: string; type?: string }
+/** Build an Employee Leave query from the selected date and type filters. */
 function leaveQuery(filters: EmployeeLeaveFilters) {
   const query = new URLSearchParams()
   if (filters.from) query.set('from', filters.from)

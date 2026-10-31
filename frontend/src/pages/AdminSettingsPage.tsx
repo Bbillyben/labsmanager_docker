@@ -33,6 +33,7 @@ export function AdminSettingsSection({ section, afterSave }: { section: 'general
   </section>
 }
 
+/** Manage user accounts and their Employee associations from the admin API. */
 export function AdminUsersPage() {
   const { t, language } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getAdminUsers(signal), [])
@@ -68,6 +69,7 @@ export function AdminUsersPage() {
   </section><AdminInvitationsSection employees={options.data?.results ?? []} /></div>
 }
 
+/** Create and review invitations through the administrative invitation endpoints. */
 function AdminInvitationsSection({ employees }: { employees: { id: number; name: string }[] }) {
   const { t, language } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getAdminInvitations(signal), [])
@@ -133,6 +135,7 @@ function AdminInvitationsSection({ employees }: { employees: { id: number; name:
   </section>
 }
 
+/** Review pending notifications and trigger authorized delivery actions. */
 export function AdminNotificationsPage() {
   const { t, language } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getAdminNotifications(signal), [])

@@ -9,6 +9,7 @@ import styles from './TaskWorkloadRenderer.module.css'
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 type Item = DashboardTaskWorkloadData['items'][number]
 
+/** Render planned task workload by time period. */
 export function TaskWorkloadRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   if (!isTaskWorkload(widget.data)) return <p className="muted-text">{t('dashboard.emptyWidget')}</p>

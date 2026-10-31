@@ -25,10 +25,12 @@ const money = (value: string | null, language: string) => value === null ? '—'
 const date = (value: string | null, language: string) => value ? new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) : '—'
 const percent = (value: string | null, language: string) => value === null ? '—' : new Intl.NumberFormat(language, { style: 'percent', maximumFractionDigits: 1 }).format(Number(value))
 
+/** Load and edit Project Budgets and Contributions under API capabilities. */
 export function ProjectBudgetsPanel({ projectId, kind }: { projectId: string; kind: BudgetKind }) {
   return <BudgetSection projectId={projectId} kind={kind} />
 }
 
+/** Group Project Budgets and Contributions with their available actions. */
 function BudgetSection({ projectId, kind }: { projectId: string; kind: BudgetKind }) {
   const { t, language } = useTranslation()
   const load = useCallback((_id: string, signal: AbortSignal) => getProjectBudgetCollection(projectId, kind, signal), [projectId, kind])
@@ -94,6 +96,7 @@ function BudgetSection({ projectId, kind }: { projectId: string; kind: BudgetKin
   </section>
 }
 
+/** Show one funding row and its edit or delete controls. */
 function BudgetDetailSheet({ projectId, kind, item, initialEdit, options, optionsError, retryOptions, returnFocus, onClose, onSaved }: {
   projectId: string; kind: BudgetKind; item: BudgetBase; initialEdit: boolean; options: BudgetOptions | null; optionsError: boolean; retryOptions: () => void; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: () => Promise<void>
 }) {
@@ -138,6 +141,7 @@ function BudgetFormSheet({ projectId, kind, item, options, optionsError, retryOp
   </SheetContent></Sheet>
 }
 
+/** Submit a Budget or Contribution using server-provided choices. */
 function BudgetForm({ projectId, kind, item, options, optionsError, retryOptions, onCancel, onSaved }: {
   projectId: string; kind: BudgetKind; item: BudgetBase | null; options: BudgetOptions | null; optionsError: boolean; retryOptions: () => void; onCancel: () => void; onSaved: () => void
 }) {

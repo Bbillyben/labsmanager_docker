@@ -12,6 +12,7 @@ type Item = DashboardEmployeeMovementsData['items'][number]
 const movementIcon = (state: Item['state']) => state === 'arriving' || state === 'arrived_recently'
   ? UserRoundPlus : state === 'leaving' || state === 'departed' ? UserRoundMinus : UserRound
 
+/** Show Employee arrivals and departures in the selected window. */
 export function EmployeeMovementsRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   if (!isEmployeeMovements(widget.data)) return <p className="muted-text">{t('dashboard.emptyWidget')}</p>

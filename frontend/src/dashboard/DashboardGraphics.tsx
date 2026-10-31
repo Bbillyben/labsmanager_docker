@@ -3,6 +3,7 @@ import styles from './DashboardGraphics.module.css'
 
 export type GraphicTone = 'neutral' | 'muted' | 'success' | 'info' | 'warning' | 'danger'
 
+/** Show a rounded progress gauge for a numeric Dashboard metric. */
 export function RoundedProgressGauge({ label, ariaLabel, value, max = 100, displayValue, tone = 'neutral', secondary, icon,
   showLabel = true, showValue = true, className }: {
   label: string; ariaLabel?: string; value: number | null; max?: number; displayValue: string; tone?: GraphicTone

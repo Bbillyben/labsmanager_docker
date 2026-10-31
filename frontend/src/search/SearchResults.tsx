@@ -5,6 +5,7 @@ import { useTranslation } from '../i18n/i18n'
 import { genericInfoIcon } from '../pages/genericInfoIcons'
 import styles from './Search.module.css'
 
+/** Render one search result with its destination and provider context. */
 export function SearchResultItem({ result, providers, onClick, active = false, optionId }: {
   result: SearchResult
   providers: SearchProviderSchema[]

@@ -11,6 +11,7 @@ import { useTranslation } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 
+/** Edit dated superior relations while showing validation errors. */
 export function EmployeeHierarchySheet({ employeeId, direction, relation, defaultDates, onClose, onSaved, returnFocus }: {
   employeeId: string
   direction: EmployeeHierarchyDirection

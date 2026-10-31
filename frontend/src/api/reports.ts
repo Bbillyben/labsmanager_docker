@@ -11,6 +11,7 @@ export function getReportTemplates(entity: ReportEntity, id: number, format: Rep
   return apiRequest<{ templates: ReportTemplate[] }>(path(entity, id, format), { signal })
 }
 
+/** Request an authorized report export with selected options. */
 export function exportReport(entity: ReportEntity, id: number, format: ReportFormat, value: ReportExportWrite) {
   return apiFileRequest(path(entity, id, format), {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value),

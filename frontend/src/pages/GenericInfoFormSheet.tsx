@@ -11,6 +11,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import styles from './EmployeeGenericInfo.module.css'
 
+/** Edit typed information entries with their contextual validation. */
 export function GenericInfoFormSheet({ api, item, onClose, onSaved, returnFocus }: {
   api: GenericInfoApi; item: GenericInfoItem | null; onClose: () => void
   onSaved: (item: GenericInfoItem) => void; returnFocus: RefObject<HTMLElement | null>

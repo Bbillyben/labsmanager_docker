@@ -7,6 +7,7 @@ import { AdminObjectAction } from './AdminObjectAction'
 export type EntityAction = { id: string; label: string; icon?: ReactNode; disabled?: boolean; onSelect: () => void }
 export type EntityActionGroup = EntityAction[]
 
+/** Render grouped native and plugin actions in a shared menu. */
 export function EntityActionMenu({ label, groups, adminUrl, onTrigger, finalFocus }: {
   label: string
   groups: EntityActionGroup[]

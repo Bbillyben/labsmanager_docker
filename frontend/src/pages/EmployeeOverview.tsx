@@ -26,6 +26,7 @@ import { useEmployeeDetail } from './employeeDetailContext'
 import styles from './EmployeeDetailPage.module.css'
 import { useEmployeeResource, type EmployeeResource } from './useEmployeeResource'
 
+/** Summarize Employee identity, status, and linked resource counts. */
 export function EmployeeOverview() {
   const { employee, employeeId } = useEmployeeDetail()
   const { t } = useTranslation()
@@ -196,6 +197,7 @@ function useDate(value: string | null) {
 }
 
 type Translator = ReturnType<typeof useTranslation>['t']
+/** Format an Employee resource’s date interval. */
 function period(start: string | null, end: string | null, t: Translator) {
   const date = (value: string) => new Intl.DateTimeFormat(document.documentElement.lang || 'fr', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
   if (start && end) return t('employee.fromTo', { start: date(start), end: date(end) })

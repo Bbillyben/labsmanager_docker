@@ -7,6 +7,7 @@ import { useTranslation } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 
+/** Edit a dated Employee status relation. */
 export function EmployeeStatusSheet({ employeeId, status, options, defaultDates, onClose, onSaved, returnFocus }: {
   employeeId: string
   status: EmployeeStatusHistoryItem | null

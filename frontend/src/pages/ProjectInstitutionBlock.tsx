@@ -17,6 +17,7 @@ import styles from './ProjectOverview.module.css'
 
 type Props = { projectId: string; resource: EmployeeResource<ProjectOverview> }
 
+/** List and edit institutions participating in a Project. */
 export function ProjectInstitutionBlock({ projectId, resource }: Props) {
   const { t } = useTranslation()
   const [editing, setEditing] = useState<ProjectInstitution | 'new' | null>(null)
@@ -54,6 +55,7 @@ export function ProjectInstitutionBlock({ projectId, resource }: Props) {
   </section>
 }
 
+/** Edit a Project institution relation with API validation. */
 function InstitutionSheet({ projectId, item, onClose, onSaved }: { projectId: string; item: ProjectInstitution | null; onClose: () => void; onSaved: (item: ProjectInstitution) => void }) {
   const { t } = useTranslation()
   const [institutionId, setInstitutionId] = useState(item ? String(item.institution.id) : '')
@@ -90,6 +92,7 @@ function InstitutionSheet({ projectId, item, onClose, onSaved }: { projectId: st
   </SheetContent></Sheet>
 }
 
+/** Confirm removal of a Project institution relation. */
 function DeleteInstitution({ projectId, item, focus, onClose, onDeleted }: { projectId: string; item: ProjectInstitution; focus: React.RefObject<HTMLElement | null>; onClose: () => void; onDeleted: () => void }) {
   const { t } = useTranslation()
   const mutation = useMutation()

@@ -5,6 +5,7 @@ import styles from './print.module.css'
 
 const PrintShell = lazy(() => import('./PrintShell').then((module) => ({ default: module.PrintShell })))
 
+/** Provide print-view registration and selection to descendants. */
 export function PrintProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<PrintRequest | null>(null)
   const trigger = useRef<HTMLElement | null>(null)

@@ -1,10 +1,12 @@
 import { apiRequest } from '../api/client'
 import type { AuthenticationState, CurrentUser, LoginCredentials } from './types'
 
+/** Load the current session and its API capabilities. */
 export function getCurrentUser(signal?: AbortSignal) {
   return apiRequest<CurrentUser>('/api/v1/me/', { signal })
 }
 
+/** Authenticate with credentials through the existing auth endpoint. */
 export function login(credentials: LoginCredentials) {
   return apiRequest<AuthenticationState>('/api/v1/auth/login/', {
     method: 'POST',
@@ -13,6 +15,7 @@ export function login(credentials: LoginCredentials) {
   })
 }
 
+/** End the current authenticated session. */
 export function logout() {
   return apiRequest<AuthenticationState>('/api/v1/auth/logout/', { method: 'POST' })
 }

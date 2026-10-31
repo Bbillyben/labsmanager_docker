@@ -1,11 +1,14 @@
 import { apiRequest } from './client'
 import type { CostType } from './funding'
 
+/** Expense actions the backend authorizes in the current context. */
 export type ExpenseCapabilities = { can_change: boolean; can_delete: boolean }
 export type Expense = { admin_url?: string | null; id: number; expense_id: string; desc: string; date: string; type: CostType; amount: string; status: 'e' | 'r' | 'p'; contract: { id: number; name: string } | null; budget: { id: number; name: string } | null; capabilities: ExpenseCapabilities }
+/** Paginated Expense rows and creation capabilities. */
 export type ExpenseCollection = { count: number; next: string | null; previous: string | null; results: Expense[]; capabilities: { expense_mode: 's' | 'e' | 'h'; can_add: boolean; can_sync_expenses: boolean } }
 export type ExpenseOptions = { cost_types: CostType[]; hr_type_ids: number[]; contracts: Array<{ id: number; name: string }>; budgets: Array<{ id: number; name: string }> }
 export type ExpenseWrite = { expense_id: string; desc: string; date: string; type_id: number | undefined; amount: string; status: Expense['status']; contract_id: number | null; budget_id: number | null }
+/** Fund or Contract context used to scope Expense requests. */
 export type ExpenseScope = { fundId: number; employeeId?: never; contractId?: never; projectId?: never; budgetId?: never }
   | { employeeId: number; contractId: number; fundId?: never; projectId?: never; budgetId?: never }
   | { projectId: string; contractId: number; fundId?: never; employeeId?: never; budgetId?: never }
@@ -24,6 +27,7 @@ const base = (scope: ExpenseScope) => 'hubContractId' in scope
     : `/api/v1/employees/${scope.employeeId}/contracts/${scope.contractId}/expenses/`
 
 const write = (method: 'POST' | 'PATCH', body: Partial<ExpenseWrite>) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+/** Fetch visible Expenses using the selected scope and filters. */
 export function getExpenses(scope: ExpenseScope, filters: ExpenseFilters, signal: AbortSignal) {
   const query = new URLSearchParams()
   for (const key of ['search', 'type', 'date_from', 'date_to'] as const) if (filters[key]) query.set(key, filters[key])

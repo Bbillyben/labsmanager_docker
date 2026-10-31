@@ -34,6 +34,7 @@ function loadEditor(): Promise<EditorLibrary> {
   return editorScript
 }
 
+/** Edit rich text while loading the editor only when needed. */
 export function ProseEditor({ initialHtml, onChange }: { initialHtml: string; onChange: (html: string) => void }) {
   const { t } = useTranslation()
   const textarea = useRef<HTMLTextAreaElement>(null)

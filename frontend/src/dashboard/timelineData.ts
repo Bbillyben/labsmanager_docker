@@ -4,6 +4,7 @@ export function isTimeline(value: unknown): value is DashboardTimelineData {
   return !!value && typeof value === 'object' && Array.isArray((value as DashboardTimelineData).events)
 }
 
+/** Expand timeline data into day-level display cells. */
 export function timelineDays(start: string, end: string) {
   const days: string[] = []
   const cursor = new Date(`${start}T00:00:00Z`)

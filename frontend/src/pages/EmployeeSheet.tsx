@@ -8,6 +8,11 @@ import { useTranslation } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 
+/**
+ * Edit an Employee in a Sheet and keep server validation next to its fields.
+ * A successful create reports the returned identifier so the list can open
+ * the new detail route without searching for the record again.
+ */
 export function EmployeeSheet({ employee, onClose, onSaved, returnFocus }: {
   employee: EmployeeDetail | null
   onClose: () => void

@@ -8,6 +8,7 @@ import styles from './ContractListRenderer.module.css'
 
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 
+/** Render Contract deadlines and their navigation targets. */
 export function ContractListRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   if (!isContractData(widget.data)) return <p className="muted-text">{t('dashboard.emptyWidget')}</p>

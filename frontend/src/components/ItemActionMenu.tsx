@@ -18,6 +18,7 @@ type Props = {
   finalFocus?: ComponentProps<typeof DropdownMenuContent>['finalFocus']
 }
 
+/** Render permitted row actions in a compact menu. */
 export function ItemActionMenu({ label, canChange, canDelete, adminUrl, onOpen, onEdit, onDelete, extraAction, onTrigger, finalFocus }: Props) {
   const { t } = useTranslation()
   if (!canChange && !canDelete && !adminUrl && !extraAction) return null

@@ -15,6 +15,7 @@ import { PageHeader } from '../ui/PageHeader'
 import { OrganizationFormSheet } from './OrganizationSheets'
 import styles from './EmployeeListPage.module.css'
 
+/** Browse organizations using URL-backed search, filters, and paging. */
 export function OrganizationListPage({ kind }: { kind: OrganizationKind }) {
   const { t } = useTranslation()
   const [query, setQuery] = useSearchParams()

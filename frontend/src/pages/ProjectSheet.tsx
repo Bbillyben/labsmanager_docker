@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 
+/** Create or edit Project fields with server validation feedback. */
 export function ProjectSheet({ project, onClose, onSaved, returnFocus }: { project: Pick<ProjectItem, 'id' | 'name' | 'start_date' | 'end_date' | 'status'> | null; onClose: () => void; onSaved: (id: number, created: boolean, saved: ProjectResponse) => void; returnFocus?: RefObject<HTMLElement | null> }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<ProjectWrite>({ name: project?.name ?? '', start_date: project?.start_date ?? null, end_date: project?.end_date ?? null, status: project?.status ?? true })

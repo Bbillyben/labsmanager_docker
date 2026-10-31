@@ -1,3 +1,4 @@
+/** One selectable filter option with its display metadata. */
 export type FilterOption = { value: string; label: string }
 /** Async search and ID resolution contract for an entity filter control. */
 export type EntitySearchSource = {

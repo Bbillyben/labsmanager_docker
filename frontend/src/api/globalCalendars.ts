@@ -10,6 +10,7 @@ export type GlobalProjectPlanning = {
   milestone_statuses: PlanningMilestoneState[]
 }
 
+/** Build native global-calendar requests from the selected scope. */
 export function globalCalendarQuery(range: { from: string; to: string }, filters: URLSearchParams, plugins: Record<string, CalendarFilterValue>) {
   const query = new URLSearchParams(range)
   for (const [key, value] of filters) if (value) query.set(key, value)

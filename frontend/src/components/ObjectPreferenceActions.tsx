@@ -4,6 +4,7 @@ import { getObjectPreferences, setObjectPreference, type PreferenceStatus, type 
 import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
 
+/** Update user preferences for the current object. */
 export function ObjectPreferenceActions({ type, objectId }: { type: PreferenceType; objectId: number | string }) {
   const { t } = useTranslation()
   const [status, setStatus] = useState<PreferenceStatus | null>(null)

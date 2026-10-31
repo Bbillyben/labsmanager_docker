@@ -4,7 +4,9 @@ export type MutableField = {
   key: string; label: string; type: 'text' | 'boolean' | 'choice' | 'relation' | 'color'
   required: boolean; readonly: boolean; default?: string | number | boolean | null; choices: { value: string | number; label: string }[]
 }
+/** Actions allowed by the server for an administrative list. */
 export type MutableCapabilities = { can_view: boolean; can_add: boolean; can_change: boolean; can_delete: boolean }
+/** List definition, groups, and rows managed through settings. */
 export type MutableList = {
   key: string; group: string; label: string; columns: string[]; fields: MutableField[]
   capabilities: MutableCapabilities; renderers?: Record<string, 'tree'>

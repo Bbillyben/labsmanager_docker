@@ -14,6 +14,7 @@ import { MilestoneDetailSheet } from './MilestoneDetailSheet'
 import { EmployeeProjectWorkload } from './EmployeeProjectWorkload'
 import { useEmployeeResource, type EmployeeResource } from './useEmployeeResource'
 
+/** Show Projects in which the current Employee participates. */
 export function EmployeeProjects() {
   const { employeeId, employee } = useEmployeeDetail()
   const { t } = useTranslation()
@@ -65,6 +66,7 @@ function SecondaryResource<T>({ children, resource }: { children: (data: T) => R
 }
 
 type Translator = ReturnType<typeof useTranslation>['t']
+/** Format a Project participation interval. */
 function period(start: string | null, end: string | null, t: Translator) {
   const date = (value: string) => new Intl.DateTimeFormat(document.documentElement.lang || 'fr', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
   if (start && end) return t('employee.fromTo', { start: date(start), end: date(end) })

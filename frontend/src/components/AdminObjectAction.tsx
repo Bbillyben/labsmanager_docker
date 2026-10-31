@@ -3,6 +3,7 @@ import { getDjangoUrl } from '../config/django'
 import { useTranslation } from '../i18n/i18n'
 import { DropdownMenuItem } from './ui/dropdown-menu'
 
+/** Show a Django Admin link only when the API permits it. */
 export function AdminObjectAction({ adminUrl }: { adminUrl?: string | null }) {
   const { t } = useTranslation()
   if (!adminUrl) return null

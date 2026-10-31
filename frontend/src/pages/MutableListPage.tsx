@@ -20,6 +20,7 @@ function errorText(error: unknown, fallback: string) {
   return [...parsed.messages, ...Object.values(parsed.fields).flat()].join(' ') || fallback
 }
 
+/** Format a mutable-list field value using its server-defined metadata. */
 function display(field: MutableField, value: FormValue) {
   if (value === null || value === '') return '—'
   if (field.type === 'boolean') return value ? '✓' : '—'
@@ -36,6 +37,7 @@ function TreeCell({ value, level }: { value: FormValue; level: number }) {
   </span>
 }
 
+/** Display one administrative list group and its selected rows. */
 export function MutableListGroupPage() {
   const { groupKey } = useParams()
   const groups = useOutletContext<MutableGroup[] | null>()
@@ -48,6 +50,7 @@ export function MutableListGroupPage() {
   </div>
 }
 
+/** Load a mutable list and coordinate row creation, editing, and deletion. */
 function MutableListSection({ listKey }: { listKey: string }) {
   const { t } = useTranslation()
   const loader = useCallback((key: string, signal: AbortSignal) => getMutableList(key, signal), [])
@@ -91,6 +94,7 @@ function MutableListSection({ listKey }: { listKey: string }) {
   </section>
 }
 
+/** Edit a mutable-list row from server-provided field metadata. */
 function MutableItemSheet({ listKey, fields, row, onClose, onSaved, focus }: {
   listKey: string; fields: MutableField[]; row: MutableRow | null
   onClose: () => void; onSaved: () => Promise<void>; focus: React.RefObject<HTMLElement | null>

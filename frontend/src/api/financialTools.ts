@@ -8,8 +8,11 @@ export type FinancialFund = { project: Relation; funder: Relation; institution: 
 export type FundItemRow = { id: number; admin_url: string | null; fund: FinancialFund; type: { id: number; name: string; short_name: string }; entry_date: string; value_date: string; amount: string; expense: string; available: string; contract_count: number | null }
 export type BudgetRow = Omit<ProjectBudget, 'fund' | 'employee'> & { fund: FinancialFund; employee: (ProjectBudget['employee'] & { can_view: boolean }) | null }
 export type ExpenseRow = { id: number; admin_url: string | null; fund: FinancialFund; expense_id: string; desc: string; date: string; type: FundItemRow['type']; amount: string; status: 'e' | 'r' | 'p' }
+/** Union of financial list rows displayed by the tools page. */
 export type FinancialRow = FundItemRow | BudgetRow | ExpenseRow
+/** Paginated financial records and available actions. */
 export type FinancialList<T> = { count: number; next: string | null; previous: string | null; results: T[] }
+/** Filter choices for the selected financial resource. */
 export type FinancialOptions = { cost_types: Array<{ id: number; name: string }>; contract_types: Array<{ id: number; name: string }>; employee_types: Array<{ id: number; name: string }>; statuses: Array<{ value: string; label: string }> }
 export type FinancialContract = { id: number; employee: string; type: string | null; status: 'effe' | 'prov'; start_date: string | null; end_date: string | null; quotity: string; is_active: boolean }
 
@@ -21,6 +24,7 @@ const sortFields: Record<FinancialKind, readonly string[]> = {
 const defaultSort: Record<FinancialKind, string> = { 'fund-items': 'fund__project__name', budgets: 'fund__project__name', expenses: '-date' }
 const positiveInt = (value: string | null, fallback: number) => value !== null && /^\d+$/.test(value) && Number.isSafeInteger(Number(value)) ? Number(value) : fallback
 
+/** Serialize financial list filters for requests and sharing. */
 export function financialQuery(kind: FinancialKind, query: URLSearchParams, forApi = false) {
   const result = readFilterQuery(financialFilters(kind), query)
   const ordering = query.get('ordering') ?? defaultSort[kind]

@@ -6,6 +6,7 @@ import { Topbar } from '../layout/Topbar'
 import { useTranslation } from '../i18n/i18n'
 import styles from '../layout/AppShell.module.css'
 
+/** Provide application navigation and content layout for authenticated pages. */
 export function AppShell() {
   const auth = useAuth()
   const { t } = useTranslation()

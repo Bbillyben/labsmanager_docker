@@ -19,6 +19,7 @@ import { CalendarDays, FlaskConical, Landmark, Users, UsersRound } from './sideb
 
 type SidebarProps = { expanded: boolean; interactive: boolean; onRequestExpand: () => void; user: AuthenticatedUser }
 
+/** Render primary navigation according to the current user’s capabilities. */
 export function Sidebar({ expanded, interactive, onRequestExpand, user }: SidebarProps) {
   const { t } = useTranslation()
 

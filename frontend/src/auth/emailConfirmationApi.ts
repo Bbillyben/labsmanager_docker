@@ -15,6 +15,7 @@ export function getEmailConfirmation() {
   return apiRequest<EmailConfirmation>('/api/v1/auth/email/confirm/')
 }
 
+/** Confirm an email address using the exchanged key. */
 export function confirmEmail() {
   return apiRequest<EmailConfirmation>('/api/v1/auth/email/confirm/', { method: 'POST' })
 }

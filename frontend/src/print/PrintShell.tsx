@@ -7,6 +7,7 @@ import styles from './print.module.css'
 
 registerBuiltinPrintRenderers()
 
+/** Host a selected print renderer with shared page controls. */
 export function PrintShell({ request, onClose }: { request: PrintRequest; onClose: () => void }) {
   const { t } = useTranslation()
   const [ready, setReady] = useState(false)

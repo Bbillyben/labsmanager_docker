@@ -9,6 +9,7 @@ import type { DashboardMode } from './mode'
 const breakpoints = { lg: 900, sm: 0 }
 const cols = { lg: 12, sm: 1 }
 
+/** Arrange widget frames according to the saved layout. */
 export function DashboardGrid({ widgets, definitions, mode, layoutDraft, onLayout, onConfigure, onRemove }: {
   widgets: DashboardWidget[]; definitions: Map<string, WidgetDefinition>; mode: DashboardMode
   layoutDraft?: LayoutUpdate[] | null; onLayout?: (layout: LayoutUpdate[]) => void; onConfigure?: (widget: DashboardWidget) => void; onRemove?: (widget: DashboardWidget) => void

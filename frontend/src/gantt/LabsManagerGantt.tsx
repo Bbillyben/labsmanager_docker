@@ -4,6 +4,7 @@ import { SvarGanttAdapter, toSvarTasks, type GanttWindow, type PlanningGanttVisi
 import { useTranslation } from '../i18n/i18n'
 import styles from './LabsManagerGantt.module.css'
 
+/** Render Gantt items with the selected scale and interactions. */
 export function LabsManagerGantt({ data, events, window, onSelect, onOpenChange, closedKeys, dark, visibility }: {
   data: LabsManagerGanttData
   events: CalendarEvent[]

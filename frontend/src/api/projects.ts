@@ -17,8 +17,11 @@ export type ProjectItem = {
   capabilities: ProjectCapabilities
 }
 export type ProjectWrite = { name: string; start_date: string | null; end_date: string | null; status: boolean }
+/** Project detail and capabilities returned by the API. */
 export type ProjectResponse = { admin_url?: string | null; id: number; name: string; start_date: string | null; end_date: string | null; status: boolean }
+/** Paginated, permission-scoped Project list. */
 export type ProjectListResponse = { count: number; next: string | null; previous: string | null; results: ProjectItem[] }
+/** Actions available on a Project overview child collection. */
 export type ProjectChildCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
 export type ProjectCollection<T> = { capabilities: ProjectChildCapabilities; items: T[] }
 export type ProjectGenericInfo = { id: number; type: { id: number; name: string; icon: string | null }; value: string | null }
@@ -70,6 +73,7 @@ export function projectQuery(params: ProjectListParams, forApi = false) {
 export function getProjects(params: ProjectListParams, signal: AbortSignal) {
   return apiRequest<ProjectListResponse>(`/api/v1/projects/?${projectQuery(params, true)}`, { signal })
 }
+/** Fetch one Project detail under the current session’s permissions. */
 export function getProject(id: string, signal: AbortSignal) { return apiRequest<ProjectOverview>(`/api/v1/projects/${encodeURIComponent(id)}/`, { signal }) }
 export function getProjectOverviewOptions(id: string, signal: AbortSignal) { return apiRequest<ProjectOverviewOptions>(`/api/v1/projects/${encodeURIComponent(id)}/overview-options/`, { signal }) }
 const childPath = (id: string, resource: string) => `/api/v1/projects/${encodeURIComponent(id)}/${resource}/`

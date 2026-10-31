@@ -7,6 +7,7 @@ import styles from './DeadlineListRenderer.module.css'
 
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 
+/** Display upcoming deadlines with state and navigation labels. */
 export function DeadlineListRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   if (!isDeadline(widget.data)) return <p className="muted-text">{t('dashboard.emptyWidget')}</p>

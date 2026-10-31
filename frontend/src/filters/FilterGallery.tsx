@@ -16,6 +16,7 @@ type Props = {
   id: string
 }
 
+/** Present available filters for the current entity list. */
 export function FilterGallery({ catalogue, query, onAdd, onClose, finalFocus, id }: Props) {
   const { language, t } = useTranslation()
   const [search, setSearch] = useState('')

@@ -14,6 +14,7 @@ function ErrorMessage({ error }: { error: unknown }) {
 }
 const fieldClass = 'h-9 w-full rounded-md border border-input bg-background px-3 text-sm'
 
+/** Create or edit an organization using contextual API validation. */
 export function OrganizationFormSheet({ kind, organization, onClose, onSaved, returnFocus }: Omit<Common, 'organizationId'> & { organization: Organization | null }) {
   const { t } = useTranslation()
   const [shortName, setShortName] = useState(organization?.short_name ?? '')
@@ -34,6 +35,7 @@ export function OrganizationFormSheet({ kind, organization, onClose, onSaved, re
   </SheetContent></Sheet>
 }
 
+/** Create or edit a contact under the current organization. */
 export function ContactFormSheet({ kind, organizationId, contact, options, onClose, onSaved, returnFocus }: Common & { organizationId: string; contact: Contact | null; options: OrganizationOptions }) {
   const { t } = useTranslation()
   const [firstName, setFirstName] = useState(contact?.first_name ?? '')
@@ -59,6 +61,7 @@ export function ContactFormSheet({ kind, organizationId, contact, options, onClo
   </SheetContent></Sheet>
 }
 
+/** Create or edit typed organization information. */
 export function InfoFormSheet({ kind, organizationId, contactId, item, options, onClose, onSaved, returnFocus }: Common & { organizationId: string; contactId?: number; item: OrganizationInfo | null; options: OrganizationOptions }) {
   const { t } = useTranslation()
   const types = contactId === undefined ? options.organization_info_types : options.contact_info_types

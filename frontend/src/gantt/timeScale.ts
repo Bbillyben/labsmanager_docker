@@ -13,6 +13,7 @@ export function ganttScales(months: GanttMonths, language: string): [GanttScale,
   ]
 }
 
+/** Calculate the next boundary for a Gantt time-scale segment. */
 function nextBoundary(date: Date, scale: GanttScale) {
   if (scale.unit === 'year') return new Date(date.getFullYear() + 1, 0, 1, 12)
   if (scale.unit === 'month') return new Date(date.getFullYear(), date.getMonth() + 1, 1, 12)
@@ -21,6 +22,7 @@ function nextBoundary(date: Date, scale: GanttScale) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + daysUntilMonday, 12)
 }
 
+/** Build labelled time segments for the current Gantt scale. */
 export function ganttScaleSegments(from: Date, until: Date, scale: GanttScale) {
   const segments: { from: Date; to: Date; label: string }[] = []
   let cursor = new Date(from)

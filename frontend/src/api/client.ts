@@ -13,6 +13,7 @@ export function subscribeToUnauthorized(listener: UnauthorizedListener) {
   }
 }
 
+/** Decode an HTTP response and raise an API error on failure. */
 async function readResponse(response: Response): Promise<unknown> {
   if (response.status === 204) return undefined
   const contentType = response.headers.get('content-type') ?? ''

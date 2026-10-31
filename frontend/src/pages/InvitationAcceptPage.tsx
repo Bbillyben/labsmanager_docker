@@ -21,6 +21,7 @@ function stateFromError(error: unknown): InvitationState {
   return 'network'
 }
 
+/** Exchange an invitation key before presenting signup fields. */
 export function InvitationBridgePage() {
   const { token = '' } = useParams()
   const navigate = useNavigate()
@@ -49,6 +50,7 @@ export function InvitationBridgePage() {
   return <main className="centered-state"><LoadingState message={t('common.loading')} /></main>
 }
 
+/** Complete an invitation using the exchanged signup token. */
 export function InvitationAcceptPage() {
   const auth = useAuth()
   const { t } = useTranslation()

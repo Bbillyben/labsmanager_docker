@@ -81,6 +81,7 @@ export function ProjectListPage() {
   </>
 }
 
+/** Fetch the current Project page and render capability-scoped row actions. */
 function ProjectResults({ params, update, filtered, reset, retry }: { params: ProjectListParams; update: UpdateParams; filtered: boolean; reset: () => void; retry: () => void }) {
   const { t } = useTranslation()
   const [result, setResult] = useState<ProjectListResponse | null>(null)

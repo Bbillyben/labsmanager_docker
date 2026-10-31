@@ -5,11 +5,14 @@ import type { SettingValue } from './settings'
 const base = '/api/v1/settings/admin/'
 const json = { 'Content-Type': 'application/json' }
 export type AdminUser = { id: number; username: string; name: string; last_login: string | null; is_active: boolean; is_staff: boolean; employee: { id: number; name: string } | null }
+/** Invitation data and status returned by the administration API. */
 export type AdminInvitation = { id: number; email: string; created: string; sent: string | null; accepted: boolean; key_expired: boolean; inviter: { id: number; username: string } | null; employee?: { id: number; name: string } | null; group_ids?: number[] }
 export type AdminInvitationList = { results: AdminInvitation[]; group_options?: { id: number; name: string }[]; can_assign_groups?: boolean }
 export type PendingNotification = { id: number; user: string; source_type: string; action: string; object: string; created: string }
 export type PluginError = { stage: string; name: string; message: string }
+/** Dependency resolution state shown for an installed plugin. */
 export type PluginDependencies = { key: string; human_name: string; state: 'none' | 'satisfied' | 'missing' | 'incompatible' | 'invalid' | 'queued' | 'running' | 'failed' | 'restart_required'; requirements: { name: string; required: string; installed_version: string | null; on_disk_version: string | null; state: 'satisfied' | 'missing' | 'incompatible' }[]; errors: string[]; restart_required: boolean; can_install: boolean; operation: { state: string; message: string } | null }
+/** Plugin identity, origin, activation, and dependency state from admin settings. */
 export type PluginSummary = { key: string; human_name: string; description: string; author: string; pub_date: string | null; version: string | null; website: string | null; license: string | null; mixins: string[]; active: boolean; is_builtin: boolean; origin: 'sample' | 'builtin' | 'external'; error: boolean; dependencies: PluginDependencies | null }
 export type PluginDetail = PluginSummary & { sections: { settings?: UserSettingData[]; tokens?: boolean; schedule?: { name: string; function: string; schedule_type: string; repeat: number | null; next_run: string | null; success: boolean }[]; urls?: { base_url: string; routes: { name: string; url: string; href: string | null }[] } } }
 

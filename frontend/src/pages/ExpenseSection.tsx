@@ -30,6 +30,7 @@ export function ExpenseReadOnlyDetails({ item }: { item: Pick<Expense, 'expense_
   </dl>
 }
 
+/** List Expenses for the selected funding context and expose permitted actions. */
 export function ExpenseSection({ scope, onFinancialChange, title }: { scope: ExpenseScope; onFinancialChange?: () => void | Promise<unknown>; title?: string }) {
   const { t, language } = useTranslation()
   const sectionTitle = title ?? t('expenses.title')
@@ -88,6 +89,7 @@ export function ExpenseSection({ scope, onFinancialChange, title }: { scope: Exp
   </section>
 }
 
+/** Edit an Expense while preserving its Fund and Contract context. */
 function ExpenseSheet({ scope, mode, item, options, optionsError, retryOptions, returnFocus, onClose, onSaved }: { scope: ExpenseScope; mode: 's' | 'e' | 'h'; item: Expense | null; options: ExpenseOptions | null; optionsError: boolean; retryOptions: () => void; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: () => void }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<ExpenseWrite>({ expense_id: item?.expense_id ?? '', desc: item?.desc ?? '', date: item?.date ?? new Date().toISOString().slice(0, 10), type_id: item?.type.id, amount: item?.amount ?? '', status: item?.status ?? 'r', contract_id: item?.contract?.id ?? ('hubContractId' in scope ? scope.hubContractId : scope.contractId) ?? null, budget_id: scope.budgetId ?? item?.budget?.id ?? null })
@@ -112,6 +114,7 @@ function ExpenseSheet({ scope, mode, item, options, optionsError, retryOptions, 
   </form></SheetContent></Sheet>
 }
 
+/** Confirm a destructive Expense action in its funding context. */
 function ExpenseConfirmation({ title, description, confirmLabel, returnFocus, onCancel, onConfirm, onDone }: { title: string; description: string; confirmLabel?: string; returnFocus: React.RefObject<HTMLElement | null>; onCancel: () => void; onConfirm: () => Promise<unknown>; onDone: () => void }) {
   const { t } = useTranslation()
   const mutation = useMutation()

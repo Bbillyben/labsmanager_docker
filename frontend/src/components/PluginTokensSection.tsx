@@ -17,6 +17,7 @@ function errorText(error: unknown, fallback: string) {
   return [...parsed.messages, ...Object.values(parsed.fields).flat()].join(' ') || fallback
 }
 
+/** Create, reveal, and revoke personal plugin access tokens. */
 export function PluginTokensSection({ pluginKey, kind }: { pluginKey: string; kind: PluginTokenKind }) {
   const { t, language } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getPluginTokens(pluginKey, kind, signal), [pluginKey, kind])

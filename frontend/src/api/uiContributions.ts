@@ -2,7 +2,9 @@ import { apiRequest } from './client'
 
 /** Detail entities whose contribution lists are filtered by backend view permissions. */
 export type UIEntity = 'project' | 'employee' | 'team'
+/** Calendar view contributed by a plugin through the generic UI contract. */
 export type UICalendarType = 'main' | 'project_all' | 'project' | 'employee' | 'team'
+/** Plugin page navigation entry advertised by the backend. */
 export type UIPageNavigation = { location: 'calendars'; labels: Partial<Record<'fr' | 'en', string>>; icon: string | null; order: number }
 /** Scope encoded in the contribution endpoint; IDs are local to their owner. */
 export type UIContributionScope =

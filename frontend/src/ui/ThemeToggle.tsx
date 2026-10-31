@@ -3,6 +3,7 @@ import { DropdownMenuItem } from '../components/ui/dropdown-menu'
 import { useTranslation } from '../i18n/i18n'
 import { useAuth } from '../auth/AuthContext'
 
+/** Render one selectable theme choice in the account menu. */
 export function ThemeMenuItem() {
   const { t } = useTranslation()
   const auth = useAuth()

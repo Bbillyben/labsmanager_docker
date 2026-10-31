@@ -6,7 +6,9 @@ export type ImportProfile = { key: string; label: string; description: string; f
 export type ImportStructure = { expected: string[]; recognized: string[] | Record<string, string>; missing: string[]; extra: string[]; columns: number; rows: number; eligible?: boolean; aliases_used?: Record<string, string>; ambiguities?: string[]; errors?: string[]; warnings?: string[] }
 /** Dry-run or commit result from the Resource import pipeline. */
 export type ImportRow = { row_number: number; state: 'new' | 'update' | 'unchanged' | 'error'; identity: string; summary: string; error_message: string; diff: { field: string; old: string; new: string }[]; values: Record<string, string> }
+/** Preview or commit outcome returned by an import profile. */
 export type ImportResult = { summary: Record<ImportRow['state'], number>; rows: ImportRow[]; global_errors: string[]; can_commit: boolean; structure?: ImportStructure; sheet?: string; import_token?: string }
+/** Uploaded file and selected profile identity for an import request. */
 export type ImportUpload = { import_token: string; filename: string; size: number; format: string; sheets: string[]; structure: ImportStructure; sheet_structures: Record<string, ImportStructure> }
 
 const path = (profile: string, action: string) => `/api/v1/imports/${encodeURIComponent(profile)}/${action}/`

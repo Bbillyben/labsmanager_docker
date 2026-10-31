@@ -12,6 +12,7 @@ import { Button } from '../ui/Button'
 import { useEmployeeResource } from './useEmployeeResource'
 import styles from './SettingsHubPage.module.css'
 
+/** Show personal plugin preferences, settings, and tokens. */
 export function UserPluginsPage() {
   const { t } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getPersonalPlugins(signal), [])
@@ -49,6 +50,7 @@ function PluginPreferences({ pluginKey }: { pluginKey: string }) {
   </section>
 }
 
+/** Render editable personal settings supplied by a plugin. */
 function PluginSettingsPanel({ pluginKey, panelId }: { pluginKey: string; panelId: string }) {
   const { t } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getUISettingsPanel(pluginKey, panelId, signal), [pluginKey, panelId])
@@ -72,6 +74,7 @@ function PluginSettingsPanels({ pluginKey }: { pluginKey: string }) {
   </section>
 }
 
+/** Show one plugin’s personal settings, actions, and tokens. */
 export function UserPluginDetailPage() {
   const { pluginKey = '' } = useParams()
   const { t } = useTranslation()

@@ -32,6 +32,7 @@ type Resource<T> = { data: T | null; error: unknown; loading: boolean; retry: ()
 const modeKey = 'labsmanager:employee:leaves-display'
 const viewKey = 'labsmanager:employee:leaves-calendar-view'
 
+/** List Employee Leave with filters and contextual actions. */
 export function EmployeeLeaves() {
   const { employeeId, employee } = useEmployeeDetail()
   const { language, t } = useTranslation()
@@ -166,6 +167,7 @@ function ResourceState({ resource }: { resource: Resource<unknown> }) {
   return null
 }
 
+/** Load an Employee Leave resource and cancel stale requests. */
 function useAsyncResource<T>(loader: (signal: AbortSignal) => Promise<T>, resourceKey: string, onData?: (data: T) => void): Resource<T> {
   const [attempt, setAttempt] = useState(0)
   const key = `${resourceKey}:${attempt}`

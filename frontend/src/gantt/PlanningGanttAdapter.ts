@@ -9,6 +9,7 @@ type PlanningParticipationRow = {
   end_date: string | null
 }
 
+/** Convert Project planning data into shared Gantt items and dependencies. */
 export function adaptPlanningGantt(work: PlanningMilestone[], participations: PlanningParticipationRow[] = [], projects: Array<{ id: number; name: string; start_date?: string | null; end_date?: string | null }> = []): LabsManagerGanttData {
   const groups = new Map<number, LabsManagerGanttItem>()
   const children = new Map<number, LabsManagerGanttItem[]>()

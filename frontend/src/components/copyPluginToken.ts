@@ -1,3 +1,4 @@
+/** Copy a newly revealed token with a manual-selection fallback. */
 export async function copyPluginToken(input: HTMLInputElement): Promise<boolean> {
   const select = () => {
     input.focus()

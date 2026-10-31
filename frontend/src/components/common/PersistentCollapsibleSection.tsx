@@ -9,6 +9,7 @@ type Props = PropsWithChildren<{
   title: string
 }>
 
+/** Keep an expandable section’s state across navigation. */
 export function PersistentCollapsibleSection({ children, storageKey, title }: Props) {
   const { t } = useTranslation()
   const contentId = useId()

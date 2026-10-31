@@ -13,6 +13,7 @@ function isTypingTarget(target: EventTarget | null) {
   return target instanceof HTMLElement && (target.isContentEditable || Boolean(target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]')))
 }
 
+/** Open the global search interface and coordinate its query state. */
 export function GlobalSearch() {
   const { t } = useTranslation()
   const navigate = useNavigate()

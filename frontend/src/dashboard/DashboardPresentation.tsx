@@ -8,6 +8,7 @@ import { buttonVariants } from '../components/ui/button'
 import { DashboardGrid } from './DashboardGrid'
 import './DashboardPage.css'
 
+/** Select a registered renderer and display a Dashboard widget payload. */
 export function DashboardPresentation() {
   const { dashboardId = '' } = useParams()
   const { t } = useTranslation()

@@ -6,6 +6,7 @@ import { OrganizationChartPrintView } from './OrganizationChartPrintView'
 import { DashboardPrintView } from '../dashboard/DashboardPrintView'
 
 let registered = false
+/** Register core print renderers at application startup. */
 export function registerBuiltinPrintRenderers() {
   if (registered) return
   registered = true

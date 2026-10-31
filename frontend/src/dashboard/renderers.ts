@@ -19,10 +19,12 @@ import type { DashboardMode } from './mode'
 export type DashboardRenderer = (props: { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }) => ReactNode
 type RendererEntry = { component: DashboardRenderer; printComponent?: DashboardRenderer }
 const registry = new Map<string, RendererEntry>()
+/** Register a renderer under its stable widget type. */
 export function registerDashboardRenderer(key: string, renderer: DashboardRenderer, printComponent?: DashboardRenderer) {
   if (registry.has(key)) throw new Error(`Duplicate dashboard renderer: ${key}`)
   registry.set(key, { component: renderer, printComponent })
 }
+/** Resolve the renderer for a widget type. */
 export function getDashboardRenderer(key: string, mode: DashboardMode = 'view') {
   const entry = registry.get(key)
   return mode === 'print' ? entry?.printComponent ?? entry?.component : entry?.component

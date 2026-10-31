@@ -4,6 +4,7 @@ import type { CalendarEvent, CalendarFilter, CalendarFilterValue, EmployeeLeave,
 export type ProjectCalendarParticipant = { id: number; title: string; capabilities: LeaveCapabilities }
 const base = (projectId: string) => `/api/v1/projects/${encodeURIComponent(projectId)}/calendar/`
 
+/** Fetch Project-scoped events for the selected date range. */
 export function getProjectCalendar(projectId: string, range: { from: string; to: string }, filters: Record<string, CalendarFilterValue>, signal: AbortSignal) {
   const query = new URLSearchParams(range)
   for (const [key, value] of Object.entries(filters)) {

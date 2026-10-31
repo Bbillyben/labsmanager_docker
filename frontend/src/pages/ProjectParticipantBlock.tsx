@@ -21,6 +21,7 @@ import styles from './ProjectOverview.module.css'
 type Props = { projectId: string; resource: EmployeeResource<ProjectOverview> }
 const dateLabel = (value: string | null, language: string) => value ? new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : '—'
 
+/** List and edit Employee participation in a Project. */
 export function ProjectParticipantBlock({ projectId, resource }: Props) {
   const { t, language } = useTranslation()
   const [editing, setEditing] = useState<ProjectParticipant | 'new' | null>(null)
@@ -61,6 +62,7 @@ export function ProjectParticipantBlock({ projectId, resource }: Props) {
   </section>
 }
 
+/** Edit Employee participation in a Project. */
 export function ParticipantSheet({ projectId, project, item, initialEmployeeId, onClose, onSaved }: { projectId: string; project: ProjectOverview; item: ProjectParticipant | null; initialEmployeeId?: number; onClose: () => void; onSaved: (item: ProjectParticipant) => void }) {
   const { t } = useTranslation()
   const [employeeId, setEmployeeId] = useState(item ? String(item.employee.id) : initialEmployeeId ? String(initialEmployeeId) : '')
@@ -95,6 +97,7 @@ export function ParticipantSheet({ projectId, project, item, initialEmployeeId, 
   </SheetContent></Sheet>
 }
 
+/** Confirm removal of a Project participant. */
 function DeleteParticipant({ projectId, item, focus, onClose, onDeleted }: { projectId: string; item: ProjectParticipant; focus: RefObject<HTMLElement | null>; onClose: () => void; onDeleted: () => void }) {
   const { t } = useTranslation()
   const mutation = useMutation()

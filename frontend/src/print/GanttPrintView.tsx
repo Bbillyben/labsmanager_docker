@@ -10,6 +10,7 @@ import styles from './print.module.css'
 
 export type GanttPrintState = { data: LabsManagerGanttData; events: CalendarEvent[]; window: GanttWindow; filters?: Record<string, unknown>; closedKeys?: string[] }
 
+/** Render a Gantt view as a print-specific timeline. */
 export function GanttPrintView({ state, onReady }: PrintRendererProps<GanttPrintState>) {
   const { language } = useTranslation()
   useEffect(() => { onReady() }, [onReady])

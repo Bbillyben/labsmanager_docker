@@ -1,5 +1,6 @@
 import type { SearchProviderSchema, SearchResult } from '../api/globalSearch'
 
+/** Group search results by provider while preserving server order. */
 export function groupResults(results: SearchResult[], providers: SearchProviderSchema[]) {
   const groups = new Map<string, SearchResult[]>()
   for (const result of results) groups.set(result.provider_key, [...(groups.get(result.provider_key) ?? []), result])

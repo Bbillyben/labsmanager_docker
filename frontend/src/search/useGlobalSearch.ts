@@ -11,6 +11,7 @@ function syntaxError(error: unknown): SearchError {
     ? { message: payload.message, position: typeof payload.position === 'number' ? payload.position : null } : null
 }
 
+/** Load the search schema used by filters and autocomplete. */
 export function useSearchSchema() {
   const [providers, setProviders] = useState<SearchProviderSchema[]>([])
   useEffect(() => {
@@ -21,6 +22,7 @@ export function useSearchSchema() {
   return providers
 }
 
+/** Debounce search requests and ignore responses for superseded queries. */
 export function useGlobalSearch(query: string, options: { provider?: string; limit: number; perProvider: number; delay?: number }) {
   const { provider, limit, perProvider, delay = 250 } = options
   const [response, setResponse] = useState<{ key: string; results: SearchResult[]; counts: Record<string, number> }>({ key: '', results: [], counts: {} })

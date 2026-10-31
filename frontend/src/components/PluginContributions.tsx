@@ -14,6 +14,7 @@ import { PluginModule } from './PluginModule'
 type ContributionContext = { scope: UIContributionScope; actionSlot: string; sectionSlot: string | null; items: UIContribution[]; error: unknown; retry: () => void }
 const Context = createContext<ContributionContext | null>(null)
 
+/** Read contributions and action handlers from the current plugin UI context. */
 function useContributions() {
   const context = useContext(Context)
   if (!context) throw new Error('PluginContributionsProvider is required')
@@ -134,6 +135,7 @@ export function PluginEntityActions({ groups, presentation = 'menu', ...props }:
   </>
 }
 
+/** Render a plugin-provided section in its declared entity context. */
 function PluginSection({ item, scope }: { item: UIContribution; scope: UIContributionScope }) {
   const { t } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getUISection(scope, item.id, signal), [scope, item.id])
@@ -147,6 +149,7 @@ function PluginSection({ item, scope }: { item: UIContribution; scope: UIContrib
   </section>
 }
 
+/** Resolve section data using the shared contribution contract. */
 function SectionContent({ content }: { content: UISection }) {
   const { t } = useTranslation()
   if (content.format === 'text') return content.text ? <p className="whitespace-pre-wrap">{content.text}</p> : <p>{t('pluginUI.empty')}</p>
@@ -183,6 +186,7 @@ export function PluginPublishedCalendarActions({ providerSlug, calendarId }: { p
   </PluginContributionsProvider>
 }
 
+/** Render generic calendar actions advertised by published providers. */
 function PublishedCalendarActionButtons() {
   const { error, retry } = useContributions()
   const { t } = useTranslation()
@@ -197,6 +201,7 @@ export function UserPluginActions({ pluginKey, className }: { pluginKey: string;
   return <PluginContributionsProvider key={pluginKey} scope={{ pluginKey }}><UserPluginActionSection className={className} /></PluginContributionsProvider>
 }
 
+/** Show actions contributed to user plugin settings. */
 function UserPluginActionSection({ className }: { className?: string }) {
   const { actionSlot, items, error, retry } = useContributions()
   const { t } = useTranslation()

@@ -9,6 +9,7 @@ import styles from './ProjectPortfolioRenderer.module.css'
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 type Signal = DashboardProjectPortfolioData['items'][number]['attention_signals'][number]
 
+/** Show Project portfolio rows and their attention signals. */
 export function ProjectPortfolioRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   const data = widget.data as DashboardProjectPortfolioData | null

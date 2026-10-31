@@ -11,6 +11,7 @@ export type PluginCalendarResource = { id: string; title: string }
 /** Exclusive end date and inclusive start date requested by the host view. */
 export type PluginCalendarRange = { start: string; end: string }
 
+/** Construct a stable identity for a plugin calendar view. */
 export function pluginCalendarViewKey(scope: ProjectCalendarScope, mode: PluginCalendarMode) {
   return mode === 'list' ? `list_${scope}` : projectCalendarViewDefinition(scope, mode).key
 }

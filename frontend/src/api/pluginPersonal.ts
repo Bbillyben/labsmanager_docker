@@ -7,6 +7,7 @@ const pluginBase = (key: string) => `/api/v1/plugins/${encodeURIComponent(key)}/
 
 /** Active plugin capabilities shown in the current user's settings page. */
 export type PersonalPlugin = { key: string; human_name: string; description: string; user_settings: boolean; user_tokens: boolean; ui_actions?: boolean; ui_panels?: boolean }
+/** Token category supported by personal plugin settings. */
 export type PluginTokenKind = 'plugin' | 'user'
 export type TokenScope = { name: string; label: string; description: string }
 /** Public token metadata; the server never returns the secret on a list call. */
@@ -14,6 +15,7 @@ export type PluginToken = {
   public_id: string; name: string; kind: PluginTokenKind; scopes: string[]
   created_at: string; expires_at: string | null; revoked_at: string | null; last_used_at: string | null
 }
+/** Personal plugin token metadata; secrets are never returned here. */
 export type PluginTokenList = { scopes: TokenScope[]; tokens: PluginToken[] }
 /** Creation-only response carrying the complete token secret. */
 export type CreatedPluginToken = PluginToken & { token: string }

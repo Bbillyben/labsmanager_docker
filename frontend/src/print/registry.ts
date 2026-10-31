@@ -12,9 +12,11 @@ export type PrintRendererDefinition = {
 
 const renderers = new Map<string, PrintRendererDefinition>()
 
+/** Register a renderer for a stable print-view type. */
 export function registerPrintRenderer(definition: PrintRendererDefinition) {
   if (renderers.has(definition.key)) throw new Error(`Print renderer already registered: ${definition.key}`)
   renderers.set(definition.key, definition)
 }
 
+/** Resolve a renderer for a registered print-view type. */
 export function getPrintRenderer(key: string) { return renderers.get(key) ?? null }

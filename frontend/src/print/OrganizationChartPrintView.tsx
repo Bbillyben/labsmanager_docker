@@ -7,6 +7,7 @@ import styles from './print.module.css'
 
 export type OrganizationChartPrintState = { graph: OrganizationGraph; showCurrentOnly: boolean; search: string; focusId?: number | null }
 
+/** Render the Employee hierarchy for printing. */
 export function OrganizationChartPrintView({ state, onReady }: PrintRendererProps<OrganizationChartPrintState>) {
   const { t } = useTranslation()
   const [layout, setLayout] = useState<Awaited<ReturnType<typeof layoutOrganizationGraph>> | null>(null)

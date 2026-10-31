@@ -15,6 +15,7 @@ function Organization({ value, kind }: { value: ContractRecord['fund']['funder']
   return value.can_view ? <Link to={`/organizations/${kind}/${value.id}`}>{value.name}</Link> : value.name
 }
 
+/** Show Contract details with links to its Employee, Fund, and Project. */
 export function ContractDetail({ contract }: { contract: ContractRecord }) {
   useTrackRecent('contract', contract.id)
   const { t, language } = useTranslation()

@@ -25,6 +25,7 @@ type Props = {
   renderActions?: (project: ProjectItem) => ReactNode
 }
 
+/** Display Project list data and authorized row actions. */
 export function ProjectListTable({ projects, selectedId, onSelect, ordering, onSort, linkState, renderActions }: Props) {
   const { t, language } = useTranslation()
   function header(label: string, field: ProjectSortField) {

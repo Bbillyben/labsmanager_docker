@@ -26,6 +26,7 @@ type Props = {
   api: GenericInfoApi
 }
 
+/** Display typed information and authorized add, edit, and delete actions. */
 export function GenericInfoSection({ data, loading, error, retry, refreshing, refreshError, refresh, update, api }: Props) {
   const { t } = useTranslation()
   const { selectedId, setSelectedId, containerRef, rowProps } = useSelectableItem()
@@ -83,6 +84,7 @@ export function GenericInfoSection({ data, loading, error, retry, refreshing, re
   </section>
 }
 
+/** Confirm removal of a typed information entry. */
 function DeleteInfo({ api, item, onCancel, onDeleted, returnFocus }: {
   api: GenericInfoApi; item: GenericInfoItem; onCancel: () => void; onDeleted: () => void; returnFocus: RefObject<HTMLElement | null>
 }) {

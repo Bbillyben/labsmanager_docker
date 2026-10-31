@@ -9,6 +9,7 @@ import styles from './ProjectHealthBarsRenderer.module.css'
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 type Relative = DashboardProjectHealthBarsData['items'][number]['deadline']['relative']
 
+/** Compare planning, funding, and Contract signals for Projects. */
 export function ProjectHealthBarsRenderer({ widget, size, mode = 'view' }: Props) {
   const { t } = useTranslation()
   const data = widget.data as DashboardProjectHealthBarsData | null

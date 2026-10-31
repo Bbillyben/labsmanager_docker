@@ -2,6 +2,7 @@ import { CopyableValue } from './common/CopyableValue'
 import { useTranslation } from '../i18n/i18n'
 import { typedInfoHref, type InfoKind } from './typedInfoLinks'
 
+/** Render an information value according to its declared type. */
 export function TypedInfoValue({ kind, value, mapProvider }: { kind: InfoKind; value: string | null; mapProvider: 'gmap' | 'opensm' }) {
   const { t } = useTranslation()
   const href = typedInfoHref(kind, value, mapProvider)

@@ -10,6 +10,7 @@ function errorText(error: unknown, fallback: string) {
   return [...parsed.messages, ...Object.values(parsed.fields).flat()].join(' ') || fallback
 }
 
+/** Group settings and expose permitted edits through the shared Sheet. */
 export function SettingList({ settings, onChange, onReset }: {
   settings: UserSettingData[]
   onChange: (key: string, value: SettingValue) => Promise<UserSettingData>

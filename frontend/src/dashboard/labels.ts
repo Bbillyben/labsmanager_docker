@@ -1,6 +1,7 @@
 import type { useTranslation } from '../i18n/i18n'
 
 type Translate = ReturnType<typeof useTranslation>['t']
+/** Translate a registered Dashboard renderer label. */
 export function dashboardRendererLabel(key: string, fallback: string, t: Translate) {
   switch (key) {
     case 'kpi': return t('dashboard.renderer.kpi')

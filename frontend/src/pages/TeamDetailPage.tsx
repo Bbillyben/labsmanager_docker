@@ -57,6 +57,7 @@ export function TeamDetailPage() {
   </PluginContributionsProvider>
 }
 
+/** Show Team leader, members, and membership actions. */
 function TeamInformation({ teamId, team, refresh }: { teamId: string; team: Team; refresh: () => void }) {
   const { t, language } = useTranslation()
   const navigate = useNavigate()
@@ -96,6 +97,7 @@ function TeamInformation({ teamId, team, refresh }: { teamId: string; team: Team
   </section>
 }
 
+/** Load Projects related to the visible Team. */
 function TeamProjectsPanel({ teamId }: { teamId: string }) {
   const { t, language } = useTranslation()
   const resource = useEmployeeResource(teamId, getTeamProjects)
@@ -107,6 +109,7 @@ function TeamProjectsPanel({ teamId }: { teamId: string }) {
 const date = (value: string | null, language: string) => value ? new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(new Date(`${value}T12:00:00`)) : '—'
 const money = (value: string | null, language: string) => value === null ? '—' : new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(Number(value))
 
+/** Load Budgets associated with visible Team Projects. */
 function TeamBudgetPanel({ teamId }: { teamId: string }) {
   const { t, language } = useTranslation()
   const resource = useEmployeeResource(teamId, getTeamBudgets)

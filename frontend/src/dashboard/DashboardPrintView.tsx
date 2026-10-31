@@ -6,6 +6,7 @@ import { printableWidgets, type DashboardPrintState } from './printLayout'
 import './DashboardPage.css'
 import './DashboardPrint.css'
 
+/** Render a Dashboard in its print-oriented layout. */
 export function DashboardPrintView({ state, onReady }: PrintRendererProps<DashboardPrintState>) {
   const { t } = useTranslation()
   const definitions = useMemo(() => new Map(state.definitions.map((item) => [item.key, item])), [state.definitions])

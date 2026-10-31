@@ -3,6 +3,7 @@ import { GenericInfoSection } from './GenericInfoSection'
 import type { GenericInfoApi } from './genericInfoContext'
 import { useEmployeeResource } from './useEmployeeResource'
 
+/** Display and edit categorized Employee information when authorized. */
 export function EmployeeGenericInfo({ employeeId }: { employeeId: string }) {
   const resource = useEmployeeResource(employeeId, getEmployeeGenericInfo)
   const api: GenericInfoApi = {

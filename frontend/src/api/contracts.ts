@@ -3,6 +3,7 @@ import type { EmployeeContract } from './employees'
 import { contractFilters } from '../config/contractFilters'
 import { filterDefaultsMarker, readFilterQuery } from '../filters/url'
 
+/** Identifies the Employee, Project, or Fund context of Contract operations. */
 export type ContractScope = { projectId: string; employeeId?: never; hubContractId?: never } | { employeeId: string; projectId?: never; hubContractId?: never } | { hubContractId: number; projectId?: never; employeeId?: never }
 export type ContractCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
 export type EmployeeEndDateSyncOffer = { employee_id: number; current_end_date: string | null; proposed_end_date: string; can_update: boolean }
@@ -43,6 +44,7 @@ export function readContractHubParams(query: URLSearchParams): ContractHubParams
   const ordering = query.get('ordering') ?? 'employee__last_name'
   return { filters: readFilterQuery(contractFilters(), query), ordering: contractHubSortFields.some((field) => ordering === field || ordering === `-${field}`) ? ordering as ContractHubOrdering : 'employee__last_name', limit: Math.min(Math.max(positiveInt(query.get('limit'), 25), 1), 250), offset: positiveInt(query.get('offset'), 0) }
 }
+/** Serialize Contract Hub filters into a canonical request query. */
 export function contractHubQuery(params: ContractHubParams, forApi = false) {
   const query = new URLSearchParams()
   for (const [key, value] of params.filters) if (!forApi || value) query.set(key, value)
@@ -59,6 +61,7 @@ const base = (scope: ContractScope) => 'hubContractId' in scope ? '/api/v1/contr
   ? `/api/v1/projects/${scope.projectId}/contracts/`
   : `/api/v1/employees/${scope.employeeId}/contracts/`
 
+/** Fetch Contracts in the selected scope with URL-backed filters. */
 export async function getContracts(scope: ContractScope, signal: AbortSignal): Promise<ContractCollection> {
   if ('projectId' in scope) return apiRequest<ContractCollection>(base(scope), { signal })
   const [items, capabilities] = await Promise.all([

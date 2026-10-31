@@ -2,6 +2,7 @@ import { apiRequest } from '../api/client'
 import type { EntitySources } from '../filters/types'
 
 type SearchResult = { results: Array<{ id: number; name: string; short_name: string }>; has_more: boolean }
+/** Define organization choices for financial filters. */
 function organizationSource(kind: 'institutions' | 'funders') {
   const request = (params: URLSearchParams, signal: AbortSignal) => apiRequest<SearchResult>(`/api/v1/financial/organizations/?${params}`, { signal })
   return {

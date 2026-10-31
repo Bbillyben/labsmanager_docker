@@ -1,8 +1,10 @@
 import { apiRequest } from './client'
 import type { CostType } from './funding'
 
+/** Distinguishes Budget and Contribution rows in Project funding. */
 export type BudgetKind = 'budget' | 'contribution'
 export type NamedId = { id: number; name: string }
+/** Server-authorized operations for a funding row. */
 export type BudgetCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
 export type BudgetBase = {
   admin_url?: string | null
@@ -19,6 +21,7 @@ export type BudgetBase = {
 }
 export type ProjectBudget = BudgetBase & { expense: string; available: string | null; consumption_ratio: string | null }
 export type ProjectContribution = BudgetBase & { start_date: string | null; end_date: string | null }
+/** Project funding rows and contextual creation actions. */
 export type BudgetCollection<T> = { capabilities: BudgetCapabilities; items: T[] }
 export type BudgetOptions = { funds: NamedId[]; cost_types: CostType[]; employee_types: NamedId[]; contract_types: NamedId[]; employees: NamedId[] }
 export type BudgetWrite = {

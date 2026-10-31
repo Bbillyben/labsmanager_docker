@@ -30,6 +30,7 @@ const recentTypeKeys: Record<string, TranslationKey> = {
   'fund-explorer': 'financial.fundItems', 'budget-explorer': 'financial.budgets', expenses: 'financial.expenses',
 }
 
+/** Assemble the signed-in home page from available quick links and support actions. */
 export function HomePage() {
   const auth = useAuth()
   const { t } = useTranslation()

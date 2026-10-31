@@ -1,5 +1,6 @@
 import type { WorkloadPreset } from '../components/WorkloadTimeline'
 
+/** Derive the visible time window for a Project workload view. */
 export function workloadWindow(today: Date, preset: Exclude<WorkloadPreset, 'all'>, offset: number) {
   const shift = offset * 6
   const start = addUtcMonths(today, (preset === 'year' ? -3 : -12) + shift)
@@ -8,6 +9,7 @@ export function workloadWindow(today: Date, preset: Exclude<WorkloadPreset, 'all
 }
 
 function isoDate(value: Date) { return value.toISOString().slice(0, 10) }
+/** Advance a workload date by calendar months in UTC. */
 function addUtcMonths(value: Date, amount: number) {
   const year = value.getUTCFullYear()
   const month = value.getUTCMonth() + amount

@@ -10,6 +10,7 @@ import styles from './ProjectPlanningDelaySheet.module.css'
 
 type Props = { projectId: string; rootIds: number[]; returnFocus: RefObject<HTMLElement | null>; onClose: () => void; onApplied: () => void }
 
+/** Adjust planning dates while preserving dependency constraints. */
 export function ProjectPlanningDelaySheet({ projectId, rootIds, returnFocus, onClose, onApplied }: Props) {
   const { t } = useTranslation()
   const [days, setDays] = useState('14')

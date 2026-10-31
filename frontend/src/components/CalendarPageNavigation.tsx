@@ -12,6 +12,7 @@ type NativeTab = 'employees' | 'projects'
 type Props = { active: NativeTab | string; onSelectNative?: (tab: NativeTab) => void }
 const icons = { calendar: CalendarDays, copy: Copy, 'external-link': ExternalLink, link: Link2, info: Info, play: Play }
 
+/** Render native and plugin calendar navigation entries. */
 export function CalendarPageNavigation({ active, onSelectNative }: Props) {
   const { language, t } = useTranslation()
   const location = useLocation()

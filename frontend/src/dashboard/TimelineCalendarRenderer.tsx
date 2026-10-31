@@ -10,6 +10,7 @@ import styles from './TimelineCalendarRenderer.module.css'
 
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 
+/** Display Dashboard timeline events in a calendar layout. */
 export function TimelineCalendarRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   if (!isTimeline(widget.data)) return <p className="muted-text">{t('dashboard.emptyWidget')}</p>

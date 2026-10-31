@@ -4,6 +4,7 @@ import type { PrintRequest } from './registry'
 export type PrintContextValue = { openPrintView: (request: PrintRequest) => void }
 export const PrintContext = createContext<PrintContextValue | null>(null)
 
+/** Access the selected print view and its registration actions. */
 export function usePrintView() {
   const value = useContext(PrintContext)
   return (request: PrintRequest) => {

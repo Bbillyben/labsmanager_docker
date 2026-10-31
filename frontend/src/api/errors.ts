@@ -1,3 +1,4 @@
+/** HTTP failure with status and server-provided detail. */
 export class ApiError extends Error {
   readonly status: number
   readonly payload: unknown
@@ -10,6 +11,7 @@ export class ApiError extends Error {
   }
 }
 
+/** Field and form errors returned by a failed mutation. */
 export type MutationError = {
   kind: 'validation' | 'forbidden' | 'notFound' | 'unauthorized' | 'server' | 'network'
   fields: Record<string, string[]>

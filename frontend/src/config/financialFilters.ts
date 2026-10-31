@@ -8,6 +8,7 @@ const choice = (t: I18nContextValue['t'], id: string, label: string, source: str
 const text = (t: I18nContextValue['t'], id: string, label: string, parameter = id) => ({ id, label, category: t('filters.categoryRelations'), type: 'text', parameter } as const)
 const amount = (t: I18nContextValue['t']) => ({ id: 'available', label: t('funding.available'), category: t('filters.categorySituation'), type: 'number', parameter: 'available' } as const)
 
+/** Build filter definitions for the selected financial list. */
 export function financialFilters(kind: FinancialKind, t: I18nContextValue['t'] = (key, variables) => translate('fr', key, variables)): readonly SupportedFilter[] {
   const base = [entity(t, 'project', t('employee.project'), 'projects'), entity(t, 'institution', t('contracts.institution'), 'financialInstitutions'), entity(t, 'funder', t('contracts.funder'), 'financialFunders'), text(t, 'fundref', t('filters.fundReference'))]
   if (kind === 'fund-items') return [choice(t, 'type', t('funding.costType'), 'costTypes'), amount(t), bool(t, 'active', t('filters.activity'), 'active'), ...base, entity(t, 'participant', t('filters.participant'), 'allEmployees'), bool(t, 'stale', t('filters.overdue'), 'stale')]

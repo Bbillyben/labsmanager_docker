@@ -45,6 +45,7 @@ function EmployeeNode({ data }: NodeProps) {
 
 const nodeTypes = { employee: EmployeeNode }
 
+/** Lay out hierarchy nodes, links, scope controls, and selection state. */
 function ChartContent() {
   const { t } = useTranslation()
   const flow = useReactFlow()
@@ -141,6 +142,7 @@ function ChartContent() {
   </>
 }
 
+/** Load and render the Employee hierarchy with scope-aware actions. */
 export function OrganizationChartPage() {
   return <ReactFlowProvider><ChartContent /></ReactFlowProvider>
 }

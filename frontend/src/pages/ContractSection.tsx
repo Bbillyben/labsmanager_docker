@@ -24,6 +24,7 @@ import styles from './ContractSection.module.css'
 const keyFor = (scope: ContractScope) => 'hubContractId' in scope ? `hub:${scope.hubContractId}` : 'projectId' in scope ? `project:${scope.projectId}` : `employee:${scope.employeeId}`
 const nameOf = (item: ContractRecord) => item.contract_type?.name ?? item.fund.display_name
 
+/** Coordinate Contract reading and mutation in an Employee or Project context. */
 export function ContractSection({ scope, onEmployeeEndDateChange }: { scope: ContractScope; onEmployeeEndDateChange?: () => void | Promise<unknown> }) {
   const { t, language } = useTranslation()
   const context = useMemo<ContractScope>(() => scope.projectId !== undefined ? { projectId: scope.projectId } : { employeeId: scope.employeeId! }, [scope.projectId, scope.employeeId])
@@ -112,6 +113,7 @@ function ContractSelected({ scope, item, expenseScope }: { scope: ContractScope;
   </div>
 }
 
+/** Edit a Contract under the current Employee or Fund context. */
 export function ContractFormSheet({ scope, item, returnFocus, onClose, onSaved }: { scope: ContractScope; item: ContractRecord | null; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: (item: ContractRecord) => void }) {
   const { t } = useTranslation()
   const loadOptions = useCallback((_id: string, signal: AbortSignal) => getContractOptions(scope, signal), [scope])
@@ -123,6 +125,7 @@ export function ContractFormSheet({ scope, item, returnFocus, onClose, onSaved }
   </SheetContent></Sheet>
 }
 
+/** Collect Contract fields and submit them with contextual validation. */
 function ContractForm({ scope, item, options, onCancel, onSaved }: { scope: ContractScope; item: ContractRecord | null; options: ContractOptions | null; onCancel: () => void; onSaved: (item: ContractRecord) => void }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<ContractWrite>({

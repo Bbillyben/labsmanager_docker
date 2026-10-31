@@ -36,6 +36,7 @@ const TOP = 8
 const BOTTOM = 24
 const DAY = 86_400_000
 
+/** Render dated workload segments with selection details. */
 export function WorkloadTimeline({ copy, data, preset, shifted, onPresetChange, onPrevious, onNext, onToday }: Props) {
   const { language, t } = useTranslation()
   const [selected, setSelected] = useState<WorkloadTimelineSegment | null>(null)

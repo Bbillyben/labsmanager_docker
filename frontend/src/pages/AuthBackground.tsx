@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import styles from './LoginPage.module.css'
 
+/** Keep one randomly chosen background image stable for an auth page mount. */
 export function AuthBackground({ children }: { children: ReactNode }) {
   const [backgroundNumber] = useState(() => Math.floor(Math.random() * 3) + 1)
 

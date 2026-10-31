@@ -20,6 +20,7 @@ import { ProjectPlanningDelaySheet } from './ProjectPlanningDelaySheet'
 import { useEmployeeResource } from './useEmployeeResource'
 import styles from './EmployeeDetailPage.module.css'
 
+/** Load and present Project planning items and actions. */
 export function ProjectPlanningPanel({ projectId, contextName }: { projectId: string; contextName?: string }) {
   const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()

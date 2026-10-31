@@ -2,6 +2,7 @@ import type { InfoType } from '../api/organizations'
 
 export type InfoKind = InfoType['type']
 
+/** Create a safe navigation target from typed information. */
 export function typedInfoHref(kind: InfoKind, value: string | null, mapProvider: 'gmap' | 'opensm') {
   if (!value?.trim()) return null
   if (kind === 'tel') return `tel:${value.trim()}`

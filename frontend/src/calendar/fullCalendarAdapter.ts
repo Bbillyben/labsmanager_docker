@@ -2,6 +2,7 @@ import type { EventInput } from '@fullcalendar/react'
 import type { CalendarEvent } from '../api/employees'
 import { calendarEventResourceIds } from './resourceVisibility'
 
+/** Extra event fields consumed by LabsManager calendar interactions. */
 export type LabsManagerEventProps = {
   description: string | null
   source: string
@@ -9,6 +10,7 @@ export type LabsManagerEventProps = {
   metadata: Record<string, unknown>
 }
 
+/** Convert one API event into FullCalendar event input. */
 export function toFullCalendarEvent(event: CalendarEvent, canChange = false): EventInput {
   const leaveId = Number(event.metadata.leave_id)
   const isLeave = event.source === 'core' && event.kind === 'leave' && Number.isInteger(leaveId) && leaveId > 0 && event.display !== 'background'
@@ -34,6 +36,7 @@ export function toFullCalendarEvent(event: CalendarEvent, canChange = false): Ev
   }
 }
 
+/** Convert a collection of API events for FullCalendar rendering. */
 export function toFullCalendarEvents(events: CalendarEvent[], canChange = false): EventInput[] {
   return events.map((event) => toFullCalendarEvent(event, canChange))
 }

@@ -14,6 +14,7 @@ type Props = {
   onToday: () => void
 }
 
+/** Render Project workload segments with dated labels. */
 export function ProjectWorkloadTimeline(props: Props) {
   const { t } = useTranslation()
   return <WorkloadTimeline

@@ -28,6 +28,7 @@ const suggestionLabels = {
   value: 'globalSearch.suggestion.value',
 } as const
 
+/** Show syntax-aware suggestions while editing a search query. */
 export function SearchAutocompleteInput({ value, onChange, inputRef, provider, active = true, name,
   className, wrapClassName, onFallbackKeyDown, onFocus, onSuggestionsVisible,
   fallbackListId, fallbackActiveId, fallbackExpanded }: Props) {

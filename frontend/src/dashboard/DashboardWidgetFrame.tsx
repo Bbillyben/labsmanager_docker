@@ -15,6 +15,7 @@ class WidgetErrorBoundary extends Component<{ children: ReactNode; fallback: Rea
   render() { return this.state.failed ? this.props.fallback : this.props.children }
 }
 
+/** Contain widget loading, errors, actions, and renderer output. */
 export function DashboardWidgetFrame({ widget, definition, mode, onConfigure, onRemove, width, height }: {
   widget: DashboardWidget; definition?: WidgetDefinition; mode: DashboardMode
   onConfigure?: () => void; onRemove?: () => void; width?: number; height?: number

@@ -15,6 +15,7 @@ type Props = {
   returnFocus: RefObject<HTMLElement | null>
 }
 
+/** Edit a setting in a Sheet with API validation feedback. */
 export function SettingsSheet({ title, description, load, save, onClose, returnFocus }: Props) {
   const { t } = useTranslation()
   const [settings, setSettings] = useState<SettingData[] | null>(null)

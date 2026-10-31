@@ -2,6 +2,7 @@ import { getEmployee, getEmployees, readEmployeeParams } from '../api/employees'
 import { ApiError } from '../api/errors'
 import type { EntitySources } from '../filters/types'
 
+/** Define Employee search options for shared list filters. */
 function employeeSource(includeInactive: boolean) {
   return {
     async search(search, signal) {

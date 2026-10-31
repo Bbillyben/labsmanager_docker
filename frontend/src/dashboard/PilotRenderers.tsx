@@ -10,6 +10,7 @@ const itemsFor = (data: unknown): DashboardListItem[] => {
   return data.items.filter((item): item is DashboardListItem => Boolean(item && typeof item.key === 'string' && typeof item.label === 'string'))
 }
 const progressPercent = (item: DashboardListItem) => item.percent ?? (item.total && item.current !== undefined ? item.current / item.total * 100 : 0)
+/** Render compact list items from a Dashboard payload. */
 function List({ widget, size, mode, variant }: Props & { variant: 'compact' | 'alert' | 'progress' }) {
   const { t, language } = useTranslation()
   const items = itemsFor(widget.data).slice(0, mode === 'print' ? undefined : size === 'compact' ? 3 : size === 'standard' ? 6 : 12)

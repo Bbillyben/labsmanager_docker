@@ -28,6 +28,7 @@ type Props = {
   onSort?: (ordering: ContractHubOrdering) => void
 }
 
+/** Render Contract rows and contextual actions from the current collection. */
 export function ContractHubTable({ items, selectedId, onSelect, onNotesClosed, onEdit, onActionTrigger, editingId, ordering, onSort }: Props) {
   const { t, language } = useTranslation()
   const [notesFor, setNotesFor] = useState<ContractHubItem | null>(null)

@@ -7,6 +7,7 @@ type HalfDayData = {
   end_period?: unknown
 }
 
+/** Format a half-day boundary for Leave presentation. */
 export function halfDayLabel(data: HalfDayData, t: I18nContextValue['t']) {
   const startsAtMidday = data.start_period === 'MI'
   const endsAtMidday = data.end_period === 'MI'

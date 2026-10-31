@@ -1,3 +1,4 @@
+/** Copy text through a temporary selection when Clipboard API is unavailable. */
 function copyWithDocument(value: string) {
   if (typeof document.execCommand !== 'function') return false
 

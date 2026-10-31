@@ -23,6 +23,7 @@ type Mode = 'calendar' | 'list' | 'resources'
 type Dates = { start_date: string; end_date: string }
 const emptyFilters: CalendarFilter[] = []
 
+/** Display Project calendar events and available calendar actions. */
 export function ProjectCalendarPanel({ projectId, teamId, contextName }: { projectId?: string; teamId?: string; contextName?: string }) {
   const id = teamId ?? projectId ?? ''
   const { language, t } = useTranslation()

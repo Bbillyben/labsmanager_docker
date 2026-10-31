@@ -8,6 +8,7 @@ import { Button } from '../ui/Button'
 
 const formats: ListExportFormat[] = ['xlsx', 'csv', 'tsv', 'xls']
 
+/** Choose a format and download the currently filtered list. */
 export function ListExportDialog({ entity, listQuery, returnFocus, onClose }: {
   entity: ListExportEntity
   listQuery: string

@@ -24,6 +24,7 @@ import styles from './Topbar.module.css'
 
 type TopbarProps = { navigationExpanded: boolean; onToggleNavigation: () => void; user: AuthenticatedUser }
 
+/** Show page context, account controls, and global actions. */
 export function Topbar({ navigationExpanded, onToggleNavigation, user }: TopbarProps) {
   const auth = useAuth()
   const location = useLocation()

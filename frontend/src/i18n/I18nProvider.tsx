@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, type PropsWithChildren } from 'react'
 import { browserLanguage, I18nContext, translate, type I18nContextValue } from './i18n'
 
+/** Load language resources and provide translation state to React. */
 export function I18nProvider({ children }: PropsWithChildren) {
   const [, refreshLanguage] = useReducer((value: number) => value + 1, 0)
   const language = browserLanguage()

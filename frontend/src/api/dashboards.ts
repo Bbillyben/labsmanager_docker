@@ -1,6 +1,8 @@
 import { apiRequest } from './client'
 
+/** Dashboard identity and ownership data returned by the API. */
 export type DashboardSummary = { id: number; name: string; icon: string; is_default: boolean; position: number; scope: 'user' | 'project'; project_id?: number | null }
+/** Configured widget instance and its renderer payload. */
 export type DashboardWidget = {
   id: string; definition_key: string; source_key: string; renderer_key: string; title: string; config: Record<string, string | number | boolean>
   x: number; y: number; width: number; height: number; logical_order: number

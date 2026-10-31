@@ -97,6 +97,7 @@ export function EmployeeListPage() {
   </>
 }
 
+/** Fetch a page of Employees and keep row actions scoped to API capabilities. */
 function EmployeeResults({ params, update, filtered, reset, retry, onCanAddChange }: { params: EmployeeListParams; update: UpdateParams; filtered: boolean; reset: () => void; retry: () => void; onCanAddChange: (allowed: boolean) => void }) {
   const { t, language } = useTranslation()
   const [result, setResult] = useState<EmployeeListResponse | null>(null)

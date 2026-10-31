@@ -12,6 +12,7 @@ const pageContexts: readonly PageContext[] = [
   { matches: (pathname) => /^\/employees\/\d+\/?$/.test(pathname), label: 'page.employees' },
 ]
 
+/** Resolve breadcrumb and title context for the current route. */
 export function getPageContext(pathname: string) {
   return pageContexts.find((context) => context.matches(pathname)) ?? null
 }

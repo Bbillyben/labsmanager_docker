@@ -17,6 +17,7 @@ function safeReturnPath(value: unknown) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/'
 }
 
+/** Authenticate the user and return to the safe requested route. */
 export function LoginPage() {
   const auth = useAuth()
   const { t } = useTranslation()

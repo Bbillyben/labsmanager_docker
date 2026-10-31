@@ -9,6 +9,7 @@ import { useTranslation } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 
+/** Edit an Employee’s dated membership in a Team. */
 export function TeamMateSheet({ teamId, mate, excludedEmployeeIds, onClose, onSaved, returnFocus }: {
   teamId: string
   mate: TeamMate | null

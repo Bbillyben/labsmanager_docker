@@ -1,5 +1,6 @@
 import type { CalendarEvent } from '../api/employees'
 
+/** Controls which calendar resources are shown for a scope. */
 export type ResourceVisibilityMode = 'period' | 'all' | 'today'
 export type CalendarResource = { id: string; title: string; employeeId?: string | number }
 export type CalendarRange = { from: string; to: string }
@@ -25,6 +26,7 @@ function eventTime(value: string, allDay: boolean) {
   return allDay || /^\d{4}-\d{2}-\d{2}$/.test(value) ? localDay(value).getTime() : Date.parse(value)
 }
 
+/** Check whether an event overlaps the visible calendar interval. */
 export function eventIntersectsRange(event: CalendarEvent, start: number, end: number) {
   const eventStart = eventTime(event.start, event.all_day)
   if (!Number.isFinite(eventStart)) return false
@@ -55,6 +57,7 @@ export function calendarEventResourceIds(event: CalendarEvent) {
   ])]
 }
 
+/** Filter resource rows according to selected visibility mode and events. */
 export function visibleCalendarResources(resources: CalendarResource[], events: CalendarEvent[], mode: ResourceVisibilityMode, range: CalendarRange, today = localToday()) {
   if (mode === 'all') return resources
   const bounds = mode === 'today' ? dayBounds(today) : { start: dayBounds(range.from).start, end: dayBounds(range.to).end }

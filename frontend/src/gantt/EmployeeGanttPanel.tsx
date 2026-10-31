@@ -19,6 +19,7 @@ function bounds(anchor: Date, months: 6 | 12 | 24 | 60 | 120): GanttWindow {
   return { from: iso(from), to: iso(to), months }
 }
 
+/** Show Employee workload in the shared Gantt view. */
 export function EmployeeGanttPanel({ active, employeeId, contextName, participations, work, projectError, workError, onRetryProjects, onRetryWork, onOpen }: {
   active: boolean
   employeeId: string

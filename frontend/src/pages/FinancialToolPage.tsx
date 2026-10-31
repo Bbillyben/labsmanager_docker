@@ -28,6 +28,7 @@ const dateLabel = (value: string | null, language: string) => value ? new Intl.D
 const moneyLabel = (value: string | null, language: string) => value === null ? '—' : new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(Number(value))
 const percentLabel = (value: string | null, language: string) => value === null ? '—' : new Intl.NumberFormat(language, { style: 'percent', maximumFractionDigits: 1 }).format(Number(value))
 
+/** Browse and export financial rows under the selected filters and permissions. */
 export function FinancialToolPage({ kind }: { kind: FinancialKind }) {
   useTrackRecent(kind === 'fund-items' ? 'fund-explorer' : kind === 'budgets' ? 'budget-explorer' : 'expenses')
   const { t, language } = useTranslation()

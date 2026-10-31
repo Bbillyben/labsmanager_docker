@@ -6,6 +6,7 @@ export type DashboardPrintState = {
   definitions: WidgetDefinition[]
 }
 
+/** Prepare visible widgets for the print layout. */
 export function printableWidgets(state: DashboardPrintState) {
   const definitions = new Map(state.definitions.map((definition) => [definition.key, definition]))
   return [...state.widgets]

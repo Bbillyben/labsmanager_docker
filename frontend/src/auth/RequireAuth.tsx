@@ -4,6 +4,7 @@ import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
 import { useAuth } from './AuthContext'
 
+/** Guard a route until the user’s session and capabilities are known. */
 export function RequireAuth() {
   const { t } = useTranslation()
   const auth = useAuth()

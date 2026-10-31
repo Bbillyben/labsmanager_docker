@@ -13,6 +13,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import styles from './ProjectOverview.module.css'
 
+/** Create or update a Project planning item in its current context. */
 export function PlanningMilestoneFormSheet({ projectId, item, participants, onClose, onSaved, returnFocus }: {
   projectId: string; item: PlanningMilestone | null; participants: ProjectPlanningCollection['participants']
   onClose: () => void; onSaved: (item: PlanningMilestone) => void; returnFocus: RefObject<HTMLElement | null>

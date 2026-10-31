@@ -15,6 +15,7 @@ import styles from './ProjectOverview.module.css'
 type Props = { projectId: string; resource: EmployeeResource<ProjectOverviewData> }
 const dateLabel = (value: string | null, language: string) => value ? new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : '—'
 
+/** Present the Project summary and permission-aware child collections. */
 export function ProjectOverview({ projectId, resource }: Props) {
   const { t, language } = useTranslation()
   const [editing, setEditing] = useState(false)

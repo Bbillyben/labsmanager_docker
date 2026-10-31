@@ -13,6 +13,7 @@ function date(value: string) { return new Date(`${value.slice(0, 10)}T12:00:00`)
 function calendarDate(value: string) { return value.includes('T') ? new Date(value) : date(value) }
 function valid(value: string | null): value is string { return Boolean(value && !Number.isNaN(Date.parse(value))) }
 
+/** Map shared Gantt items and dependencies into Svar task records. */
 // Kept beside the renderer so SVAR-specific mapping stays inside its adapter.
 // eslint-disable-next-line react-refresh/only-export-components
 export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[], window: GanttWindow, closedKeys: ReadonlySet<string> = new Set(), visibility?: PlanningGanttVisibility): { tasks: ITask[]; links: ILink[]; identities: Map<string, GanttIdentity>; omitted: number } {
@@ -74,6 +75,7 @@ export function toSvarTasks(data: LabsManagerGanttData, events: CalendarEvent[],
   return { tasks, links, identities, omitted }
 }
 
+/** Bridge shared Gantt state and interactions to the Svar renderer. */
 export function SvarGanttAdapter({ data, events, window, onSelect, onOpenChange, closedKeys, dark, language, visibility }: {
   data: LabsManagerGanttData
   events: CalendarEvent[]

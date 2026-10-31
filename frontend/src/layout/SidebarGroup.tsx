@@ -8,6 +8,7 @@ type SidebarGroupProps = {
   defaultOpen?: boolean;
 };
 
+/** Render a collapsible group of navigation links. */
 function SidebarGroup({
   title,
   children,

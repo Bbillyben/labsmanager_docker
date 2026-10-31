@@ -1,5 +1,6 @@
 import { apiRequest } from './client'
 
+/** Entity identity and visibility scope used by generic notes. */
 export type NoteScope = 'project' | 'employee' | 'team' | 'institution' | 'funder' | 'contract'
 export type NoteVisibility = 'object' | 'creator'
 export type NoteCapabilities = { can_add: boolean; can_change: boolean; can_rename: boolean; can_delete: boolean; can_change_visibility: boolean }
@@ -14,6 +15,7 @@ const collection = (scope: NoteScope, id: string) => `/api/v1/notes/${scope}/${e
 const detail = (scope: NoteScope, id: string, noteId: number) => `${collection(scope, id)}${noteId}/`
 const write = (method: 'POST' | 'PATCH', data: object) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
 
+/** Read notes for the current entity under API permissions. */
 export function getNotes(scope: NoteScope, id: string, signal: AbortSignal) { return apiRequest<NotesCollection>(collection(scope, id), { signal }) }
 export function createNote(scope: NoteScope, id: string, name: string, visibility: NoteVisibility) { return apiRequest<GenericNote>(collection(scope, id), write('POST', { name, visibility })) }
 export function updateNote(scope: NoteScope, id: string, noteId: number, data: { note?: string; name?: string; visibility?: NoteVisibility }) { return apiRequest<GenericNote>(detail(scope, id, noteId), write('PATCH', data)) }

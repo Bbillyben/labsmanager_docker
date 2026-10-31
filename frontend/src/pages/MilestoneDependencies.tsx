@@ -10,6 +10,7 @@ import { useTranslation } from '../i18n/i18n'
 import { Button } from '../ui/Button'
 import styles from './MilestoneDependencies.module.css'
 
+/** Review and edit dependencies for a Project planning item. */
 export function MilestoneDependencies({ milestone, onChanged, allowChanges = true }: { milestone: PlanningMilestone; onChanged?: () => void; allowChanges?: boolean }) {
   const { t } = useTranslation()
   const [data, setData] = useState<PlanningDependencies | null>(null)

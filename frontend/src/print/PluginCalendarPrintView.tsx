@@ -7,6 +7,7 @@ import styles from './print.module.css'
 type State = { scope: ProjectCalendarScope; mode: PluginCalendarMode; anchor: string
   range: { from: string; to: string }; events: PluginCalendarEvent[]; resources: PluginCalendarResource[]; unassignedLabel: string; showCalendarName?: boolean }
 
+/** Render a plugin-published calendar using the shared print contract. */
 export function PluginCalendarPrintView({ state, onReady }: PrintRendererProps<State>) {
   return <section className={styles.content} data-testid="plugin-calendar-print" data-calendar-mode={state.mode}>
     <h2>{state.range.from} – {state.range.to}</h2>

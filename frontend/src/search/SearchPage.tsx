@@ -14,6 +14,7 @@ function pageUrl(query: string, provider?: string) {
   return `/search?${params}`
 }
 
+/** Run global search and render permission-scoped result groups. */
 export function SearchPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()

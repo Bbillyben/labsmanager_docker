@@ -17,6 +17,7 @@ function assetUrl(raw: string, slug: string, extension: 'js' | 'css') {
   return url.href
 }
 
+/** Load a plugin stylesheet once for a resolved asset URL. */
 function loadStyle(url: string) {
   if (styles.has(url)) return styles.get(url)!
   const pending = new Promise<void>((resolve, reject) => {

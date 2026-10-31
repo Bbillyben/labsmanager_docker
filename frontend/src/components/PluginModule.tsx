@@ -34,6 +34,7 @@ export function PluginModule({ descriptor, onClose }: { descriptor: UIModuleDesc
   return <PluginModuleContent key={`${descriptor.module_url}:${descriptor.component}:${descriptor.asset_version}`} descriptor={descriptor} onClose={onClose} />
 }
 
+/** Load the module asset, handle errors, and render its exported component. */
 function PluginModuleContent({ descriptor, onClose }: { descriptor: UIModuleDescriptor; onClose?: () => void }) {
   const { t } = useTranslation()
   const [component, setComponent] = useState<PluginComponent | null>(null)

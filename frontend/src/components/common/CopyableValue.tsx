@@ -10,6 +10,7 @@ type Props = {
   children?: ReactNode
 }
 
+/** Offer a selectable value with copy feedback and fallback. */
 export function CopyableValue({ value, children }: Props) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)

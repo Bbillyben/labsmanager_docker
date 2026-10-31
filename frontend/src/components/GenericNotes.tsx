@@ -16,6 +16,7 @@ type Modal = 'create' | 'rename' | 'visibility' | null
 
 export type GenericNotesHandle = { savePending: () => Promise<boolean> }
 
+/** Manage permission-scoped notes for the current entity. */
 export const GenericNotes = forwardRef<GenericNotesHandle, { scope: NoteScope; objectId: string }>(function GenericNotes({ scope, objectId }, ref) {
   const { t, language } = useTranslation()
   const load = useCallback((_id: string, signal: AbortSignal) => getNotes(scope, objectId, signal), [scope, objectId])

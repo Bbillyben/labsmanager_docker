@@ -39,6 +39,7 @@ const periodicReportKeys = new Set([
   'NOTIFCATION_LEAVE_REPORT_NONE', 'NOTIFCATION_LEAVE_TIMEFRAME',
 ])
 
+/** Route user and project settings sections by available permissions. */
 export function SettingsHubPage() {
   const { t } = useTranslation()
   const auth = useAuth()
@@ -65,6 +66,7 @@ export function SettingsHubPage() {
   </div>
 }
 
+/** Load and edit settings for the current user. */
 export function UserSettingsSection({ section }: { section: UserSettingSection }) {
   const { t } = useTranslation()
   const auth = useAuth()
@@ -116,6 +118,7 @@ export function UserSettingsSection({ section }: { section: UserSettingSection }
   </section>
 }
 
+/** Send or preview a notification using the current user settings. */
 function NotificationTestActions() {
   const { t } = useTranslation()
   const busy = useRef(false)
@@ -172,6 +175,7 @@ function NotificationTestActions() {
   </div>
 }
 
+/** Render one editable setting with its current value and action. */
 export function SettingRow({ setting, disabled, saving, error, saved, onSave, onReset }: { setting: UserSettingData; disabled: boolean; saving: boolean; error?: string; saved: boolean; onSave: (value: SettingValue) => Promise<UserSettingData | null>; onReset?: () => Promise<UserSettingData | null> }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState(String(setting.value))
@@ -202,6 +206,7 @@ export function SettingRow({ setting, disabled, saving, error, saved, onSave, on
   </div>
 }
 
+/** Manage account password and email addresses. */
 export function UserAccountSection() {
   const { t, language } = useTranslation()
   const navigate = useNavigate()
@@ -306,6 +311,7 @@ export function UserAccountSection() {
   </section>
 }
 
+/** Show favorite and subscription preferences. */
 export function UserPreferencesSection() {
   const { t } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => Promise.all([getFavorites(signal), getSubscriptions(signal)]), [])

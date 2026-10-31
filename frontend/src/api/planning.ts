@@ -1,6 +1,7 @@
 import { apiRequest } from './client'
 
 export type PlanningMilestoneState = 'completed' | 'overdue' | 'due_soon' | 'planned' | 'in_progress'
+/** Project planning item with dates, status, and action capabilities. */
 export type PlanningMilestone = {
   admin_url?: string | null
   id: number
@@ -23,6 +24,7 @@ export type PlanningMilestone = {
 }
 export type EmployeeMilestoneWrite = { desc?: string | null; quotity?: string; status?: boolean }
 export type PlanningFilters = { search?: string; kind?: PlanningMilestone['work_kind']; employee?: string }
+/** Planning items and their server-defined filters. */
 export type ProjectPlanningCollection = {
   capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean }
   participants: Array<{ id: number; first_name: string; last_name: string }>
@@ -34,6 +36,7 @@ export type PlanningMilestoneWrite = {
   quotity: string; status: boolean; employee_ids: number[]
 }
 
+/** Encode planning filters used by Project views. */
 export function planningFilterQuery(filters: PlanningFilters = {}) {
   const params = new URLSearchParams()
   if (filters.search?.trim()) params.set('search', filters.search.trim())
@@ -44,6 +47,7 @@ export function planningFilterQuery(filters: PlanningFilters = {}) {
 }
 
 const projectPlanningUrl = (projectId: string) => `/api/v1/projects/${encodeURIComponent(projectId)}/planning/`
+/** Load planning items visible for a Project. */
 export function getProjectPlanning(projectId: string, filters: PlanningFilters, signal: AbortSignal) {
   return apiRequest<ProjectPlanningCollection>(`${projectPlanningUrl(projectId)}${planningFilterQuery(filters)}`, { signal })
 }
@@ -57,6 +61,7 @@ export function deleteProjectPlanningItem(projectId: string, itemId: number) {
   return apiRequest<void>(`${projectPlanningUrl(projectId)}${itemId}/`, { method: 'DELETE' })
 }
 
+/** Proposed schedule shift submitted for dependency-aware validation. */
 export type PlanningDelayIntent = { root_ids: number[]; blocked_dependency_ids: number[]; days: number }
 export type PlanningDelayNode = { id: number; name: string; project: { id: number; name: string }; work_kind: 'task' | 'milestone'; end_date: string | null; eligible: boolean; unavailable_reason: 'read_only' | 'completed' | 'no_end_date' | null; affected: boolean }
 export type PlanningDelayPreview = PlanningDelayIntent & {
@@ -67,6 +72,7 @@ export type PlanningDelayPreview = PlanningDelayIntent & {
   revision: string
 }
 
+/** Request a dependency-aware preview before changing planning dates. */
 export function previewProjectPlanningDelay(projectId: string, intent: PlanningDelayIntent, signal?: AbortSignal) {
   return apiRequest<PlanningDelayPreview>(`${projectPlanningUrl(projectId)}delay/preview/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(intent), signal })
 }

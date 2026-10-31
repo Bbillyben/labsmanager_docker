@@ -8,6 +8,7 @@ import styles from './OverviewListRenderer.module.css'
 
 type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMode }
 
+/** Show linked summary rows from Dashboard data. */
 export function OverviewListRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   if (!isOverview(widget.data)) return <p className="muted-text">{t('dashboard.emptyWidget')}</p>

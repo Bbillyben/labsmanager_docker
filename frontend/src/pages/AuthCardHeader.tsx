@@ -1,6 +1,7 @@
 import { useTranslation } from '../i18n/i18n'
 import styles from './LoginPage.module.css'
 
+/** Lay out auth title and description beside the LabsManager logo. */
 export function AuthCardHeader({ title, titleId, description }: { title: string; titleId: string; description?: string }) {
   const { t } = useTranslation()
 

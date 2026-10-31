@@ -24,6 +24,7 @@ const dateLabel = (value: string | null, language: Language) => value ? new Intl
 const money = (value: string, language: Language) => new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(Number(value))
 const fundName = (fund: Fund) => [fund.funder.short_name, fund.ref].filter(Boolean).join(' · ')
 
+/** Present Project funding totals and editable Fund details. */
 export function ProjectFundingPanel({ projectId }: { projectId: string }) {
   const { t, language } = useTranslation()
   const resource = useEmployeeResource(projectId, getProjectFunding)
@@ -100,6 +101,7 @@ function ProjectFundingOverview({ data, language }: { data: ProjectFunding; lang
   </section>
 }
 
+/** Present a Fund’s financial rows and contextual actions. */
 function FundDetailSection({ projectId, fund, options, onFinancialChange }: { projectId: string; fund: Fund; options: FundingOptions | null; onFinancialChange: () => Promise<boolean> }) {
   const { t } = useTranslation()
   const loader = useCallback((id: string, signal: AbortSignal) => getFundDetail(projectId, Number(id), signal), [projectId])
@@ -118,6 +120,7 @@ function FundDetailSection({ projectId, fund, options, onFinancialChange }: { pr
 
 type FinancialRow = { type: CostType; item?: FundItem; point?: ExpensePoint; available: string }
 
+/** Combine funding rows for the Fund detail presentation. */
 function financialRows(detail: FundDetail): FinancialRow[] {
   const rows = new Map<number, FinancialRow>()
   for (const item of detail.items.items) rows.set(item.type.id, { type: item.type, item, available: item.available })
@@ -134,6 +137,7 @@ function financialRows(detail: FundDetail): FinancialRow[] {
   return [...rows.values()].sort((a, b) => a.type.short_name.localeCompare(b.type.short_name) || a.type.id - b.type.id)
 }
 
+/** Summarize Fund amounts, expenses, and available balance. */
 function FundFinancialSummary({ projectId, data, options, onChanged }: { projectId: string; data: FundDetail; options: FundingOptions | null; onChanged: () => void }) {
   const { t, language } = useTranslation()
   const [editing, setEditing] = useState<{ kind: 'item' | 'point'; value: FundItem | ExpensePoint | null } | null>(null)
@@ -172,6 +176,7 @@ function FundFinancialSummary({ projectId, data, options, onChanged }: { project
   </section>
 }
 
+/** Create or edit a Fund within the current Project. */
 function FundSheet({ projectId, fund, projectDates, options, optionsError, retryOptions, returnFocus, onClose, onSaved }: { projectId: string; fund: Fund | null; projectDates: ProjectFunding['project_dates']; options: FundingOptions | null; optionsError: boolean; retryOptions: () => void; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: (fund: Fund) => void }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<FundWrite>({ funder_id: fund?.funder.id, institution_id: fund?.institution.id, start_date: fund?.start_date ?? projectDates.start_date, end_date: fund?.end_date ?? projectDates.end_date, ref: fund?.ref ?? '', update_project_end: false })
@@ -199,6 +204,7 @@ function FundSheet({ projectId, fund, projectDates, options, optionsError, retry
   </form></SheetContent></Sheet>
 }
 
+/** Create or edit a Fund item or expense point. */
 function FundingChildSheet({ kind, projectId, fund, item, options, returnFocus, onClose, onSaved }: { kind: 'item' | 'point'; projectId: string; fund: Fund; item: FundItem | ExpensePoint | null; options: FundingOptions | null; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onSaved: () => void }) {
   const { t } = useTranslation()
   const today = new Date().toISOString().slice(0, 10)
@@ -225,6 +231,7 @@ function FundingChildSheet({ kind, projectId, fund, item, options, returnFocus, 
   </form></SheetContent></Sheet>
 }
 
+/** Confirm deletion of a Fund child record. */
 function DeleteFundingItem({ title, description, returnFocus, onClose, onDelete, onDeleted }: { title: string; description: string; returnFocus: React.RefObject<HTMLElement | null>; onClose: () => void; onDelete: () => Promise<unknown>; onDeleted: () => void }) {
   const { t } = useTranslation()
   const mutation = useMutation()

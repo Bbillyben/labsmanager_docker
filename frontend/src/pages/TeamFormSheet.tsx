@@ -9,6 +9,7 @@ import { useTranslation } from '../i18n/i18n'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 
+/** Create or edit a Team with permission-controlled leader selection. */
 export function TeamFormSheet({ team, createCapabilities, onClose, onSaved, returnFocus }: {
   team: Team | null
   createCapabilities?: TeamListResponse['capabilities']

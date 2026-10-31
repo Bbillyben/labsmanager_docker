@@ -26,6 +26,7 @@ function markers(events: TimelineEvent[]) {
   })
 }
 
+/** Render dated items in a compact Dashboard calendar grid. */
 export function CalendarGridRenderer({ widget, size, mode = 'view' }: Props) {
   const { t, language } = useTranslation()
   if (!isTimeline(widget.data)) return <p className="muted-text">{t('dashboard.emptyWidget')}</p>

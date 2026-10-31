@@ -17,6 +17,7 @@ export type OrganizationChart = {
 
 const url = '/api/v1/organization-chart/'
 
+/** Load the visible Employee hierarchy for a chosen scope. */
 export function getOrganizationChart(signal?: AbortSignal) {
   return apiRequest<OrganizationChart>(url, { signal })
 }

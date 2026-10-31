@@ -1,6 +1,7 @@
 import { apiRequest } from './client'
 import type { SettingData, SettingValue } from './settings'
 
+/** User settings section with editable values and metadata. */
 export type UserSettingSection = 'interface' | 'notifications' | 'stale'
 export type UserSettingData = SettingData & { can_change: boolean; units?: string }
 export type UserAccount = {
@@ -12,6 +13,7 @@ export type EmailAddress = {
   id: number; email: string; verified: boolean; primary: boolean
   can_delete: boolean; can_make_primary: boolean; can_resend: boolean
 }
+/** Confirmed and pending email addresses for the current account. */
 export type EmailCollection = Pick<UserAccount, 'can_add' | 'emails'>
 
 const base = '/api/v1/settings/'

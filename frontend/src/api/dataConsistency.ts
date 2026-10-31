@@ -45,6 +45,7 @@ export type ConsistencyIssue = {
   exception?: { id: number; accepted_by: string | null; accepted_at: string; reason: string }
 }
 
+/** Paginated issues and actions for one consistency rule. */
 export type ConsistencyIssues = {
   count: number
   next: string | null
@@ -74,6 +75,7 @@ export type ConsistencyBatchSelection =
   | { mode: 'selected'; issues: { id: number; project_id: number | null; employee_id?: number; fund_id?: number; team_id?: number }[]; selected_count: number }
   | { mode: 'all'; excluded_ids: number[]; selected_count: number }
 
+/** Outcome of a batch acknowledgement or correction. */
 export type ConsistencyBatchResult = {
   initially_selected: number
   processed: number

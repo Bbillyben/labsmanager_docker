@@ -26,6 +26,7 @@ export type PlanningMilestoneActions = {
   finalFocus?: () => boolean
 }
 
+/** Render Project milestones and tasks with allowed row actions. */
 export function PlanningMilestoneTable({ resource, onOpen, actions, delaySelection }: { resource: MilestoneResource; onOpen?: (item: PlanningMilestone) => void; actions?: PlanningMilestoneActions; delaySelection?: { selectedIds: number[]; onToggle: (id: number) => void } }) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<PlanningMilestone | null>(null)
@@ -86,6 +87,7 @@ function MilestoneRow({ milestone, onOpen, actions, delaySelection }: { mileston
 }
 
 type Translator = ReturnType<typeof useTranslation>['t']
+/** Format a planning item’s due date relative to the current day. */
 function dueText(milestone: PlanningMilestone, language: string, t: Translator) {
   if (milestone.end_date === null || milestone.days_to_due === null) return t('employee.noDeadline')
   if (milestone.display_state === 'completed') return formatDate(milestone.end_date, language)

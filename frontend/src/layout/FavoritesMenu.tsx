@@ -8,6 +8,7 @@ import styles from './Sidebar.module.css'
 
 const groups = ['projects', 'employees', 'teams', 'institutions'] as const
 
+/** List the current user’s visible favorites in application navigation. */
 export function FavoritesMenu({ expanded = true, onRequestExpand }: { expanded?: boolean; onRequestExpand?: () => void }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)

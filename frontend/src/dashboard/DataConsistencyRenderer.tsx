@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { DATA_CONSISTENCY_CHANGED, getConsistencySummary, type ConsistencySummary } from '../api/dataConsistency'
 import { useTranslation } from '../i18n/i18n'
 
+/** Render consistency counts and links to the review page. */
 export function DataConsistencyRenderer() {
   const { t } = useTranslation()
   const [summary, setSummary] = useState<ConsistencySummary | null>(null)

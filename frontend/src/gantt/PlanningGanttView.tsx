@@ -10,6 +10,7 @@ import type { GanttIdentity, LabsManagerGanttData } from './model'
 import { planningWindow, type PlanningMonths } from './planningWindow'
 import styles from './EmployeeGanttPanel.module.css'
 
+/** Load Project planning data and host the shared Gantt component. */
 export function PlanningGanttView({ data, events, anchor, months, onAnchorChange, onMonthsChange, onSelect, printTitle, printFilters, showPrint = true, toolbarActions }: {
   data: LabsManagerGanttData | null
   events: CalendarEvent[]

@@ -12,6 +12,7 @@ export type SearchResult = {
   metadata: Record<string, unknown>
 }
 
+/** Provider fields and filter capabilities advertised by search. */
 export type SearchProviderSchema = {
   key: string
   label: string
@@ -27,6 +28,7 @@ export type SearchAutocomplete = { context: string; replace_start: number; repla
 export type SearchResponse = { query: string; results: SearchResult[]; groups: Record<string, number>; counts: Record<string, number> }
 export type SearchOptions = { provider?: string; limit?: number; perProvider?: number; signal?: AbortSignal }
 
+/** Run a permission-scoped global search with provider and paging options. */
 export function search(query: string, { provider, limit, perProvider, signal }: SearchOptions = {}) {
   const params = new URLSearchParams({ q: query })
   if (provider) params.set('provider', provider)
@@ -35,10 +37,12 @@ export function search(query: string, { provider, limit, perProvider, signal }: 
   return apiRequest<SearchResponse>(`/api/v1/search/?${params}`, { signal })
 }
 
+/** Load the server-defined global search providers and filters. */
 export function getSearchSchema(signal?: AbortSignal) {
   return apiRequest<SearchSchema>('/api/v1/search/schema/', { signal })
 }
 
+/** Request suggestions for the current search text. */
 export function getSearchAutocomplete(query: string, cursor: number, { provider, signal }: { provider?: string; signal?: AbortSignal } = {}) {
   const params = new URLSearchParams({ q: query, cursor: String(cursor) })
   if (provider) params.set('provider', provider)

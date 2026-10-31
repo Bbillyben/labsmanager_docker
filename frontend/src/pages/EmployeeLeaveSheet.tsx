@@ -13,6 +13,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import styles from './EmployeeLeaveSheet.module.css'
 
+/** Create or update Leave in the current Employee context. */
 export function EmployeeLeaveSheet({ employeeId, employeeName, leave, initialDates, capabilities, onClose, onSaved, onDeleted, createLeave = createEmployeeLeave, updateLeave = updateEmployeeLeave, deleteLeave = deleteEmployeeLeave, employeeOptions, onEmployeeChange }: {
   employeeId: string
   employeeName?: string

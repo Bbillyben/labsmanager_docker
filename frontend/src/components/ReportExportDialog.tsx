@@ -13,6 +13,7 @@ function initialDates() {
   return { start: date(lastYear), end: date(today) }
 }
 
+/** Collect report options and request an authorized export. */
 export function ReportExportDialog({ entity, id, format, title, timeframe, returnFocus, onClose }: {
   entity: ReportEntity; id: number; format: ReportFormat; title: string; timeframe: boolean
   returnFocus: RefObject<HTMLElement | null>; onClose: () => void

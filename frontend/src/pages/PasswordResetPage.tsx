@@ -12,6 +12,7 @@ import { AuthBackground } from './AuthBackground'
 import { AuthCardHeader } from './AuthCardHeader'
 import styles from './LoginPage.module.css'
 
+/** Share the auth card header and stable background across reset states. */
 export function AuthFrame({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return <AuthBackground><section className={styles.card} aria-labelledby="auth-flow-title">
     <AuthCardHeader title={title} titleId="auth-flow-title" description={description} />
@@ -19,6 +20,7 @@ export function AuthFrame({ title, description, children }: { title: string; des
   </section></AuthBackground>
 }
 
+/** Exchange a reset link token into the reset flow. */
 export function PasswordResetBridgePage() {
   const { key = '' } = useParams()
   const navigate = useNavigate()
@@ -37,6 +39,7 @@ export function PasswordResetBridgePage() {
   return <main className="centered-state"><LoadingState message={t('common.loading')} /></main>
 }
 
+/** Request a reset email and show confirmation state. */
 export function PasswordResetRequestPage() {
   const { t } = useTranslation()
   const auth = useAuth()
@@ -68,6 +71,7 @@ export function PasswordResetRequestPage() {
   </AuthFrame>
 }
 
+/** Submit a new password for the reset session. */
 export function PasswordResetConfirmPage() {
   const { t } = useTranslation()
   const auth = useAuth()

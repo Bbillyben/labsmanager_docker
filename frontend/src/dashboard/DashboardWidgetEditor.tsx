@@ -9,6 +9,7 @@ function fieldSpec(value: ConfigField | string): ConfigField {
   return typeof value === 'string' ? { type: 'string' } : value
 }
 
+/** Edit a widget’s schema-driven configuration. */
 export function DashboardWidgetEditor({ source, catalog, widget, pending, onCancel, onSave }: {
   source: DashboardSource; catalog: DashboardCatalog; widget?: DashboardWidget; pending: boolean
   onCancel: () => void; onSave: (renderer: string, title: string, config: DashboardWidget['config']) => void

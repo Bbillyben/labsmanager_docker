@@ -10,6 +10,7 @@ function dayDifference(before: string, after: string) {
   return (Date.parse(`${after.slice(0, 10)}T00:00:00Z`) - Date.parse(`${before.slice(0, 10)}T00:00:00Z`)) / 86_400_000
 }
 
+/** Derive a Leave write payload from a calendar drag or resize. */
 export function leaveWriteFromCalendarEvent(event: CalendarEvent): LeaveWrite {
   const metadata = event.metadata
   return {
@@ -22,6 +23,7 @@ export function leaveWriteFromCalendarEvent(event: CalendarEvent): LeaveWrite {
   }
 }
 
+/** Calculate the new Leave period after a calendar drag. */
 export function movedLeave(event: CalendarEvent, oldStart: string, newStart: string): LeaveWrite {
   const original = leaveWriteFromCalendarEvent(event)
   const days = dayDifference(oldStart, newStart)

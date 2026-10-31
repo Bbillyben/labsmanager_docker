@@ -15,6 +15,7 @@ const groups: Array<{ state: EmployeeContributionTemporalState; title: Translati
   { state: 'future', title: 'funding.future' },
 ]
 
+/** Present funding contributions associated with an Employee. */
 export function EmployeeFunding() {
   const { employeeId } = useEmployeeDetail()
   const { t } = useTranslation()
@@ -73,6 +74,7 @@ function ContributionRow({ item }: { item: EmployeeContribution }) {
 }
 
 type Translator = ReturnType<typeof useTranslation>['t']
+/** Format a funding contribution’s date interval. */
 function period(start: string | null, end: string | null, language: string, t: Translator) {
   const format = (value: string) => new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
   if (start && end) return t('employee.fromTo', { start: format(start), end: format(end) })

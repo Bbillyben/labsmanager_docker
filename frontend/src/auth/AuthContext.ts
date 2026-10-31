@@ -8,6 +8,7 @@ export type AuthState =
   | { status: 'unauthenticated' }
   | { status: 'error'; error: Error }
 
+/** Authenticated user, capabilities, and sign-in operations provided to React. */
 export type AuthContextValue = AuthState & {
   refresh: () => Promise<void>
   markUnauthenticated: () => void

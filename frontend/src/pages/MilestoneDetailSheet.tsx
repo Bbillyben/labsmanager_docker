@@ -19,6 +19,7 @@ import styles from './MilestoneDetailSheet.module.css'
 
 export type EmployeeMilestoneEdit = { canChange: boolean; onSave: (value: EmployeeMilestoneWrite) => Promise<PlanningMilestone> }
 
+/** Show planning item details and permission-gated actions. */
 export function MilestoneDetailSheet({ milestone, onClose, onDependenciesChanged, actions, manageDependencies = false, employeeEdit }: { milestone: PlanningMilestone | null; onClose: () => void; onDependenciesChanged?: () => void; actions?: PlanningMilestoneActions; manageDependencies?: boolean; employeeEdit?: EmployeeMilestoneEdit }) {
   const { language, t } = useTranslation()
   const [editing, setEditing] = useState(false)

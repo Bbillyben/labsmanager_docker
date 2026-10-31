@@ -4,6 +4,7 @@ import { Button } from '../ui/Button'
 import styles from './EmployeeFunding.module.css'
 import { useEmployeeResource } from './useEmployeeResource'
 
+/** Show Budgets connected to the current Employee under API permissions. */
 export function EmployeeBudgets({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation()
   const resource = useEmployeeResource(employeeId, getEmployeeBudgets)
@@ -14,6 +15,7 @@ export function EmployeeBudgets({ employeeId }: { employeeId: string }) {
   return <div className={styles.budgetRows}>{resource.data.map((budget) => <BudgetRow budget={budget} key={budget.id} />)}</div>
 }
 
+/** Display an Employee Budget with its funding context and actions. */
 function BudgetRow({ budget }: { budget: EmployeeBudget }) {
   const { language, t } = useTranslation()
   const ratio = budget.consumption_ratio === null ? null : Number(budget.consumption_ratio)

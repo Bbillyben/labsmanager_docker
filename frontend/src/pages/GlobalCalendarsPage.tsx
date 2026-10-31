@@ -68,6 +68,7 @@ function pluginValues(definitions: CalendarFilter[], query: URLSearchParams, tab
   return values
 }
 
+/** Convert calendar UI state into the API’s filter parameters. */
 function apiFilters(catalogue: SupportedFilter[], query: URLSearchParams, tab: Tab) {
   const filtered = readFilterQuery(catalogue, query)
   const result = new URLSearchParams()

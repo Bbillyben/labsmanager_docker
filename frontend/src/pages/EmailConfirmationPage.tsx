@@ -17,6 +17,7 @@ function stateFromError(error: unknown): State {
   return 'error'
 }
 
+/** Exchange a confirmation key before showing account confirmation state. */
 export function EmailConfirmationBridgePage() {
   const { key = '' } = useParams()
   const navigate = useNavigate()
@@ -42,6 +43,7 @@ export function EmailConfirmationBridgePage() {
   return <main className="centered-state"><LoadingState message={t('common.loading')} /></main>
 }
 
+/** Complete email confirmation and show its resulting account state. */
 export function EmailConfirmationPage() {
   const { t } = useTranslation()
   const auth = useAuth()

@@ -27,6 +27,7 @@ import styles from './EmployeeListPage.module.css'
 const sources = { ...employeeFilterSources, ...projectFilterSources }
 const dateLabel = (value: string | null, language: string) => value ? new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) : '—'
 
+/** Browse permission-scoped Contracts with URL-backed filters and paging. */
 export function ContractHubPage() {
   const { t } = useTranslation()
   const [query, setQuery] = useSearchParams()
@@ -100,6 +101,7 @@ export function ContractHubPage() {
   </>
 }
 
+/** Load the selected Contract detail without reloading the full list. */
 function ContractHubSelected({ id, editing, onCloseEdit, onChanged, returnFocus }: {
   id: number; editing: boolean; onCloseEdit: () => void; onChanged: () => void; returnFocus: React.RefObject<HTMLElement | null>
 }) {

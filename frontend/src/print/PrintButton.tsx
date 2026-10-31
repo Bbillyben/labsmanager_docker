@@ -4,6 +4,7 @@ import { Button } from '../ui/Button'
 import { usePrintView } from './printContext'
 import type { PrintRequest } from './registry'
 
+/** Open the print view registered for the current content. */
 export function PrintButton({ createRequest, disabled = false }: { createRequest: () => PrintRequest; disabled?: boolean }) {
   const { t } = useTranslation()
   const openPrintView = usePrintView()

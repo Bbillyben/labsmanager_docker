@@ -1,11 +1,14 @@
 import { apiRequest } from './client'
 
+/** Organization model kind accepted by organization endpoints. */
 export type OrganizationKind = 'institutions' | 'funders'
 export type Capabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
 export type Organization = { id: number; short_name: string; name: string; admin_url: string | null; capabilities: Capabilities }
+/** Paginated organizations and caller capabilities. */
 export type OrganizationList = { count: number; next: string | null; previous: string | null; results: Organization[]; capabilities: { can_add: boolean } }
 export type InfoType = { id: number; name: string; icon: string | null; type: 'none' | 'tel' | 'mail' | 'link' | 'addr' }
 export type ContactType = { id: number; name: string }
+/** Selectable reference data for organization forms. */
 export type OrganizationOptions = { organization_info_types: InfoType[]; contact_types: ContactType[]; contact_info_types: InfoType[]; map_provider: 'gmap' | 'opensm' }
 export type OrganizationInfo = { id: number; info: InfoType; value: string | null; comment: string | null; admin_url: string | null; capabilities: Capabilities }
 export type Contact = { id: number; first_name: string; last_name: string; type: ContactType; comment: string | null; admin_url: string | null; capabilities: Capabilities }

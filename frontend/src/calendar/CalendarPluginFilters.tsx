@@ -1,8 +1,10 @@
 import type { CalendarFilter, CalendarFilterValue } from '../api/employees'
 import styles from './CalendarPluginFilters.module.css'
 
+/** Selected values for plugin-provided calendar filter definitions. */
 export type CalendarFilterValues = Record<string, CalendarFilterValue>
 
+/** Apply filter defaults without discarding explicit selections. */
 // Shared Calendar behavior is also consumed by the Employee Gantt.
 // eslint-disable-next-line react-refresh/only-export-components
 export function effectiveCalendarFilterValues(definitions: CalendarFilter[], values: CalendarFilterValues): Record<string, CalendarFilterValue> {
@@ -14,6 +16,7 @@ export function effectiveCalendarFilterValues(definitions: CalendarFilter[], val
   }))
 }
 
+/** Render plugin calendar filter controls using shared UI components. */
 export function CalendarPluginFilters({ definitions, onChange, values }: {
   definitions: CalendarFilter[]
   onChange: (values: CalendarFilterValues) => void

@@ -17,6 +17,7 @@ export function getInvitationSignup() {
   return apiRequest<InvitationSignup>('/api/v1/auth/invitations/current/')
 }
 
+/** Submit account details to complete an invitation. */
 export function completeInvitationSignup(fields: { username: string; password1: string; password2: string }) {
   return apiRequest<{ state: 'complete'; authenticated: boolean; redirect_url: string | null }>('/api/v1/auth/invitations/current/', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),

@@ -169,6 +169,7 @@ function isoDate(value: Date) {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
 }
 
+/** Derive the calendar date interval for a Project view mode. */
 export function projectCalendarRange(scope: ProjectCalendarScope, anchor: Date) {
   const year = anchor.getFullYear()
   const month = anchor.getMonth()
@@ -180,6 +181,7 @@ export function projectCalendarRange(scope: ProjectCalendarScope, anchor: Date) 
   return { from: isoDate(start), to: isoDate(end) }
 }
 
+/** Move the Project calendar anchor by its view interval. */
 export function shiftProjectCalendarAnchor(anchor: Date, scope: ProjectCalendarScope, direction: number) {
   const year = anchor.getFullYear()
   const month = anchor.getMonth()

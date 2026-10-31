@@ -7,6 +7,7 @@ type Props = { widget: DashboardWidget; size: DashboardSize; mode?: DashboardMod
 
 const colors = ['var(--primary)', 'var(--chart-2, #b17439)', 'var(--chart-3, #5b80ae)', 'var(--chart-4, #9168a4)', 'var(--chart-5, #5e9876)']
 
+/** Plot a dated metric series from Dashboard renderer data. */
 export function LineChartRenderer({ widget }: Props) {
   const { t, language } = useTranslation()
   const payload = widget.data as Partial<DashboardSeriesData> | null

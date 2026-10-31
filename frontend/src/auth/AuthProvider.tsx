@@ -9,6 +9,7 @@ function applyTheme(theme: 'light' | 'dark') {
   document.documentElement.classList.toggle('dark', theme === 'dark')
 }
 
+/** Load session state and expose authenticated actions to descendants. */
 export function AuthProvider({ children }: PropsWithChildren) {
   const [state, setState] = useState<AuthState>({ status: 'loading' })
 
