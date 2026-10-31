@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+/** Data, retry, and refresh state for a keyed API resource. */
 export type EmployeeResource<T> = {
   data: T | null; error: unknown; loading: boolean; retry: () => void
   refreshing: boolean; refreshError: unknown; refresh: () => Promise<boolean>
@@ -7,6 +8,16 @@ export type EmployeeResource<T> = {
 }
 export type EmployeeLoader<T> = (id: string, signal: AbortSignal) => Promise<T>
 
+/** Load a keyed resource while ignoring stale or aborted requests.
+ *
+ * `refresh` retains existing data on failure, whereas `retry` starts a fresh
+ * initial read. `updateData` aborts an in-flight read before applying a local
+ * update, so an older response cannot overwrite the result of a write.
+ *
+ * @param id - Stable identity for the requested resource.
+ * @param loader - Async fetcher receiving the identity and abort signal.
+ * @param enabled - Whether the hook should fetch automatically.
+ */
 export function useEmployeeResource<T>(id: string, loader: EmployeeLoader<T>, enabled = true): EmployeeResource<T> {
   const [attempt, setAttempt] = useState(0)
   const key = `${id}:${attempt}`

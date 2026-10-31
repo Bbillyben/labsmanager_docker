@@ -7,6 +7,11 @@ import styles from './Filters.module.css'
 
 type Props = { id: string; label: string; value: string; placeholder?: string; source: EntitySearchSource; onChange: (value: string) => void }
 
+/** Resolve a stored entity ID and search for replacement options on demand.
+ *
+ * Search waits 300 ms after typing and aborts obsolete requests. A stored ID
+ * remains visible even if its label cannot currently be resolved.
+ */
 export function EntitySearch({ id, label, value, placeholder, source, onChange }: Props) {
   const { t } = useTranslation()
   const [resolved, setResolved] = useState<FilterOption | null>(null)

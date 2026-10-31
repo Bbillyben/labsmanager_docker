@@ -11,7 +11,13 @@ def _iso(value):
 
 @dataclass(frozen=True)
 class LabsManagerCalendarEvent:
-    """A non-persistent event shared by APIs, domains and plugins."""
+    """Non-persistent event shared by APIs, domains, and plugins.
+
+    Plugins provide stable ``id`` values and mark their ``source`` and ``kind``.
+    ``metadata`` may carry presentation details such as destinations or
+    assignees; the core serializers copy it into the public event shape. The
+    dataclass is frozen, so providers construct a replacement to change data.
+    """
 
     id: str
     title: str
@@ -26,7 +32,7 @@ class LabsManagerCalendarEvent:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def as_dict(self):
-        """Serialize the stable v1 representation."""
+        """Return the normalized v1 API shape with ISO date/time strings."""
         return {
             "id": self.id,
             "title": self.title,
@@ -42,7 +48,7 @@ class LabsManagerCalendarEvent:
         }
 
     def as_fullcalendar_dict(self):
-        """Serialize the legacy FullCalendar facade representation."""
+        """Return the legacy FullCalendar shape with metadata in extendedProps."""
         event = {
             "id": self.id,
             "title": self.title,

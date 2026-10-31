@@ -28,6 +28,7 @@ import { useTranslation } from '../i18n/i18n'
 const projectUrl = (id: number) => `/projects/${id}`
 type UpdateParams = (patch: Partial<ProjectListParams>) => void
 
+/** Browse visible Projects with URL-backed filters, ordering, and paging. */
 export function ProjectListPage() {
   const { t } = useTranslation()
   const [query, setQuery] = useSearchParams()

@@ -42,6 +42,11 @@ function ImportRowsTable({ result, columns }: { result: ImportResult; columns: I
   </section>
 }
 
+/** Guide a user through profile, upload, preview, confirmation, and result.
+ *
+ * Every mutation uses the selected profile key. The server owns permission
+ * checks, file parsing, transformation, Resource validation, and commit.
+ */
 export function ImportPage() {
   const { t } = useTranslation()
   const [profiles, setProfiles] = useState<ImportProfile[] | null>(null)

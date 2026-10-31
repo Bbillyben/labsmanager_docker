@@ -243,7 +243,11 @@ class PluginSetting(BaseLabsManagerSetting):
 
 
 class UserPluginSetting(BaseLabsManagerSetting):
-    """A plugin setting owned by one authenticated user."""
+    """Per-user override for a plugin's declared setting.
+
+    Unset values are resolved from the plugin's definition without creating
+    a row. The plugin, user, and key combination is unique.
+    """
 
     typ = 'user_plugin'
     extra_unique_fields = ['plugin', 'user']
@@ -264,7 +268,12 @@ class UserPluginSetting(BaseLabsManagerSetting):
 
 
 class PluginAccessToken(models.Model):
-    """Hashed secret for one plugin, optionally owned by one user."""
+    """Hashed credential for one plugin, optionally owned by one user.
+
+    User tokens require an owner; plugin tokens must have none. Public ID,
+    secret hash, scopes, plugin, kind, and owner are immutable after creation.
+    Revocation cannot be undone. The plaintext secret is never stored here.
+    """
 
     class Kind(models.TextChoices):
         PLUGIN = 'plugin', 'Plugin'
@@ -291,6 +300,7 @@ class PluginAccessToken(models.Model):
         )]
 
     def clean(self):
+        """Validate ownership, scope shape, and immutable token fields."""
         from django.core.exceptions import ValidationError
 
         super().clean()
@@ -308,5 +318,6 @@ class PluginAccessToken(models.Model):
                     raise ValidationError('Token revocation cannot be undone.')
 
     def save(self, *args, **kwargs):
+        """Run model validation before persisting token metadata."""
         self.full_clean()
         return super().save(*args, **kwargs)

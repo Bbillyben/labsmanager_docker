@@ -31,6 +31,11 @@ function followingDay(iso: string) {
   return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10)
 }
 
+/** Render calendar, list, or resource rows from plugin-supplied event data.
+ *
+ * In print mode the canvas disables interaction and calls `onReady` after
+ * FullCalendar has reported its date range and completed two animation frames.
+ */
 export function PluginCalendarCanvas({ scope, mode, anchor, events, resources = [], showCalendarName = false, print = false, onReady, onEventClick, onDateSelect, canCreate = false, unassignedLabel }: {
   scope: ProjectCalendarScope; mode: PluginCalendarMode; anchor: Date
   events: PluginCalendarEvent[]; resources?: PluginCalendarResource[]; showCalendarName?: boolean; print?: boolean; onReady?: () => void
@@ -70,6 +75,12 @@ export function PluginCalendarCanvas({ scope, mode, anchor, events, resources = 
   </div>
 }
 
+/** Provide period, display mode, navigation, and printing for plugin calendars.
+ *
+ * `onRangeChange` receives the visible range with an exclusive end date; the
+ * provider fetches its own events for that range. `canCreate` enables date
+ * selection, while `allowResources` controls whether resource mode is shown.
+ */
 export function PluginCalendarView({ title, events, resources = [], allowResources = false, showCalendarName = false, canCreate = false, onRangeChange, onModeChange, onEventClick, onDateSelect }: {
   title: string; events: PluginCalendarEvent[]; resources?: PluginCalendarResource[]; allowResources?: boolean
   showCalendarName?: boolean

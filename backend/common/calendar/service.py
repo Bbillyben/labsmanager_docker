@@ -9,7 +9,12 @@ logger = logging.getLogger("labsmanager")
 
 
 class CalendarService:
-    """Apply plugin filters and aggregate normalized plugin events."""
+    """Apply active plugin filters and aggregate normalized calendar data.
+
+    Each provider is isolated: exceptions are logged, and other providers
+    continue. Only ``LabsManagerCalendarEvent`` and
+    ``LabsManagerCalendarFilter`` instances enter the respective results.
+    """
 
     def __init__(self, plugins=None):
         self._plugins = plugins

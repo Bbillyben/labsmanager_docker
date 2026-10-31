@@ -8,7 +8,12 @@ logger = logging.getLogger('labsmanager')
 
 
 class UrlsMixin:
-    """Mixin that enables custom URLs for the plugin."""
+    """Publish plugin URL patterns through the existing URL registry.
+
+    Override ``setup_urls`` and optionally ``setup_api_urls``, or declare
+    ``URLS`` and ``API_URLS``. Patterns are prefixed with the plugin slug;
+    activation updates Django's URL cache when URL plugins change.
+    """
 
     class MixinMeta:
         """Meta options for this mixin."""
@@ -71,7 +76,7 @@ class UrlsMixin:
 
     @property
     def urlpatterns(self):
-        """URL patterns for this plugin, préfixées par /plugin/slug/"""
+        """Return patterns prefixed by the plugin's slug under ``/plugin/``."""
         if not self.urls:
             return []
 
@@ -80,9 +85,10 @@ class UrlsMixin:
     
     
     def format_urls(self, urls):
+        """Prefix path and regex patterns without changing their callbacks."""
         prefixed_urls = []
         for pattern in urls:
-            # Si c'est un path() ou re_path(), on préfixe son chemin
+            # Preserve the pattern type while adding the plugin slug prefix.
             regex = getattr(pattern.pattern, '_regex', None)
             if regex is not None:
                 # re_path

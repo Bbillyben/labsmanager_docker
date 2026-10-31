@@ -7,6 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 
 
 class favorite(models.Model):
+    """One user's saved generic object, unique by user and object identity."""
+
     class Meta:
         constraints = [models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="common_favorite_user_object_unique")]
 
@@ -20,6 +22,8 @@ class favorite(models.Model):
         return f"{self.user.username} : {self.content_object.__str__()}"
 
 class subscription(models.Model):
+    """One user's generic-object subscription, unique by user and object."""
+
     class Meta:
         constraints = [models.UniqueConstraint(fields=["user", "content_type", "object_id"], name="common_subscription_user_object_unique")]
 
@@ -53,6 +57,8 @@ class RecentItem(models.Model):
 #######################################################################################################
         
 class RightsSupport(models.Model):
+    """Unmanaged model that declares application-wide custom permissions."""
+
             
     class Meta:
         

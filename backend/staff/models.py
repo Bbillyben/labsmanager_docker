@@ -23,6 +23,13 @@ from settings.models import LabsManagerSetting
 
 ### Models 
 class Employee(models.Model, RightsCheckerMixin):
+    """Person record that may be linked one-to-one to a Django user.
+
+    Visibility is mediated by ``RightsCheckerMixin`` and the staff permission
+    rules. A record can exist without a user account. Saving may uppercase
+    the surname according to the global ``NEW_EMPLOYEE_CASSE`` setting.
+    """
+
     
     class Meta:
         """Metaclass defines extra model properties"""
@@ -159,6 +166,8 @@ class InvitationProvisioning(models.Model):
 
 
 class Employee_Status(ActiveDateMixin):
+    """Dated employment type and contractual status for one Employee."""
+
     
     class Meta:
         """Metaclass defines extra model properties"""
@@ -184,6 +193,12 @@ class Employee_Status(ActiveDateMixin):
         return f"{self.employee.first_name} {self.employee.last_name}  : {self.type.name}"
     
 class Employee_Superior(ActiveDateMixin):
+    """Dated subordinate-to-superior relation used by hierarchy permissions.
+
+    The database rejects self-supervision. ``current`` queries only the
+    presently active relations inherited from ``ActiveDateMixin``.
+    """
+
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Superior")
@@ -237,6 +252,8 @@ class Employee_Type(models.Model):
         return f"{self.name} ({self.shortname})"
 
 class Team(models.Model, RightsCheckerMixin):
+    """Named team with an Employee leader and permission-scoped visibility."""
+
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Team")
@@ -263,6 +280,12 @@ class Team(models.Model, RightsCheckerMixin):
 
 
 class TeamMate(ActiveDateMixin, RightsCheckerMixin):
+    """Dated Employee membership in a Team.
+
+    Validation rejects duplicate memberships and a leader repeated as a
+    member. The relation participates in object-level permission checks.
+    """
+
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("TeamMate")    

@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-/** Serialize submissions. A successful write is independent of later reads. */
+/** Serialize submissions and expose pending and error state.
+ *
+ * `run` returns `{ data }` only while mounted and only after a successful
+ * write. Concurrent submissions and unmounted callers receive `undefined`.
+ * Navigation after success cannot undo a completed write.
+ */
 export function useMutation() {
   const busy = useRef(false)
   const mounted = useRef(true)

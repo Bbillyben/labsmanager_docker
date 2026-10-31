@@ -23,7 +23,12 @@ class LabsManagerCalendarFilterChoice:
 
 @dataclass(frozen=True)
 class LabsManagerCalendarFilter:
-    """A UI-neutral filter declared by a Calendar plugin."""
+    """UI-neutral filter declared by a calendar plugin.
+
+    The identifier is local to its source plugin. Only types in
+    ``CALENDAR_FILTER_TYPES`` are accepted. Choices are normalized into
+    serializable value/label pairs before delivery to React.
+    """
 
     id: str
     title: str
@@ -38,7 +43,13 @@ class LabsManagerCalendarFilter:
 
     @classmethod
     def from_definition(cls, *, filter_id, source, definition):
-        """Build a normalized filter from one historical ``FILTERS`` entry."""
+        """Build a normalized filter from a historical ``FILTERS`` entry.
+
+        Args:
+            filter_id: Filter identifier within the source plugin.
+            source: Plugin identity exposed with the filter.
+            definition: Declarative title, type, choices, and default.
+        """
         choices = _normalize_choices(definition.get("choices", ()))
         return cls(
             id=filter_id,

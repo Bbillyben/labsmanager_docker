@@ -16,6 +16,7 @@ import { PageHeader } from '../ui/PageHeader'
 import { TeamFormSheet } from './TeamFormSheet'
 import styles from './EmployeeListPage.module.css'
 
+/** Browse visible Teams and expose creation only when the API permits it. */
 export function TeamListPage() {
   const { t } = useTranslation()
   const [query, setQuery] = useSearchParams()

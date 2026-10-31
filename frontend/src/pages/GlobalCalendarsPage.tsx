@@ -75,6 +75,11 @@ function apiFilters(catalogue: SupportedFilter[], query: URLSearchParams, tab: T
   return result
 }
 
+/** Render employee and project calendars with URL-persisted filters and views.
+ *
+ * Native data comes from the corresponding calendar APIs. Plugin filters and
+ * toolbar actions are discovered through the shared extension contracts.
+ */
 export function GlobalCalendarsPage() {
   useTrackRecent('calendar')
   const { language, t } = useTranslation()

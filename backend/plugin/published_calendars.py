@@ -17,6 +17,13 @@ IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]+$")
 
 @dataclass(frozen=True)
 class PublishedCalendar:
+    """Validated public metadata for one provider-local calendar.
+
+    ``id`` is unique within its provider, not across plugins. ``options``
+    lists boolean filters a consumer may pass to the provider; an empty tuple
+    advertises no filters. ``incarnation`` is optional provider metadata.
+    """
+
     id: str
     name: str
     description: str = ""
@@ -27,6 +34,7 @@ class PublishedCalendar:
 
 
 def _valid(calendar):
+    """Check the wire-safe shape of provider-supplied calendar metadata."""
     return (isinstance(calendar, PublishedCalendar)
             and isinstance(calendar.id, str) and IDENTIFIER.fullmatch(calendar.id)
             and isinstance(calendar.name, str) and bool(calendar.name.strip())
@@ -39,11 +47,19 @@ def _valid(calendar):
 
 
 def providers():
-    """The existing registry is the only source of active providers."""
+    """Return active plugins implementing the published-calendar mixin."""
     return registry.with_mixin("publishedcalendar", active=True)
 
 
 def list_calendars(user):
+    """Collect metadata visible to ``user`` from active providers.
+
+    A provider with an invalid or duplicated local calendar ID contributes
+    nothing; its error is logged without hiding other providers' calendars.
+
+    Returns:
+        ``(provider_slug, PublishedCalendar)`` pairs.
+    """
     results = []
     for provider in providers():
         try:
@@ -62,6 +78,11 @@ def list_calendars(user):
 
 
 def get_calendar(user, provider_slug, calendar_id):
+    """Resolve a visible calendar through its active provider.
+
+    Raises:
+        Http404: The identifier, provider, or returned calendar is invalid.
+    """
     if not isinstance(calendar_id, str) or not IDENTIFIER.fullmatch(calendar_id):
         raise Http404
     provider = next((item for item in providers() if item.slug == provider_slug), None)
@@ -74,6 +95,23 @@ def get_calendar(user, provider_slug, calendar_id):
 
 
 def get_events(user, provider_slug, calendar_id, start, end, *, options=None):
+    """Yield validated events for a visible published calendar.
+
+    Args:
+        user: Owner whose visibility the provider must enforce.
+        provider_slug: Active provider identity.
+        calendar_id: Provider-local calendar identity.
+        start: Inclusive timezone-aware start.
+        end: Exclusive timezone-aware end.
+        options: Boolean filters advertised in the calendar metadata.
+
+    Yields:
+        ``LabsManagerCalendarEvent`` instances with nonempty IDs.
+
+    Raises:
+        Http404: The calendar cannot be resolved for this user.
+        ValueError: The range, options, or provider events are invalid.
+    """
     if (not isinstance(start, datetime) or not isinstance(end, datetime)
             or timezone.is_naive(start) or timezone.is_naive(end) or end <= start):
         raise ValueError("An increasing aware datetime interval is required")
@@ -90,6 +128,11 @@ def get_events(user, provider_slug, calendar_id, start, end, *, options=None):
 
 
 def subscription_consumer(format_name):
+    """Return the sole available active consumer of a subscription format.
+
+    Returns ``None`` when there are zero or multiple matching consumers;
+    consumer failures are logged and do not stop discovery.
+    """
     consumers = []
     for plugin in registry.with_mixin("calendarsubscription", active=True):
         try:

@@ -9,14 +9,24 @@ logger = logging.getLogger("labsmanager")
 
 
 class DuplicateProviderKey(ValueError):
+    """A Search Provider key is invalid or conflicts with another provider."""
+
     pass
 
 
 class SearchRegistry:
+    """Combine stable core providers with active plugin providers per user.
+
+    Provider keys are unique across both sources. A plugin returning malformed
+    or colliding providers is ignored as a unit; other providers remain
+    available. Each provider's ``available(user)`` decides final visibility.
+    """
+
     def __init__(self):
         self._core = {}
 
     def register(self, provider):
+        """Register one core provider, rejecting missing or duplicate keys."""
         if not isinstance(provider, SearchProvider) or not provider.key:
             raise ValueError("A SearchProvider needs a stable key")
         if provider.key in self._core:
@@ -27,6 +37,7 @@ class SearchRegistry:
         return self._core.pop(key, None)
 
     def active(self, user):
+        """Return providers currently available to the requesting user."""
         providers = dict(self._core)
         from plugin import registry as plugin_registry
         for plugin in plugin_registry.with_mixin("search", active=True):

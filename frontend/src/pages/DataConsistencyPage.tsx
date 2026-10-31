@@ -45,6 +45,13 @@ function parentKind(issue: ConsistencyIssue) {
 
 const issueId = consistencyIssueId
 
+/** Review permission-filtered consistency rules and their paginated issues.
+ *
+ * Aggregate counts and the current rule's paginated rows load separately.
+ * Related Employee, Fund, or Project records load only where the displayed
+ * issues or an action need them. Batch selection can represent explicit IDs
+ * or all current matches with exclusions.
+ */
 export function DataConsistencyPage() {
   const { t, language } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()

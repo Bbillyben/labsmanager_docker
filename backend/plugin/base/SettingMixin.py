@@ -16,7 +16,14 @@ else:
 
 
 class SettingsMixin:
-    """Mixin that enables global settings for the plugin."""
+    """Declare global and per-user settings for an active plugin.
+
+    ``SETTINGS`` and ``USER_SETTINGS`` are keyed by setting name. Activation
+    publishes their definitions into the existing registry. Personal values
+    are stored as explicit overrides; reading an unset value does not create
+    a database row. User operations require an authenticated user and a
+    declared, non-hidden key where the API exposes it.
+    """
 
     SETTINGS: dict[str, SettingsKeyType] = {}
     USER_SETTINGS: dict[str, SettingsKeyType] = {}

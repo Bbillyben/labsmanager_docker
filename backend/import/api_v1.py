@@ -87,6 +87,11 @@ def _clean_expired():
 
 
 def _sign(user, profile, identifier, file_format, sheet=None, previewed=False, preview_id=None, header_row=1):
+    """Sign an uploaded-file reference bound to a user and import profile.
+
+    Plugin tokens also include the chosen Resource and method identity, so a
+    changed declaration cannot confirm an older preview.
+    """
     payload = {"user": user.pk, "profile": profile.key, "file": identifier,
                "format": file_format, "sheet": sheet, "previewed": previewed,
                "preview_id": preview_id}
@@ -96,6 +101,13 @@ def _sign(user, profile, identifier, file_format, sheet=None, previewed=False, p
 
 
 def _read_token(token, user, profile, *, previewed=None):
+    """Validate a signed import reference and locate its temporary file.
+
+    Raises:
+        ValidationError: The token expired, changed method, has the wrong
+            preview state, or refers to a missing temporary file.
+        PermissionDenied: It belongs to another user or profile.
+    """
     try:
         value = signing.loads(token, salt=TOKEN_SALT, max_age=TOKEN_AGE)
     except (signing.BadSignature, signing.SignatureExpired, TypeError):
@@ -269,6 +281,8 @@ def _normalize(result, dataset, resource, profile):
 
 
 class ImportBase(APIView):
+    """Require a session and resolve only profiles allowed for the user."""
+
     authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -282,11 +296,15 @@ class ImportBase(APIView):
 
 
 class ImportProfiles(ImportBase):
+    """List allowed native and plugin import profiles with their metadata."""
+
     def get(self, request):
         return Response({"items": [p.metadata() for p in get_profiles().values() if p.allowed(request.user)]})
 
 
 class ImportTemplate(ImportBase):
+    """Download an empty template from the selected profile's Resource."""
+
     content_negotiation_class = ListExportContentNegotiation
     def get(self, request, profile):
         item = self.profile(request, profile)
@@ -303,6 +321,12 @@ class ImportTemplate(ImportBase):
 
 
 class ImportUpload(ImportBase):
+    """Store a bounded upload temporarily and report its sheet structure.
+
+    A signed token represents the temporary file; no rows are imported here.
+    Failed parsing removes the temporary file before propagating the error.
+    """
+
     def post(self, request, profile):
         item = self.profile(request, profile)
         upload = request.FILES.get("file")
@@ -342,6 +366,13 @@ class ImportUpload(ImportBase):
 
 
 class ImportPreview(ImportBase):
+    """Run a dry-run import and issue a preview-bound confirmation token.
+
+    Plugin preparation and transformation run before the Resource dry run.
+    The transformed dataset is saved so confirmation uses the same serialized
+    rows rather than transforming the source a second time.
+    """
+
     def post(self, request, profile):
         item = self.profile(request, profile)
         value, path = _read_token(request.data.get("import_token"), request.user, item, previewed=False)
@@ -382,6 +413,14 @@ class ImportPreview(ImportBase):
 
 
 class ImportCommit(ImportBase):
+    """Consume a preview token and commit through django-import-export.
+
+    The upload is renamed before processing to prevent reuse. Temporary
+    source and sidecar files are removed afterward, including on failure.
+    Validation errors roll back the import; successful rows may write admin
+    log entries and emit the post-import signal.
+    """
+
     def post(self, request, profile):
         item = self.profile(request, profile)
         value, path = _read_token(request.data.get("import_token"), request.user, item, previewed=True)
@@ -431,6 +470,8 @@ class ImportCommit(ImportBase):
 
 
 class ImportErrors(ImportBase):
+    """Retrieve row errors associated with a valid preview token."""
+
     def get(self, request, profile):
         item = self.profile(request, profile)
         value, path = _read_token(request.query_params.get("import_token"), request.user, item, previewed=True)

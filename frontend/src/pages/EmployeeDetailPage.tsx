@@ -19,6 +19,7 @@ import { useEmployeeResource } from './useEmployeeResource'
 import { useTrackRecent } from '../hooks/useTrackRecent'
 import styles from './EmployeeDetailPage.module.css'
 
+/** Show one permission-scoped Employee and its related detail sections. */
 export function EmployeeDetailPage() {
   const { employeeId = '' } = useParams()
   const location = useLocation()

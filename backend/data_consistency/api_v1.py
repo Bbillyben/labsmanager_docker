@@ -108,6 +108,8 @@ def accept_current_issue(user, rule, object_id, reason, expected=None):
 
 
 class DataConsistencySummary(APIView):
+    """Return a permission-filtered overview without loading issue details."""
+
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("get", "head", "options")
 
@@ -127,6 +129,8 @@ class DataConsistencySummary(APIView):
 
 
 class DataConsistencyIssues(generics.GenericAPIView):
+    """Page current or accepted issues for one selected consistency rule."""
+
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = LabPagination
     http_method_names = ("get", "head", "options")

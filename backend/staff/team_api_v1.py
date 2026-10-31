@@ -28,7 +28,11 @@ from django.utils import timezone
 from django.db.models import Prefetch, Case, When, Value, IntegerField, Q
 
 def visible_teams(user, queryset=None):
-    """SQL equivalent of the existing view_team leader/member predicate."""
+    """Filter teams to global viewers, leaders, and Employee members.
+
+    The queryset remains lazy so list pagination and downstream filtering can
+    run in SQL. ``view_team`` grants the unfiltered list.
+    """
     queryset = queryset if queryset is not None else Team.objects.all()
     if user.has_perm("staff.view_team"):
         return queryset
@@ -41,6 +45,11 @@ def can_change_team(user, team):
 
 
 def team_create_capabilities(user):
+    """Advertise creation and leader selection using actual permissions.
+
+    Users without global Team change permission may still create a Team when
+    they have add permission and a linked Employee who can be its leader.
+    """
     own = Employee.objects.filter(user=user).first()
     can_choose_leader = user.has_perm("staff.change_team")
     return {
@@ -92,6 +101,11 @@ def employee_data(employee, visible_ids):
 
 
 def team_queryset(user):
+    """Return visible Teams with leader and members prefetched for display.
+
+    Active memberships are sorted ahead of historical ones using the current
+    local date; the visibility restriction comes from ``visible_teams``.
+    """
     today = timezone.localdate()
     active_condition = (
         (Q(start_date__isnull=True) | Q(start_date__lte=today))

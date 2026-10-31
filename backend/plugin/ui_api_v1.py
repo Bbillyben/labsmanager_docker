@@ -22,11 +22,15 @@ logger = logging.getLogger(__name__)
 
 
 class UIBase(APIView):
+    """Require an authenticated session for all plugin UI contributions."""
+
     authentication_classes = (SessionAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
 
 
 class UISlots(UIBase):
+    """Expose known server slots for clients that support them."""
+
     def get(self, request):
         """Describe server slots; React only renders the slots it integrates."""
         return Response({"slots": [{"id": key, "type": slot.kind, "entity": slot.entity}
@@ -34,6 +38,7 @@ class UISlots(UIBase):
 
 
 class UIContributions(UIBase):
+    """List contributions for a visible Employee, Team, or Project."""
 
     def get(self, request, entity, object_id):
         """Discover visible contributions only after resolving the object scope."""
@@ -46,6 +51,8 @@ class UIContributions(UIBase):
 
 
 class UIPages(UIBase):
+    """List plugin pages that pass their optional visibility callback."""
+
     def get(self, request):
         pages = [public_data(item) for plugin, item in declared_contributions()
                  if item["type"] == "page" and is_visible(plugin, item, request, {})]
@@ -53,6 +60,8 @@ class UIPages(UIBase):
 
 
 class UIPageDetail(UIBase):
+    """Resolve a visible plugin page to a validated Vite module descriptor."""
+
     def get(self, request, plugin_slug, page_id):
         for plugin, item in declared_contributions():
             if (item["type"] == "page" and item["plugin_slug"] == plugin_slug
@@ -67,12 +76,18 @@ class UIPageDetail(UIBase):
 
 
 def scoped_contributions(request, slot, context, plugin_key=None):
+    """Return public declarations matching a slot and optional plugin key."""
     return [public_data(item) for plugin, item in declared_contributions()
             if item["slot"] == slot and (plugin_key is None or plugin.slug == plugin_key)
             and is_visible(plugin, item, request, context)]
 
 
 def scoped_action(request, slot, context, identity, plugin_key=None):
+    """Execute a visible action with its full plugin-scoped identity.
+
+    Raises:
+        Http404: No matching visible action is declared for the scope.
+    """
     for plugin, item in declared_contributions():
         if (item["id"] == identity and item["slot"] == slot
                 and (plugin_key is None or plugin.slug == plugin_key)):
@@ -83,6 +98,11 @@ def scoped_action(request, slot, context, identity, plugin_key=None):
 
 
 def module_action(request, slot, context, identity, module_context, plugin_key=None):
+    """Resolve a module action's entry assets and browser context.
+
+    Asset failures return a 502 response; missing or hidden actions raise 404.
+    The response includes the action URL for the plugin module to invoke.
+    """
     for plugin, item in declared_contributions():
         if (item["id"] == identity and item["slot"] == slot and item["behavior"] == "module"
                 and (plugin_key is None or plugin.slug == plugin_key)
@@ -100,6 +120,12 @@ def module_action(request, slot, context, identity, module_context, plugin_key=N
 
 
 def execute_action(request, plugin, item, context):
+    """Run a plugin handler and validate its serializable result.
+
+    Permission and validation exceptions propagate. Unexpected plugin errors
+    become a 502 response, while successful results are never cached because
+    copy actions may return one-time credentials.
+    """
     try:
         result = getattr(plugin, item["handler"])(request, handler_context(context, item))
         # A copy_url action may reveal a one-time credential. Never cache it.
@@ -112,6 +138,8 @@ def execute_action(request, plugin, item, context):
 
 
 class UICalendarActions(UIBase):
+    """List and execute toolbar actions for a permission-checked calendar."""
+
     slot = "calendar.toolbar.actions"
 
     def get(self, request, calendar_type, object_id, identity=None):
@@ -129,6 +157,8 @@ class UICalendarActions(UIBase):
 
 
 class UIUserPluginActions(UIBase):
+    """List and execute personal actions on the named active plugin."""
+
     slot = "user.plugin.settings.actions"
 
     def get(self, request, plugin_key, identity=None):
@@ -143,6 +173,8 @@ class UIUserPluginActions(UIBase):
 
 
 class UIUserPluginPanels(UIBase):
+    """List or resolve visible plugin panels in personal settings."""
+
     slot = "user.plugin.settings.panels"
 
     def get(self, request, plugin_key, panel_id=None):
@@ -166,6 +198,8 @@ class UIUserPluginPanels(UIBase):
 
 
 class UIPublishedCalendarActions(UIBase):
+    """List and execute actions for a visible provider-owned calendar."""
+
     slot = "published-calendar.actions"
 
     def _context(self, request, provider_slug, calendar_id):
@@ -187,6 +221,11 @@ class UIPublishedCalendarActions(UIBase):
 
 
 class UIContributionDetail(UIBase):
+    """Resolve detail sections, tabs, and actions through object permissions.
+
+    Each request reloads the target object and rechecks contribution visibility
+    before obtaining data or invoking a server-side handler.
+    """
 
     def _resolve(self, request, entity, object_id, identity, kind):
         if entity not in DETAIL_ENTITIES:

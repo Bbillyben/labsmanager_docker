@@ -4,12 +4,13 @@ from settings.accessor import get_global_setting
 import logging
 logger = logging.getLogger("labsmanager.plugin")
 class MailSubscriptionMixin:
-    '''
-    Mixin to add context data to subscription mail 
-    send as well as template (subdir tempaltes/[slug]/mytemplate.html)
-    the template will be added at the bottom of the mail, before the footer
-    context data will be accessible by [mypugin-slug].mydata
-    '''
+    """Add plugin context and optional templates to subscription emails.
+
+    Declare template filenames in ``TEMPLATE_FILES`` under the plugin's
+    ``templates/<slug>/`` directory. The mail renderer appends valid plugin
+    templates before its footer and stores ``add_context`` results under the
+    plugin slug in the rendering context.
+    """
     TEMPLATE_FILES = []  # report here the name of the template. ie : 'mytemplate.html' 
                                             # under templates/[slug]/mytemplate.html
                                             # in template, data are accessible by [slug].mydata
@@ -24,12 +25,15 @@ class MailSubscriptionMixin:
         
     @classmethod
     def add_context(cls, user, current_context):
-        """
-        Add extra context data to report 
-        Args: 
-            * user : the user for whom the mail will be sent
-            * current_context : a copy the current context for rendering (do not alterate, useless, just for informations purpose)
-        datas will be added to the global email context accessible by plugin's [slug]
+        """Return plugin-specific template data for a subscription email.
+
+        Args:
+            user: Recipient of the email.
+            current_context: Copy of the current mail rendering context.
+
+        Returns:
+            Data inserted under the plugin slug in the mail context. The
+            default contributes an empty dictionary.
         """
         return {}
    
@@ -47,11 +51,12 @@ class MailSubscriptionMixin:
     
     @classmethod
     def get_template(cls):
-        '''
-        use in mail template to collect templatefilename to user
-        perform some verification to prevent errors in template rendering
-        avoid overriding this method.
-        '''
+        """Return declared template paths that exist on disk.
+
+        This method instantiates the plugin and validates files under its
+        template directory; implementations normally override ``TEMPLATE_FILES``
+        instead of this method. Missing templates are logged and omitted.
+        """
         pgI = cls()
         print(f">>>>>> {pgI.TEMPLATE_FILES} ")
         if len(pgI.TEMPLATE_FILES) < 1:

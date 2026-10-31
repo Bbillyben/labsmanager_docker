@@ -12,6 +12,11 @@ from settings.admin_api_v1 import save_setting, setting_data
 
 
 def personal_settings(key):
+    """Return an active plugin config and its personal setting definitions.
+
+    Raises:
+        Http404: The plugin lacks settings or is inactive.
+    """
     plugin = registry.get_plugin(key)
     if plugin is None or not plugin.mixin_enabled('settings'):
         raise Http404
@@ -22,7 +27,11 @@ def personal_settings(key):
 
 
 class UserPlugins(APIView):
-    """Discover active plugins with personal settings or tokens."""
+    """List active plugins with personal settings, tokens, actions, or panels.
+
+    This is an authenticated personal-settings listing, distinct from the
+    administrative plugin inventory. It does not expose token secrets.
+    """
 
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -49,6 +58,8 @@ class UserPlugins(APIView):
 
 
 class UserPluginSettings(APIView):
+    """List visible setting values for an authenticated user and plugin."""
+
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, key):
@@ -60,6 +71,8 @@ class UserPluginSettings(APIView):
 
 
 class UserPluginSettingDetail(APIView):
+    """Update or reset one non-hidden personal plugin setting."""
+
     permission_classes = (permissions.IsAuthenticated,)
 
     def _setting(self, request, key, setting_key):

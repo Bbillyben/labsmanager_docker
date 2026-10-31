@@ -20,6 +20,7 @@ function useContributions() {
   return context
 }
 
+/** Render plugin detail tabs using their provider slug and local page ID. */
 export function PluginEntityTabs({ base, linkClassName, activeClassName, state }: { base: string; linkClassName: string; activeClassName: string; state?: unknown }) {
   const { items, scope } = useContributions()
   const slot = 'entity' in scope ? `${scope.entity}.detail.tabs` : null
@@ -31,6 +32,11 @@ export function PluginEntityTabs({ base, linkClassName, activeClassName, state }
   >{item.label}</NavLink>)}</>
 }
 
+/** Load visible contributions for one backend-authorized object or calendar.
+ *
+ * The scope key is stable across parent renders, and consumers share the
+ * fetched declarations. Changing the entity or object starts a new load.
+ */
 export function PluginContributionsProvider({ scope, children }: { scope: UIContributionScope; children: ReactNode }) {
   const entity = 'entity' in scope ? scope.entity : null
   const calendarType = 'calendarType' in scope ? scope.calendarType : null
@@ -59,6 +65,12 @@ const icons: Record<string, ReactNode> = {
   info: <Info aria-hidden="true" />, play: <Play aria-hidden="true" />,
 }
 
+/** Combine host actions with visible plugin actions in a menu or button row.
+ *
+ * Server actions execute through the contribution API. Module actions load
+ * their plugin UI; URL actions use the validated response, with a manual copy
+ * field when clipboard access is unavailable. The API decides visibility.
+ */
 export function PluginEntityActions({ groups, presentation = 'menu', ...props }: ComponentProps<typeof EntityActionMenu> & { groups: EntityActionGroup[]; presentation?: 'menu' | 'buttons' }) {
   const { scope, actionSlot, items } = useContributions()
   const { t } = useTranslation()
@@ -144,6 +156,7 @@ function SectionContent({ content }: { content: UISection }) {
   return <ul className="space-y-2">{content.items.map((item, index) => <li key={index}>{item.url ? <a href={item.url} target="_blank" rel="noopener noreferrer">{item.label}</a> : <strong>{item.label}</strong>}{item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}</li>)}</ul>
 }
 
+/** Render plugin sections independently so one failing section stays local. */
 export function PluginContributionSections() {
   const { scope, sectionSlot, items, error, retry } = useContributions()
   const { t } = useTranslation()
@@ -155,6 +168,7 @@ export function PluginContributionSections() {
   </div>
 }
 
+/** Mount toolbar actions for a native calendar and its authorized scope. */
 export function CalendarPluginActions({ calendarType, objectId }: { calendarType: UICalendarType; objectId: number }) {
   const { t } = useTranslation()
   return <PluginContributionsProvider key={`${calendarType}:${objectId}`} scope={{ calendarType, objectId }}>
@@ -162,6 +176,7 @@ export function CalendarPluginActions({ calendarType, objectId }: { calendarType
   </PluginContributionsProvider>
 }
 
+/** Mount action buttons for a calendar owned by an independent provider. */
 export function PluginPublishedCalendarActions({ providerSlug, calendarId }: { providerSlug: string; calendarId: string }) {
   return <PluginContributionsProvider key={`${providerSlug}:${calendarId}`} scope={{ providerSlug, calendarId }}>
     <PublishedCalendarActionButtons />
@@ -177,6 +192,7 @@ function PublishedCalendarActionButtons() {
   </>
 }
 
+/** Display personal settings actions for one active plugin. */
 export function UserPluginActions({ pluginKey, className }: { pluginKey: string; className?: string }) {
   return <PluginContributionsProvider key={pluginKey} scope={{ pluginKey }}><UserPluginActionSection className={className} /></PluginContributionsProvider>
 }

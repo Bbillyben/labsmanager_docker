@@ -14,6 +14,12 @@ logger = logging.getLogger("labsmanager")
 
 @dataclass(frozen=True)
 class DashboardContext:
+    """Viewer and optional domain object for one dashboard scope.
+
+    ``scope`` and ``object`` preserve compatibility with older plugin
+    providers; new providers may use ``context_type`` and ``context_object``.
+    """
+
     context_type: str
     user: object
     context_object: object = None
@@ -52,6 +58,12 @@ class DashboardContext:
 
 @dataclass
 class DataSource:
+    """Queryable dashboard source with scope and renderer compatibility.
+
+    ``provider(context, config)`` supplies widget data. ``available`` can
+    suppress the source for a given context before it is offered to a user.
+    """
+
     key: str
     label: str
     category: str
@@ -67,6 +79,8 @@ class DataSource:
 
 @dataclass
 class WidgetDefinition:
+    """Default widget binding to a source, renderer, and layout bounds."""
+
     key: str
     title: str
     category: str

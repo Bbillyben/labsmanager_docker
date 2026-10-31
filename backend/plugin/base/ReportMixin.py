@@ -10,10 +10,11 @@ from plugin.helpers import MixinImplementationError
 logger = logging.getLogger('labsmanager')
 
 class ReportMixin:
-    '''
-    Mixin to add context data to reports  
+    """Let a plugin extend report rendering context.
 
-    '''
+    The report model calls ``add_report_data`` during generation. Overrides
+    may add values to the supplied context for report templates.
+    """
     
     class MixinMeta:
         """Meta options for this mixin."""
@@ -25,13 +26,12 @@ class ReportMixin:
         self.add_mixin('report', True, __class__)
         
     def add_report_data(self, current_report, request, context):
-        """Add extra context to the provided report instance.
+        """Add plugin values to a report's rendering context.
 
         Args:
-            current_report: The report instance to add context to
-            model_instance: The model instance which initiated the report generation
-            request: The request object which initiated the report generation
-            context: The context dictionary to add to
+            current_report: Report instance being generated.
+            request: Request that initiated report generation.
+            context: Mutable template context to extend.
         """
         pass
     

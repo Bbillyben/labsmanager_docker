@@ -16,10 +16,11 @@ import logging
 logger = logging.getLogger("labsmanager")
 
 class NotificationBase(models.Model):
-    ''' Base Notification for Labs Manager, abstract class, 
-    reference source object that the notification refer to*
-    inclmuding a message, creation date and send date
-    '''
+    """Abstract notification with a generic source and delivery timestamp.
+
+    ``source_object`` may point to any Django content type. ``send`` records
+    delivery; ``done`` requires a non-null, timezone-aware value.
+    """
     objects = models.Manager()
     object_inherit = InheritanceManager()
     
@@ -47,10 +48,7 @@ class NotificationBase(models.Model):
         return self.send is not None and not is_naive(self.send)
 
 class TypedNotification(models.Model):
-    '''
-    add an action type to notification (like add, remove, stale, complete, delete)
-    to determine which type of action has trigger the notification
-    '''
+    """Abstract action category for a notification's source event."""
     class Meta:
         abstract=True
         
@@ -73,9 +71,7 @@ class TypedNotification(models.Model):
     )
     
 class UserNotification(TypedNotification, NotificationBase):
-    '''
-    Notification with user reference
-    '''
+    """Notification delivered to an optional user about a source object."""
     class Meta:
         verbose_name = _("Notification")
         
@@ -193,4 +189,3 @@ class UserNotification(TypedNotification, NotificationBase):
     def is_pending(cls, user, content_type, object_id, action) -> bool:
         notifs = cls.get_notifs( user, content_type, object_id, action).filter(send=None )
         return notifs.exists()
-    

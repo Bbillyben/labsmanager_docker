@@ -306,6 +306,17 @@ react-migration/REUSABLE.md
 
 The project favours reuse of existing components and patterns over duplication.
 
+### Source documentation
+
+Write code documentation in English. Use Google-style Python docstrings and
+TSDoc/JSDoc for nontrivial TypeScript and React functions, hooks, components,
+and public types. Explain parameters, return values, meaningful exceptions,
+side effects, permissions, and usage constraints when they are relevant.
+Document public plugin extension contracts in enough detail for independently
+built plugins to implement them without relying on undocumented assumptions.
+Internal comments should explain decisions and invariants that are not obvious
+from the code; avoid comments that merely restate an operation.
+
 ---
 
 ## Changelog

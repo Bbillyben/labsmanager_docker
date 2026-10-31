@@ -29,6 +29,7 @@ export function readFilterQuery(catalogue: readonly SupportedFilter[], query: UR
   return result
 }
 
+/** Change one filter in a copied query and clear dependent URL parameters. */
 export function changeFilter(query: URLSearchParams, filter: SupportedFilter, value: string | null, resetParameters: readonly string[] = []) {
   const next = new URLSearchParams(query)
   if (value === null) next.delete(filter.parameter)
@@ -37,6 +38,7 @@ export function changeFilter(query: URLSearchParams, filter: SupportedFilter, va
   return next
 }
 
+/** Remove catalogue filters and dependent parameters from a copied query. */
 export function resetFilters(query: URLSearchParams, catalogue: readonly SupportedFilter[], resetParameters: readonly string[] = []) {
   const next = new URLSearchParams(query)
   catalogue.forEach((filter) => next.delete(filter.parameter))

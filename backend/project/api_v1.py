@@ -25,6 +25,11 @@ from .resources import ProjectResource
 
 
 def project_capabilities(user, project=None):
+    """Return root Project actions authorized for the current user.
+
+    Change access uses the Project's object-filtered queryset. Add and delete
+    expose the corresponding global model permissions.
+    """
     return {
         "can_add": user.has_perm("project.add_project"),
         "can_change": bool(project and Project.get_instances_for_user("change", user, Project.objects.filter(pk=project.pk)).exists()),
@@ -53,6 +58,8 @@ def validate_model(instance):
 
 
 class ProjectListV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
+    """Summarize Project rows with related names and contextual actions."""
+
     institutions = serializers.SerializerMethodField()
     participants = serializers.SerializerMethodField()
     funds = serializers.SerializerMethodField()
@@ -83,6 +90,8 @@ class ProjectListV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializ
 
 
 class ProjectWriteV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
+    """Validate root Project mutations while preserving its immutable name."""
+
     class Meta:
         model = Project
         fields = ("id", "admin_url", "name", "start_date", "end_date", "status")

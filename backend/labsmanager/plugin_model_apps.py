@@ -19,6 +19,8 @@ IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z_0-9]*$")
 
 @dataclass(frozen=True)
 class ModelApp:
+    """Literal Django app identity discovered from plugin source before setup."""
+
     slug: str
     app_config: str
     name: str
@@ -27,7 +29,14 @@ class ModelApp:
 
 
 def literal_metadata(source):
-    """Yield class names, direct base names and literal assignments in a file."""
+    """Yield class names, direct bases, and literal assignments from source.
+
+    The AST scan deliberately avoids importing plugin code before Django's
+    app registry exists. Nonliteral or inherited declarations are ignored.
+
+    Raises:
+        ImproperlyConfigured: The source cannot be read or parsed.
+    """
     try:
         tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
     except (OSError, SyntaxError, UnicodeError) as exc:
@@ -46,7 +55,12 @@ def literal_metadata(source):
 
 
 def source_directories(base_dir, external_dirs=()):
-    """Use the same builtin, sample and configured external directory roots."""
+    """Return builtin, sample, and configured external plugin roots.
+
+    Existing external roots add their parent to ``sys.path`` so Django can
+    import their AppConfigs and models by the same package name as the normal
+    registry. Changing this list requires a process restart.
+    """
     roots = [
         (Path(base_dir) / "plugin" / "builtin", "plugin.builtin"),
         (Path(base_dir) / "plugin" / "samples", "plugin.samples"),
@@ -63,7 +77,20 @@ def source_directories(base_dir, external_dirs=()):
 
 
 def discover_model_apps(base_dir, external_dirs=()):
-    """Statically discover ModelMixin declarations without importing their code."""
+    """Discover ModelMixin apps and reject conflicting Django identities.
+
+    Only direct ModelMixin inheritance and literal plugin/AppConfig metadata
+    qualify. Package names, app labels, and plugin slugs must remain stable
+    after migrations are applied. Both builtin and external roots use their
+    full import paths; duplicate copies fail discovery.
+
+    Returns:
+        Mapping from normalized plugin slug to ``ModelApp`` metadata.
+
+    Raises:
+        ImproperlyConfigured: A model plugin has an invalid or duplicate
+            declaration, app name, label, or plugin slug.
+    """
     found, names, labels, plugin_slugs = {}, {}, {}, {}
     for root, package in source_directories(base_dir, external_dirs):
         if not root.is_dir():
@@ -125,7 +152,11 @@ def discover_model_apps(base_dir, external_dirs=()):
 
 
 def discover_plugin_static_dirs(base_dir, external_dirs=()):
-    """Expose built assets of directory plugins, including those without models."""
+    """List built plugin UI directories for Django static-file discovery.
+
+    Plugins need a ``frontend/dist/manifest.json`` and literal plugin identity.
+    Duplicate static slugs are rejected independently of ModelMixin usage.
+    """
     locations = []
     seen = set()
     for root, _ in source_directories(base_dir, external_dirs):

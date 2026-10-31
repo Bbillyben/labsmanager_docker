@@ -5,6 +5,7 @@ type UnauthorizedListener = () => void
 const unauthorizedListeners = new Set<UnauthorizedListener>()
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'TRACE'])
 
+/** Notify a caller about future HTTP 401 responses; returns its unsubscribe. */
 export function subscribeToUnauthorized(listener: UnauthorizedListener) {
   unauthorizedListeners.add(listener)
   return () => {
@@ -18,6 +19,16 @@ async function readResponse(response: Response): Promise<unknown> {
   return contentType.includes('application/json') ? response.json() : undefined
 }
 
+/** Send a same-origin API request with session credentials and CSRF handling.
+ *
+ * Unsafe methods receive the current CSRF token when one is available. A 401
+ * notifies subscribers, and any non-success response throws `ApiError`.
+ *
+ * @param url - Root-relative URL on the current origin.
+ * @param init - Fetch options; method defaults to GET.
+ * @param responseType - Read successful payload as JSON or text.
+ * @returns Parsed response, or `undefined` for HTTP 204.
+ */
 export async function apiRequest<T>(url: string, init: RequestInit = {}, responseType: 'json' | 'text' = 'json'): Promise<T> {
   if (!url.startsWith('/') || url.startsWith('//')) {
     throw new TypeError('API URLs must be relative to the current origin')
@@ -39,6 +50,11 @@ export async function apiRequest<T>(url: string, init: RequestInit = {}, respons
   return payload as T
 }
 
+/** Download a same-origin file while preserving an optional response filename.
+ *
+ * The filename comes from `Content-Disposition` when available. Non-success
+ * responses throw `ApiError` and 401 responses notify auth subscribers.
+ */
 export async function apiFileRequest(url: string, init: RequestInit): Promise<{ blob: Blob; filename: string | null }> {
   if (!url.startsWith('/') || url.startsWith('//')) throw new TypeError('API URLs must be relative to the current origin')
   const headers = new Headers(init.headers)

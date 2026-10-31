@@ -8,6 +8,11 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { useEmployeeResource } from './useEmployeeResource'
 
+/** Resolve a plugin page from its route and render its module.
+ *
+ * Calendar navigation appears when the page declares that location, including
+ * while a route reached from the calendar menu is still loading.
+ */
 export function PluginPage() {
   const { pluginSlug = '', pageId = '' } = useParams()
   const location = useLocation()
@@ -24,6 +29,7 @@ export function PluginPage() {
     : content
 }
 
+/** Render a plugin tab after the backend resolves the entity's view access. */
 export function EntityPluginTab({ entity }: { entity: 'employee' | 'team' | 'project' }) {
   const { employeeId, teamId, projectId, pluginSlug = '', tabId = '' } = useParams()
   const objectId = entity === 'employee' ? employeeId : entity === 'team' ? teamId : projectId

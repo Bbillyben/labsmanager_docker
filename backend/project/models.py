@@ -33,6 +33,13 @@ class Institution(RightsCheckerMixin, models.Model):
     
 from labsmanager.manager import date_manager
 class Project(ActiveDateMixin, RightsCheckerMixin):
+    """Dated research project with status, participants, and funding.
+
+    ``RightsCheckerMixin`` supplies object-level visibility; aggregates below
+    derive amounts and participation from related records rather than storing
+    independent totals on the Project row.
+    """
+
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("project")
@@ -194,6 +201,8 @@ def calculate_project(*arg):
  
         
 class Institution_Participant(models.Model):
+    """Role of an Institution associated with a Project."""
+
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Partner Institution")
@@ -212,6 +221,12 @@ class Institution_Participant(models.Model):
     history = AuditlogHistoryField()
 from labsmanager.manager import date_manager
 class Participant(ActiveDateMixin, RightsCheckerMixin):
+    """Dated Employee participation and role within a Project.
+
+    ``clean`` rejects overlapping membership periods for the same employee
+    and project. The role distinguishes leader, co-leader, and participant.
+    """
+
     objects = models.Manager()
     time_object = date_manager()
     

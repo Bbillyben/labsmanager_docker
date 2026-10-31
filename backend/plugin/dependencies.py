@@ -51,6 +51,8 @@ def active_path():
 
 @dataclass(frozen=True)
 class Candidate:
+    """Directory plugin whose literal metadata and requirements can be read."""
+
     key: str
     directory: Path
     title: str
@@ -75,6 +77,11 @@ def _static_identity(directory):
 
 
 def discover_candidates():
+    """Find directory and installed entry-point plugins without importing them.
+
+    Returns:
+        Mapping of normalized plugin keys to their first discovered candidate.
+    """
     from plugin.registry import registry
     found = {}
     for source in registry.plugin_dirs():
@@ -110,6 +117,14 @@ def discover_candidates():
 
 
 def parse_requirements(candidate):
+    """Parse bounded, ordinary package requirements from a plugin.
+
+    Direct URLs, pip options, local paths, and oversized files are rejected.
+
+    Returns:
+        ``(requirements, errors)`` where requirements are packaging objects
+        and errors are safe diagnostic strings.
+    """
     path = candidate.requirements_file
     if not path.exists():
         return [], []
@@ -158,6 +173,7 @@ def _on_disk():
 
 
 def operation_state():
+    """Read the current installation job, marking stale jobs failed in memory."""
     path = environment_root() / "operation.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -179,6 +195,12 @@ def _write_operation(data):
 
 
 def diagnose(key, candidates=None):
+    """Compare a plugin's requirements with core and managed distributions.
+
+    The result distinguishes on-disk satisfaction from versions loaded by
+    this process, since a newly published package release needs a restart.
+    Returns ``None`` when the plugin is not discovered.
+    """
     candidate = (candidates or discover_candidates()).get(key)
     if candidate is None:
         return None
@@ -228,12 +250,21 @@ def diagnose(key, candidates=None):
 
 
 def activation_ready(key):
+    """Return whether a plugin can activate without missing dependencies."""
     diagnostic = diagnose(key)
     return diagnostic is None or diagnostic["state"] in ("none", "satisfied")
 
 
 def request_install(key):
-    """Start a detached management command while holding a cross-process lock."""
+    """Queue a detached installer while holding a cross-process lock.
+
+    Returns:
+        Updated diagnostic state for the requested plugin.
+
+    Raises:
+        ValueError: The plugin is unknown, already satisfied, invalid, or
+            another installation owns the lock.
+    """
     candidates = discover_candidates()
     if not KEY.fullmatch(key) or key not in candidates:
         raise ValueError("Unknown plugin")
@@ -293,6 +324,14 @@ def _run_pip(args, timeout=600):
 
 
 def _validate_environment(core, staged, requirements):
+    """Reject staged packages that override or conflict with the core.
+
+    Every installed distribution's declared requirements are checked against
+    the combined core and staged environment, including requested extras.
+
+    Raises:
+        RuntimeError: The proposed environment is inconsistent.
+    """
     overlap = set(core) & set(staged)
     if overlap:
         raise RuntimeError("Installation would override a core distribution: " + ", ".join(sorted(overlap)[:5]))
@@ -321,7 +360,17 @@ def _validate_environment(core, staged, requirements):
 
 
 def install(key, job_id):
-    """Run only from the detached management command; publish a new release atomically."""
+    """Resolve and publish plugin packages from the detached command.
+
+    Core versions become pip constraints and existing managed packages remain
+    frozen. Wheels are staged in a new release and the active symlink changes
+    only after validation. The running Django processes must restart to load
+    the published release. The job state records success or failure.
+
+    Raises:
+        RuntimeError: The job identity, resolution, or staged environment is
+            invalid. Other installer errors are recorded and re-raised.
+    """
     operation = operation_state()
     if operation.get("id") != job_id or operation.get("key") != key:
         raise RuntimeError("Unknown installation operation")

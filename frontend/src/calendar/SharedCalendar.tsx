@@ -26,6 +26,12 @@ export type { CalendarResource, ResourceVisibilityMode } from './resourceVisibil
 type Dates = { start_date: string; end_date: string }
 const emptyResources: CalendarResource[] = []
 
+/** Render native events with permission-gated leave interactions.
+ *
+ * The caller supplies capabilities and callbacks. Drag/resize gestures are
+ * reverted when the mutation fails. Print mode disables interaction, and
+ * resource mode limits rows according to the selected visibility policy.
+ */
 export function SharedCalendar({ anchor, scope, viewMode, events, resources = emptyResources, todayEvents, resourceVisibilityMode, onResourceVisibilityModeChange, employeeNames, canCreate = false, canChange = false, canChangeEvent, canCreateResource, onOpen, onCreate, onChangeDates, print = false, onReady }: {
   anchor: Date
   scope: ProjectCalendarScope

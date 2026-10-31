@@ -44,6 +44,7 @@ const DashboardPage = lazy(() => import('../dashboard/DashboardPage').then((modu
 
 function dateLabel(value: string | null, language: string) { return value ? new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : '—' }
 
+/** Show one visible Project with child collections and backend capabilities. */
 export function ProjectDetailPage() {
   const { t, language } = useTranslation()
   const { projectId = '' } = useParams()

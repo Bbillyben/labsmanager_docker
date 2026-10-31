@@ -2,6 +2,7 @@ import { apiRequest } from './client'
 
 export const DATA_CONSISTENCY_CHANGED = 'data-consistency:changed'
 
+/** Permission-filtered overview; issue rows are fetched only for a rule. */
 export type ConsistencySummary = {
   total: number
   accepted_total: number
@@ -10,6 +11,7 @@ export type ConsistencySummary = {
   capabilities: { can_accept: boolean; can_reopen: boolean }
 }
 
+/** One current or accepted issue, including optional contextual action data. */
 export type ConsistencyIssue = {
   rule_key: string
   category: string
@@ -67,6 +69,7 @@ export const acceptConsistencyIssue = (issue: ConsistencyIssue, reason: string) 
 export const reopenConsistencyIssue = (exceptionId: number) =>
   apiRequest<{ id: number; status: 'reopened' }>(`${base}exceptions/${exceptionId}/reopen/`, { method: 'POST' })
 
+/** Explicit issue IDs or all matching issues with exclusions at submission. */
 export type ConsistencyBatchSelection =
   | { mode: 'selected'; issues: { id: number; project_id: number | null; employee_id?: number; fund_id?: number; team_id?: number }[]; selected_count: number }
   | { mode: 'all'; excluded_ids: number[]; selected_count: number }
@@ -92,6 +95,7 @@ export const correctConsistencyIssue = (issue: ConsistencyIssue) =>
     method: 'POST', ...json({ project_id: issue.project_id, ...(issue.employee_id && { employee_id: issue.employee_id }), ...(issue.fund_id && { fund_id: issue.fund_id }), ...(issue.team_id && { team_id: issue.team_id }) }),
   })
 
+/** Select the object ID that identifies this rule's issue endpoint. */
 export const consistencyIssueId = (issue: ConsistencyIssue) =>
   issue.teammate_id ?? issue.participant_id ?? issue.expense_id ?? issue.milestone_id ?? issue.contract_id ?? issue.fund_id ?? issue.project_id ?? issue.employee_id!
 

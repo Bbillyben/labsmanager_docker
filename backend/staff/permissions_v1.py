@@ -4,7 +4,11 @@ from .models import Employee
 
 
 def can_add_employee(user):
-    """Use the Employee creation rule already exposed by the legacy UI."""
+    """Require add permission and either global change or a linked Employee.
+
+    This is the creation rule shared with the legacy UI; it does not infer
+    global access from the number of visible Employee records.
+    """
     return bool(user.is_authenticated and user.is_active
                 and user.has_perm("staff.add_employee")
                 and (user.has_perm("staff.change_employee")
@@ -12,7 +16,11 @@ def can_add_employee(user):
 
 
 def has_global_employee_visibility(user):
-    """Match the unfiltered Employee list/detail queryset permissions."""
+    """Return whether the user can view the unfiltered Employee queryset.
+
+    Staff status or a global view/change permission qualifies. Callers use
+    this rather than comparing paginated or filtered result counts.
+    """
     return bool(user.is_staff or user.has_perm("staff.view_employee")
                 or user.has_perm("staff.change_employee"))
 
@@ -28,6 +36,7 @@ def generic_info_capabilities(user, employee):
 
 
 def leave_capabilities(user, employee):
+    """Expose leave mutations when the user can change this Employee."""
     can_change = bool(can_change_employee(user, employee))
     return {"can_add": can_change, "can_change": can_change, "can_delete": can_change}
 

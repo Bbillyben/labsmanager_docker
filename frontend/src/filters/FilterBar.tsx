@@ -20,6 +20,12 @@ type Props = {
   resetParameters?: readonly string[]
 }
 
+/** Render URL-backed filters from the supported filter catalogue.
+ *
+ * Adding an empty control preserves it in the URL without applying a server
+ * filter. Changing or removing a filter delegates query updates to the
+ * caller, including dependent pagination parameters.
+ */
 export function FilterBar({ catalogue, sources, choiceOptions = {}, query, onChange, resetParameters = [] }: Props) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)

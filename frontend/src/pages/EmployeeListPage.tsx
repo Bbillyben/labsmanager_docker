@@ -35,6 +35,7 @@ function dateLabel(value: string | null, language: string) {
 
 type UpdateParams = (patch: Partial<EmployeeListParams>) => void
 
+/** Browse permission-filtered Employees with URL-backed filters and paging. */
 export function EmployeeListPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()

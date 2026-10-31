@@ -12,7 +12,22 @@ ASSET = re.compile(r"^assets/[A-Za-z0-9_.-]+\.(?:js|css)$")
 
 
 def module_assets(plugin, module):
-    """Return immutable entry URLs; never accept a plugin supplied script URL."""
+    """Resolve one plugin Vite entry to same-origin static URLs.
+
+    Args:
+        plugin: Discovered plugin whose ``frontend/dist`` owns the manifest.
+        module: Exact Vite entry name declared in a UI contribution.
+
+    Returns:
+        A dictionary containing ``module_url``, ``css_urls``, and a version
+        derived from the manifest content for cache invalidation.
+
+    Raises:
+        ValueError: The manifest is missing, oversized, malformed, ambiguous,
+            or refers to assets outside the plugin build.
+
+    The plugin declares an entry name, never an arbitrary script URL.
+    """
     dist = Path(plugin.path()) / "frontend" / "dist"
     manifest_file = dist / "manifest.json"
     if not manifest_file.is_file() or manifest_file.stat().st_size > 1024 * 1024:

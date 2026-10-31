@@ -46,7 +46,13 @@ logger = logging.getLogger('labsmanager')
 
 
 class PluginsRegistry:
-    """The PluginsRegistry class."""
+    """Discover, initialize, and activate plugins from configured sources.
+
+    The registry is the runtime source for active mixins and plugin instances.
+    ModelMixin applications are discovered earlier, before Django setup;
+    ``_validate_model_apps`` checks that runtime classes match those static
+    app identities. Reloading can update URL patterns and plugin state.
+    """
     from .mixins import  SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin, UrlsMixin
 
     DEFAULT_MIXIN_ORDER = [SettingsMixin, ScheduleMixin, CalendarEventMixin, MailSubscriptionMixin, ReportMixin, UrlsMixin] 
@@ -96,7 +102,11 @@ class PluginsRegistry:
         return self.loading_lock.locked()
 
     def get_plugin(self, slug, active=None):
-        """Lookup plugin by slug (unique key)."""
+        """Return a registered plugin by slug, optionally checking active state.
+
+        This calls ``check_reload`` before lookup. Unknown or state-mismatched
+        slugs return ``None``.
+        """
         # Check if the registry needs to be reloaded
         self.check_reload()
 
@@ -312,7 +322,12 @@ class PluginsRegistry:
             logger.info('Plugin Registry: Loaded %s plugins', len(self.plugins))
 
     def plugin_dirs(self):
-        """Construct a list of directories from where plugins can be loaded."""
+        """Return builtin, sample, and configured external discovery roots.
+
+        Builtin and sample roots always participate. External roots require
+        ``PLUGINS_ENABLED``; absent directories and ``__init__.py`` files may
+        be created as part of discovery.
+        """
         # Builtin plugins are *always* loaded
         dirs = ['plugin.builtin', 'plugin.samples']
 
@@ -368,7 +383,13 @@ class PluginsRegistry:
         return dirs
 
     def collect_plugins(self):
-        """Collect plugins from all possible ways of loading. Returned as list."""
+        """Import plugin classes from directory roots and package entry points.
+
+        Directory plugins preserve their full package path. ModelMixin
+        classes are checked against the pre-Django app declarations before
+        the resulting class list is returned. Import failures are handled by
+        the discovery error mechanism.
+        """
         collected_plugins = []
 
         # Collect plugins from paths
@@ -427,7 +448,12 @@ class PluginsRegistry:
 
     @staticmethod
     def _validate_model_apps(collected_plugins):
-        """Match the normal registry with apps found statically before setup."""
+        """Require runtime ModelMixin classes to match early AppConfig identities.
+
+        Raises:
+            ImproperlyConfigured: A discovered model plugin is missing,
+                duplicated, or imported under a different Django app path.
+        """
         from django.core.exceptions import ImproperlyConfigured
         from plugin.mixins import ModelMixin
 

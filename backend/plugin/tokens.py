@@ -18,6 +18,12 @@ class TokenError(ValueError):
 
 @dataclass(frozen=True)
 class TokenContext:
+    """Validated credential identity passed to a plugin endpoint.
+
+    ``user`` is present for user tokens; ``public_id`` identifies the token
+    without exposing its private secret.
+    """
+
     plugin: object
     kind: str
     user: object
@@ -26,6 +32,14 @@ class TokenContext:
 
 
 def active_token_config(plugin, kind):
+    """Require an active registered plugin with the requested token kind.
+
+    Returns:
+        The active ``PluginConfig`` database row.
+
+    Raises:
+        TokenError: The plugin or token kind is unavailable.
+    """
     if kind not in PluginAccessToken.Kind.values:
         raise TokenError('Unknown token kind.')
     if registry.get_plugin(plugin.slug) is not plugin or not plugin.mixin_enabled('token'):
@@ -40,6 +54,7 @@ def active_token_config(plugin, kind):
 
 
 def available_scopes(plugin, kind):
+    """Return scopes this plugin explicitly enables for ``kind``."""
     active_token_config(plugin, kind)
     declared = getattr(plugin, 'TOKEN_CONFIG', {}).get('scopes') or {}
     if not isinstance(declared, dict):
@@ -49,6 +64,7 @@ def available_scopes(plugin, kind):
 
 
 def validate_scopes(plugin, kind, scopes):
+    """Require distinct declared scope names for a plugin token kind."""
     if not isinstance(scopes, list) or any(not isinstance(scope, str) for scope in scopes) or len(set(scopes)) != len(scopes):
         raise TokenError('Scopes must be a list of distinct names.')
     allowed = available_scopes(plugin, kind)
@@ -58,6 +74,23 @@ def validate_scopes(plugin, kind, scopes):
 
 
 def create_token(plugin, *, kind, name, user=None, scopes=None, expires_at=None):
+    """Persist a hashed token and reveal its secret exactly once.
+
+    Args:
+        plugin: Active token-capable plugin instance.
+        kind: Plugin or user token kind enabled by ``TOKEN_CONFIG``.
+        name: Nonempty label, at most 150 characters after trimming.
+        user: Active owner required for a user token, absent for a plugin token.
+        scopes: Distinct scope names enabled for the token kind.
+        expires_at: Optional timezone-aware future expiration.
+
+    Returns:
+        ``(PluginAccessToken, public_id.secret)``. Only the hash is stored.
+
+    Raises:
+        TokenError: Configuration or input is invalid, or a unique public ID
+            cannot be allocated after retries.
+    """
     config = active_token_config(plugin, kind)
     if (kind == PluginAccessToken.Kind.USER) != (user is not None):
         raise TokenError('Token owner does not match kind.')
@@ -87,6 +120,18 @@ def create_token(plugin, *, kind, name, user=None, scopes=None, expires_at=None)
 
 
 def validate_token(plugin, token_value, *, kind=None, required_scopes=None):
+    """Validate a plugin-owned secret and update its last-use timestamp.
+
+    Validation checks active plugin state, kind, expiry, revocation, owner,
+    and requested scopes. The plugin endpoint remains responsible for its
+    own object permissions after this credential check.
+
+    Returns:
+        ``TokenContext`` without the private secret.
+
+    Raises:
+        TokenError: The credential or any required property is invalid.
+    """
     if kind is not None:
         active_token_config(plugin, kind)
     else:
@@ -125,6 +170,7 @@ def validate_token(plugin, token_value, *, kind=None, required_scopes=None):
 
 
 def revoke_token(token):
+    """Set a token's revocation time once and return the token instance."""
     if token.revoked_at is None:
         token.revoked_at = timezone.now()
         token.save(update_fields=['revoked_at'])

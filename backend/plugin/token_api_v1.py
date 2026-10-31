@@ -14,12 +14,18 @@ from plugin.tokens import TokenError, active_token_config, available_scopes, cre
 
 
 def token_data(token):
+    """Serialize public token metadata without the stored secret hash."""
     return {'public_id': token.public_id, 'name': token.name, 'kind': token.kind,
             'scopes': token.scopes, 'created_at': token.created_at, 'expires_at': token.expires_at,
             'revoked_at': token.revoked_at, 'last_used_at': token.last_used_at}
 
 
 def token_target(key, kind, user):
+    """Resolve an active token-capable plugin and authorize token kind.
+
+    Plugin tokens require staff status; user tokens are limited to their owner
+    by the collection/detail views. Unknown or inactive targets raise 404.
+    """
     if kind not in PluginAccessToken.Kind.values or (kind == 'plugin' and not user.is_staff):
         raise Http404
     plugin = registry.get_plugin(key)
@@ -33,6 +39,12 @@ def token_target(key, kind, user):
 
 
 class TokenCollection(APIView):
+    """List token metadata and create a token with a one-time secret response.
+
+    Creation responses use ``Cache-Control: no-store``. Subsequent list calls
+    return public metadata only.
+    """
+
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, key, kind):
@@ -69,6 +81,8 @@ class TokenCollection(APIView):
 
 
 class TokenDetail(APIView):
+    """Rename or revoke a token visible to the authenticated requester."""
+
     permission_classes = (permissions.IsAuthenticated,)
 
     def _token(self, request, key, kind, public_id):

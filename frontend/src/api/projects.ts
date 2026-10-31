@@ -2,6 +2,7 @@ import { apiRequest } from './client'
 import { projectFilters } from '../config/projectFilters'
 import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../filters/url'
 
+/** Actions computed by the backend for a Project and current user. */
 export type ProjectCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean; can_export_word?: boolean; can_export_pdf?: boolean; can_change_settings?: boolean }
 export type ProjectItem = {
   admin_url?: string | null
@@ -23,6 +24,7 @@ export type ProjectCollection<T> = { capabilities: ProjectChildCapabilities; ite
 export type ProjectGenericInfo = { id: number; type: { id: number; name: string; icon: string | null }; value: string | null }
 export type ProjectInstitution = { id: number; institution: { id: number; short_name: string; name: string; can_view?: boolean }; status: 'c' | 'p'; status_label: string }
 export type ProjectParticipant = { id: number; employee: { id: number; first_name: string; last_name: string; is_active: boolean; can_view: boolean }; status: 'l' | 'cl' | 'p'; status_label: string; start_date: string | null; end_date: string | null; quotity: string; is_active: boolean }
+/** Project detail with child collections and their contextual permissions. */
 export type ProjectOverview = ProjectResponse & { capabilities: ProjectCapabilities; funding_visible: boolean; generic_info: ProjectCollection<ProjectGenericInfo>; institutions: ProjectCollection<ProjectInstitution>; participants: ProjectCollection<ProjectParticipant> }
 export type ProjectOverviewOptions = { generic_info_types: Array<{ id: number; name: string; icon: string | null }>; institutions: Array<{ id: number; short_name: string; name: string }> }
 export type ProjectParticipantWrite = { employee_id?: number; status: ProjectParticipant['status']; start_date: string | null; end_date: string | null; quotity: string }
@@ -37,6 +39,10 @@ function integer(value: string | null, fallback: number, minimum: number) {
   return value !== null && /^\d+$/.test(value) && Number.isSafeInteger(number) && number >= minimum ? number : fallback
 }
 
+/** Validate URL search, filters, sort, and pagination for the Project list.
+ *
+ * Unknown sort values fall back to name, and page size is capped at 250.
+ */
 export function readProjectParams(raw: URLSearchParams): ProjectListParams {
   const query = withFilterDefaults(projectFilters(), raw)
   const ordering = query.get('ordering') ?? 'name'
@@ -49,6 +55,7 @@ export function readProjectParams(raw: URLSearchParams): ProjectListParams {
   }
 }
 
+/** Serialize list state, omitting empty UI controls from API requests. */
 export function projectQuery(params: ProjectListParams, forApi = false) {
   const query = new URLSearchParams()
   if (params.search) query.set('search', params.search)

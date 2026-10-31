@@ -36,6 +36,7 @@ function EmployeeLink({ employee }: { employee: TeamEmployee }) {
   return employee.can_view ? <Link to={`/employees/${employee.id}`}>{employee.name}</Link> : <span>{employee.name}</span>
 }
 
+/** Show one visible Team with membership and contextual actions. */
 export function TeamDetailPage() {
   const { t } = useTranslation()
   const { teamId = '' } = useParams()

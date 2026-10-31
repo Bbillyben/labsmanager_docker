@@ -14,6 +14,13 @@ logger = logging.getLogger("labsmanager")
 
 @dataclass(frozen=True)
 class ImportProfile:
+    """A permitted Resource, file formats, and preview fields for one import.
+
+    ``key`` is the API identity. ``permission`` is checked before templates,
+    upload, preview, or commit. Native profiles use the fixed ``PROFILES`` map;
+    plugin profiles add a plugin slug and method ID to their key.
+    """
+
     key: str
     label: object
     description: object
@@ -41,6 +48,11 @@ class ImportProfile:
         }
 
     def preview_fields(self, resource):
+        """Resolve declared field names against a Resource instance.
+
+        Raises:
+            ImproperlyConfigured: A configured preview field is absent.
+        """
         fields = []
         for name in self.preview_columns:
             if name not in resource.fields:
@@ -69,6 +81,12 @@ PROFILES = {
 
 @dataclass(frozen=True)
 class PluginImportProfile(ImportProfile):
+    """Bind a validated plugin method to an allowed native Resource.
+
+    Dataset preparation and transformation are delegated to the plugin, but
+    permission checks and database writes remain in the shared import flow.
+    """
+
     plugin: object = None
     method: dict = None
 
@@ -77,6 +95,11 @@ class PluginImportProfile(ImportProfile):
                 "plugin_name": str(self.plugin.human_name)}
 
     def prepare_dataset(self, dataset, option_data=None):
+        """Call the plugin's structural preparation hook on parsed data.
+
+        Raises:
+            ValueError: The hook did not return a ``tablib.Dataset``.
+        """
         prepared = self.plugin.prepare_dataset(dataset, self.method, option_data=option_data)
         if not isinstance(prepared, tablib.Dataset):
             raise ValueError("Plugin preparation must return a Dataset")
@@ -86,6 +109,14 @@ class PluginImportProfile(ImportProfile):
         return self.plugin.check_eligibility(dataset, self.method, option_data)
 
     def transform(self, dataset):
+        """Normalize headers and call the plugin's declared transformation.
+
+        Returns:
+            A ``tablib.Dataset`` ready for Resource validation and preview.
+
+        Raises:
+            ValueError: The plugin handler returns another data type.
+        """
         normalized = self.plugin.normalize_columns(dataset, self.method)
         transformed = getattr(self.plugin, self.method["handler"])(normalized, self.method)
         if not isinstance(transformed, tablib.Dataset):
@@ -94,7 +125,12 @@ class PluginImportProfile(ImportProfile):
 
 
 def get_profiles():
-    """Extend the existing import catalogue through the active plugin registry."""
+    """Extend the native import catalogue with valid active plugin methods.
+
+    Plugin keys use ``plugin:<slug>:<method_id>``. Only declared methods with
+    an allowed native Resource and callable handler are included. Invalid
+    declarations are logged and omitted without affecting other plugins.
+    """
     from plugin.registry import registry
 
     profiles = dict(PROFILES)

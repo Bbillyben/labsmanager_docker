@@ -15,6 +15,8 @@ from auditlog.registry import auditlog
 from colorfield.fields import ColorField
 
 class Leave_Type(MPTTModel):
+    """Hierarchical leave category with a display color."""
+
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Leave Type")
@@ -31,6 +33,13 @@ class Leave_Type(MPTTModel):
         return f'{self.name}'
     
 class Leave(ActiveDateMixin):
+    """Employee leave interval with optional half-day boundaries.
+
+    ``clean`` rejects a nonpositive complete interval and overlaps with another
+    leave of the same type for the same Employee. ``dayCount`` subtracts
+    half-days from the inherited open-day count.
+    """
+
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Leave")

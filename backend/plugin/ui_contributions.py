@@ -24,22 +24,31 @@ FORMATS = frozenset({"text", "properties", "items", "links"})
 
 @dataclass(frozen=True)
 class Slot:
+    """Describe an extension point and its object-visibility boundary.
+
+    ``resolver`` loads the target only through a permission-filtered queryset;
+    slots without a resolver receive context from their dedicated API view.
+    """
+
     entity: str
     kind: str
     resolver: Callable | None
 
 
 def resolve_project(request, object_id):
+    """Return the project only when the requester has object-level view access."""
     return get_object_or_404(Project.get_instances_for_user(
         "view", request.user, Project.objects.filter(pk=object_id)), pk=object_id)
 
 
 def resolve_employee(request, object_id):
+    """Return the employee only when the requester has object-level view access."""
     return get_object_or_404(Employee.get_instances_for_user(
         "view", request.user, Employee.objects.filter(pk=object_id)), pk=object_id)
 
 
 def resolve_team(request, object_id):
+    """Return a team from the requester's permission-filtered queryset."""
     return get_object_or_404(team_queryset(request.user), pk=object_id)
 
 
@@ -73,7 +82,11 @@ CALENDAR_SCOPES = {
 
 
 def resolve_calendar_context(calendar_type, object_id, request):
-    """Use the normalized calendar context after authorizing its root object."""
+    """Build a calendar contribution context after authorizing its root object.
+
+    Global calendars require object ID zero; scoped calendars require a
+    positive ID. Unknown calendar kinds or inaccessible objects raise 404.
+    """
     try:
         calendar_type = CalendarType(calendar_type)
     except ValueError as exc:
@@ -91,7 +104,11 @@ def resolve_calendar_context(calendar_type, object_id, request):
 
 
 def resolve_user_plugin_context(plugin_key, request):
-    """Bind personal actions to the active plugin named by the page."""
+    """Bind personal actions to the active plugin named by the page.
+
+    Raises:
+        Http404: The plugin is unknown or inactive.
+    """
     plugin = registry.get_plugin(plugin_key, active=True)
     if plugin is None:
         raise Http404
@@ -99,7 +116,12 @@ def resolve_user_plugin_context(plugin_key, request):
 
 
 def resolve_context(entity, request, object_id):
-    """Resolve a page object through the view boundary declared by its slot."""
+    """Resolve a detail-page object through the slot's visibility boundary.
+
+    Raises:
+        ValueError: No object-backed slot exists for ``entity``.
+        Http404: The object is missing or not visible to the requester.
+    """
     slot = next((slot for slot in SLOTS.values() if slot.entity == entity and slot.resolver is not None), None)
     if slot is None:
         raise ValueError("Unknown contribution entity")
@@ -107,6 +129,16 @@ def resolve_context(entity, request, object_id):
 
 
 def _definition(plugin, raw):
+    """Validate a plugin declaration and assign its global contribution ID.
+
+    IDs are unique per plugin; the exposed ID combines the plugin slug and
+    local ID. Server handlers and visibility methods must be public callable
+    attributes of the declaring plugin. React modules use a named Vite entry,
+    named component export, and UI API version 1.
+
+    Raises:
+        ValueError: A required field, slot, option, or handler is invalid.
+    """
     if not isinstance(raw, dict):
         raise ValueError("Contribution must be a dictionary")
     local_id = raw.get("id")
@@ -190,7 +222,11 @@ def _definition(plugin, raw):
 
 
 def declared_contributions():
-    """Validate each declaration without allowing one faulty plugin to hide others."""
+    """Return validated contributions from active plugins in stable order.
+
+    Each plugin may declare up to 100 entries. Invalid entries are logged and
+    skipped individually, leaving other contributions available.
+    """
     found = []
     for plugin in registry.with_mixin("uicontribution", active=True):
         seen = set()
@@ -215,11 +251,17 @@ def declared_contributions():
 
 
 def handler_context(context, item):
+    """Add slot and contribution identity to a handler's object context."""
     return {**context, "slot": item["slot"], "contribution": {
         "id": item["id"], "plugin_slug": item["plugin_slug"], "local_id": item["local_id"]}}
 
 
 def is_visible(plugin, item, request, context):
+    """Run an optional visibility callback and fail closed on errors.
+
+    A callback must return the literal value ``True`` to expose the item.
+    Visibility of the UI contribution does not replace endpoint permissions.
+    """
     if not item["visible"]:
         return True
     try:
@@ -230,6 +272,7 @@ def is_visible(plugin, item, request, context):
 
 
 def public_data(item):
+    """Remove server-only handler data from a contribution API payload."""
     data = {key: value for key, value in item.items() if key not in ("handler", "visible", "local_id")}
     if item["type"] in ("page", "tab"):
         data["local_id"] = item["local_id"]
@@ -240,6 +283,14 @@ def public_data(item):
 
 
 def safe_url(value):
+    """Accept bounded HTTP(S) URLs or root-relative paths for UI actions.
+
+    Credentials, protocol-relative URLs, backslashes, and control characters
+    are rejected. This validates destinations; it does not fetch them.
+
+    Raises:
+        ValueError: The value is malformed or uses an unsupported URL form.
+    """
     if not isinstance(value, str) or not value or len(value) > 2048 or any(ord(char) < 32 or char == "\\" for char in value):
         raise ValueError("Invalid URL")
     parts = urlsplit(value)
@@ -251,6 +302,11 @@ def safe_url(value):
 
 
 def action_result(item, result):
+    """Normalize an action handler result for its declared behavior.
+
+    Copy/open actions require a safe URL. Other actions expose a bounded
+    message, except module actions may optionally return a safe URL.
+    """
     if not isinstance(result, dict):
         raise ValueError("Action result must be a dictionary")
     if item["behavior"] in ("copy_url", "open_url"):
@@ -264,6 +320,11 @@ def action_result(item, result):
 
 
 def section_result(result):
+    """Validate bounded text, properties, items, or links from a section.
+
+    The returned dictionary is safe to serialize as structured UI data; link
+    destinations are checked by ``safe_url``.
+    """
     if not isinstance(result, dict) or result.get("format") not in FORMATS:
         raise ValueError("Invalid section format")
     format_name = result["format"]

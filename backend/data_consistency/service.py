@@ -44,6 +44,13 @@ OBJECT_ID_FIELDS = {
 
 @dataclass(frozen=True)
 class ConsistencyRule:
+    """One permission-filtered issue query and its public serializer.
+
+    ``issues`` accepts a user and returns a queryable queryset. ``serialize``
+    shapes one issue for the API. ``object_type`` determines which identity
+    fields link accepted exceptions to current issues.
+    """
+
     key: str
     category: str
     issues: object
@@ -302,6 +309,10 @@ def open_exceptions():
 
 
 def active_issues(user, rule):
+    """Return visible current issues without an open matching exception.
+
+    The database ``Exists`` subquery keeps filtering and pagination queryable.
+    """
     matching = open_exceptions().filter(rule_key=rule.key, **{
         field: OuterRef(path) for field, path in IDENTITY_PATHS[rule.object_type].items()
     })
@@ -309,6 +320,7 @@ def active_issues(user, rule):
 
 
 def accepted_exceptions(user, rule):
+    """Return open exceptions whose underlying issue still exists and is visible."""
     current_issues = rule.issues(user).filter(**{
         path: OuterRef(field) for field, path in IDENTITY_PATHS[rule.object_type].items()
     })
@@ -330,6 +342,11 @@ def accepted_issue(exception, item, rule):
 
 
 def summary(user):
+    """Count visible active and accepted issues per rule and category.
+
+    This returns counts and labels only; the issue list is loaded separately
+    after a user selects a rule.
+    """
     categories, rules, accepted_total = {}, [], 0
     for rule in RULES:
         count = active_issues(user, rule).count()

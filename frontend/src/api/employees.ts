@@ -5,6 +5,7 @@ import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../fi
 
 export type EmployeeIdentity = { id: number; first_name: string; last_name: string }
 export type EmployeeStatus = { id: number; code: string; name: string }
+/** Employee row with backend-calculated edit capability and current relations. */
 export type EmployeeListItem = EmployeeIdentity & {
   admin_url?: string | null
   capabilities?: { can_change: boolean }
@@ -14,6 +15,7 @@ export type EmployeeListItem = EmployeeIdentity & {
   current_statuses: EmployeeStatus[]
   superiors: EmployeeIdentity[]
 }
+/** Detail fields and actions returned only after object-level view checks. */
 export type EmployeeDetail = EmployeeListItem & {
   capabilities?: { can_change: boolean; can_export_word: boolean; can_export_pdf: boolean }
   birth_date: string | null
@@ -46,6 +48,7 @@ export type EmployeeHierarchyRelation = {
   is_active: boolean
   can_view?: boolean
 }
+/** Dated superior and subordinate edges with contextual mutation rights. */
 export type EmployeeHierarchy = {
   capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean }
   superiors: EmployeeHierarchyRelation[]
@@ -75,6 +78,7 @@ export type EmployeeContractOrganization = {
   can_view: boolean
   url: string | null
 }
+/** Fund and organization links with per-object visibility flags. */
 export type EmployeeContractFund = {
   id: number
   display_name: string

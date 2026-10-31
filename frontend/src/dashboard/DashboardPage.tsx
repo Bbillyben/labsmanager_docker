@@ -35,6 +35,12 @@ function DashboardCreationForm({ onCreate, pending, error, onCancel, onboarding 
   </form>
 }
 
+/** Manage personal dashboards or the dashboard attached to one Project.
+ *
+ * The backend catalogue supplies available sources, widgets, renderers, and
+ * contextual permissions. A Project ID switches loading and mutations to
+ * that Project's dashboard rather than the personal dashboard list.
+ */
 export function DashboardPage({ projectId }: { projectId?: string } = {}) {
   const { t } = useTranslation()
   const navigate = useNavigate()

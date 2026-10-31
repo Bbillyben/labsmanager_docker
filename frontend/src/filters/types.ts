@@ -1,4 +1,5 @@
 export type FilterOption = { value: string; label: string }
+/** Async search and ID resolution contract for an entity filter control. */
 export type EntitySearchSource = {
   search: (query: string, signal: AbortSignal) => Promise<{ options: FilterOption[]; hasMore: boolean }>
   resolve: (id: string, signal: AbortSignal) => Promise<FilterOption | null>
@@ -21,6 +22,7 @@ export type ChoiceFilter = Base & Single & { type: 'dynamic-choice'; parameter: 
 export type InputFilter = Base & Single & { type: 'text' | 'date' | 'number'; parameter: string }
 // Only these controls are renderable today. Future definitions cannot accidentally
 // enter a live catalogue before their controls and server contracts are supplied.
+/** Filter controls currently supported by the live catalogue and server. */
 export type SupportedFilter = StaticChoiceFilter | EntityFilter | ChoiceFilter | InputFilter
 export type DynamicChoiceFilter = Base & (Single | Multiple) & {
   type: 'dynamic-choice'; parameter: string; source: string

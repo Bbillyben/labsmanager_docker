@@ -65,6 +65,12 @@ def _filtered_projects(request):
 
 
 class GlobalCalendarBase(APIView):
+    """Require authentication and build a calendar-provider context.
+
+    ``consumer`` is forwarded to providers so transports such as ICS may
+    request their supported event subset; it does not grant visibility.
+    """
+
     permission_classes = (permissions.IsAuthenticated,)
     calendar_type = None
 
@@ -79,6 +85,8 @@ class GlobalCalendarBase(APIView):
 
 from staff.models import Employee
 class GlobalEmployeeCalendar(GlobalCalendarBase):
+    """Return leave and plugin events for visible Employees in the date range."""
+
     calendar_type = CalendarType.MAIN
 
     def get(self, request):
@@ -113,6 +121,8 @@ class GlobalEmployeeCalendar(GlobalCalendarBase):
 
 
 class GlobalProjectPlanning(GlobalCalendarBase):
+    """Return planning items and events from visible Projects in range."""
+
     calendar_type = CalendarType.PROJECT_ALL
 
     def get(self, request):

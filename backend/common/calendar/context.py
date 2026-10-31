@@ -28,7 +28,14 @@ class CalendarType(str, Enum):
 
 @dataclass(frozen=True)
 class CalendarContext:
-    """Bounded request context independent from HTTP and plugin packages."""
+    """Request context shared by calendar domains and plugin providers.
+
+    ``user`` is the authorized viewer, even when a calendar is consumed by
+    another transport such as ICS. ``consumer`` identifies that transport;
+    providers may omit events for a consumer but must not treat it as a new
+    permission. ``include_details`` asks providers for richer presentation
+    metadata. Optional entity IDs narrow a calendar to one object.
+    """
 
     calendar_type: CalendarType
     user: Any

@@ -169,7 +169,16 @@ def get_entrypoints():
 
 # region plugin finders
 def get_modules(pkg, path=None):
-    """Get all modules in a package."""
+    """Import discoverable modules from a plugin package or explicit path.
+
+    Args:
+        pkg: Imported parent package.
+        path: Optional filesystem path used for external directory discovery.
+
+    Returns:
+        Public module members and imported submodules. Failed imports are
+        logged and omitted; ``AppRegistryNotReady`` is also skipped.
+    """
     context = {}
 
     prefix = f'{pkg.__name__}.' if path is None else ''
@@ -210,10 +219,15 @@ def get_classes(module):
 
 
 def get_plugins(pkg, baseclass, path=None):
-    """Return a list of all modules under a given package.
+    """Return plugin classes found under a package or directory path.
 
-    - Modules must be a subclass of the provided 'baseclass'
-    - Modules must have a non-empty NAME parameter
+    Args:
+        pkg: Imported parent package.
+        baseclass: Required plugin superclass.
+        path: Optional external discovery path.
+
+    Returns:
+        Classes derived from ``baseclass`` with a nonempty ``NAME``.
     """
     plugins = []
     

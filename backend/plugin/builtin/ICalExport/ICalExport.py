@@ -256,6 +256,15 @@ def _new_calendar(name):
 
 
 def build_ical(items, events, name="LabsManager", *, calendar=None, object_id=0, user=None):
+    """Serialize native planning items and events into a read-only ICS feed.
+
+    Calendar-specific links are added only where the caller's data and
+    visibility permit them. Duplicate event identities are emitted once.
+    This uses the same event writer as published plugin calendars.
+
+    Returns:
+        Serialized iCalendar bytes.
+    """
     ical = _new_calendar(name)
     visible_employee_ids = set()
     if user is not None:
@@ -312,7 +321,12 @@ def build_ical(items, events, name="LabsManager", *, calendar=None, object_id=0,
 
 
 def build_published_ical(provider_slug, calendar, events):
-    """Serialize the shared event contract with the same ICS writer as native feeds."""
+    """Serialize provider events with the same ICS writer as native feeds.
+
+    Provider-supplied metadata may include multiple React destinations;
+    duplicate links and event IDs are omitted. The provider identity keeps
+    event UIDs distinct from native feeds.
+    """
     ical = _new_calendar(calendar.name)
     seen = set()
     for source in events:
@@ -400,6 +414,15 @@ def published_ics_feed(request, provider_slug, calendar_id):
 
 
 class ICalExport(UrlsMixin, TokenMixin, CalendarSubscriptionMixin, UIContributionMixin, LabManagerPlugin):
+    """Provide personal ICS subscriptions for native and published calendars.
+
+    Subscription actions are declared through the generic UI contribution
+    slots. Provider-owned calendars are resolved through the published-calendar
+    contract, without a direct dependency on any specific provider plugin.
+    Token validation occurs in the feed views, using the token owner for
+    permission checks rather than the anonymous feed request.
+    """
+
     NAME = "ICalExport"
     SLUG = "icalexport"
     TITLE = "iCalendar Export"
@@ -414,6 +437,7 @@ class ICalExport(UrlsMixin, TokenMixin, CalendarSubscriptionMixin, UIContributio
     }}
 
     def subscription_available(self):
+        """Advertise ICS only while plugin URL endpoints are enabled."""
         return bool(get_global_setting("ENABLE_PLUGINS_URL"))
 
     def subscription_visible(self, request, context):
@@ -421,6 +445,11 @@ class ICalExport(UrlsMixin, TokenMixin, CalendarSubscriptionMixin, UIContributio
 
     @property
     def UI_CONTRIBUTIONS(self):
+        """Build localized subscription actions for supported UI slots.
+
+        All actions load the same plugin-owned React dialog module. The
+        selected slot and contribution local ID determine the feed scope.
+        """
         french = (get_language() or "").startswith("fr")
         labels = {
             "planning": ("S’abonner au Planning général", "Subscribe to general Planning"),
@@ -453,6 +482,11 @@ class ICalExport(UrlsMixin, TokenMixin, CalendarSubscriptionMixin, UIContributio
         return declarations
 
     def create_subscription(self, request, context):
+        """Create a one-time personal URL for a validated native UI action.
+
+        Published calendar actions delegate to ``create_published_subscription``.
+        The signed scope binds the token to the selected native feed.
+        """
         slot = context["slot"]
         if slot == "published-calendar.actions":
             return self.create_published_subscription(request, context["provider"].slug, context["calendar"].id)
@@ -477,6 +511,12 @@ class ICalExport(UrlsMixin, TokenMixin, CalendarSubscriptionMixin, UIContributio
         return {"url": request.build_absolute_uri(f"{path_url}?{urlencode({'token': secret, 'scope': signature})}")}
 
     def create_published_subscription(self, request, provider_slug, calendar_id):
+        """Create an owner-bound ICS URL for a visible provider calendar.
+
+        The optional ``assigned_to_me`` flag is allowed only when advertised
+        by the provider. It narrows events at feed time and is not part of the
+        signed scope because it cannot expand access.
+        """
         _, calendar = get_calendar(request.user, provider_slug, calendar_id)
         assigned = getattr(request, "data", {}).get("assigned_to_me", False)
         if type(assigned) is not bool or (assigned and "assigned_to_me" not in calendar.options):

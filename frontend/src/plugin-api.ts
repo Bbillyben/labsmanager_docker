@@ -1,4 +1,11 @@
-/** Public host exports for independently built plugin UI modules (contract v1). */
+/** Public host exports for independently built plugin UI modules (contract v1).
+ *
+ * Plugin bundles import supported React components and helpers from this
+ * stable entry instead of bundling their own copy. The host publishes the
+ * versioned entry at `/static/frontend/plugin-api.js` during the build.
+ * Extend this surface deliberately: removing an export breaks deployed plugin
+ * bundles even when the host's internal import paths still work.
+ */
 export const PLUGIN_UI_API_VERSION = 1 as const
 
 export { EntitySearch } from './filters/EntitySearch'

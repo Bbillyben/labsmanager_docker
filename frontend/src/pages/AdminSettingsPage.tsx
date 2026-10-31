@@ -21,6 +21,7 @@ function errorText(error: unknown, fallback: string) {
   return [...parsed.messages, ...Object.values(parsed.fields).flat()].join(' ') || fallback
 }
 
+/** Render a permission-filtered group of global or plugin settings. */
 export function AdminSettingsSection({ section, afterSave }: { section: 'general' | 'plugins'; afterSave?: () => void }) {
   const { t } = useTranslation()
   const loader = useCallback((key: string, signal: AbortSignal) => getAdminSettings(key as 'general' | 'plugins', signal), [])
@@ -155,6 +156,7 @@ export function AdminNotificationsPage() {
   </section>
 }
 
+/** List discovered plugins with origin, activation, and dependency state. */
 export function AdminPluginsPage() {
   const { t } = useTranslation()
   const loader = useCallback((_key: string, signal: AbortSignal) => getAdminPlugins(signal), [])
@@ -186,6 +188,7 @@ export function AdminPluginsPage() {
   </section></div>
 }
 
+/** Manage one plugin's activation, dependencies, settings, and tokens. */
 export function AdminPluginDetailPage() {
   const { pluginKey = '' } = useParams()
   const { t, language } = useTranslation()

@@ -4,6 +4,15 @@ import tablib
 
 
 class ImportMixin:
+    """Declare plugin import methods for the shared preview and commit pipeline.
+
+    Each ``import_method`` entry needs an ``id`` unique within its plugin,
+    ``label``, allowed ``resource`` class name, callable ``handler`` name, and
+    ``columns`` mapping canonical headers to accepted aliases. The hub
+    identifies a method globally by its plugin slug and local ID. Handlers
+    transform a normalized dataset; persistence belongs to Import-Export.
+    """
+
     import_method = []
     # Declare a list of dictionaries, for example:
     # import_method = [{"id": "expenses", 
@@ -51,16 +60,28 @@ class ImportMixin:
         self.add_mixin("importmixin", True, __class__)
 
     def get_import_methods(self):
+        """Return this plugin's declared import method dictionaries."""
         return self.import_method
 
     def get_import_template(self, current_import_methode):
+        """Return an empty dataset with the method's canonical column headers."""
         return tablib.Dataset(headers=list(current_import_methode["columns"]))
 
     def prepare_dataset(self, dataset, current_import_methode, option_data=None):
         """Prepare a parsed dataset before eligibility checks and normalization.
 
         Plugins may override this to adjust headers or remove leading rows.
-        The default leaves the dataset unchanged.
+        The default leaves the dataset unchanged. Preparation runs after file
+        parsing and before eligibility and normalization. It must not perform
+        the final business transformation or write database rows.
+
+        Args:
+            dataset: Parsed ``tablib.Dataset`` from the selected file/sheet.
+            current_import_methode: Selected method declaration.
+            option_data: Selected file options, when provided.
+
+        Returns:
+            A dataset for the eligibility and normalization steps.
         """
         return dataset
 
@@ -69,6 +90,21 @@ class ImportMixin:
         return " ".join(str(value or "").split()).casefold()
 
     def check_eligibility(self, dataset, current_import_methode, option_data=None):
+        """Report whether a parsed dataset matches the declared columns.
+
+        Header matching ignores case and repeated whitespace. Missing columns,
+        ambiguous aliases, duplicate source matches, and empty data make the
+        dataset ineligible. Extra columns produce a warning and are ignored.
+
+        Args:
+            dataset: Prepared ``tablib.Dataset`` to inspect.
+            current_import_methode: Method containing the ``columns`` mapping.
+            option_data: Optional selected file options for plugin overrides.
+
+        Returns:
+            A dictionary with ``eligible``, row and column counts, recognized
+            headers, missing/extra columns, ambiguities, errors, and warnings.
+        """
         columns = current_import_methode["columns"]
         owners = {}
         conflicts = []
@@ -104,6 +140,16 @@ class ImportMixin:
                 "errors": errors, "warnings": warnings}
 
     def normalize_columns(self, dataset, current_import_methode):
+        """Project source columns into canonical declaration order.
+
+        Returns:
+            A ``tablib.Dataset`` containing only declared columns and original
+            cell values.
+
+        Raises:
+            ValueError: Required columns or usable rows are missing, or header
+                matching is ambiguous.
+        """
         # The plugin's eligibility hook already ran with option_data in preview.
         # Here only the base column mapping is needed for canonical projection.
         report = ImportMixin.check_eligibility(self, dataset, current_import_methode)

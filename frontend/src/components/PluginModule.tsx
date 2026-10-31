@@ -15,6 +15,7 @@ function logPluginError(descriptor: UIModuleDescriptor, error: unknown) {
 }
 
 class PluginRenderBoundary extends ReactComponent<{ children: ReactNode; fallback: ReactNode; descriptor: UIModuleDescriptor }, { failed: boolean }> {
+  /** Contain render failures from a plugin without crashing the host page. */
   state = { failed: false }
 
   static getDerivedStateFromError() { return { failed: true } }
@@ -24,6 +25,11 @@ class PluginRenderBoundary extends ReactComponent<{ children: ReactNode; fallbac
   render() { return this.state.failed ? this.props.fallback : this.props.children }
 }
 
+/** Load and render a validated plugin module with retry and error isolation.
+ *
+ * The descriptor's URL, export, and asset version form the remount key, so
+ * a changed build does not retain a stale component instance.
+ */
 export function PluginModule({ descriptor, onClose }: { descriptor: UIModuleDescriptor; onClose?: () => void }) {
   return <PluginModuleContent key={`${descriptor.module_url}:${descriptor.component}:${descriptor.asset_version}`} descriptor={descriptor} onClose={onClose} />
 }
