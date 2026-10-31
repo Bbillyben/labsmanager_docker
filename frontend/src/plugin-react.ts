@@ -1,7 +1,14 @@
-import React from 'react'
+import React from 'react';
 
-export default React
+export default React;
 export const {
-  createElement, Fragment, useState, useEffect, useMemo, useRef,
-  useCallback, useContext, createContext,
-} = React
+  createElement,
+  Fragment,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+  useContext,
+  createContext,
+} = React;

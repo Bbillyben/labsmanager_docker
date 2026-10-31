@@ -1,35 +1,186 @@
-import { apiRequest } from './client'
-import type { UserSettingData } from './userSettings'
-import type { SettingValue } from './settings'
+import { apiRequest } from './client';
+import type { UserSettingData } from './userSettings';
+import type { SettingValue } from './settings';
 
-const base = '/api/v1/settings/admin/'
-const json = { 'Content-Type': 'application/json' }
-export type AdminUser = { id: number; username: string; name: string; last_login: string | null; is_active: boolean; is_staff: boolean; employee: { id: number; name: string } | null }
+const base = '/api/v1/settings/admin/';
+const json = { 'Content-Type': 'application/json' };
+export type AdminUser = {
+  id: number;
+  username: string;
+  name: string;
+  last_login: string | null;
+  is_active: boolean;
+  is_staff: boolean;
+  employee: { id: number; name: string } | null;
+};
 /** Invitation data and status returned by the administration API. */
-export type AdminInvitation = { id: number; email: string; created: string; sent: string | null; accepted: boolean; key_expired: boolean; inviter: { id: number; username: string } | null; employee?: { id: number; name: string } | null; group_ids?: number[] }
-export type AdminInvitationList = { results: AdminInvitation[]; group_options?: { id: number; name: string }[]; can_assign_groups?: boolean }
-export type PendingNotification = { id: number; user: string; source_type: string; action: string; object: string; created: string }
-export type PluginError = { stage: string; name: string; message: string }
+export type AdminInvitation = {
+  id: number;
+  email: string;
+  created: string;
+  sent: string | null;
+  accepted: boolean;
+  key_expired: boolean;
+  inviter: { id: number; username: string } | null;
+  employee?: { id: number; name: string } | null;
+  group_ids?: number[];
+};
+export type AdminInvitationList = {
+  results: AdminInvitation[];
+  group_options?: { id: number; name: string }[];
+  can_assign_groups?: boolean;
+};
+export type PendingNotification = {
+  id: number;
+  user: string;
+  source_type: string;
+  action: string;
+  object: string;
+  created: string;
+};
+export type PluginError = { stage: string; name: string; message: string };
 /** Dependency resolution state shown for an installed plugin. */
-export type PluginDependencies = { key: string; human_name: string; state: 'none' | 'satisfied' | 'missing' | 'incompatible' | 'invalid' | 'queued' | 'running' | 'failed' | 'restart_required'; requirements: { name: string; required: string; installed_version: string | null; on_disk_version: string | null; state: 'satisfied' | 'missing' | 'incompatible' }[]; errors: string[]; restart_required: boolean; can_install: boolean; operation: { state: string; message: string } | null }
+export type PluginDependencies = {
+  key: string;
+  human_name: string;
+  state:
+    | 'none'
+    | 'satisfied'
+    | 'missing'
+    | 'incompatible'
+    | 'invalid'
+    | 'queued'
+    | 'running'
+    | 'failed'
+    | 'restart_required';
+  requirements: {
+    name: string;
+    required: string;
+    installed_version: string | null;
+    on_disk_version: string | null;
+    state: 'satisfied' | 'missing' | 'incompatible';
+  }[];
+  errors: string[];
+  restart_required: boolean;
+  can_install: boolean;
+  operation: { state: string; message: string } | null;
+};
 /** Plugin identity, origin, activation, and dependency state from admin settings. */
-export type PluginSummary = { key: string; human_name: string; description: string; author: string; pub_date: string | null; version: string | null; website: string | null; license: string | null; mixins: string[]; active: boolean; is_builtin: boolean; origin: 'sample' | 'builtin' | 'external'; error: boolean; dependencies: PluginDependencies | null }
-export type PluginDetail = PluginSummary & { sections: { settings?: UserSettingData[]; tokens?: boolean; schedule?: { name: string; function: string; schedule_type: string; repeat: number | null; next_run: string | null; success: boolean }[]; urls?: { base_url: string; routes: { name: string; url: string; href: string | null }[] } } }
+export type PluginSummary = {
+  key: string;
+  human_name: string;
+  description: string;
+  author: string;
+  pub_date: string | null;
+  version: string | null;
+  website: string | null;
+  license: string | null;
+  mixins: string[];
+  active: boolean;
+  is_builtin: boolean;
+  origin: 'sample' | 'builtin' | 'external';
+  error: boolean;
+  dependencies: PluginDependencies | null;
+};
+export type PluginDetail = PluginSummary & {
+  sections: {
+    settings?: UserSettingData[];
+    tokens?: boolean;
+    schedule?: {
+      name: string;
+      function: string;
+      schedule_type: string;
+      repeat: number | null;
+      next_run: string | null;
+      success: boolean;
+    }[];
+    urls?: { base_url: string; routes: { name: string; url: string; href: string | null }[] };
+  };
+};
 
-export const getAdminSettings = (section: 'general' | 'plugins', signal: AbortSignal) => apiRequest<{ settings: UserSettingData[] }>(`${base}${section}/settings/`, { signal })
-export const updateAdminSetting = (section: 'general' | 'plugins', key: string, value: SettingValue) => apiRequest<UserSettingData>(`${base}${section}/settings/${encodeURIComponent(key)}/`, { method: 'PATCH', headers: json, body: JSON.stringify({ value }) })
-export const getAdminUsers = (signal: AbortSignal) => apiRequest<{ results: AdminUser[] }>(`${base}users/`, { signal })
-export const getEmployeeOptions = (signal: AbortSignal) => apiRequest<{ results: { id: number; name: string }[] }>(`${base}users/employee-options/`, { signal })
-export const updateAdminUserEmployee = (id: number, employeeId: number | null) => apiRequest<AdminUser>(`${base}users/${id}/employee/`, { method: 'PATCH', headers: json, body: JSON.stringify({ employee_id: employeeId }) })
-export const getAdminInvitations = (signal: AbortSignal) => apiRequest<AdminInvitationList>(`${base}invitations/`, { signal })
-export const sendAdminInvitation = (email: string, employeeId: number | null, groupIds: number[] | null) => apiRequest<AdminInvitation>(`${base}invitations/`, { method: 'POST', headers: json, body: JSON.stringify({ email, employee_id: employeeId, ...(groupIds !== null ? { group_ids: groupIds } : {}) }) })
-export const updateAdminInvitation = (id: number, employeeId: number | null, groupIds: number[] | null) => apiRequest<AdminInvitation>(`${base}invitations/${id}/`, { method: 'PATCH', headers: json, body: JSON.stringify({ employee_id: employeeId, ...(groupIds !== null ? { group_ids: groupIds } : {}) }) })
-export const removeExpiredAdminInvitations = () => apiRequest<{ deleted: number }>(`${base}invitations/remove-expired/`, { method: 'POST' })
-export const getAdminNotifications = (signal: AbortSignal) => apiRequest<{ results: PendingNotification[] }>(`${base}notifications/`, { signal })
-export const runAdminNotificationAction = (action: 'check' | 'send') => apiRequest<{ counts?: Record<string, number>; sent?: number; results: PendingNotification[] }>(`${base}notifications/${action}/`, { method: 'POST' })
-export const getAdminPlugins = (signal: AbortSignal) => apiRequest<{ results: PluginSummary[]; errors: PluginError[] }>(`${base}plugins/`, { signal })
-export const reloadAdminPlugins = () => apiRequest<{ results: PluginSummary[]; errors: PluginError[] }>(`${base}plugins/reload/`, { method: 'POST' })
-export const setAdminPluginActive = (key: string, active: boolean) => apiRequest<{ active: boolean }>(`/api/plugin/${encodeURIComponent(key)}/activate/`, { method: 'PATCH', headers: json, body: JSON.stringify({ active }) })
-export const getAdminPlugin = (key: string, signal: AbortSignal) => apiRequest<PluginDetail>(`${base}plugins/${encodeURIComponent(key)}/`, { signal })
-export const installAdminPluginDependencies = (key: string) => apiRequest<PluginDependencies>(`${base}plugins/${encodeURIComponent(key)}/dependencies/install/`, { method: 'POST' })
-export const updateAdminPluginSetting = (plugin: string, key: string, value: SettingValue) => apiRequest<UserSettingData>(`${base}plugins/${encodeURIComponent(plugin)}/settings/${encodeURIComponent(key)}/`, { method: 'PATCH', headers: json, body: JSON.stringify({ value }) })
+export const getAdminSettings = (section: 'general' | 'plugins', signal: AbortSignal) =>
+  apiRequest<{ settings: UserSettingData[] }>(`${base}${section}/settings/`, { signal });
+export const updateAdminSetting = (
+  section: 'general' | 'plugins',
+  key: string,
+  value: SettingValue,
+) =>
+  apiRequest<UserSettingData>(`${base}${section}/settings/${encodeURIComponent(key)}/`, {
+    method: 'PATCH',
+    headers: json,
+    body: JSON.stringify({ value }),
+  });
+export const getAdminUsers = (signal: AbortSignal) =>
+  apiRequest<{ results: AdminUser[] }>(`${base}users/`, { signal });
+export const getEmployeeOptions = (signal: AbortSignal) =>
+  apiRequest<{ results: { id: number; name: string }[] }>(`${base}users/employee-options/`, {
+    signal,
+  });
+export const updateAdminUserEmployee = (id: number, employeeId: number | null) =>
+  apiRequest<AdminUser>(`${base}users/${id}/employee/`, {
+    method: 'PATCH',
+    headers: json,
+    body: JSON.stringify({ employee_id: employeeId }),
+  });
+export const getAdminInvitations = (signal: AbortSignal) =>
+  apiRequest<AdminInvitationList>(`${base}invitations/`, { signal });
+export const sendAdminInvitation = (
+  email: string,
+  employeeId: number | null,
+  groupIds: number[] | null,
+) =>
+  apiRequest<AdminInvitation>(`${base}invitations/`, {
+    method: 'POST',
+    headers: json,
+    body: JSON.stringify({
+      email,
+      employee_id: employeeId,
+      ...(groupIds !== null ? { group_ids: groupIds } : {}),
+    }),
+  });
+export const updateAdminInvitation = (
+  id: number,
+  employeeId: number | null,
+  groupIds: number[] | null,
+) =>
+  apiRequest<AdminInvitation>(`${base}invitations/${id}/`, {
+    method: 'PATCH',
+    headers: json,
+    body: JSON.stringify({
+      employee_id: employeeId,
+      ...(groupIds !== null ? { group_ids: groupIds } : {}),
+    }),
+  });
+export const removeExpiredAdminInvitations = () =>
+  apiRequest<{ deleted: number }>(`${base}invitations/remove-expired/`, { method: 'POST' });
+export const getAdminNotifications = (signal: AbortSignal) =>
+  apiRequest<{ results: PendingNotification[] }>(`${base}notifications/`, { signal });
+export const runAdminNotificationAction = (action: 'check' | 'send') =>
+  apiRequest<{ counts?: Record<string, number>; sent?: number; results: PendingNotification[] }>(
+    `${base}notifications/${action}/`,
+    { method: 'POST' },
+  );
+export const getAdminPlugins = (signal: AbortSignal) =>
+  apiRequest<{ results: PluginSummary[]; errors: PluginError[] }>(`${base}plugins/`, { signal });
+export const reloadAdminPlugins = () =>
+  apiRequest<{ results: PluginSummary[]; errors: PluginError[] }>(`${base}plugins/reload/`, {
+    method: 'POST',
+  });
+export const setAdminPluginActive = (key: string, active: boolean) =>
+  apiRequest<{ active: boolean }>(`/api/plugin/${encodeURIComponent(key)}/activate/`, {
+    method: 'PATCH',
+    headers: json,
+    body: JSON.stringify({ active }),
+  });
+export const getAdminPlugin = (key: string, signal: AbortSignal) =>
+  apiRequest<PluginDetail>(`${base}plugins/${encodeURIComponent(key)}/`, { signal });
+export const installAdminPluginDependencies = (key: string) =>
+  apiRequest<PluginDependencies>(
+    `${base}plugins/${encodeURIComponent(key)}/dependencies/install/`,
+    { method: 'POST' },
+  );
+export const updateAdminPluginSetting = (plugin: string, key: string, value: SettingValue) =>
+  apiRequest<UserSettingData>(
+    `${base}plugins/${encodeURIComponent(plugin)}/settings/${encodeURIComponent(key)}/`,
+    { method: 'PATCH', headers: json, body: JSON.stringify({ value }) },
+  );

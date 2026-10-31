@@ -1,11 +1,24 @@
-import { Combobox, ComboboxInput, ComboboxContent, ComboboxList, ComboboxItem } from '../components/ui/combobox'
-import { Button } from '../ui/Button'
-import { useEffect, useState } from 'react'
-import type { EntitySearchSource, FilterOption } from './types'
-import { useTranslation } from '../i18n/i18n'
-import styles from './Filters.module.css'
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+} from '../components/ui/combobox';
+import { Button } from '../ui/Button';
+import { useEffect, useState } from 'react';
+import type { EntitySearchSource, FilterOption } from './types';
+import { useTranslation } from '../i18n/i18n';
+import styles from './Filters.module.css';
 
-type Props = { id: string; label: string; value: string; placeholder?: string; source: EntitySearchSource; onChange: (value: string) => void }
+type Props = {
+  id: string;
+  label: string;
+  value: string;
+  placeholder?: string;
+  source: EntitySearchSource;
+  onChange: (value: string) => void;
+};
 
 /** Resolve a stored entity ID and search for replacement options on demand.
  *
@@ -13,61 +26,175 @@ type Props = { id: string; label: string; value: string; placeholder?: string; s
  * remains visible even if its label cannot currently be resolved.
  */
 export function EntitySearch({ id, label, value, placeholder, source, onChange }: Props) {
-  const { t } = useTranslation()
-  const [resolved, setResolved] = useState<FilterOption | null>(null)
-  const [resolution, setResolution] = useState<'loading' | 'ready' | 'missing' | 'error'>(value ? 'loading' : 'ready')
-  const [attempt, setAttempt] = useState(0)
-  const [draft, setDraft] = useState<string | null>(null)
-  const [expanded, setExpanded] = useState(false)
-  const [result, setResult] = useState<{ query: string; options: FilterOption[]; hasMore: boolean; error?: boolean } | null>(null)
+  const { t } = useTranslation();
+  const [resolved, setResolved] = useState<FilterOption | null>(null);
+  const [resolution, setResolution] = useState<'loading' | 'ready' | 'missing' | 'error'>(
+    value ? 'loading' : 'ready',
+  );
+  const [attempt, setAttempt] = useState(0);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [result, setResult] = useState<{
+    query: string;
+    options: FilterOption[];
+    hasMore: boolean;
+    error?: boolean;
+  } | null>(null);
 
   useEffect(() => {
-    if (!value) return
-    const controller = new AbortController()
-    source.resolve(value, controller.signal).then((option) => {
-      if (!controller.signal.aborted) { setResolved(option); setResolution(option ? 'ready' : 'missing') }
-    }, () => { if (!controller.signal.aborted) setResolution('error') })
-    return () => controller.abort()
-  }, [value, source, attempt])
+    if (!value) return;
+    const controller = new AbortController();
+    source.resolve(value, controller.signal).then(
+      (option) => {
+        if (!controller.signal.aborted) {
+          setResolved(option);
+          setResolution(option ? 'ready' : 'missing');
+        }
+      },
+      () => {
+        if (!controller.signal.aborted) setResolution('error');
+      },
+    );
+    return () => controller.abort();
+  }, [value, source, attempt]);
 
   useEffect(() => {
-    if (draft === null || !expanded) return
-    const controller = new AbortController()
+    if (draft === null || !expanded) return;
+    const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      source.search(draft.trim(), controller.signal).then((response) => {
-        if (!controller.signal.aborted) setResult({ query: draft, ...response })
-      }, () => {
-        if (!controller.signal.aborted) setResult({ query: draft, options: [], hasMore: false, error: true })
-      })
-    }, 300)
-    return () => { window.clearTimeout(timer); controller.abort() }
-  }, [draft, expanded, source, attempt])
+      source.search(draft.trim(), controller.signal).then(
+        (response) => {
+          if (!controller.signal.aborted) setResult({ query: draft, ...response });
+        },
+        () => {
+          if (!controller.signal.aborted)
+            setResult({ query: draft, options: [], hasMore: false, error: true });
+        },
+      );
+    }, 300);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [draft, expanded, source, attempt]);
 
-  const current = result?.query === draft ? result : null
-  const options = current?.options ?? []
-  const showResults = expanded && draft !== null
-  function choose(option: FilterOption) { setExpanded(false); setDraft(null); onChange(option.value) }
-  function cancel() { setExpanded(false); setDraft(null) }
+  const current = result?.query === draft ? result : null;
+  const options = current?.options ?? [];
+  const showResults = expanded && draft !== null;
+  function choose(option: FilterOption) {
+    setExpanded(false);
+    setDraft(null);
+    onChange(option.value);
+  }
+  function cancel() {
+    setExpanded(false);
+    setDraft(null);
+  }
 
-  return <div className={styles.entity}>
-    <Combobox items={options} filter={null} value={resolved} inputValue={draft ?? resolved?.label ?? ''}
-      isItemEqualToValue={(a, b) => a.value === b.value}
-      open={showResults} onOpenChange={(open) => { if (!open) cancel(); else { setExpanded(true); if (draft === null) setDraft('') } }}
-      onInputValueChange={(text, details) => { if (details.reason === 'input-change') { setDraft(text); setExpanded(true); setResult(null) } }}
-      onValueChange={(option) => { if (option) choose(option) }}>
-      <ComboboxInput id={id} aria-label={label} showTrigger={false} placeholder={resolution === 'loading' ? t('filters.loadingLabel') : placeholder ?? t('filters.placeholder')} />
-      <ComboboxContent>
-        {!current && <p role="status" className="p-2 text-xs">{t('filters.searching')}</p>}
-        {current?.error && <div role="alert" className="p-2 text-xs">{t('filters.searchUnavailable')} <Button variant="ghost" onClick={() => { setResult(null); setAttempt((count) => count + 1) }}>{t('filters.retrySearch')}</Button></div>}
-        {current && !current.error && !options.length && <p role="status" className="p-2 text-xs">{t('filters.noResults')}</p>}
-        <ComboboxList aria-label={t('filters.resultsFor', { label: label.toLocaleLowerCase() })}>
-          {options.map((option) => <ComboboxItem key={option.value} value={option}>{option.label}</ComboboxItem>)}
-        </ComboboxList>
-        {current?.hasMore && <p className="p-2 text-xs">{t('filters.refine')}</p>}
-      </ComboboxContent>
-    </Combobox>
-    {value && draft !== null && <small>{t('filters.appliedValue', { value: resolved?.label ?? `ID ${value}` })}</small>}
-    {resolution === 'missing' && <small role="status">{t('filters.valueUnavailable', { id: value })}</small>}
-    {resolution === 'error' && <div role="alert">{t('filters.labelUnavailable', { id: value })} <Button variant="ghost" onClick={() => { setResolution('loading'); setAttempt((count) => count + 1) }}>{t('filters.retryLabel')}</Button></div>}
-  </div>
+  return (
+    <div className={styles.entity}>
+      <Combobox
+        items={options}
+        filter={null}
+        value={resolved}
+        inputValue={draft ?? resolved?.label ?? ''}
+        isItemEqualToValue={(a, b) => a.value === b.value}
+        open={showResults}
+        onOpenChange={(open) => {
+          if (!open) cancel();
+          else {
+            setExpanded(true);
+            if (draft === null) setDraft('');
+          }
+        }}
+        onInputValueChange={(text, details) => {
+          if (details.reason === 'input-change') {
+            setDraft(text);
+            setExpanded(true);
+            setResult(null);
+          }
+        }}
+        onValueChange={(option) => {
+          if (option) choose(option);
+        }}
+      >
+        <ComboboxInput
+          id={id}
+          aria-label={label}
+          showTrigger={false}
+          placeholder={
+            resolution === 'loading'
+              ? t('filters.loadingLabel')
+              : (placeholder ?? t('filters.placeholder'))
+          }
+        />
+        <ComboboxContent>
+          {!current && (
+            <p
+              role="status"
+              className="p-2 text-xs"
+            >
+              {t('filters.searching')}
+            </p>
+          )}
+          {current?.error && (
+            <div
+              role="alert"
+              className="p-2 text-xs"
+            >
+              {t('filters.searchUnavailable')}{' '}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setResult(null);
+                  setAttempt((count) => count + 1);
+                }}
+              >
+                {t('filters.retrySearch')}
+              </Button>
+            </div>
+          )}
+          {current && !current.error && !options.length && (
+            <p
+              role="status"
+              className="p-2 text-xs"
+            >
+              {t('filters.noResults')}
+            </p>
+          )}
+          <ComboboxList aria-label={t('filters.resultsFor', { label: label.toLocaleLowerCase() })}>
+            {options.map((option) => (
+              <ComboboxItem
+                key={option.value}
+                value={option}
+              >
+                {option.label}
+              </ComboboxItem>
+            ))}
+          </ComboboxList>
+          {current?.hasMore && <p className="p-2 text-xs">{t('filters.refine')}</p>}
+        </ComboboxContent>
+      </Combobox>
+      {value && draft !== null && (
+        <small>{t('filters.appliedValue', { value: resolved?.label ?? `ID ${value}` })}</small>
+      )}
+      {resolution === 'missing' && (
+        <small role="status">{t('filters.valueUnavailable', { id: value })}</small>
+      )}
+      {resolution === 'error' && (
+        <div role="alert">
+          {t('filters.labelUnavailable', { id: value })}{' '}
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setResolution('loading');
+              setAttempt((count) => count + 1);
+            }}
+          >
+            {t('filters.retryLabel')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -1,4 +1,4 @@
-import type { AuthenticatedUser } from '../auth/types'
+import type { AuthenticatedUser } from '../auth/types';
 
 export const authenticatedUser: AuthenticatedUser = {
   id: 7,
@@ -26,18 +26,18 @@ export const authenticatedUser: AuthenticatedUser = {
     use_fund_finder: false,
     import_data: false,
   },
-}
+};
 
 export const userWithoutNavigationCapabilities: AuthenticatedUser = {
   ...authenticatedUser,
   capabilities: Object.fromEntries(
     Object.keys(authenticatedUser.capabilities).map((capability) => [capability, false]),
   ) as AuthenticatedUser['capabilities'],
-}
+};
 
 export function jsonResponse(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: { 'content-type': 'application/json' },
-  })
+  });
 }

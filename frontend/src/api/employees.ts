@@ -1,470 +1,654 @@
-import { apiRequest } from './client'
-import { planningFilterQuery, type EmployeeMilestoneWrite, type PlanningFilters, type PlanningMilestone } from './planning'
-import { employeeFilters } from '../config/employeeFilters'
-import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../filters/url'
+import { apiRequest } from './client';
+import {
+  planningFilterQuery,
+  type EmployeeMilestoneWrite,
+  type PlanningFilters,
+  type PlanningMilestone,
+} from './planning';
+import { employeeFilters } from '../config/employeeFilters';
+import { filterDefaultsMarker, readFilterQuery, withFilterDefaults } from '../filters/url';
 
 /** Fields used to identify an Employee in lists and links. */
-export type EmployeeIdentity = { id: number; first_name: string; last_name: string }
-export type EmployeeStatus = { id: number; code: string; name: string }
+export type EmployeeIdentity = { id: number; first_name: string; last_name: string };
+export type EmployeeStatus = { id: number; code: string; name: string };
 /** Employee row with backend-calculated edit capability and current relations. */
 export type EmployeeListItem = EmployeeIdentity & {
-  admin_url?: string | null
-  capabilities?: { can_change: boolean }
-  entry_date: string | null
-  exit_date: string | null
-  is_active: boolean
-  current_statuses: EmployeeStatus[]
-  superiors: EmployeeIdentity[]
-}
+  admin_url?: string | null;
+  capabilities?: { can_change: boolean };
+  entry_date: string | null;
+  exit_date: string | null;
+  is_active: boolean;
+  current_statuses: EmployeeStatus[];
+  superiors: EmployeeIdentity[];
+};
 /** Detail fields and actions returned only after object-level view checks. */
 export type EmployeeDetail = EmployeeListItem & {
-  capabilities?: { can_change: boolean; can_export_word: boolean; can_export_pdf: boolean }
-  birth_date: string | null
-  email: string | null
-  contract_quotity: string | null
-  project_quotity: string | null
-  contribution_quotity: string | null
-  active_milestones_count: number
-}
+  capabilities?: { can_change: boolean; can_export_word: boolean; can_export_pdf: boolean };
+  birth_date: string | null;
+  email: string | null;
+  contract_quotity: string | null;
+  project_quotity: string | null;
+  contribution_quotity: string | null;
+  active_milestones_count: number;
+};
 /** Editable Employee fields accepted by the detail API. */
-export type EmployeeDetailWrite = Pick<EmployeeDetail, 'birth_date' | 'entry_date' | 'exit_date' | 'email' | 'is_active'>
+export type EmployeeDetailWrite = Pick<
+  EmployeeDetail,
+  'birth_date' | 'entry_date' | 'exit_date' | 'email' | 'is_active'
+>;
 export type EmployeeStatusHistoryItem = {
-  id: number
-  type: EmployeeStatus
-  start_date: string | null
-  end_date: string | null
-  contractuality: { code: string; label: string }
-  is_active: boolean
-}
+  id: number;
+  type: EmployeeStatus;
+  start_date: string | null;
+  end_date: string | null;
+  contractuality: { code: string; label: string };
+  is_active: boolean;
+};
 export type EmployeeStatusOptions = {
-  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean }
-  types: { id: number; name: string; shortname: string }[]
-  contractuality: { code: string; label: string }[]
-}
-export type EmployeeStatusWrite = { type?: number; start_date: string | null; end_date: string | null; is_contractual: string }
+  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean };
+  types: { id: number; name: string; shortname: string }[];
+  contractuality: { code: string; label: string }[];
+};
+export type EmployeeStatusWrite = {
+  type?: number;
+  start_date: string | null;
+  end_date: string | null;
+  is_contractual: string;
+};
 export type EmployeeHierarchyRelation = {
-  id: number
-  employee: EmployeeIdentity
-  start_date: string | null
-  end_date: string | null
-  is_active: boolean
-  can_view?: boolean
-}
+  id: number;
+  employee: EmployeeIdentity;
+  start_date: string | null;
+  end_date: string | null;
+  is_active: boolean;
+  can_view?: boolean;
+};
 /** Dated superior and subordinate edges with contextual mutation rights. */
 export type EmployeeHierarchy = {
-  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean }
-  superiors: EmployeeHierarchyRelation[]
-  subordinates: EmployeeHierarchyRelation[]
-}
-export type EmployeeHierarchyDirection = 'superior' | 'subordinate'
-export type EmployeeHierarchyDates = { start_date: string | null; end_date: string | null }
+  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean };
+  superiors: EmployeeHierarchyRelation[];
+  subordinates: EmployeeHierarchyRelation[];
+};
+export type EmployeeHierarchyDirection = 'superior' | 'subordinate';
+export type EmployeeHierarchyDates = { start_date: string | null; end_date: string | null };
 export type EmployeeGenericInfo = {
-  id: number
-  type: { id: number; name: string; icon: string | null }
-  value: string | null
-}
+  id: number;
+  type: { id: number; name: string; icon: string | null };
+  value: string | null;
+};
 export type EmployeeProjectParticipation = {
-  id: number
-  project: { id: number; name: string; start_date: string | null; end_date: string | null; can_view: boolean }
-  role: { code: string; label: string }
-  start_date: string | null
-  end_date: string | null
-  quotity: string
-  is_active: boolean
-}
-export type EmployeeContractTemporalState = 'current' | 'future' | 'past'
+  id: number;
+  project: {
+    id: number;
+    name: string;
+    start_date: string | null;
+    end_date: string | null;
+    can_view: boolean;
+  };
+  role: { code: string; label: string };
+  start_date: string | null;
+  end_date: string | null;
+  quotity: string;
+  is_active: boolean;
+};
+export type EmployeeContractTemporalState = 'current' | 'future' | 'past';
 export type EmployeeContractOrganization = {
-  id: number
-  short_name: string
-  name: string
-  can_view: boolean
-  url: string | null
-}
+  id: number;
+  short_name: string;
+  name: string;
+  can_view: boolean;
+  url: string | null;
+};
 /** Fund and organization links with per-object visibility flags. */
 export type EmployeeContractFund = {
-  id: number
-  display_name: string
-  reference: string | null
-  project: { id: number; name: string; can_view: boolean; url: string | null }
-  funder: EmployeeContractOrganization
-  institution: EmployeeContractOrganization
-}
+  id: number;
+  display_name: string;
+  reference: string | null;
+  project: { id: number; name: string; can_view: boolean; url: string | null };
+  funder: EmployeeContractOrganization;
+  institution: EmployeeContractOrganization;
+};
 export type EmployeeContract = {
-  admin_url?: string | null
-  id: number
-  employee: EmployeeIdentity & { can_view?: boolean }
-  contract_type: { id: number; name: string } | null
-  fund: EmployeeContractFund
-  start_date: string | null
-  end_date: string | null
-  quotity: string
-  status: { code: 'effe' | 'prov'; label: string }
-  requires_follow_up: boolean
-  temporal_state: EmployeeContractTemporalState
-}
+  admin_url?: string | null;
+  id: number;
+  employee: EmployeeIdentity & { can_view?: boolean };
+  contract_type: { id: number; name: string } | null;
+  fund: EmployeeContractFund;
+  start_date: string | null;
+  end_date: string | null;
+  quotity: string;
+  status: { code: 'effe' | 'prov'; label: string };
+  requires_follow_up: boolean;
+  temporal_state: EmployeeContractTemporalState;
+};
 export type EmployeeContractExpense = {
-  id: number
-  expense_id: string | null
-  date: string
-  desc: string | null
-  type: { id: number; short_name: string; name: string }
-  amount: string
-}
+  id: number;
+  expense_id: string | null;
+  date: string;
+  desc: string | null;
+  type: { id: number; short_name: string; name: string };
+  amount: string;
+};
 export type EmployeeContractDetail = EmployeeContract & {
-  expense_count: number
-  expense_total: string
-  expenses: EmployeeContractExpense[]
-}
-export type EmployeeContributionTemporalState = 'current' | 'future' | 'past'
+  expense_count: number;
+  expense_total: string;
+  expenses: EmployeeContractExpense[];
+};
+export type EmployeeContributionTemporalState = 'current' | 'future' | 'past';
 export type EmployeeContribution = {
-  id: number
+  id: number;
   fund: {
-    id: number
-    display_name: string
-    reference: string | null
-    project: { id: number; name: string }
-  }
-  cost_type: { id: number; short_name: string; name: string; is_hr: boolean } | null
-  desc: string | null
-  start_date: string | null
-  end_date: string | null
-  quotity: string | null
-  amount: string | null
-  employee_type: { id: number; code: string; name: string } | null
-  contract_types: Array<{ id: number; name: string }>
-  temporal_state: EmployeeContributionTemporalState
-}
+    id: number;
+    display_name: string;
+    reference: string | null;
+    project: { id: number; name: string };
+  };
+  cost_type: { id: number; short_name: string; name: string; is_hr: boolean } | null;
+  desc: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  quotity: string | null;
+  amount: string | null;
+  employee_type: { id: number; code: string; name: string } | null;
+  contract_types: Array<{ id: number; name: string }>;
+  temporal_state: EmployeeContributionTemporalState;
+};
 export type EmployeeBudget = {
-  id: number
+  id: number;
   fund: {
-    id: number
-    display_name: string
-    reference: string | null
-    project: { id: number; name: string }
-  }
-  cost_type: { id: number; short_name: string; name: string; is_hr: boolean } | null
-  desc: string | null
-  employee_type: { id: number; code: string; name: string } | null
-  contract_types: Array<{ id: number; name: string }>
-  quotity: string | null
-  amount: string | null
-  consumed: string | null
-  available: string | null
-  consumption_ratio: string | null
-}
+    id: number;
+    display_name: string;
+    reference: string | null;
+    project: { id: number; name: string };
+  };
+  cost_type: { id: number; short_name: string; name: string; is_hr: boolean } | null;
+  desc: string | null;
+  employee_type: { id: number; code: string; name: string } | null;
+  contract_types: Array<{ id: number; name: string }>;
+  quotity: string | null;
+  amount: string | null;
+  consumed: string | null;
+  available: string | null;
+  consumption_ratio: string | null;
+};
 export type ContributionWorkloadItem = {
-  id: number
-  quotity: string
-  fund: { id: number; display_name: string; reference: string | null }
-  project: { id: number; name: string }
-  cost_type: { id: number; short_name: string; name: string } | null
-}
+  id: number;
+  quotity: string;
+  fund: { id: number; display_name: string; reference: string | null };
+  project: { id: number; name: string };
+  cost_type: { id: number; short_name: string; name: string } | null;
+};
 export type ContributionWorkload = {
-  range: { start: string | null; end: string | null }
+  range: { start: string | null; end: string | null };
   segments: Array<{
-    start: string | null
-    end: string | null
-    total_quotity: string
-    contributions: ContributionWorkloadItem[]
-  }>
-}
-export type EmployeeLeaveType = { id: number; short_name: string; name: string; color: string }
-export type LeaveTypeOption = EmployeeLeaveType & { parent_id: number | null; depth: number }
-export type LeaveCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean }
+    start: string | null;
+    end: string | null;
+    total_quotity: string;
+    contributions: ContributionWorkloadItem[];
+  }>;
+};
+export type EmployeeLeaveType = { id: number; short_name: string; name: string; color: string };
+export type LeaveTypeOption = EmployeeLeaveType & { parent_id: number | null; depth: number };
+export type LeaveCapabilities = { can_add: boolean; can_change: boolean; can_delete: boolean };
 export type LeaveWrite = {
-  type_id: number
-  start_date: string
-  start_period: 'ST' | 'MI'
-  end_date: string
-  end_period: 'MI' | 'EN'
-  comment: string
-}
+  type_id: number;
+  start_date: string;
+  start_period: 'ST' | 'MI';
+  end_date: string;
+  end_period: 'MI' | 'EN';
+  comment: string;
+};
 export type EmployeeLeave = {
-  admin_url?: string | null
-  id: number
-  type: EmployeeLeaveType
-  start_date: string
-  start_period: 'ST' | 'MI'
-  end_date: string
-  end_period: 'MI' | 'EN'
-  day_count: number
-  comment: string | null
-}
+  admin_url?: string | null;
+  id: number;
+  type: EmployeeLeaveType;
+  start_date: string;
+  start_period: 'ST' | 'MI';
+  end_date: string;
+  end_period: 'MI' | 'EN';
+  day_count: number;
+  comment: string | null;
+};
 export type CalendarEvent = {
-  id: string
-  title: string
-  start: string
-  end: string | null
-  source: string
-  kind: string
-  all_day: boolean
-  color: string | null
-  description: string | null
-  display: string
-  metadata: Record<string, unknown>
-}
-export type CalendarFilterType = 'select' | 'checkbox' | 'radio' | 'input-text' | 'input-color'
-export type CalendarFilterValue = string | string[] | boolean
+  id: string;
+  title: string;
+  start: string;
+  end: string | null;
+  source: string;
+  kind: string;
+  all_day: boolean;
+  color: string | null;
+  description: string | null;
+  display: string;
+  metadata: Record<string, unknown>;
+};
+export type CalendarFilterType = 'select' | 'checkbox' | 'radio' | 'input-text' | 'input-color';
+export type CalendarFilterValue = string | string[] | boolean;
 export type CalendarFilter = {
-  id: string
-  title: string
-  type: CalendarFilterType
-  source: string
-  choices: Array<{ value: string | number | boolean; label: string }>
-  default: CalendarFilterValue | null
-}
+  id: string;
+  title: string;
+  type: CalendarFilterType;
+  source: string;
+  choices: Array<{ value: string | number | boolean; label: string }>;
+  default: CalendarFilterValue | null;
+};
 export type ProjectWorkloadProject = {
-  id: number
-  name: string
-  quotity: string
-  can_view: boolean
-}
+  id: number;
+  name: string;
+  quotity: string;
+  can_view: boolean;
+};
 export type ProjectWorkloadSegment = {
-  start: string | null
-  end: string | null
-  total_quotity: string
-  projects: ProjectWorkloadProject[]
-}
+  start: string | null;
+  end: string | null;
+  total_quotity: string;
+  projects: ProjectWorkloadProject[];
+};
 export type ProjectWorkload = {
-  range: { start: string | null; end: string | null }
-  segments: ProjectWorkloadSegment[]
-}
-export type { PlanningMilestone as EmployeeMilestone, PlanningMilestoneState as EmployeeMilestoneState } from './planning'
+  range: { start: string | null; end: string | null };
+  segments: ProjectWorkloadSegment[];
+};
+export type {
+  PlanningMilestone as EmployeeMilestone,
+  PlanningMilestoneState as EmployeeMilestoneState,
+} from './planning';
 export type EmployeeListResponse = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: EmployeeListItem[]
-  capabilities: { can_add: boolean }
-}
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: EmployeeListItem[];
+  capabilities: { can_add: boolean };
+};
 export type EmployeeFilterOptions = {
-  statuses: Array<{ id: number; name: string }>
-  teams: Array<{ id: number; name: string }>
-}
-export const employeeSortFields = ['first_name', 'last_name', 'entry_date', 'exit_date', 'is_active'] as const
-export type EmployeeSortField = typeof employeeSortFields[number]
-export type EmployeeOrdering = EmployeeSortField | `-${EmployeeSortField}`
+  statuses: Array<{ id: number; name: string }>;
+  teams: Array<{ id: number; name: string }>;
+};
+export const employeeSortFields = [
+  'first_name',
+  'last_name',
+  'entry_date',
+  'exit_date',
+  'is_active',
+] as const;
+export type EmployeeSortField = (typeof employeeSortFields)[number];
+export type EmployeeOrdering = EmployeeSortField | `-${EmployeeSortField}`;
 export type EmployeeListParams = {
-  search: string
-  filters: URLSearchParams
-  ordering: EmployeeOrdering | ''
-  limit: number
-  offset: number
-}
+  search: string;
+  filters: URLSearchParams;
+  ordering: EmployeeOrdering | '';
+  limit: number;
+  offset: number;
+};
 
 function integer(value: string | null, fallback: number, minimum: number) {
-  const number = Number(value)
-  return value !== null && /^\d+$/.test(value) && Number.isSafeInteger(number) && number >= minimum ? number : fallback
+  const number = Number(value);
+  return value !== null && /^\d+$/.test(value) && Number.isSafeInteger(number) && number >= minimum
+    ? number
+    : fallback;
 }
 
 /** Parse Employee list search, ordering, filters, and paging from the URL. */
 export function readEmployeeParams(query: URLSearchParams): EmployeeListParams {
-  query = withFilterDefaults(employeeFilters(), query)
-  const ordering = query.get('ordering') ?? ''
+  query = withFilterDefaults(employeeFilters(), query);
+  const ordering = query.get('ordering') ?? '';
   return {
     search: query.get('search')?.trim() ?? '',
     filters: readFilterQuery(employeeFilters(), query),
-    ordering: employeeSortFields.some((field) => ordering === field || ordering === `-${field}`) ? ordering as EmployeeOrdering : '',
+    ordering: employeeSortFields.some((field) => ordering === field || ordering === `-${field}`)
+      ? (ordering as EmployeeOrdering)
+      : '',
     limit: Math.min(integer(query.get('limit'), 25, 1), 250),
     offset: integer(query.get('offset'), 0, 0),
-  }
+  };
 }
 
 /** Serialize Employee list parameters into a stable query string. */
 export function employeeQuery(params: EmployeeListParams, forApi = false) {
-  const query = new URLSearchParams()
-  if (params.search) query.set('search', params.search)
-  else if (!forApi && params.filters.has('search')) query.set('search', '')
+  const query = new URLSearchParams();
+  if (params.search) query.set('search', params.search);
+  else if (!forApi && params.filters.has('search')) query.set('search', '');
   for (const [parameter, value] of params.filters) {
-    if (parameter === 'search') continue
-    if (!forApi || value !== '') query.set(parameter, value)
+    if (parameter === 'search') continue;
+    if (!forApi || value !== '') query.set(parameter, value);
   }
-  if (params.ordering) query.set('ordering', params.ordering)
-  if (params.limit !== 25) query.set('limit', String(params.limit))
-  if (params.offset) query.set('offset', String(params.offset))
-  if (!forApi) query.set(filterDefaultsMarker, '1')
-  return query.toString()
+  if (params.ordering) query.set('ordering', params.ordering);
+  if (params.limit !== 25) query.set('limit', String(params.limit));
+  if (params.offset) query.set('offset', String(params.offset));
+  if (!forApi) query.set(filterDefaultsMarker, '1');
+  return query.toString();
 }
 
 export function getEmployees(params: EmployeeListParams, signal: AbortSignal) {
-  return apiRequest<EmployeeListResponse>(`/api/v1/employees/?${employeeQuery(params, true)}`, { signal })
+  return apiRequest<EmployeeListResponse>(`/api/v1/employees/?${employeeQuery(params, true)}`, {
+    signal,
+  });
 }
 
 export function getEmployeeFilterOptions(signal: AbortSignal) {
-  return apiRequest<EmployeeFilterOptions>('/api/v1/employees/filter-options/', { signal })
+  return apiRequest<EmployeeFilterOptions>('/api/v1/employees/filter-options/', { signal });
 }
 
 /** Fetch one Employee detail under the current session’s permissions. */
 export function getEmployee(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeDetail>(`/api/v1/employees/${encodeURIComponent(id)}/`, { signal })
+  return apiRequest<EmployeeDetail>(`/api/v1/employees/${encodeURIComponent(id)}/`, { signal });
 }
 
 export function updateEmployee(id: number, data: Partial<EmployeeDetailWrite>) {
-  return apiRequest<EmployeeDetail>(`/api/v1/employees/${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  return apiRequest<EmployeeDetail>(`/api/v1/employees/${id}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
-export type EmployeeCreateWrite = EmployeeDetailWrite & { first_name: string; last_name: string }
+export type EmployeeCreateWrite = EmployeeDetailWrite & { first_name: string; last_name: string };
 export function createEmployee(data: EmployeeCreateWrite) {
-  return apiRequest<EmployeeIdentity>('/api/v1/employees/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  return apiRequest<EmployeeIdentity>('/api/v1/employees/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
 export function getEmployeeStatuses(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeStatusHistoryItem[]>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/`, { signal })
+  return apiRequest<EmployeeStatusHistoryItem[]>(
+    `/api/v1/employees/${encodeURIComponent(id)}/statuses/`,
+    { signal },
+  );
 }
 
 export function getEmployeeStatusOptions(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeStatusOptions>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/options/`, { signal })
+  return apiRequest<EmployeeStatusOptions>(
+    `/api/v1/employees/${encodeURIComponent(id)}/statuses/options/`,
+    { signal },
+  );
 }
 
 export function addEmployeeStatus(id: string, data: EmployeeStatusWrite) {
-  return apiRequest<EmployeeStatusHistoryItem>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  return apiRequest<EmployeeStatusHistoryItem>(
+    `/api/v1/employees/${encodeURIComponent(id)}/statuses/`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) },
+  );
 }
 
-export function updateEmployeeStatus(id: string, statusId: number, data: Omit<EmployeeStatusWrite, 'type'>) {
-  return apiRequest<EmployeeStatusHistoryItem>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/${statusId}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+export function updateEmployeeStatus(
+  id: string,
+  statusId: number,
+  data: Omit<EmployeeStatusWrite, 'type'>,
+) {
+  return apiRequest<EmployeeStatusHistoryItem>(
+    `/api/v1/employees/${encodeURIComponent(id)}/statuses/${statusId}/`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 export function deleteEmployeeStatus(id: string, statusId: number) {
-  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/${statusId}/`, { method: 'DELETE' })
+  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/statuses/${statusId}/`, {
+    method: 'DELETE',
+  });
 }
 
 export function getEmployeeHierarchy(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeHierarchy>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/`, { signal })
+  return apiRequest<EmployeeHierarchy>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/`, {
+    signal,
+  });
 }
 
-export function getEmployeeHierarchyCandidates(id: string, direction: EmployeeHierarchyDirection, search: string, signal: AbortSignal) {
-  const query = new URLSearchParams({ direction, search })
-  return apiRequest<{ results: { id: number; name: string }[]; has_more: boolean }>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/candidates/?${query}`, { signal })
+export function getEmployeeHierarchyCandidates(
+  id: string,
+  direction: EmployeeHierarchyDirection,
+  search: string,
+  signal: AbortSignal,
+) {
+  const query = new URLSearchParams({ direction, search });
+  return apiRequest<{ results: { id: number; name: string }[]; has_more: boolean }>(
+    `/api/v1/employees/${encodeURIComponent(id)}/hierarchy/candidates/?${query}`,
+    { signal },
+  );
 }
 
-export function addEmployeeHierarchyRelation(id: string, direction: EmployeeHierarchyDirection, employeeId: number, dates: EmployeeHierarchyDates) {
-  return apiRequest<{ id: number }>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction, employee_id: employeeId, ...dates }) })
+export function addEmployeeHierarchyRelation(
+  id: string,
+  direction: EmployeeHierarchyDirection,
+  employeeId: number,
+  dates: EmployeeHierarchyDates,
+) {
+  return apiRequest<{ id: number }>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ direction, employee_id: employeeId, ...dates }),
+  });
 }
 
-export function updateEmployeeHierarchyRelation(id: string, relationId: number, dates: EmployeeHierarchyDates) {
-  return apiRequest<{ id: number }>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/${relationId}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dates) })
+export function updateEmployeeHierarchyRelation(
+  id: string,
+  relationId: number,
+  dates: EmployeeHierarchyDates,
+) {
+  return apiRequest<{ id: number }>(
+    `/api/v1/employees/${encodeURIComponent(id)}/hierarchy/${relationId}/`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dates),
+    },
+  );
 }
 
 export function deleteEmployeeHierarchyRelation(id: string, relationId: number) {
-  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/${relationId}/`, { method: 'DELETE' })
+  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/hierarchy/${relationId}/`, {
+    method: 'DELETE',
+  });
 }
 
 export function getEmployeeGenericInfo(id: string, signal: AbortSignal) {
-  return apiRequest<GenericInfoCollection>(`/api/v1/employees/${encodeURIComponent(id)}/generic-info/`, { signal })
+  return apiRequest<GenericInfoCollection>(
+    `/api/v1/employees/${encodeURIComponent(id)}/generic-info/`,
+    { signal },
+  );
 }
 
 export function getEmployeeProjectParticipations(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeProjectParticipation[]>(`/api/v1/employees/${encodeURIComponent(id)}/project-participations/`, { signal })
+  return apiRequest<EmployeeProjectParticipation[]>(
+    `/api/v1/employees/${encodeURIComponent(id)}/project-participations/`,
+    { signal },
+  );
 }
 
-export function getEmployeeProjectWorkload(id: string, range: { start: string; end: string } | 'all', signal: AbortSignal) {
-  const query = range === 'all'
-    ? 'range=all'
-    : new URLSearchParams({ start: range.start, end: range.end }).toString()
-  return apiRequest<ProjectWorkload>(`/api/v1/employees/${encodeURIComponent(id)}/project-workload/?${query}`, { signal })
+export function getEmployeeProjectWorkload(
+  id: string,
+  range: { start: string; end: string } | 'all',
+  signal: AbortSignal,
+) {
+  const query =
+    range === 'all'
+      ? 'range=all'
+      : new URLSearchParams({ start: range.start, end: range.end }).toString();
+  return apiRequest<ProjectWorkload>(
+    `/api/v1/employees/${encodeURIComponent(id)}/project-workload/?${query}`,
+    { signal },
+  );
 }
 
 export function getEmployeeMilestones(id: string, signal: AbortSignal, filters?: PlanningFilters) {
-  return apiRequest<PlanningMilestone[]>(`/api/v1/employees/${encodeURIComponent(id)}/milestones/${planningFilterQuery(filters)}`, { signal })
+  return apiRequest<PlanningMilestone[]>(
+    `/api/v1/employees/${encodeURIComponent(id)}/milestones/${planningFilterQuery(filters)}`,
+    { signal },
+  );
 }
 
-export function updateEmployeeMilestone(employeeId: string, itemId: number, data: EmployeeMilestoneWrite) {
-  return apiRequest<PlanningMilestone>(`/api/v1/employees/${encodeURIComponent(employeeId)}/milestones/${itemId}/`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
-  })
+export function updateEmployeeMilestone(
+  employeeId: string,
+  itemId: number,
+  data: EmployeeMilestoneWrite,
+) {
+  return apiRequest<PlanningMilestone>(
+    `/api/v1/employees/${encodeURIComponent(employeeId)}/milestones/${itemId}/`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 export function getEmployeeContracts(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeContract[]>(`/api/v1/employees/${encodeURIComponent(id)}/contracts/`, { signal })
+  return apiRequest<EmployeeContract[]>(`/api/v1/employees/${encodeURIComponent(id)}/contracts/`, {
+    signal,
+  });
 }
 
 export function getEmployeeContract(id: string, contractId: number, signal: AbortSignal) {
-  return apiRequest<EmployeeContractDetail>(`/api/v1/employees/${encodeURIComponent(id)}/contracts/${contractId}/`, { signal })
+  return apiRequest<EmployeeContractDetail>(
+    `/api/v1/employees/${encodeURIComponent(id)}/contracts/${contractId}/`,
+    { signal },
+  );
 }
 
 export function getEmployeeContributions(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeContribution[]>(`/api/v1/employees/${encodeURIComponent(id)}/contributions/`, { signal })
+  return apiRequest<EmployeeContribution[]>(
+    `/api/v1/employees/${encodeURIComponent(id)}/contributions/`,
+    { signal },
+  );
 }
 
 export function getEmployeeBudgets(id: string, signal: AbortSignal) {
-  return apiRequest<EmployeeBudget[]>(`/api/v1/employees/${encodeURIComponent(id)}/budgets/`, { signal })
+  return apiRequest<EmployeeBudget[]>(`/api/v1/employees/${encodeURIComponent(id)}/budgets/`, {
+    signal,
+  });
 }
 
-export function getEmployeeContributionWorkload(id: string, range: { start: string; end: string } | 'all', signal: AbortSignal) {
-  const query = range === 'all'
-    ? 'range=all'
-    : new URLSearchParams({ start: range.start, end: range.end }).toString()
-  return apiRequest<ContributionWorkload>(`/api/v1/employees/${encodeURIComponent(id)}/contribution-workload/?${query}`, { signal })
+export function getEmployeeContributionWorkload(
+  id: string,
+  range: { start: string; end: string } | 'all',
+  signal: AbortSignal,
+) {
+  const query =
+    range === 'all'
+      ? 'range=all'
+      : new URLSearchParams({ start: range.start, end: range.end }).toString();
+  return apiRequest<ContributionWorkload>(
+    `/api/v1/employees/${encodeURIComponent(id)}/contribution-workload/?${query}`,
+    { signal },
+  );
 }
 
-export type EmployeeLeaveFilters = { from?: string; to?: string; type?: string }
+export type EmployeeLeaveFilters = { from?: string; to?: string; type?: string };
 /** Build an Employee Leave query from the selected date and type filters. */
 function leaveQuery(filters: EmployeeLeaveFilters) {
-  const query = new URLSearchParams()
-  if (filters.from) query.set('from', filters.from)
-  if (filters.to) query.set('to', filters.to)
-  if (filters.type) query.set('type', filters.type)
-  return query.toString()
+  const query = new URLSearchParams();
+  if (filters.from) query.set('from', filters.from);
+  if (filters.to) query.set('to', filters.to);
+  if (filters.type) query.set('type', filters.type);
+  return query.toString();
 }
 
 export function getEmployeeLeaves(id: string, filters: EmployeeLeaveFilters, signal: AbortSignal) {
-  const query = leaveQuery(filters)
-  return apiRequest<EmployeeLeave[]>(`/api/v1/employees/${encodeURIComponent(id)}/leaves/${query ? `?${query}` : ''}`, { signal })
+  const query = leaveQuery(filters);
+  return apiRequest<EmployeeLeave[]>(
+    `/api/v1/employees/${encodeURIComponent(id)}/leaves/${query ? `?${query}` : ''}`,
+    { signal },
+  );
 }
 
-const leaveUrl = (employeeId: string) => `/api/v1/employees/${encodeURIComponent(employeeId)}/leaves/`
+const leaveUrl = (employeeId: string) =>
+  `/api/v1/employees/${encodeURIComponent(employeeId)}/leaves/`;
 export function getLeaveCapabilities(employeeId: string, signal: AbortSignal) {
-  return apiRequest<LeaveCapabilities>(`${leaveUrl(employeeId)}capabilities/`, { signal })
+  return apiRequest<LeaveCapabilities>(`${leaveUrl(employeeId)}capabilities/`, { signal });
 }
 export function getLeaveTypes(signal: AbortSignal) {
-  return apiRequest<LeaveTypeOption[]>('/api/v1/leave-types/', { signal })
+  return apiRequest<LeaveTypeOption[]>('/api/v1/leave-types/', { signal });
 }
 export function createEmployeeLeave(employeeId: string, value: LeaveWrite) {
-  return apiRequest<EmployeeLeave>(leaveUrl(employeeId), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) })
+  return apiRequest<EmployeeLeave>(leaveUrl(employeeId), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(value),
+  });
 }
 export function updateEmployeeLeave(employeeId: string, leaveId: number, value: LeaveWrite) {
-  return apiRequest<EmployeeLeave>(`${leaveUrl(employeeId)}${leaveId}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) })
+  return apiRequest<EmployeeLeave>(`${leaveUrl(employeeId)}${leaveId}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(value),
+  });
 }
 export function deleteEmployeeLeave(employeeId: string, leaveId: number) {
-  return apiRequest<void>(`${leaveUrl(employeeId)}${leaveId}/`, { method: 'DELETE' })
+  return apiRequest<void>(`${leaveUrl(employeeId)}${leaveId}/`, { method: 'DELETE' });
 }
 
-export function getEmployeeCalendarFilters(id: string, signal: AbortSignal, context?: 'employee-gantt') {
-  return apiRequest<CalendarFilter[]>(`/api/v1/employees/${encodeURIComponent(id)}/calendar/filters/${context ? `?context=${context}` : ''}`, { signal })
+export function getEmployeeCalendarFilters(
+  id: string,
+  signal: AbortSignal,
+  context?: 'employee-gantt',
+) {
+  return apiRequest<CalendarFilter[]>(
+    `/api/v1/employees/${encodeURIComponent(id)}/calendar/filters/${context ? `?context=${context}` : ''}`,
+    { signal },
+  );
 }
 
-export function getEmployeeCalendar(id: string, range: { from: string; to: string }, type: string, calendarFilters: Record<string, CalendarFilterValue>, signal: AbortSignal, context?: 'employee-gantt') {
-  const query = new URLSearchParams(leaveQuery({ ...range, type: type || undefined }))
-  if (context) query.set('context', context)
+export function getEmployeeCalendar(
+  id: string,
+  range: { from: string; to: string },
+  type: string,
+  calendarFilters: Record<string, CalendarFilterValue>,
+  signal: AbortSignal,
+  context?: 'employee-gantt',
+) {
+  const query = new URLSearchParams(leaveQuery({ ...range, type: type || undefined }));
+  if (context) query.set('context', context);
   for (const [id, value] of Object.entries(calendarFilters)) {
-    const serialized = Array.isArray(value) ? value.join(',') : String(value)
-    if (serialized) query.set(id, serialized)
+    const serialized = Array.isArray(value) ? value.join(',') : String(value);
+    if (serialized) query.set(id, serialized);
   }
-  return apiRequest<CalendarEvent[]>(`/api/v1/employees/${encodeURIComponent(id)}/calendar/?${query.toString()}`, { signal })
+  return apiRequest<CalendarEvent[]>(
+    `/api/v1/employees/${encodeURIComponent(id)}/calendar/?${query.toString()}`,
+    { signal },
+  );
 }
 
-export type GenericInfoType = EmployeeGenericInfo['type']
+export type GenericInfoType = EmployeeGenericInfo['type'];
 export type GenericInfoCollection = {
-  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean }
-  items: EmployeeGenericInfo[]
-}
+  capabilities: { can_add: boolean; can_change: boolean; can_delete: boolean };
+  items: EmployeeGenericInfo[];
+};
 
 export function getGenericInfoTypes(signal: AbortSignal) {
-  return apiRequest<GenericInfoType[]>('/api/v1/generic-info-types/', { signal })
+  return apiRequest<GenericInfoType[]>('/api/v1/generic-info-types/', { signal });
 }
 
-export function createEmployeeGenericInfo(id: string, data: { type_id: number; value: string | null }) {
-  return apiRequest<EmployeeGenericInfo>(`/api/v1/employees/${encodeURIComponent(id)}/generic-info/`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
-  })
+export function createEmployeeGenericInfo(
+  id: string,
+  data: { type_id: number; value: string | null },
+) {
+  return apiRequest<EmployeeGenericInfo>(
+    `/api/v1/employees/${encodeURIComponent(id)}/generic-info/`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 export function updateEmployeeGenericInfo(id: string, infoId: number, value: string | null) {
-  return apiRequest<EmployeeGenericInfo>(`/api/v1/employees/${encodeURIComponent(id)}/generic-info/${infoId}/`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }),
-  })
+  return apiRequest<EmployeeGenericInfo>(
+    `/api/v1/employees/${encodeURIComponent(id)}/generic-info/${infoId}/`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    },
+  );
 }
 
 export function deleteEmployeeGenericInfo(id: string, infoId: number) {
-  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/generic-info/${infoId}/`, { method: 'DELETE' })
+  return apiRequest<void>(`/api/v1/employees/${encodeURIComponent(id)}/generic-info/${infoId}/`, {
+    method: 'DELETE',
+  });
 }

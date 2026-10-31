@@ -1,81 +1,110 @@
-import { describe, expect, it, vi } from 'vitest'
-import { apiFileRequest, apiRequest, subscribeToUnauthorized } from './client'
-import { jsonResponse } from '../test/fixtures'
+import { describe, expect, it, vi } from 'vitest';
+import { apiFileRequest, apiRequest, subscribeToUnauthorized } from './client';
+import { jsonResponse } from '../test/fixtures';
 
 describe('apiRequest', () => {
   it('uses same-origin session credentials and returns JSON', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true }))
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true }));
 
-    await expect(apiRequest<{ ok: boolean }>('/api/v1/me/')).resolves.toEqual({ ok: true })
-    expect(fetchMock).toHaveBeenCalledWith('/api/v1/me/', expect.objectContaining({ credentials: 'include', method: 'GET' }))
-  })
+    await expect(apiRequest<{ ok: boolean }>('/api/v1/me/')).resolves.toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/me/',
+      expect.objectContaining({ credentials: 'include', method: 'GET' }),
+    );
+  });
 
   it('adds the Django CSRF cookie to unsafe requests', async () => {
-    document.cookie = 'csrftoken=token%20value'
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }))
+    document.cookie = 'csrftoken=token%20value';
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 204 }));
 
-    await apiRequest<void>('/api/v1/example/', { method: 'POST' })
-    const init = fetchMock.mock.calls[0][1] as RequestInit
-    expect(new Headers(init.headers).get('X-CSRFToken')).toBe('token value')
-  })
+    await apiRequest<void>('/api/v1/example/', { method: 'POST' });
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(new Headers(init.headers).get('X-CSRFToken')).toBe('token value');
+  });
 
   it('returns undefined for an empty successful response', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }))
-    await expect(apiRequest<void>('/api/v1/example/')).resolves.toBeUndefined()
-  })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(apiRequest<void>('/api/v1/example/')).resolves.toBeUndefined();
+  });
 
   it('reports 401 globally and preserves the typed API error', async () => {
-    const listener = vi.fn()
-    const unsubscribe = subscribeToUnauthorized(listener)
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ detail: 'Unauthorized' }, 401))
+    const listener = vi.fn();
+    const unsubscribe = subscribeToUnauthorized(listener);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ detail: 'Unauthorized' }, 401));
 
-    await expect(apiRequest('/api/v1/private/')).rejects.toMatchObject({ status: 401, payload: { detail: 'Unauthorized' } })
-    expect(listener).toHaveBeenCalledOnce()
-    unsubscribe()
-  })
+    await expect(apiRequest('/api/v1/private/')).rejects.toMatchObject({
+      status: 401,
+      payload: { detail: 'Unauthorized' },
+    });
+    expect(listener).toHaveBeenCalledOnce();
+    unsubscribe();
+  });
 
   it('does not turn a 403 into a global session expiration', async () => {
-    const listener = vi.fn()
-    const unsubscribe = subscribeToUnauthorized(listener)
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ detail: 'Forbidden' }, 403))
+    const listener = vi.fn();
+    const unsubscribe = subscribeToUnauthorized(listener);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ detail: 'Forbidden' }, 403));
 
-    await expect(apiRequest('/api/v1/private/')).rejects.toMatchObject({ status: 403 })
-    expect(listener).not.toHaveBeenCalled()
-    unsubscribe()
-  })
+    await expect(apiRequest('/api/v1/private/')).rejects.toMatchObject({ status: 403 });
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
+  });
 
   it('does not turn a login validation error into a global session expiration', async () => {
-    const listener = vi.fn()
-    const unsubscribe = subscribeToUnauthorized(listener)
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ error: { code: 'invalid_credentials' } }, 400))
+    const listener = vi.fn();
+    const unsubscribe = subscribeToUnauthorized(listener);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse({ error: { code: 'invalid_credentials' } }, 400),
+    );
 
-    await expect(apiRequest('/api/v1/auth/login/', { method: 'POST' })).rejects.toMatchObject({ status: 400 })
-    expect(listener).not.toHaveBeenCalled()
-    unsubscribe()
-  })
+    await expect(apiRequest('/api/v1/auth/login/', { method: 'POST' })).rejects.toMatchObject({
+      status: 400,
+    });
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
+  });
 
   it('rejects absolute URLs', async () => {
-    await expect(apiRequest('https://example.test/api')).rejects.toThrow('relative')
-  })
-})
+    await expect(apiRequest('https://example.test/api')).rejects.toThrow('relative');
+  });
+});
 
 describe('apiFileRequest', () => {
   it('uses session/CSRF and preserves the backend download filename', async () => {
-    document.cookie = 'csrftoken=report-token'
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('file', { headers: { 'Content-Disposition': 'attachment; filename="report.docx"', 'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' } }))
-    const result = await apiFileRequest('/api/v1/reports/project/1/word/', { method: 'POST', body: '{}' })
-    expect(result.filename).toBe('report.docx')
-    expect(result.blob.size).toBe(4)
-    expect(fetchMock).toHaveBeenCalledWith('/api/v1/reports/project/1/word/', expect.objectContaining({ credentials: 'include', method: 'POST' }))
-    expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get('X-CSRFToken')).toBe('report-token')
-  })
+    document.cookie = 'csrftoken=report-token';
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('file', {
+        headers: {
+          'Content-Disposition': 'attachment; filename="report.docx"',
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        },
+      }),
+    );
+    const result = await apiFileRequest('/api/v1/reports/project/1/word/', {
+      method: 'POST',
+      body: '{}',
+    });
+    expect(result.filename).toBe('report.docx');
+    expect(result.blob.size).toBe(4);
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/reports/project/1/word/',
+      expect.objectContaining({ credentials: 'include', method: 'POST' }),
+    );
+    expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get('X-CSRFToken')).toBe(
+      'report-token',
+    );
+  });
 
   it('keeps DRF errors and 401 notification on file responses', async () => {
-    const listener = vi.fn()
-    const unsubscribe = subscribeToUnauthorized(listener)
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ detail: 'Denied' }, 401))
-    await expect(apiFileRequest('/api/v1/reports/employee/1/pdf/', { method: 'POST' })).rejects.toMatchObject({ status: 401, payload: { detail: 'Denied' } })
-    expect(listener).toHaveBeenCalledOnce()
-    unsubscribe()
-  })
-})
+    const listener = vi.fn();
+    const unsubscribe = subscribeToUnauthorized(listener);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ detail: 'Denied' }, 401));
+    await expect(
+      apiFileRequest('/api/v1/reports/employee/1/pdf/', { method: 'POST' }),
+    ).rejects.toMatchObject({ status: 401, payload: { detail: 'Denied' } });
+    expect(listener).toHaveBeenCalledOnce();
+    unsubscribe();
+  });
+});

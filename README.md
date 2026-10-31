@@ -317,6 +317,15 @@ built plugins to implement them without relying on undocumented assumptions.
 Internal comments should explain decisions and invariants that are not obvious
 from the code; avoid comments that merely restate an operation.
 
+### React formatting
+
+Run `npm run format` from `frontend/` to format its source files with the locally
+installed Prettier version. Run `npm run format:check` to verify formatting
+without changing files. In VS Code, select Prettier as the formatter for
+JavaScript and TypeScript and enable Format on Save if desired. Keep the
+`frontend/.prettierrc.json` conventions for future React changes, including
+the existing code documentation.
+
 ---
 
 ## Changelog

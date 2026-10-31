@@ -1,1 +1,1 @@
-export type DashboardMode = 'view' | 'edit' | 'presentation' | 'print'
+export type DashboardMode = 'view' | 'edit' | 'presentation' | 'print';

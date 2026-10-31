@@ -1,14 +1,18 @@
-import { useState, type ReactNode } from 'react'
-import styles from './LoginPage.module.css'
+import { useState, type ReactNode } from 'react';
+import styles from './LoginPage.module.css';
 
 /** Keep one randomly chosen background image stable for an auth page mount. */
 export function AuthBackground({ children }: { children: ReactNode }) {
-  const [backgroundNumber] = useState(() => Math.floor(Math.random() * 3) + 1)
+  const [backgroundNumber] = useState(() => Math.floor(Math.random() * 3) + 1);
 
-  return <main
-    className={styles.page}
-    style={{
-      backgroundImage: `linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.5)), url("${import.meta.env.BASE_URL}labsmanager-background_${backgroundNumber}.png")`,
-    }}
-  >{children}</main>
+  return (
+    <main
+      className={styles.page}
+      style={{
+        backgroundImage: `linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.5)), url("${import.meta.env.BASE_URL}labsmanager-background_${backgroundNumber}.png")`,
+      }}
+    >
+      {children}
+    </main>
+  );
 }

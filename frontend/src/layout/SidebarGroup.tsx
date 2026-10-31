@@ -9,11 +9,7 @@ type SidebarGroupProps = {
 };
 
 /** Render a collapsible group of navigation links. */
-function SidebarGroup({
-  title,
-  children,
-  defaultOpen = true,
-}: SidebarGroupProps) {
+function SidebarGroup({ title, children, defaultOpen = true }: SidebarGroupProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -22,7 +18,7 @@ function SidebarGroup({
         <button
           type="button"
           className={styles.sidebarGroupToggle}
-          onClick={() => setIsOpen(open => !open)}
+          onClick={() => setIsOpen((open) => !open)}
           aria-expanded={isOpen}
         >
           <span className={styles.groupTitle}>{title}</span>
@@ -42,4 +38,4 @@ function SidebarGroup({
   );
 }
 
-export { SidebarGroup }
+export { SidebarGroup };

@@ -1,17 +1,44 @@
-import type { ViewOptions } from '@fullcalendar/react'
+import type { ViewOptions } from '@fullcalendar/react';
 
-export type ProjectCalendarScope = 'fifteenDays' | 'month' | 'twoMonths' | 'year'
-export type CalendarViewMode = 'calendar' | 'resources'
+export type ProjectCalendarScope = 'fifteenDays' | 'month' | 'twoMonths' | 'year';
+export type CalendarViewMode = 'calendar' | 'resources';
 
-export const projectCalendarScopeOrder: ProjectCalendarScope[] = ['fifteenDays', 'month', 'twoMonths', 'year']
+export const projectCalendarScopeOrder: ProjectCalendarScope[] = [
+  'fifteenDays',
+  'month',
+  'twoMonths',
+  'year',
+];
 
 export const projectCalendarScopes = {
-  fifteenDays: { label: 'projectCalendar.fifteenDays', calendarView: 'dayGridFifteenDays', resourceView: 'resourceTimelineFifteenDays', duration: { days: 15 } },
-  month: { label: 'leaves.month', calendarView: 'dayGridMonthCustom', resourceView: 'resourceTimelineMonthCustom', duration: { months: 1 } },
-  twoMonths: { label: 'projectCalendar.twoMonths', calendarView: 'dayGridTwoMonths', resourceView: 'resourceTimelineTwoMonths', duration: { months: 2 } },
-  year: { label: 'leaves.year', calendarView: 'dayGridYearCustom', resourceView: 'resourceTimelineYearCustom', duration: { years: 1 } },
-} as const
-export type CalendarViewKey = (typeof projectCalendarScopes)[ProjectCalendarScope]['calendarView' | 'resourceView']
+  fifteenDays: {
+    label: 'projectCalendar.fifteenDays',
+    calendarView: 'dayGridFifteenDays',
+    resourceView: 'resourceTimelineFifteenDays',
+    duration: { days: 15 },
+  },
+  month: {
+    label: 'leaves.month',
+    calendarView: 'dayGridMonthCustom',
+    resourceView: 'resourceTimelineMonthCustom',
+    duration: { months: 1 },
+  },
+  twoMonths: {
+    label: 'projectCalendar.twoMonths',
+    calendarView: 'dayGridTwoMonths',
+    resourceView: 'resourceTimelineTwoMonths',
+    duration: { months: 2 },
+  },
+  year: {
+    label: 'leaves.year',
+    calendarView: 'dayGridYearCustom',
+    resourceView: 'resourceTimelineYearCustom',
+    duration: { years: 1 },
+  },
+} as const;
+export type CalendarViewKey = (typeof projectCalendarScopes)[ProjectCalendarScope][
+  | 'calendarView'
+  | 'resourceView'];
 
 export const projectDayGridViews: Record<string, ViewOptions> = {
   dayGridFifteenDays: {
@@ -32,7 +59,7 @@ export const projectDayGridViews: Record<string, ViewOptions> = {
     duration: projectCalendarScopes.month.duration,
     dateAlignment: 'month',
     dayMaxEvents: false,
-    dayMaxEventRows: false
+    dayMaxEventRows: false,
   },
   dayGridTwoMonths: {
     type: 'timeline',
@@ -69,7 +96,7 @@ export const projectDayGridViews: Record<string, ViewOptions> = {
       },
     ],
   },
-}
+};
 
 export const projectResourceViews: Record<string, ViewOptions> = {
   resourceTimelineFifteenDays: {
@@ -154,38 +181,61 @@ export const projectResourceViews: Record<string, ViewOptions> = {
       },
     ],
   },
-}
+};
 
 /** The interactive view definitions are also the print renderer's source of truth. */
 export function projectCalendarViewDefinition(scope: ProjectCalendarScope, mode: CalendarViewMode) {
-  const key = mode === 'resources' ? projectCalendarScopes[scope].resourceView : projectCalendarScopes[scope].calendarView
-  const options = mode === 'resources' ? projectResourceViews[key] : projectDayGridViews[key]
-  if (!options || !['dayGrid', 'timeline', 'resourceTimeline'].includes(String(options.type))) throw new Error(`Unknown Calendar view: ${key}`)
-  return { key, label: projectCalendarScopes[scope].label, options, kind: options.type === 'dayGrid' ? 'dayGrid' as const : 'timeline' as const }
+  const key =
+    mode === 'resources'
+      ? projectCalendarScopes[scope].resourceView
+      : projectCalendarScopes[scope].calendarView;
+  const options = mode === 'resources' ? projectResourceViews[key] : projectDayGridViews[key];
+  if (!options || !['dayGrid', 'timeline', 'resourceTimeline'].includes(String(options.type)))
+    throw new Error(`Unknown Calendar view: ${key}`);
+  return {
+    key,
+    label: projectCalendarScopes[scope].label,
+    options,
+    kind: options.type === 'dayGrid' ? ('dayGrid' as const) : ('timeline' as const),
+  };
 }
-export type CalendarViewDefinition = ReturnType<typeof projectCalendarViewDefinition>
+export type CalendarViewDefinition = ReturnType<typeof projectCalendarViewDefinition>;
 
 function isoDate(value: Date) {
-  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
 }
 
 /** Derive the calendar date interval for a Project view mode. */
 export function projectCalendarRange(scope: ProjectCalendarScope, anchor: Date) {
-  const year = anchor.getFullYear()
-  const month = anchor.getMonth()
-  const day = anchor.getDate()
-  const start = scope === 'year' ? new Date(year, 0, 1) : scope === 'fifteenDays' ? new Date(year, month, day) : new Date(year, month, 1)
-  const end = scope === 'fifteenDays' ? new Date(year, month, day + 14)
-    : scope === 'month' ? new Date(year, month + 1, 0)
-      : scope === 'twoMonths' ? new Date(year, month + 2, 0) : new Date(year, 11, 31)
-  return { from: isoDate(start), to: isoDate(end) }
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth();
+  const day = anchor.getDate();
+  const start =
+    scope === 'year'
+      ? new Date(year, 0, 1)
+      : scope === 'fifteenDays'
+        ? new Date(year, month, day)
+        : new Date(year, month, 1);
+  const end =
+    scope === 'fifteenDays'
+      ? new Date(year, month, day + 14)
+      : scope === 'month'
+        ? new Date(year, month + 1, 0)
+        : scope === 'twoMonths'
+          ? new Date(year, month + 2, 0)
+          : new Date(year, 11, 31);
+  return { from: isoDate(start), to: isoDate(end) };
 }
 
 /** Move the Project calendar anchor by its view interval. */
-export function shiftProjectCalendarAnchor(anchor: Date, scope: ProjectCalendarScope, direction: number) {
-  const year = anchor.getFullYear()
-  const month = anchor.getMonth()
-  if (scope === 'fifteenDays') return new Date(year, month, anchor.getDate() + 7 * direction)
-  if (scope === 'year') return new Date(year + direction, 0, 1)
-  return new Date(year, month + direction, 1)
+export function shiftProjectCalendarAnchor(
+  anchor: Date,
+  scope: ProjectCalendarScope,
+  direction: number,
+) {
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth();
+  if (scope === 'fifteenDays') return new Date(year, month, anchor.getDate() + 7 * direction);
+  if (scope === 'year') return new Date(year + direction, 0, 1);
+  return new Date(year, month + direction, 1);
 }
