@@ -5,6 +5,7 @@ from .registry import search_registry
 
 
 def utf16_to_index(source, offset):
+    """Convert a browser UTF-16 cursor offset to a Python string index."""
     position = 0
     if offset == 0:
         return 0
@@ -18,6 +19,7 @@ def utf16_to_index(source, offset):
 
 
 def index_to_utf16(source, index):
+    """Convert a Python string index to a browser UTF-16 offset."""
     return sum(2 if ord(char) > 0xFFFF else 1 for char in source[:index])
 
 
@@ -32,6 +34,7 @@ def _ordered(values, prefix, limit):
 
 
 def autocomplete(user, query, cursor, *, provider_filter=None, limit=10, registry=None):
+    """Suggest syntax-aware completions at the supplied cursor position."""
     registry = registry or search_registry
     active = registry.active(user)
     if provider_filter:

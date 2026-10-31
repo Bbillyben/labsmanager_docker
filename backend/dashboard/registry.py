@@ -110,6 +110,7 @@ class TemplateWidget:
 
 
 def _links(context, config):
+    """Build navigation links advertised by a Dashboard source."""
     from labsmanager.api_v1 import get_user_capabilities
     capabilities = get_user_capabilities(context.user)
     links = []

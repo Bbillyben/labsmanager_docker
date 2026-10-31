@@ -36,6 +36,7 @@ class UserPlugins(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        """Return active plugins available in personal settings."""
         registry.check_reload()
         action_plugins = {plugin.slug for plugin, item in declared_contributions()
                           if item['slot'] == 'user.plugin.settings.actions'}
@@ -76,6 +77,7 @@ class UserPluginSettingDetail(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def _setting(self, request, key, setting_key):
+        """Resolve an editable setting declared by the selected plugin."""
         config, definitions = personal_settings(key)
         setting_key = setting_key.upper()
         definition = definitions.get(setting_key)

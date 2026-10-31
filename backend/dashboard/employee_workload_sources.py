@@ -8,6 +8,7 @@ METRICS = ("project_allocation", "open_tasks", "open_milestones", "open_work_ite
 
 
 def workload(context, config):
+    """Aggregate visible Employee workload into Dashboard renderer data."""
     from endpoints.models import Milestones
     from project.models import Participant, Project
     from staff.models import Employee, Employee_Superior, TeamMate

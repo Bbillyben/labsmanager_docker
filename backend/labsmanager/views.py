@@ -62,6 +62,7 @@ def serve_protected_media(request, path):
 from django.db.models import Count, Value, CharField
 from django.db.models.functions import Concat
 def get_filters_lists(request, *args, **kwargs):
+    """Build filter choices for a legacy list view."""
     data={}
     data['codes']=[]
     # for employee type list, use shortname

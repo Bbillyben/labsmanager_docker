@@ -9,6 +9,7 @@ from .business_sources import planning_queryset
 
 
 def _planning_events(context, config, *, tasks, start, today, end):
+    """Map visible planning items to Dashboard timeline events."""
     queryset = planning_queryset(context, config, tasks=tasks)
     earlier_overdue_count = queryset.filter(status=False, end_date__lt=start).count()
     rows = queryset.filter(end_date__gte=start, end_date__lte=end).select_related("project")
@@ -54,6 +55,7 @@ TIMELINE_PROVIDERS = {"tasks": _task_events, "milestones": _milestone_events}
 
 
 def timeline(context, config):
+    """Build a dated timeline from permission-scoped Dashboard sources."""
     today = timezone.localdate()
     start = today - timedelta(days=2)
     end = today + timedelta(days=int(config.get("calendar_days", "14")))

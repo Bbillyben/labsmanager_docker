@@ -86,6 +86,7 @@ from labsmanager.mails import SubscriptionMail
 from django.contrib.auth.models import User
 def get_test_email(request,*args, **kwargs):
 
+    """Render a test email for the legacy notification view."""
     upk = request.POST["user"]
     user = User.objects.get(pk=upk)
 

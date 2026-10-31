@@ -8,6 +8,7 @@ import import_export.widgets as widgets
 from import_export.fields import Field
 
 class FundItemResource(labResource):
+    """Export Fund lines and their cost categories."""
     available=Field(
         column_name=_('Total Available'),
         attribute='available', 
@@ -70,7 +71,9 @@ class FundItemResource(labResource):
                       ]
         
 class FundField(Field):
+     """Resolve Fund references in imported rows."""
      def clean(self, data, **kwargs):
+        """Resolve an imported Fund identifier against existing Funds."""
         query = Q(amount__gte=-1)
         project_name = data.get('Project', None)
         if project_name is not None:
@@ -93,7 +96,9 @@ class FundField(Field):
    
 import datetime
 class FundDateField(FundField):
+    """Normalize Fund dates for import and export."""
     def clean(self, data, **kwargs):   
+        """Parse imported Fund date values."""
         fu = super().clean(data, **kwargs)
         if fu is None:
             return fu
@@ -105,6 +110,7 @@ class FundDateField(FundField):
             fu.save()        
         return fu
     def get_value(self, obj):
+        """Format a Fund date for export."""
         val=super().get_value(obj)
         if val is None:
             return val
@@ -114,6 +120,7 @@ class FundDateField(FundField):
         return value
     
 class FundItemAdminResource(labResource, SkipErrorRessource):
+    """Import Fund items through Django Admin."""
     fund=FundField(
         column_name=_('Ref'),
         attribute='fund', 
@@ -189,6 +196,7 @@ class FundItemAdminResource(labResource, SkipErrorRessource):
     )
         
     def before_import_row(self, row, row_number=None, **kwargs):
+        """Validate Fund item references before Admin import."""
         query = Q(amount__gte=-1)
         project_name = row.get('Project', None)
         if project_name is not None:
@@ -245,6 +253,7 @@ from expense.models import Contract_type
 
 class BudgetResource(labResource):
     
+    """Import and export Budget allocations."""
     cost_type=Field(
         column_name=_('Cost Type'),
         attribute='cost_type', 
@@ -310,11 +319,13 @@ class BudgetResource(labResource):
         
         
 class ContributionResource(BudgetResource):
+     """Import and export funding Contributions."""
      class Meta(BudgetResource.Meta):
         """Metaclass"""
         model = Contribution
 
 class FundConsumptionResource(labResource):
+    """Export Fund spending and consumption values."""
     project=Field(
         column_name=_('Project'),
         attribute='project', 
@@ -369,6 +380,7 @@ class FundConsumptionResource(labResource):
 
 class HistoryAmountResource(labResource):
     
+    """Export historical funding amount records."""
     content_app=Field(
         column_name=_('content_app'),
         attribute='content_type__app_label', 

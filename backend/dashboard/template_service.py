@@ -10,6 +10,7 @@ from .registry import DashboardContext, TEMPLATES, available_definitions, defini
 
 
 def _template_size(item, definition):
+    """Select a supported size for a template widget."""
     width = item.width if type(item.width) is int else definition.default_size[0]
     height = item.height if type(item.height) is int else definition.default_size[1]
     width = min(max(width, definition.min_size[0]), definition.max_size[0], 12)
@@ -47,6 +48,7 @@ def _template_config(item, context):
 
 
 def create_template_dashboard(user, template, name, context_object=None):
+    """Create a Dashboard from the selected registered template."""
     if template not in TEMPLATES:
         raise ValueError(f"Unknown dashboard template: {template}")
     # The same pure validator is used by the API; no view or HTTP call is involved.

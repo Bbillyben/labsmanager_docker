@@ -5,6 +5,7 @@ from staff.rules import is_user_subordinate
 
 @rules.predicate
 def can_print_employee_report(user, employee= None):
+    """Check whether a user may export a report for an Employee."""
     if not employee:
         return False
     if employee.user == user:
@@ -13,6 +14,7 @@ def can_print_employee_report(user, employee= None):
 
 @rules.predicate
 def can_print_project_report(user, project= None):
+    """Check whether a user may export a report for a Project."""
     if not project:
         return False
     return user.has_perm("project.change_project", project)

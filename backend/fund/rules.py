@@ -33,6 +33,7 @@ def is_user_can_see_budget(user, item = None):
     return False
 
 def is_user_contribution_manager(user, contrib=None):
+    """Check whether the user manages a funding Contribution."""
     if not contrib:
         return False
     proj_perm = user.has_perm("project.change_project", contrib.fund.project)

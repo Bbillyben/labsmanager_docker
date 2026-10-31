@@ -23,6 +23,7 @@ class ExpenseGraphView(LoginRequiredMixin, View):
     template_general="project/amount_graph.html" 
     
     def get(self, request, *args, **kwargs):
+        """Render legacy Expense graph data for the selected scope."""
         pj_pk=kwargs.get("pk", None)
         context={'data':'',
                  'type':'line',

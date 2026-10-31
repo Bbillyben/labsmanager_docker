@@ -20,11 +20,13 @@ from settings.models import LMProjectSetting
 
 
 class CheckProjectTypeResourceMixin():
+    """Validate imported expense cost types against their Project."""
     class Meta:
         abstract=True
         valid_import=['s', 'e', 'h']
         
     def before_import_row(self, row, row_number=None, **kwargs):
+        """Reject a cost type incompatible with the imported Project."""
         result = super().before_import_row(row, row_number, **kwargs)
         refI = row.get('Ref', None)
         if refI is not None:
@@ -45,6 +47,7 @@ class CheckProjectTypeResourceMixin():
         return result
     
 class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipSameValueRessource, SkipErrorRessource):
+    """Import individual Expenses with row-level validation."""
     expense_id=Field(
         column_name=_('Expense Id'),
         attribute='expense_id', 
@@ -106,6 +109,7 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipSameValueR
         valid_import=['e', 'h']
         
     def before_import_row(self, row, row_number=None, **kwargs):
+        """Normalize and validate Expense references before import."""
         super().before_import_row(row, row_number, **kwargs)
         qset = Expense.objects.none()
         if "id" in row and row["id"] != None:
@@ -129,6 +133,7 @@ class ExpenseResource(CheckProjectTypeResourceMixin, labResource, SkipSameValueR
         return SimpleError
 
 class ContractResource(labResource):
+    """Export Contract data with calculated spending totals."""
     employee = Field(
         column_name=_('Employee'),
         attribute='employee__user_name', 
@@ -185,6 +190,7 @@ class ContractResource(labResource):
     
 class ExpensePointResource(CheckProjectTypeResourceMixin, labResource, SkipErrorRessource):
     
+    """Import per-type expense points with row-level validation."""
     @classmethod
     def get_error_result_class(self):
         """
@@ -236,6 +242,7 @@ class ExpensePointResource(CheckProjectTypeResourceMixin, labResource, SkipError
     )        
         
     def before_import_row(self, row, row_number=None, **kwargs):
+        """Normalize expense point amounts and references before import."""
         super().before_import_row(row, row_number, **kwargs)
         query = Q()
         project_name = row.get('project', None)
@@ -277,6 +284,7 @@ class ExpensePointResource(CheckProjectTypeResourceMixin, labResource, SkipError
 class ConsolidatedExpenseResource(ExpenseResource):
     #class_type = Field(column_name=_("Class type"))
     
+    """Export Expenses enriched with Budget and Contract fields."""
     contract_employee = Field(column_name=_("Contract employee"))
     contract_type = Field(column_name=_("Contract type"))
     contract_start_date = Field(column_name=_("Contract start date"))

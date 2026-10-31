@@ -23,6 +23,7 @@ from .models import Contract, Contract_expense, Expense
 
 
 def subtype(expense):
+    """Identify the expense subtype used in the API response."""
     try:
         return expense.contract_expense
     except ObjectDoesNotExist:
@@ -30,6 +31,7 @@ def subtype(expense):
 
 
 def expense_data(expense, user):
+    """Serialize an Expense with subtype details and contextual actions."""
     child = subtype(expense)
     contract = child.contract if child else None
     budget = expense.budget_item
@@ -44,6 +46,7 @@ def expense_data(expense, user):
 
 
 def can_add(user, fund, contract=None, budget=None):
+    """Check whether the caller may add an Expense in the given context."""
     mode = LMProjectSetting.get_setting("EXPENSE_CALCULATION", project=fund.project)
     if contract:
         return user.has_perm("expense.add_contract_expense") or user.has_perm("expense.change_contract_expense", contract)
@@ -53,6 +56,7 @@ def can_add(user, fund, contract=None, budget=None):
 
 
 def expense_capabilities(user, expense):
+    """Return actions the caller may perform on an existing Expense."""
     child = subtype(expense)
     change = user.has_perm("expense.change_contract_expense", child.contract) if child else user.has_perm("expense.change_expense", expense)
     delete_perm = "expense.delete_contract_expense" if child else "expense.delete_expense"
@@ -60,6 +64,7 @@ def expense_capabilities(user, expense):
 
 
 def collection_capabilities(user, fund, contract=None):
+    """Return creation capabilities for an Expense collection."""
     mode = LMProjectSetting.get_setting("EXPENSE_CALCULATION", project=fund.project)
     if contract:
         add = can_add(user, fund, contract)
@@ -80,10 +85,12 @@ def collection_capabilities(user, fund, contract=None):
 
 
 def hr_types():
+    """Return human-resources expense types available for selection."""
     return Cost_Type.objects.filter(is_hr=True).get_descendants(include_self=True)
 
 
 class ExpenseWriteSerializer(serializers.Serializer):
+    """Validate and persist expenses without accepting unknown fields."""
     expense_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     desc = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     date = serializers.DateField(required=False)
@@ -94,6 +101,7 @@ class ExpenseWriteSerializer(serializers.Serializer):
     budget_id = serializers.PrimaryKeyRelatedField(source="budget_item", queryset=Budget.objects.all(), required=False, allow_null=True)
 
     def to_internal_value(self, data):
+        """Reject fields outside the expense write contract."""
         if isinstance(data, dict):
             extra = set(data) - set(self.fields)
             if extra:
@@ -101,6 +109,7 @@ class ExpenseWriteSerializer(serializers.Serializer):
         return super().to_internal_value(data)
 
     def validate(self, attrs):
+        """Check expense subtype, dates, and funding relationships."""
         expense = self.instance
         fund = self.context["fund"]
         old_child = subtype(expense) if expense else None
@@ -132,6 +141,7 @@ class ExpenseWriteSerializer(serializers.Serializer):
         return attrs
 
     def save(self, **kwargs):
+        """Persist the validated Expense and its subtype-specific data."""
         values = dict(self.validated_data)
         contract = values.pop("_contract")
         old_child = values.pop("_old_child")
@@ -168,9 +178,11 @@ class ExpensePagination(PageNumberPagination):
 
 
 class ExpenseBase(APIView):
+    """Resolve expense visibility, budget context, and mutation capabilities."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def context(self):
+        """Build the permission context used by expense reads and writes."""
         if not hasattr(self, "_context"):
             if "hub_contract_id" in self.kwargs:
                 from .contract_hub_api_v1 import visible_contracts
@@ -205,6 +217,7 @@ class ExpenseBase(APIView):
         return self._context
 
     def queryset(self):
+        """Return Expenses restricted to the caller's visible objects."""
         fund, contract = self.context()
         qs = Expense.objects.filter(fund_item=fund).select_related("type", "budget_item", "contract_expense__contract__employee")
         if contract:
@@ -214,6 +227,7 @@ class ExpenseBase(APIView):
         return qs
 
     def budget_context(self):
+        """Resolve the related Budget under the caller's permissions."""
         self.context()
         return getattr(self, "_budget", None)
 
@@ -221,12 +235,15 @@ class ExpenseBase(APIView):
         return get_object_or_404(self.queryset(), pk=self.kwargs["expense_id"])
 
     def require(self, allowed):
+        """Reject an expense action that the caller is not allowed to perform."""
         if not allowed:
             raise PermissionDenied()
 
 
 class ExpenseCollectionV1View(ExpenseBase):
+    """List and create permission-scoped Expenses."""
     def get(self, request, *args, **kwargs):
+        """Return paginated Expenses and contextual creation capabilities."""
         fund, contract = self.context()
         qs = self.queryset()
         query = request.query_params.get("search", "").strip()
@@ -258,6 +275,7 @@ class ExpenseCollectionV1View(ExpenseBase):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Create an Expense and recalculate its Fund if required."""
         fund, context_contract = self.context()
         serializer = ExpenseWriteSerializer(data=request.data, context={"fund": fund, "contract": context_contract,
                                                                   "budget": self.budget_context()})
@@ -272,8 +290,11 @@ class ExpenseCollectionV1View(ExpenseBase):
 
 
 class ExpenseDetailV1View(ExpenseBase):
+    """Update or delete a visible Expense."""
+
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
+        """Update an Expense and refresh related funding values."""
         item = self.expense()
         fund, context_contract = self.context()
         self.require(expense_capabilities(request.user, item)["can_change"])
@@ -296,6 +317,7 @@ class ExpenseDetailV1View(ExpenseBase):
 
     @transaction.atomic
     def delete(self, request, *args, **kwargs):
+        """Delete an Expense after checking contextual authority."""
         item = self.expense()
         self.require(expense_capabilities(request.user, item)["can_delete"])
         fund = item.fund_item
@@ -310,7 +332,9 @@ class ExpenseDetailV1View(ExpenseBase):
 
 
 class ExpenseOptionsV1View(ExpenseBase):
+    """Expose choice data and capabilities for the expense editor."""
     def get(self, request, *args, **kwargs):
+        """Return selectable cost types, Contracts, and Budgets."""
         fund, context_contract = self.context()
         contracts = Contract.objects.filter(fund=fund).select_related("employee").order_by("employee__last_name", "pk")
         return Response({
@@ -322,8 +346,11 @@ class ExpenseOptionsV1View(ExpenseBase):
 
 
 class ExpenseSyncV1View(ExpenseBase):
+    """Recalculate the fund's expenses and cached totals on demand."""
+
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Recalculate expense points and cached Fund totals when authorized."""
         fund, contract = self.context()
         self.require(collection_capabilities(request.user, fund, contract)["can_sync_expenses"])
         fund.calculate_expense(force=True)

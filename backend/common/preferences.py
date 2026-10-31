@@ -13,6 +13,7 @@ from .models import favorite, subscription
 
 @dataclass(frozen=True)
 class PreferenceType:
+    """Bind a supported object model to favorite and subscription navigation."""
     model: type
     group: str
     react_path: str | None = None
@@ -21,6 +22,7 @@ class PreferenceType:
 @lru_cache(maxsize=1)
 def preference_types():
     # Import lazily: Project and Fund models import common elsewhere.
+    """Return the supported models and their React or legacy destinations."""
     from fund.models import Fund_Institution
     from project.models import Institution, Project
     from staff.models import Employee, Team
@@ -35,6 +37,11 @@ def preference_types():
 
 
 def visible_objects(user, type_name, queryset=None):
+    """Filter preference targets through the same object visibility as pages.
+
+            Organization visibility requires ``common.display_infos``; Team and
+            Project use their existing scoped query helpers.
+    """
     spec = preference_types()[type_name]
     queryset = queryset if queryset is not None else spec.model.objects.all()
     if type_name == "team":
@@ -48,12 +55,14 @@ def visible_objects(user, type_name, queryset=None):
 
 
 def resolve_preference_object(user, type_name, object_id):
+    """Resolve a visible preference target or return not found."""
     if type_name not in preference_types():
         raise KeyError(type_name)
     return get_object_or_404(visible_objects(user, type_name), pk=object_id)
 
 
 def type_for_content_type(content_type):
+    """Map a Django content type to its supported preference type."""
     for name, spec in preference_types().items():
         if (spec.model._meta.app_label, spec.model._meta.model_name) == (content_type.app_label, content_type.model):
             return name
@@ -61,6 +70,7 @@ def type_for_content_type(content_type):
 
 
 def preference_status(user, obj):
+    """Report whether the user follows or favorites an object."""
     content_type = ContentType.objects.get_for_model(obj)
     lookup = {"user": user, "content_type": content_type, "object_id": obj.pk}
     return {"favorite": favorite.objects.filter(**lookup).exists(),
@@ -68,6 +78,17 @@ def preference_status(user, obj):
 
 
 def set_preference(user, obj, kind, enabled):
+    """Enable or remove a favorite or subscription atomically.
+
+            Args:
+                user: Owner of the relation.
+                obj: Visible target object already resolved by the caller.
+                kind: ``favorite`` or ``subscription``.
+                enabled: Desired state.
+
+            Returns:
+                Current favorite and subscription status.
+    """
     if kind not in ("favorite", "subscription") or not isinstance(enabled, bool):
         raise ValueError("Invalid preference")
     model = favorite if kind == "favorite" else subscription
@@ -82,6 +103,7 @@ def set_preference(user, obj, kind, enabled):
 
 
 def legacy_object_url(type_name, object_id):
+    """Build the legacy route for a supported preference target."""
     if type_name == "project":
         return reverse("project_single", args=[object_id])
     if type_name == "employee":
@@ -103,6 +125,7 @@ def list_user_subscriptions(user):
 
 
 def _list_user_relations(user, model):
+    """Serialize visible relations and retain stable group ordering."""
     specs = preference_types()
     visible = visible_user_relations(user, model)
     result = []
@@ -120,6 +143,7 @@ def _list_user_relations(user, model):
 
 
 def visible_user_relations(user, model):
+    """Resolve stored relations while omitting targets hidden from the user."""
     rows = list(model.objects.filter(user=user).select_related("content_type"))
     specs = preference_types()
     by_type = {name: [] for name in specs}

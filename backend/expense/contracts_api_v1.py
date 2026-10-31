@@ -56,6 +56,7 @@ def employee_end_date_sync_offer(user, contract, employee=None):
 
 
 class ContractWriteSerializer(serializers.Serializer):
+    """Validate and persist Contract data within its Employee and Fund context."""
     employee_id = serializers.PrimaryKeyRelatedField(source="employee", queryset=Employee.objects.all(), required=False)
     fund_id = serializers.PrimaryKeyRelatedField(source="fund", queryset=Fund.objects.all(), required=False)
     contract_type_id = serializers.PrimaryKeyRelatedField(source="contract_type", queryset=Contract_type.objects.all(), required=False, allow_null=True)
@@ -66,6 +67,7 @@ class ContractWriteSerializer(serializers.Serializer):
     is_active = serializers.BooleanField(required=False)
 
     def to_internal_value(self, data):
+        """Reject fields that are not part of the Contract write API."""
         if isinstance(data, dict):
             extra = set(data) - set(self.fields)
             if extra:
@@ -75,6 +77,7 @@ class ContractWriteSerializer(serializers.Serializer):
         return super().to_internal_value(data)
 
     def validate(self, attrs):
+        """Validate Contract dates and related records before persistence."""
         employee = attrs.get("employee", self.instance.employee if self.instance else self.context.get("employee"))
         fund = attrs.get("fund", self.instance.fund if self.instance else None)
         if not employee:
@@ -106,6 +109,7 @@ class ContractWriteSerializer(serializers.Serializer):
         return attrs
 
     def save(self, **kwargs):
+        """Persist the Contract and its validated relationships."""
         contract = self.instance or Contract()
         for name, value in self.validated_data.items():
             setattr(contract, name, value)
@@ -118,9 +122,11 @@ class ContractWriteSerializer(serializers.Serializer):
 
 
 class ContractContextView(APIView):
+    """Resolve visible Contract objects and mutation context for API views."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def context(self):
+        """Resolve the Employee and Fund context from the request URL."""
         if hasattr(self, "_contract_context"):
             return self._contract_context
         user = self.request.user
@@ -140,6 +146,7 @@ class ContractContextView(APIView):
         return self._contract_context
 
     def queryset(self):
+        """Return Contracts allowed by the current context and user."""
         project, employee, funds, employees = self.context()
         qs = Contract.objects.select_related("employee", "contract_type", "fund__project", "fund__funder", "fund__institution")
         if project:
@@ -150,10 +157,12 @@ class ContractContextView(APIView):
         return get_object_or_404(self.queryset(), pk=self.kwargs.get("contract_id", self.kwargs.get("contract_pk")))
 
     def capabilities(self, contract=None):
+        """Return Contract actions for the current user and object."""
         project, employee, _, _ = self.context()
         return contract_capabilities(self.request.user, contract, project=project, employee=employee)
 
     def serialized(self, contract, *, detailed=False, note_counts=None):
+        """Serialize a Contract with its related context and capabilities."""
         user = self.request.user
         project, employee, _, _ = self.context()
         if not hasattr(self, "_visible_project_ids"):
@@ -182,6 +191,7 @@ class ContractContextView(APIView):
         return data
 
     def write_context(self):
+        """Pass validated context into the Contract write serializer."""
         project, employee, funds, _ = self.context()
         return {"project": project, "employee": employee, "funds": funds}
 
@@ -190,6 +200,7 @@ class ContractCollectionV1View(ContractContextView):
     """List Contracts inside the selected Project or Employee authority."""
 
     def get(self, request, *args, **kwargs):
+        """List visible Contracts and collection-level actions."""
         project, _, _, _ = self.context()
         queryset = self.queryset()
         if project:
@@ -213,6 +224,7 @@ class ContractCollectionV1View(ContractContextView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Create a Contract in the resolved Employee and Fund context."""
         if not self.capabilities()["can_add"]:
             raise PermissionDenied()
         serializer = ContractWriteSerializer(data=request.data, context=self.write_context())
@@ -231,6 +243,7 @@ class ContractDetailV1View(ContractContextView):
 
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
+        """Update a Contract after object-level capability checks."""
         contract = self.contract()
         if not self.capabilities(contract)["can_change"]:
             raise PermissionDenied()
@@ -267,6 +280,7 @@ class ContractOptionsV1View(ContractContextView):
 
 
 class EmployeeContractCapabilitiesV1View(ContractContextView):
+    """Expose Contract creation rights for an Employee."""
     def get(self, request, *args, **kwargs):
         return Response(self.capabilities())
 
@@ -276,6 +290,7 @@ class ContractEmployeeEndDateSyncV1View(ContractContextView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Update the Employee end date after validating the offered sync."""
         contract = self.contract()
         employee = Employee.objects.select_for_update().get(pk=contract.employee_id)
         if not can_change_employee(request.user, employee):

@@ -16,6 +16,7 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Leave
 
     def get(self, request, *args, **kwargs):
+        """Prepare a Leave form from the selected calendar context."""
         kw = self.get_form_kwargs()
         initial={}
         
@@ -56,6 +57,7 @@ class LeaveItemCreateView(LoginRequiredMixin, BSModalCreateView):
     
     
     def post(self, request, *args, **kwargs):
+        """Validate and create Leave from the legacy modal."""
         print("------------------ POST LeaveItemCreateView ---------------------")
         for a in args:
             print(f" - {a}")

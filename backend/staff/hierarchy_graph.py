@@ -20,6 +20,7 @@ def cyclic_employee_ids(employee_ids, relationships):
 
 
 def would_create_cycle(superior_id, employee_id, relationships):
+    """Check whether the proposed superior relation closes a hierarchy cycle."""
     pairs = set(relationships)
     pairs.add((superior_id, employee_id))
     employee_ids = {identity for pair in pairs for identity in pair}

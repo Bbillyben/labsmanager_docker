@@ -74,11 +74,13 @@ def outside_parent_dates(parent_path, start_field="start_date", end_field="end_d
 
 
 def outside_project_dates(project_path):
+    """Build a filter for records whose dates exceed Project dates."""
     return outside_parent_dates(project_path)
 
 
 def date_fields(item, parent, start_field="start_date", end_field="end_date",
                 parent_start="start_date", parent_end="end_date", parent_kind="project"):
+    """Return date field names used by a consistency rule."""
     def iso(value):
         return value.isoformat() if value else None
 
@@ -97,10 +99,12 @@ def date_fields(item, parent, start_field="start_date", end_field="end_date",
 
 
 def visible_projects(user):
+    """Return Projects visible to the requesting user."""
     return Project.get_instances_for_user("view", user, Project.objects.all())
 
 
 def contracts_without_participant(user):
+    """Find Contracts lacking a matching Project participation."""
     participants = Participant.objects.filter(
         project_id=OuterRef("fund__project_id"), employee_id=OuterRef("employee_id"),
     )
@@ -122,6 +126,7 @@ def contract_participant_issue(contract):
 
 
 def contracts_outside_project_dates(user):
+    """Find Contracts extending beyond their Project dates."""
     return (visible_contracts(user).filter(fund__project__in=visible_projects(user))
             .filter(outside_project_dates("fund__project"))
             .select_related("employee", "fund__project").order_by("pk"))
@@ -141,6 +146,7 @@ def contract_dates_issue(contract):
 
 
 def funds_outside_project_dates(user):
+    """Find Funds extending beyond their Project dates."""
     return (visible_funds(user).filter(outside_project_dates("project"))
             .select_related("project").order_by("pk"))
 
@@ -158,6 +164,7 @@ def fund_dates_issue(fund):
 
 
 def contracts_outside_employee_dates(user):
+    """Find Contracts extending beyond their Employee dates."""
     employees = Employee.get_instances_for_user("view", user, Employee.objects.all())
     return (visible_contracts(user).filter(employee__in=employees)
             .filter(outside_parent_dates("employee", parent_start="entry_date", parent_end="exit_date"))
@@ -180,17 +187,20 @@ def contract_employee_dates_issue(contract):
 
 
 def visible_milestones(user):
+    """Return Milestones from Projects visible to the requesting user."""
     return Milestones.objects.filter(project__in=visible_projects(user))
 
 
 def milestones_outside_project_dates(user):
     # A missing start denotes a point-in-time milestone; its deadline is its date.
+    """Find Milestones extending beyond their Project dates."""
     return (visible_milestones(user).filter(start_date__isnull=True, end_date__isnull=False)
             .filter(outside_parent_dates("project", "end_date", "end_date"))
             .select_related("project").order_by("pk"))
 
 
 def tasks_outside_project_dates(user):
+    """Find tasks extending beyond their Project dates."""
     return (visible_milestones(user).filter(start_date__isnull=False)
             .filter(outside_parent_dates("project"))
             .select_related("project").order_by("pk"))
@@ -219,6 +229,7 @@ def task_dates_issue(item):
 
 
 def contracts_outside_fund_dates(user):
+    """Find Contracts extending beyond their Fund dates."""
     return (visible_contracts(user).filter(fund__in=visible_funds(user))
             .filter(outside_parent_dates("fund"))
             .select_related("employee", "fund__project").order_by("pk"))
@@ -240,6 +251,7 @@ def contract_fund_dates_issue(contract):
 
 def expenses_outside_fund_dates(user):
     # Expense.date is the business date; value_date belongs to Expense_point.
+    """Find Expenses dated outside their Fund period."""
     return (Expense.objects.filter(fund_item__in=visible_funds(user))
             .filter(outside_parent_dates("fund_item", "date", "date"))
             .select_related("fund_item__project").order_by("pk"))
@@ -259,6 +271,7 @@ def expense_fund_dates_issue(expense):
 
 
 def projects_without_leader(user):
+    """Find Projects missing an eligible leader or co-leader."""
     leaders = Participant.objects.filter(project_id=OuterRef("pk"), status="l")
     return (visible_projects(user).alias(_has_leader=Exists(leaders))
             .filter(_has_leader=False).order_by("pk"))
@@ -296,6 +309,7 @@ RULES_BY_KEY = {rule.key: rule for rule in RULES}
 
 
 def issue_identity(rule, item):
+    """Build the stable identity of a consistency issue."""
     def value(path):
         result = item
         for part in path.split("__"):
@@ -305,6 +319,7 @@ def issue_identity(rule, item):
 
 
 def open_exceptions():
+    """Return unresolved exceptions matching a consistency rule."""
     return DataConsistencyException.objects.filter(closed_at__isnull=True)
 
 
@@ -330,6 +345,7 @@ def accepted_exceptions(user, rule):
 
 
 def accepted_issue(exception, item, rule):
+    """Resolve an accepted issue by its stable identity."""
     return {
         **rule.serialize(item),
         "exception": {

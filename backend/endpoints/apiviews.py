@@ -39,6 +39,7 @@ class MilestonesViewSet(viewsets.ModelViewSet):
         return DownloadFile(filedata, filename) 
     
     def filter_queryset(self, request, queryset):
+        """Apply legacy Milestone filters to visible Projects."""
         params = self.request.query_params
         
         status = params.get('status', None)
@@ -64,6 +65,7 @@ class MilestonesViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='project/(?P<pj_pk>[^/.]+)', url_name='project')
     def project(self, request, pj_pk=None, pk=None):
+        """List Milestones in a visible Project."""
         t1=self.filter_queryset(request, self.queryset.filter(project=pj_pk))
         export = request.GET.get('export', None)
         if export:
@@ -86,6 +88,7 @@ class MilestonesViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='milestones_stale', url_name='milestones_stale')
     def milestones_stale(self, request, pj_pk=None, pk=None):
+        """List Milestones approaching the configured stale threshold."""
         q_objects = Q(status=False) & Q(project__status=True) # base Q objkect
         slot = utils.getDashboardMilestonesTimeSlot(request)
         if 'from' in slot:

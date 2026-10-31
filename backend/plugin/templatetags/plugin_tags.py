@@ -119,6 +119,7 @@ def plugin_static(context, file: str, **kwargs):
 
 @register.simple_tag()
 def plugin_scheduled_tasks(plugin, *args, **kwargs):
+    """Render plugin schedule information in the legacy template."""
     from django_q.models import Schedule
     tasks_names = plugin.get_task_names()
     result={"task_names":tasks_names,}

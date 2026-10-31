@@ -1,3 +1,5 @@
+"""Legacy modal views for Project planning items."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView, BSModalFormView
@@ -50,6 +52,7 @@ class MilestonesCreateView(LoginRequiredMixin, BSModalCreateView):
         return super().form_valid(form)
 
     def get(self, request, *args, **kwargs):
+        """Prepare Milestone creation for a selected Project."""
         kw = self.get_form_kwargs()
         initial={}
         if 'pk' in kwargs:
@@ -92,6 +95,7 @@ class multiMilestonesView(BSModalFormView):
         return kwargs
     
     def get(self, request, *args, **kwargs):
+        """Render the legacy bulk Milestone form."""
         pk = kwargs.get("project", None)
 
         milestones = {
@@ -119,6 +123,7 @@ class delayMilestonesView(BSModalViewCheckAjax, multiMilestonesView):
     success_url = reverse_lazy('index')
     
     def form_valid(self, form):
+        """Apply a validated Milestone delay from the legacy form."""
         logger.debug("##############################   delayMilestonesView [form_valid]  ###########################################" )
         logger.debug(f" -> is post plugin : {self.is_post_plugin()}")
         if not self.is_post_plugin():
@@ -153,6 +158,7 @@ class validateMilestonesView(BSModalViewCheckAjax, multiMilestonesView):
     preselect_before=True
     def form_valid(self, form):
 
+        """Apply a validated Milestone completion from the legacy form."""
         if not self.is_post_plugin():
             return super().form_valid(form)
         

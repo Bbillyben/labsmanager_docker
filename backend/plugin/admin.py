@@ -96,12 +96,14 @@ admin.site.register(PluginConfig, PluginConfigAdmin)
 
 
 class PluginTokenCreateForm(forms.Form):
+    """Validate technical token creation and available plugin scopes."""
     plugin = forms.ModelChoiceField(queryset=PluginConfig.objects.none())
     name = forms.CharField(max_length=150)
     scopes = forms.MultipleChoiceField(required=False)
     expires_at = forms.SplitDateTimeField(required=False, widget=AdminSplitDateTime)
 
     def __init__(self, *args, **kwargs):
+        """Populate active token-capable plugins and declared scope choices."""
         super().__init__(*args, **kwargs)
         choices = {}
         configs = []
@@ -117,6 +119,7 @@ class PluginTokenCreateForm(forms.Form):
         self.fields['scopes'].choices = sorted(choices.items())
 
     def clean(self):
+        """Reject scopes not declared by the selected active plugin."""
         data = super().clean()
         config = data.get('plugin')
         if config:
@@ -130,6 +133,7 @@ class PluginTokenCreateForm(forms.Form):
         return data
 
     def clean_expires_at(self):
+        """Reject a token expiration at or before the current time."""
         expires_at = self.cleaned_data['expires_at']
         if expires_at is not None and expires_at <= timezone.now():
             raise forms.ValidationError('Expiration must be in the future.')
@@ -138,11 +142,13 @@ class PluginTokenCreateForm(forms.Form):
 
 @admin.action(description='Revoke selected plugin tokens')
 def revoke_plugin_tokens(modeladmin, request, queryset):
+    """Revoke selected tokens without revealing their secrets."""
     for token in queryset:
         revoke_token(token)
 
 
 class TokenStatusFilter(admin.SimpleListFilter):
+    """Filter admin token rows by active, expired, or revoked state."""
     title = 'status'
     parameter_name = 'token_status'
 
@@ -150,6 +156,7 @@ class TokenStatusFilter(admin.SimpleListFilter):
         return (('active', 'Active'), ('expired', 'Expired'), ('revoked', 'Revoked'))
 
     def queryset(self, request, queryset):
+        """Apply the chosen active, expired, or revoked token filter."""
         status = self.value()
         if status == 'revoked':
             return queryset.filter(revoked_at__isnull=False)
@@ -160,6 +167,7 @@ class TokenStatusFilter(admin.SimpleListFilter):
         return queryset
 
 class TokenUserFilter(admin.SimpleListFilter):
+    """Filter admin token rows by user or technical token kind."""
     title = 'User Token'
     parameter_name = 'token_user'
 
@@ -175,6 +183,7 @@ class TokenUserFilter(admin.SimpleListFilter):
             return queryset
 
 class PluginTokenAdmin(admin.ModelAdmin):
+    """Manage plugin tokens while revealing a new secret only once."""
     list_display = ('name', 'plugin', 'public_id', 'user', 'token_status', 'created_at', 'expires_at', 'revoked_at', 'last_used_at')
     list_filter = ('plugin', TokenStatusFilter, TokenUserFilter, 'created_at', 'expires_at')
     search_fields = ('name', 'public_id', 'plugin__key')

@@ -10,6 +10,7 @@ from import_export.fields import Field
 
 class LeadertWidget(widgets.CharWidget):
     
+    """Resolve Project leader references during import."""
     def render(self, value, obj=None):
         pa=Participant.objects.filter(project=value, status="l")
         
@@ -26,6 +27,7 @@ class LeadertWidget(widgets.CharWidget):
     
 class ParticipantWidget(widgets.CharWidget):
     
+    """Resolve Project participant references during import."""
     def render(self, value, obj=None):
         pa=Participant.objects.filter(Q(project=value) & ~Q(status="l"))
         
@@ -42,6 +44,7 @@ class ParticipantWidget(widgets.CharWidget):
 
 class InstitutionWidget(widgets.CharWidget):
     
+    """Resolve managing institution references during import."""
     def render(self, value, obj=None):
         pa=Institution_Participant.objects.filter(project=value)
         
@@ -54,6 +57,7 @@ class InstitutionWidget(widgets.CharWidget):
     
 class FundWidget(widgets.CharWidget):
     
+    """Resolve Project Fund references during import."""
     def render(self, value, obj=None):
         li=[]
         for c in value:
@@ -76,6 +80,7 @@ class ProjectResource(labResource):
         self._export_funds = {}
 
     def _funds(self, project):
+        """Return Fund records used by Project export calculations."""
         if project.pk not in self._export_funds:
             if self.fund_scope == "visible":
                 if not hasattr(project, "list_funds"):
@@ -87,6 +92,7 @@ class ProjectResource(labResource):
         return self._export_funds[project.pk]
 
     def _fund_total(self, project, column, attribute, *, empty=None):
+        """Aggregate a selected Fund amount for Project export."""
         funds = self._funds(project)
         value = sum((getattr(fund, attribute) or 0 for fund in funds), 0) if funds else empty
         return self.fields[column].widget.render(value, obj=project)

@@ -42,6 +42,7 @@ class labResource(ModelResource):
     
 class SkipErrorRessource(ModelResource):
     
+    """Continue an import after recording row-level validation errors."""
     report_error_column=False
     
     def get_field_column_names(self):
@@ -83,6 +84,7 @@ class SkipErrorRessource(ModelResource):
 
 
 def resolve_value(val):
+    """Resolve an imported cell value before Resource validation."""
     if isinstance(val, functools.partial):
         return val()
     if callable(val) and not isinstance(val, type):
@@ -91,11 +93,13 @@ def resolve_value(val):
 
 def normalize_date(val):
     # Si datetime, ramène à date
+    """Normalize imported dates into the expected Resource format."""
     if isinstance(val, datetime):
         return val.date()
     return val
 
 class SkipSameValueRessource(ModelResource):
+    """Skip import rows that would leave an object unchanged."""
     def skip_row(self, instance, original, import_validation_errors=None, row=None, **kwargs):
         for field_name in self.get_export_fields():
             val_instance = resolve_value(getattr(instance, field_name.attribute, None))
@@ -121,6 +125,7 @@ class SkipSameValueRessource(ModelResource):
 
 class DateField(Field):
         
+    """Import-export field that normalizes date values."""
     def get_value(self, obj):
         val=super().get_value(obj)
         if isinstance(val, datetime):
@@ -128,6 +133,7 @@ class DateField(Field):
         return val   
     
 class DecimalField(Field):
+    """Import-export field that cleans decimal values."""
     def clean(self, data, **kwargs):
         ''' Force Value 0 if not set
         '''
@@ -137,6 +143,7 @@ class DecimalField(Field):
         return super().clean(data, **kwargs)
 
 class NormalizedDecimalField(DecimalField):
+    """Decimal field with normalized import and export values."""
     def clean(self, data, **kwargs):
         value = super().clean(data, **kwargs)
         
@@ -156,10 +163,12 @@ class NormalizedDecimalField(DecimalField):
 from staff.models import Employee
 class EmployeeWidget(widgets.CharWidget):
     
+    """Resolve Employee references in imported Resource rows."""
     def render(self, value, obj=None):
         #emp=Employee.objects.get(pk=value)
         return value.__str__()
 class EmployeeListWidget(widgets.CharWidget):
+    """Resolve lists of Employees in imported Resource rows."""
     def render(self, value, obj=None):
         """
         value : queryset of Employee objects (many-to-many)
@@ -172,7 +181,9 @@ class EmployeeListWidget(widgets.CharWidget):
     
 class FundWidget(widgets.CharWidget):
     
+    """Resolve Fund references in imported Resource rows."""
     def render(self, value, obj=None):
+        """Format a Fund reference in an exported cell."""
         strC= str(value.funder.short_name) 
         strC+= " - " +str(value.institution.short_name)
         strC+='('+str(value.ref)
@@ -181,6 +192,7 @@ class FundWidget(widgets.CharWidget):
         return strC  
 
 class percentageWidget(widgets.DecimalWidget):
+    """Convert percentage values in Resource import and export."""
     max_num=4
     def __init__(self, max_num=False):
         self.max_num = max_num
@@ -195,6 +207,7 @@ class percentageWidget(widgets.DecimalWidget):
         return val
 
 class InfoWidget(widgets.CharWidget):
+    """Resolve typed information in imported Resource rows."""
     def render(self, value, obj=None):
         li=[]
         for c in value:
@@ -204,11 +217,13 @@ class InfoWidget(widgets.CharWidget):
         return "\n".join(li)
     
 class ContenTypeObjectWidget(Field):
+    """Resolve a generic content-type object in imported rows."""
     fieldnames="name"
     def __init__(self, fieldnames=False):
         self.fieldnames = fieldnames
     
     def render (self, value, obj=None,  **kwargs):
+        """Format a generic content-type target in an exported cell."""
         md_class=obj.content_type.model_class()
         # print("[ContenTypeObjectWidget]")
         # print(f" Id : {obj.id}  / class :{md_class} / obj id:{obj.object_id}")

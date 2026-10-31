@@ -20,6 +20,7 @@ import logging
 logger = logging.getLogger('labsmanager')
 
 def check_all_notification():
+    """Evaluate notification subscriptions and queue pending deliveries."""
     logger.debug(f"[check_all_notification] called")
     check_overdue_milestones()
     check_stale_milestones(), 
@@ -28,6 +29,7 @@ def check_all_notification():
 
 
 def send_pending_notification():
+    """Send pending notifications through the configured mail transport."""
     logger.debug(f"[send_pending_notification] called")
     users=UserNotification.objects.filter(send=None).values_list("user", flat=True).distinct()
     cdate = datetime.now()

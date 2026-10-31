@@ -48,6 +48,7 @@ class _OrganizationSource(SearchProvider):
         return Q(pk__in=self._infos(info__name__iexact=type_name, value__iexact=value).values("object_id"))
 
     def prepare_candidates(self, candidates):
+        """Build organization candidates visible to the caller before matching."""
         if not candidates:
             return candidates
         by_object = {}
@@ -75,6 +76,7 @@ class _OrganizationSource(SearchProvider):
 
 
 class OrganizationSearchProvider(SearchProvider):
+    """Search organizations visible to the caller."""
     key = "organization"
     label = _("Organizations")
     icon = "Building2"

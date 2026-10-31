@@ -26,6 +26,7 @@ logger = logging.getLogger('labsmanager')
 
 # =========== Task global scheduler on start up call ========== #
 def scheduleBaseTasks():
+    """Register the periodic maintenance and notification tasks."""
     logger.debug("[scheduleBaseTasks] starting ...")
     # for audit log cleaning
     currSch = Schedule.objects.filter(func='labsmanager.tasks.clean_auditlog')
@@ -112,6 +113,7 @@ def scheduleBaseTasks():
 
 # --------------- Clean the audi log based on retention Setting
 def clean_auditlog():
+    """Remove audit log entries according to retention settings."""
     logger.debug("[clean_auditlog] starting ...")
     # get settings for audit log retention
     ret_time=LabsManagerSetting.get_setting("AUDIT_LOG_RETENTION")
@@ -133,12 +135,14 @@ def clean_auditlog():
 
 # --------------- Update all Expense and Fund calculation
 def update_all_calculation():
+    """Refresh cached calculations across financial objects."""
     logger.debug("[update_all_calculation] starting ...")
     fu=Fund.objects.all()
     for f in fu:
         f.calculate(force=True)
 # --------------- Generate a report to send
 def create_report(*args, **kwargs):
+    """Generate an asynchronously requested report."""
     from staff.models import Employee
     from project.models import Participant
     
@@ -154,6 +158,7 @@ def create_report(*args, **kwargs):
     return HttpResponse(html_content, status=200)
 
 def sendMailTest(*args, **kwargs):    
+    """Send a test email through the configured backend."""
     logger.debug("[send_email_test] starting ...")
     
     logger.debug("  - args :"+str(args))
@@ -183,6 +188,7 @@ def sendMailTest(*args, **kwargs):
     
 # ============================================ send mail hook to super user
 def sendSuperUserMail(*args, **kwargs):
+    """Send an operational email to superusers."""
     logger.debug("[sendSuperUserMail] starting ...")
     User = get_user_model()
     usersMails = User.objects.filter(is_superuser=True).values_list("email", flat=True)

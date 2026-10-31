@@ -8,6 +8,7 @@ import logging
 logger = logging.getLogger("labsmanager")
 
 def launch_check_notification(request):
+    """Start the configured notification check from the legacy view."""
     logger.debug("--- call launch_check_notification")
     c1 = check_stale_milestones()
     c2 = check_overdue_milestones()
@@ -32,6 +33,7 @@ def launch_check_notification(request):
 
 from .tasks import send_pending_notification
 def send_all_pending_notification(request):
+    """Dispatch pending notifications from the legacy view."""
     logger.debug("--- call send_all_pending_notification")
     response = send_pending_notification()
     res_str=_("%s Notification have been sent")%(response)

@@ -1,3 +1,5 @@
+"""Legacy modal views for organization contacts and typed information."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView, BSModalFormView
 from django.utils.translation import gettext_lazy as _
@@ -71,6 +73,7 @@ class ContactCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Contact
     
     def get(self, request, *args, **kwargs):
+        """Prepare a contact form for an organization."""
         kw = self.get_form_kwargs()
         initial={}
         if 'obj_id' in kwargs and 'app' in kwargs and 'model' in kwargs:
@@ -111,6 +114,7 @@ class ContactInfoCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.ContactInfo
     
     def get(self, request, *args, **kwargs):
+        """Prepare typed contact information creation."""
         kw = self.get_form_kwargs()
         initial={}
         if 'id' in kwargs:
@@ -145,6 +149,7 @@ class OrganizationInfosCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.ContactInfoType
     
     def get(self, request, *args, **kwargs):
+        """Prepare typed organization information creation."""
         kw = self.get_form_kwargs()
         initial={}
         if 'obj_id' in kwargs and 'app' in kwargs and 'model' in kwargs:
@@ -182,6 +187,7 @@ class GenericNoteCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.GenericNote
 
     def form_valid(self, form):
+        """Save a note after applying parent and visibility context."""
         from django.core.exceptions import PermissionDenied
         from .api_v1 import PARENTS, capabilities, parent_for
         scope = next((name for name, model in PARENTS.items() if model == form.instance.content_type.model_class()), None)
@@ -191,6 +197,7 @@ class GenericNoteCreateView(LoginRequiredMixin, BSModalCreateView):
         return super().form_valid(form)
     
     def get(self, request, *args, **kwargs):
+        """Prepare a note form for the selected parent."""
         kw = self.get_form_kwargs()
         initial={}
         if 'obj_id' in kwargs and 'app' in kwargs and 'model' in kwargs:

@@ -34,14 +34,17 @@ logger = logging.getLogger("labsmanager")
 
 
 def package_root():
+    """Return the configured root for isolated plugin package releases."""
     return Path(settings.LAB_PLUGIN_PACKAGES_ROOT).expanduser().resolve()
 
 
 def environment_root():
+    """Return the release directory for the running Python environment."""
     return package_root() / environment_id()
 
 
 def active_path():
+    """Resolve the active release symlink only if it stays under releases."""
     link = environment_root() / "active"
     if not link.is_symlink():
         return None
@@ -185,6 +188,7 @@ def operation_state():
 
 
 def _write_operation(data):
+    """Persist one dependency operation and its current status."""
     root = environment_root()
     root.mkdir(parents=True, exist_ok=True)
     data = {**data, "updated": time.time()}

@@ -195,6 +195,7 @@ class LeaveSerializer1D(serializers.ModelSerializer):
         return obj.get_end_period_display()
     
 class LeaveSerializer1DCal(LeaveSerializer1D):
+    """Expose Leave as a dated event for calendar display."""
     end=serializers.SerializerMethodField()
     resourceId= serializers.CharField(source='employee.pk')
     start_period_di=serializers.SerializerMethodField()
@@ -234,6 +235,7 @@ class EmployeeSerialize_Cal(serializers.ModelSerializer):
         fields = ['id', 'title', ]  
 
 class ProjectLeaveSerializer_cal(serializers.ModelSerializer):
+    """Adapt Project-linked Leave to the legacy calendar format."""
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
     employee = EmployeeSerialize_Min(many=False, read_only=True)
@@ -266,6 +268,7 @@ class ProjectLeaveSerializer_cal(serializers.ModelSerializer):
         return ed
     
 class ProjectMilestonesSerializer_cal(serializers.ModelSerializer):
+    """Adapt Project Milestones to the legacy calendar format."""
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
     employee = EmployeeSerialize_Min(many=True, read_only=True)
@@ -298,6 +301,7 @@ class ProjectMilestonesSerializer_cal(serializers.ModelSerializer):
         ed=f'milestones_{obj.pk}'
         return ed
 class ProjectProjectSerializer_cal(serializers.ModelSerializer):
+    """Adapt Project dates to the legacy calendar format."""
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
     meta_type = serializers.CharField(default="project")
@@ -326,6 +330,7 @@ class ProjectProjectSerializer_cal(serializers.ModelSerializer):
         ed=f'project_{obj.pk}'
         return ed
 class ProjectParticipantSerializer_cal(serializers.ModelSerializer):
+    """Adapt Project participation to the legacy calendar format."""
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
     meta_type = serializers.CharField(default="participant")
@@ -361,6 +366,7 @@ class ProjectParticipantSerializer_cal(serializers.ModelSerializer):
         ed=f'participant_{obj.pk}'
         return ed
 class ProjectFundSerializer_cal(serializers.ModelSerializer):
+    """Adapt Fund dates to the legacy calendar format."""
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()
     meta_type = serializers.CharField(default="fund")
@@ -523,6 +529,7 @@ class ContentTypeSerialize(serializers.ModelSerializer):
         return apps.get_model(obj.app_label, obj.model)._meta.verbose_name.title()
     
 class FavoriteSerialize(serializers.ModelSerializer):
+    """Expose a favorite and its object label and navigation URL."""
     user = UserSerializer(many=False, read_only=True)
     content_type=ContentTypeSerialize(many=False, read_only=True)
     object_name=serializers.SerializerMethodField()
@@ -535,6 +542,7 @@ class FavoriteSerialize(serializers.ModelSerializer):
         return obj.content_object.__str__()
     
     def get_object_url(self,obj):
+        """Return the favorite target’s supported navigation URL."""
         if obj.content_type.model == 'project':
             return reverse('project_single', args=[obj.object_id])
         if obj.content_type.model == 'employee':
@@ -568,6 +576,7 @@ class InvitationSerializer(serializers.ModelSerializer):
         
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    APP Notifivation
 class UserNotificationSerializer(serializers.ModelSerializer):
+    """Serialize a notification with its source object."""
     user = UserSerializer(many=False, read_only=True)
     source_content_type=ContentTypeSerialize(many=False, read_only=True)
     source_object= serializers.SerializerMethodField()
@@ -669,6 +678,7 @@ class FundSerialize(serializers.ModelSerializer):
                   'is_active','amount', 'expense', 'available', 'amount_f', 'expense_f', 'available_f',]          
 
 class FundConsumptionSerialize(serializers.ModelSerializer):
+    """Expose spending and elapsed-time ratios for a Fund."""
     funder=Fund_InstitutionSerializer(many=False, read_only=True)
     institution=InstitutionSerializer(many=False, read_only=True)
     project=ProjectSerializer(many=False, read_only=True)
@@ -768,6 +778,7 @@ class FundItemSerialize_min(serializers.ModelSerializer):
         fields = ['pk', 'type', 'amount','expense','value_date', 'entry_date',]  
         
 class FundStaleSerializer(serializers.ModelSerializer):
+    """Expose Fund availability and its related organizations."""
     availability=serializers.SerializerMethodField()
     project=ProjectSerializer(many=False, read_only=True)
     funder=serializers.SerializerMethodField()
@@ -1005,6 +1016,7 @@ class EmployeeSubordinateSerialize(serializers.ModelSerializer):
         
 from django.http import JsonResponse       
 class EmployeeOrganizationChartSerialize(serializers.ModelSerializer):
+    """Serialize Employee hierarchy data for chart rendering."""
     status = EmployeeStatusSerialize(many=True, read_only=True, source='get_status')
     subordinate = serializers.SerializerMethodField()
     active = serializers.SerializerMethodField()
@@ -1130,6 +1142,7 @@ class ParticipantProjectSerializer(serializers.ModelSerializer):
 
 #  For Team table
 class TeamProjectSerializer(serializers.ModelSerializer):
+    """Combine Team participation, funding, and institution data."""
     fund=serializers.SerializerMethodField() 
     participant = serializers.SerializerMethodField() 
     institution=serializers.SerializerMethodField()
@@ -1269,6 +1282,7 @@ class EmployeeContractProsp(serializers.ModelSerializer):
         fields = ['id', 'user_name', 'status',] 
         
 class ContractSerializer1DCal(serializers.ModelSerializer):
+    """Expose Contract dates and type for calendar display."""
     resourceId= serializers.CharField(source='employee.pk')
     start=serializers.SerializerMethodField()
     end=serializers.SerializerMethodField()

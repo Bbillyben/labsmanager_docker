@@ -11,6 +11,7 @@ from .models import Employee, InvitationProvisioning
 
 
 def eligible_employee(email, employee_id, *, lock=False):
+    """Check whether an Employee may be linked during invitation signup."""
     if employee_id is None:
         return None
     queryset = Employee.objects
@@ -25,6 +26,7 @@ def eligible_employee(email, employee_id, *, lock=False):
 
 
 def assignable_groups(actor, group_ids):
+    """Return groups the inviting user may assign."""
     if not group_ids:
         return []
     if not actor.is_superuser:
@@ -38,6 +40,7 @@ def assignable_groups(actor, group_ids):
 
 
 def save_provisioning(invitation, employee, groups):
+    """Persist pending Employee and group choices for an invitation."""
     if employee is None and not groups:
         InvitationProvisioning.objects.filter(invitation=invitation).delete()
         return
@@ -74,6 +77,7 @@ def apply_provisioning_for_signup(user):
 
 
 def validate_pending_employee(invitation):
+    """Recheck an Employee link before invitation signup commits."""
     provisioning = InvitationProvisioning.objects.filter(invitation=invitation).first()
     if provisioning and provisioning.employee_id:
         eligible_employee(invitation.email, provisioning.employee_id, lock=True)

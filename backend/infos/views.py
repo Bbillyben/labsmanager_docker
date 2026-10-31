@@ -1,3 +1,5 @@
+"""Legacy organization template views and information tables."""
+
 from django.shortcuts import render, get_object_or_404
 from django.apps import apps
 from django.urls import reverse
@@ -26,6 +28,7 @@ class OrganizationIndexView(LoginRequiredMixin, PermissionRequiredMixin, BaseBre
     crumbs = [(_("Organization"),"organization")]
     
     def get_context_data(self, *args, **kwargs):
+        """Add visible organizations to the legacy index context."""
         context = super().get_context_data(**kwargs).copy()
         ctI = ContentType.objects.get_for_model(Institution)
         context['type_I'] = {
@@ -83,6 +86,7 @@ class InstitutionView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixi
         return context
 
     def get(self, request, *args, **kwargs):     
+        """Render a visible institution or funder detail page."""
         self.app=kwargs.get("app", None)
         self.model=kwargs.get("model", None)
         self.id=kwargs.get("pk", None)
@@ -99,6 +103,7 @@ class InstitutionView(LoginRequiredMixin, PermissionRequiredMixin, CrumbListMixi
 # -----------------------------------------------------------------------------
 
 def get_orga_resume(request, app, model, pk):
+    """Build a legacy organization summary table."""
     model_class = apps.get_model(app_label=app, model_name=model)
     
     orga = get_object_or_404(model_class, pk=pk)
@@ -165,6 +170,7 @@ def get_orga_resume(request, app, model, pk):
 
 
 def get_orga_info(request, app, model, pk):
+    """Build legacy typed information for an organization."""
     ct = ContentType.objects.get(app_label=app, model=model)
     info = OrganizationInfos.objects.filter(content_type = ct, object_id = pk).order_by('info__name')
     data = {'info': info} 
@@ -195,6 +201,7 @@ from .api_v1 import PARENTS, parent_for, capabilities, note_admin
 import nh3
 @login_required
 def get_generic_infos_template(request, app, model, pk):
+    """Choose a legacy template for typed information."""
     scope = next((scope for scope, parent_model in PARENTS.items() if parent_model._meta.app_label == app and parent_model._meta.model_name == model), None)
     if scope is None:
         from django.http import Http404
@@ -210,6 +217,7 @@ def get_generic_infos_template(request, app, model, pk):
 
 @login_required
 def get_generic_infos(request, app, model, pk):
+    """Collect typed information rows for a legacy organization view."""
     scope = next((scope for scope, parent_model in PARENTS.items() if parent_model._meta.app_label == app and parent_model._meta.model_name == model), None)
     if scope is None:
         from django.http import Http404

@@ -24,6 +24,7 @@ ZERO = Decimal("0.00")
 
 
 def validate_model(instance):
+    """Run full Django model validation and expose its errors to API callers."""
     try:
         instance.full_clean()
     except DjangoValidationError as error:
@@ -31,14 +32,17 @@ def validate_model(instance):
 
 
 def amount(value):
+    """Normalize an optional monetary value to Decimal."""
     return value if value is not None else ZERO
 
 
 def money(value):
+    """Format a monetary value for a funding response."""
     return str(amount(value).quantize(Decimal("0.01")))
 
 
 def fund_capabilities(user, project, fund=None, change_project=None):
+    """Return actions available on a Fund under Project and model permissions."""
     if change_project is None:
         change_project = project_capabilities(user, project)["can_change"]
     change_fund = bool(fund and not change_project and user.has_perm("fund.change_fund", fund))
@@ -50,12 +54,14 @@ def fund_capabilities(user, project, fund=None, change_project=None):
 
 
 def fund_item_capabilities(user, fund):
+    """Return actions available on a Fund child item."""
     change = user.has_perm("fund.change_fund", fund) or user.has_perm("fund.change_funditem")
     return {"can_add": change or user.has_perm("fund.add_fund_item"),
             "can_change": change, "can_delete": user.has_perm("fund.delete_fund_item")}
 
 
 def expense_point_capabilities(user, fund):
+    """Return actions available on an expense point."""
     mode = LMProjectSetting.get_setting("EXPENSE_CALCULATION", project=fund.project)
     manual = mode in ("s", "h")
     return {"expense_mode": mode,
@@ -69,6 +75,7 @@ def cost_type_data(item):
 
 
 def visible_funding_organization_ids(user, funds):
+    """Return organization identifiers visible to the requesting user."""
     if not user.has_perm("common.display_infos"):
         return set(), set()
     funder_ids = {fund.funder_id for fund in funds}
@@ -83,6 +90,7 @@ def visible_funding_organization_ids(user, funds):
 
 
 def fund_data(fund, user, change_project=None, visible_organizations=None):
+    """Serialize a Fund and the actions available in its Project context."""
     if visible_organizations is None:
         visible_organizations = visible_funding_organization_ids(user, [fund])
     visible_funders, visible_institutions = visible_organizations
@@ -95,17 +103,20 @@ def fund_data(fund, user, change_project=None, visible_organizations=None):
 
 
 def item_data(item, user):
+    """Serialize a Fund item with contextual actions."""
     return {"id": item.pk, "admin_url": get_admin_change_url(user, item), "type": cost_type_data(item.type), "entry_date": item.entry_date,
             "value_date": item.value_date, "amount": money(item.amount), "expense": money(item.expense),
             "available": money(amount(item.amount) + amount(item.expense))}
 
 
 def point_data(point, user):
+    """Serialize an expense point with contextual actions."""
     return {"id": point.pk, "admin_url": get_admin_change_url(user, point), "type": cost_type_data(point.type), "entry_date": point.entry_date,
             "value_date": point.value_date, "amount": money(point.amount)}
 
 
 def totals(rows):
+    """Aggregate budget and expense amounts for a Fund collection."""
     return {key: money(sum((row[key] for row in rows), ZERO)) for key in ("amount", "expense", "available")}
 
 
@@ -133,6 +144,7 @@ def overview(funds, items):
 
 
 class StrictWriteSerializer(serializers.Serializer):
+    """Reject unknown request fields before funding mutations."""
     immutable_on_update = frozenset()
 
     def to_internal_value(self, data):
@@ -145,6 +157,7 @@ class StrictWriteSerializer(serializers.Serializer):
 
 
 class FundWriteSerializer(StrictWriteSerializer):
+    """Validate and save Fund fields under Project funding rules."""
     immutable_on_update = frozenset({"funder_id", "institution_id"})
     funder_id = serializers.PrimaryKeyRelatedField(source="funder", queryset=Fund_Institution.objects.all(), required=False)
     institution_id = serializers.PrimaryKeyRelatedField(source="institution", queryset=Institution.objects.all(), required=False)
@@ -154,6 +167,7 @@ class FundWriteSerializer(StrictWriteSerializer):
     update_project_end = serializers.BooleanField(required=False, default=False, write_only=True)
 
     def validate(self, attrs):
+        """Check Fund dates and authorization for Project date synchronization."""
         instance = self.instance
         project = self.context["project"]
         start = attrs.get("start_date", instance.start_date if instance else project.start_date)
@@ -168,6 +182,7 @@ class FundWriteSerializer(StrictWriteSerializer):
         return attrs
 
     def save(self, **kwargs):
+        """Save the Fund after applying validated Project context."""
         attrs = dict(self.validated_data)
         sync = attrs.pop("update_project_end", False)
         project = self.context["project"]
@@ -187,6 +202,7 @@ class FundWriteSerializer(StrictWriteSerializer):
 
 
 class FundItemWriteSerializer(StrictWriteSerializer):
+    """Validate and save a child item belonging to a Fund."""
     immutable_on_update = frozenset({"type_id"})
     type_id = serializers.PrimaryKeyRelatedField(source="type", queryset=Cost_Type.objects.all(), required=False)
     amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
@@ -194,6 +210,7 @@ class FundItemWriteSerializer(StrictWriteSerializer):
     value_date = serializers.DateField(required=False)
 
     def validate(self, attrs):
+        """Check Fund item cost type and amount constraints."""
         cost_type = attrs.get("type", self.instance.type if self.instance else None)
         fund = self.context["fund"]
         if cost_type and Fund_Item.objects.filter(fund=fund, type=cost_type).exclude(pk=self.instance.pk if self.instance else None).exists():
@@ -201,6 +218,7 @@ class FundItemWriteSerializer(StrictWriteSerializer):
         return attrs
 
     def save(self, **kwargs):
+        """Validate and save a Fund item, allowing model signals to update totals."""
         item = self.instance or Fund_Item(fund=self.context["fund"])
         for key, value in self.validated_data.items():
             setattr(item, key, value)
@@ -210,9 +228,11 @@ class FundItemWriteSerializer(StrictWriteSerializer):
 
 
 class ExpensePointWriteSerializer(FundItemWriteSerializer):
+    """Validate and save an expense point belonging to a Fund."""
     amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
 
     def validate(self, attrs):
+        """Check expense point type and amount constraints."""
         cost_type = attrs.get("type", self.instance.type if self.instance else None)
         fund = self.context["fund"]
         if cost_type and Expense_point.objects.filter(fund=fund, type=cost_type).exclude(pk=self.instance.pk if self.instance else None).exists():
@@ -222,6 +242,7 @@ class ExpensePointWriteSerializer(FundItemWriteSerializer):
         return attrs
 
     def save(self, **kwargs):
+        """Validate and save an expense point, allowing model signals to update totals."""
         point = self.instance or Expense_point(fund=self.context["fund"])
         for key, value in self.validated_data.items():
             setattr(point, key, value)
@@ -231,15 +252,18 @@ class ExpensePointWriteSerializer(FundItemWriteSerializer):
 
 
 class FundingBase(APIView):
+    """Resolve the Project and its visible funding objects for funding endpoints."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def project(self):
+        """Return a Project visible to the caller."""
         if not hasattr(self, "_project"):
             visible = Project.get_instances_for_user("view", self.request.user, Project.objects.all())
             self._project = get_object_or_404(visible, pk=self.kwargs["pk"])
         return self._project
 
     def funds(self):
+        """Return Funds scoped to the resolved Project."""
         project = self.project()
         visible = Fund.get_instances_for_user("view", self.request.user, Fund.objects.filter(project=project))
         if not visible.exists() and not (self.request.user.has_perm("fund.view_fund") or self.request.user.has_perm("fund.view_fund", project)):
@@ -252,12 +276,15 @@ class FundingBase(APIView):
         return get_object_or_404(self.funds(), pk=self.kwargs["fund_id"])
 
     def require(self, capabilities, key):
+        """Enforce the requested funding action before mutation."""
         if not capabilities[key]:
             raise PermissionDenied()
 
 
 class ProjectFundingView(FundingBase):
+    """Read or create Project funding while applying contextual permissions."""
     def get(self, request, *args, **kwargs):
+        """Return funding overview for a visible Project."""
         funds = list(self.funds())
         visible_organizations = visible_funding_organization_ids(request.user, funds)
         items = list(Fund_Item.objects.filter(fund__in=funds).select_related("type", "fund").order_by("type__short_name", "pk"))
@@ -268,6 +295,7 @@ class ProjectFundingView(FundingBase):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Create a Fund under Project funding permissions."""
         self.funds()
         self.require(fund_capabilities(request.user, self.project()), "can_add")
         serializer = FundWriteSerializer(data=request.data, context={"project": self.project(), "request": request})
@@ -300,6 +328,7 @@ class FundingFundView(FundingBase):
 
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
+        """Update a Fund after checking contextual change permission."""
         fund = self.fund()
         self.require(fund_capabilities(request.user, fund.project, fund), "can_change")
         serializer = FundWriteSerializer(fund, data=request.data, partial=True, context={"project": fund.project, "request": request})
@@ -308,6 +337,7 @@ class FundingFundView(FundingBase):
 
     @transaction.atomic
     def delete(self, request, *args, **kwargs):
+        """Delete a Fund after checking contextual delete permission."""
         fund = self.fund()
         self.require(fund_capabilities(request.user, fund.project, fund), "can_delete")
         # Deleting Fund_Item while a point remains makes Fund.calculate() recreate
@@ -320,6 +350,7 @@ class FundingFundView(FundingBase):
 
 
 class FundingChildBase(FundingBase):
+    """Share child lookup and mutation checks for Fund items and expense points."""
     model = None
     write_serializer = None
     read_item = None
@@ -332,6 +363,7 @@ class FundingChildBase(FundingBase):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Create a Fund child after capability and model validation."""
         fund = self.fund()
         self.require(self.capabilities(fund), "can_add")
         serializer = self.write_serializer(data=request.data, context={"fund": fund})
@@ -340,6 +372,7 @@ class FundingChildBase(FundingBase):
 
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
+        """Update a Fund child after capability and model validation."""
         fund = self.fund()
         child = self.child(fund)
         self.require(self.capabilities(fund), "can_change")
@@ -349,6 +382,7 @@ class FundingChildBase(FundingBase):
 
     @transaction.atomic
     def delete(self, request, *args, **kwargs):
+        """Delete a Fund child after checking its contextual capability."""
         fund = self.fund()
         child = self.child(fund)
         self.require(self.capabilities(fund), "can_delete")

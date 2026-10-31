@@ -32,6 +32,7 @@ def _clear_invitation_session(request):
 
 
 def _invitation_state(invitation):
+    """Resolve the current invitation from session state."""
     if invitation is None:
         return "invalid"
     if invitation.accepted:
@@ -49,6 +50,7 @@ def _state_response(state):
 
 
 def _signup_contract(invitation):
+    """Build the signup fields required by the invitation."""
     form_class = get_form_class(account_settings.FORMS, "signup", SignupForm)
     form = form_class()
     return {
@@ -71,6 +73,7 @@ class InvitationBridgeV1View(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Exchange an invitation key into session-scoped signup state."""
         if request.user.is_authenticated:
             return _state_response("authenticated")
         token = request.data.get("token") if isinstance(request.data, dict) else None
@@ -95,6 +98,7 @@ class InvitationSignupV1View(APIView):
     permission_classes = [AllowAny]
 
     def _current(self, request, *, lock=False):
+        """Resolve the current invitation from session state."""
         key = request.session.get(INVITATION_SESSION_KEY)
         queryset = get_invitation_model().objects
         if lock:
@@ -115,6 +119,7 @@ class InvitationSignupV1View(APIView):
 
     @transaction.atomic
     def post(self, request):
+        """Complete invitation signup and apply pending provisioning."""
         if request.user.is_authenticated:
             return _state_response("authenticated")
         invitation, state = self._current(request, lock=True)

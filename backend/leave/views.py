@@ -12,6 +12,7 @@ import json
 
 
 def main_calendar_view(request):
+    """Render the legacy global calendar with visible event sources."""
     leave=Leave_Type.objects.all()
     emp_types=Employee_Type.objects.all()
     team=Team.objects.all()
@@ -27,6 +28,7 @@ def main_calendar_view(request):
     return render(request, 'calendar/main_calendar.html', context)
 
 def main_calendar_print(request):
+    """Render the legacy calendar for printing."""
     context={}
     
     options={}

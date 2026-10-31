@@ -18,13 +18,16 @@ from staff.serializers_v1 import EmployeeLeaveV1Serializer, EmployeeLeaveWriteV1
 
 
 class ProjectCalendarBaseV1View(APIView):
+    """Resolve a visible Project and shared calendar request context."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def project(self):
+        """Fetch the Project through its object-level view queryset."""
         visible = Project.get_instances_for_user("view", self.request.user, Project.objects.all())
         return get_object_or_404(visible, pk=self.kwargs["project_id"])
 
     def context(self, *, bounded=False):
+        """Create the calendar service context for a Project."""
         project = self.project()
         start = end = None
         if bounded:
@@ -48,6 +51,7 @@ class ProjectCalendarBaseV1View(APIView):
 
 
 class ProjectCalendarV1View(ProjectCalendarBaseV1View):
+    """Return events from the calendar service for a Project."""
     def get(self, request, *args, **kwargs):
         context = self.context(bounded=True)
         service = CalendarService()
@@ -56,12 +60,15 @@ class ProjectCalendarV1View(ProjectCalendarBaseV1View):
 
 
 class ProjectCalendarFiltersV1View(ProjectCalendarBaseV1View):
+    """Return available calendar filters for a Project."""
     def get(self, request, *args, **kwargs):
         return Response([item.as_dict() for item in CalendarService().get_filters(self.context())])
 
 
 class ProjectCalendarParticipantsV1View(ProjectCalendarBaseV1View):
+    """Return selectable Project calendar participants."""
     def get(self, request, *args, **kwargs):
+        """Return participants available as Project calendar resources."""
         project = self.project()
         employees = (
             Participant.objects.filter(project=project)
@@ -87,6 +94,7 @@ class ProjectCalendarLeaveCreateV1View(ProjectCalendarBaseV1View):
     """Use the Employee Leave write contract within an authorized Project scope."""
 
     def post(self, request, *args, **kwargs):
+        """Create Leave from the Project calendar after Employee permissions."""
         project = self.project()
         try:
             employee_id = int(request.data.get("employee_id"))
@@ -117,6 +125,7 @@ class ProjectCalendarLeaveDetailV1View(ProjectCalendarBaseV1View):
         )
 
     def patch(self, request, *args, **kwargs):
+        """Update calendar Leave after checking its Employee context."""
         leave = self.leave()
         if not leave_capabilities(request.user, leave.employee)["can_change"]:
             raise PermissionDenied()

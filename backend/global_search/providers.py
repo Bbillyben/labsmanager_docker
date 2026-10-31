@@ -11,6 +11,7 @@ from .destinations import employee_url, project_url
 
 
 class EmployeeSearchProvider(SearchProvider):
+    """Search Employees under object-level visibility rules."""
     key = "employee"
     label = _("Employees")
     icon = "UserRound"
@@ -32,6 +33,7 @@ class EmployeeSearchProvider(SearchProvider):
         )
 
     def field_query(self, search_field, term, lookup, user):
+        """Translate an Employee field condition into a queryset filter."""
         from staff.models import Employee, Employee_Status, GenericInfo
         if search_field.key == "name":
             full = Employee.objects.annotate(search_full_name=Concat("first_name", Value(" "), "last_name"))
@@ -74,6 +76,7 @@ class EmployeeSearchProvider(SearchProvider):
 
 
 class ProjectSearchProvider(SearchProvider):
+    """Search Projects under object-level visibility rules."""
     key = "project"
     label = _("Projects")
     icon = "FolderKanban"
@@ -98,6 +101,7 @@ class ProjectSearchProvider(SearchProvider):
         )
 
     def field_query(self, search_field, term, lookup, user):
+        """Translate a Project field condition into a queryset filter."""
         from project.models import GenericInfoProject, Institution_Participant, Participant
         roles = {"leader": "l", "coleader": "cl", "participant": "p"}
         if search_field.key in roles:
@@ -132,6 +136,7 @@ class ProjectSearchProvider(SearchProvider):
         return super().suggestion_values(obj, search_field, user)
 
     def search_values(self, obj, search_field, user):
+        """Collect visible Project values matching the parsed expression."""
         roles = {"leader": "l", "coleader": "cl", "participant": "p"}
         if search_field.key in roles:
             return tuple((str(search_field.label), value) for relation in obj.search_participants

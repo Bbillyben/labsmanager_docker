@@ -38,11 +38,13 @@ def visible_financial_items(model, user):
 
 
 def cost_descendants(queryset, field, value):
+    """Expand selected Cost Types to include their descendants."""
     types = Cost_Type.objects.filter(pk=value).get_descendants(include_self=True)
     return queryset.filter(**{f"{field}__in": types})
 
 
 class FinancialFilter(django_filters.FilterSet):
+    """Apply shared date and availability filters to financial lists."""
     active = django_filters.BooleanFilter(method="by_active")
     project = django_filters.NumberFilter(field_name="fund__project_id")
     institution = django_filters.NumberFilter(field_name="fund__institution_id")
@@ -59,6 +61,7 @@ class FinancialFilter(django_filters.FilterSet):
 
 
 class FundItemFilter(FinancialFilter):
+    """Filter Fund items by cost type, participant, and stale state."""
     type = django_filters.NumberFilter(method="by_type")
     participant = django_filters.NumberFilter(method="by_participant")
     stale = django_filters.BooleanFilter(method="by_stale")
@@ -75,6 +78,7 @@ class FundItemFilter(FinancialFilter):
         return queryset.filter(fund__project_id__in=projects)
 
     def by_stale(self, queryset, name, value):
+        """Filter Fund items by the configured stale date threshold."""
         condition = Q(fund__project__status=True)
         slot = getDashboardTimeSlot(self.request)
         if "from" in slot:
@@ -85,6 +89,7 @@ class FundItemFilter(FinancialFilter):
 
 
 class BudgetFilter(FinancialFilter):
+    """Filter Budgets by cost type and remaining availability."""
     type = django_filters.NumberFilter(method="by_type")
     contract_type = django_filters.NumberFilter(field_name="contract_type__id")
     employee = django_filters.NumberFilter(field_name="employee_id")
@@ -102,6 +107,7 @@ class BudgetFilter(FinancialFilter):
 
 
 class ExpenseFilter(django_filters.FilterSet):
+    """Filter Expenses by cost type."""
     type = django_filters.NumberFilter(method="by_type")
     after = django_filters.DateFilter(field_name="date", lookup_expr="gte")
     before = django_filters.DateFilter(field_name="date", lookup_expr="lte")
@@ -131,6 +137,7 @@ class FinancialList(generics.ListAPIView):
     relation = "fund"
 
     def get_queryset(self):
+        """Build the filtered queryset for the selected financial resource."""
         queryset = visible_financial_items(self.model, self.request.user)
         if self.model is Fund_Item:
             return queryset.annotate(_available=Coalesce(F("amount"), Decimal("0")) + Coalesce(F("expense"), Decimal("0"))).select_related("type", "fund__project", "fund__funder", "fund__institution")
@@ -142,6 +149,7 @@ class FinancialList(generics.ListAPIView):
         return super().get_serializer_context()
 
     def list(self, request, *args, **kwargs):
+        """Return paginated rows and their permission-scoped relation data."""
         queryset = self.filter_queryset(self.get_queryset()).distinct()
         page = self.paginate_queryset(queryset)
         rows = list(page if page is not None else queryset)
@@ -155,6 +163,7 @@ class FinancialList(generics.ListAPIView):
                 "ref": fund.ref, "start_date": fund.start_date, "end_date": fund.end_date, "is_active": fund.is_active}
 
     def rows(self, rows):
+        """Serialize financial rows with the relations needed by the list."""
         user = self.request.user
         project_ids = set(Project.get_instances_for_user("view", user, Project.objects.filter(pk__in=[getattr(item, self.relation).project_id for item in rows])).values_list("pk", flat=True))
         can_open_org = user.has_perm("common.display_infos")
@@ -239,6 +248,7 @@ class ExpenseExport(FinancialExport, ExpenseList):
 
 
 class FinancialOptions(generics.GenericAPIView):
+    """Return filter choices for the financial tools."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
@@ -254,6 +264,7 @@ class FinancialOrganizations(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        """List organizations available to the caller as filter choices."""
         kind = request.query_params.get("kind")
         if kind not in ("institutions", "funders"):
             raise ValidationError({"kind": "Choose institutions or funders."})
@@ -273,6 +284,7 @@ class FinancialOrganizations(generics.GenericAPIView):
 
 
 class FundItemContracts(generics.GenericAPIView):
+    """Return Contracts associated with a visible Fund item."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, item_id):

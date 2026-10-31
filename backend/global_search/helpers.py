@@ -10,6 +10,7 @@ def person_values(person):
 
 
 def matching_parent_ids(model, parent_field, paths, term, lookup, **filters):
+    """Resolve parent IDs matching a related search condition."""
     condition = Q()
     for path in paths:
         condition |= Q(**{f"{path}__{lookup}": term})

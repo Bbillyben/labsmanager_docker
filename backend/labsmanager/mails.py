@@ -33,6 +33,7 @@ class BaseMail():
     
     
     def generate_context(self, **kwargs):
+        """Build template context for one outgoing email."""
         self.context={}
         self.context["base_url"]=Site.objects.get_current()
         self.context["current_date"]=datetime.datetime.now()
@@ -41,16 +42,19 @@ class BaseMail():
         return self.context
     
     def render_html(self, **kwargs):
+        """Render the HTML email template with its context."""
         html = render_to_string(self.__class__.mail_template,self.context)
         return html
     
     def render_body(self, html, **kwargs):
+        """Render the email body before transport."""
         body = re.sub(r'<style>.*?</style>', '', html, flags=re.DOTALL)
         body = strip_tags(body)
         return body
     
     def send(self, recipients, **kwargs):
         
+        """Prepare and send the email through the configured transport."""
         if recipients == None :
             logger.error(f"Notification Send  has no user email defined : {recipients}")
             return None
@@ -75,6 +79,7 @@ class BaseMail():
     
     @classmethod
     def send_email(cls, subject, body, recipients, from_email=None, html_message=None, **kwargs):
+        """Dispatch a prepared message and handle delivery errors."""
         from settings.models import LabsManagerSetting
         
         if type(recipients) == str:
@@ -115,6 +120,7 @@ class EmbedImgMail(BaseMail):
         
     @classmethod
     def img_data(cls, imgPath, id):
+        """Read an image payload for embedding in an email."""
         try:
             with open(finders.find(imgPath), 'rb') as f:
                 img_data = f.read()
@@ -126,6 +132,7 @@ class EmbedImgMail(BaseMail):
             return None
     @classmethod
     def embed_img(cls, message, html, balise_url):
+        """Attach an image as inline content and return its reference."""
         imgURL = balise_url.replace( "/" + settings.STATIC_URL, "")
         id = randomID(5)
         imgData=cls.img_data(imgURL, id )
@@ -136,6 +143,7 @@ class EmbedImgMail(BaseMail):
     
     @classmethod
     def send_img_mail(cls, subject, body, recipients, from_email=None, html_message=None, **kwargs):
+        """Render and send an email containing inline images."""
         if type(recipients) == str:
             recipients = [recipients]
             
@@ -176,6 +184,7 @@ class UserLanguageMail(BaseMail):
     NEED a user parameter in kwargs
     """
     def render_html(self, **kwargs):
+        """Render email HTML under the recipient’s language override."""
         if not 'user' in kwargs:
             raise ObjectDoesNotExist("User Not defined for [SubscriptionMail]")
         user = kwargs['user']
@@ -200,6 +209,7 @@ class BodyTableMail(BaseMail):
     using panda library    
     """
     def concatenate_tables_with_text(self, df, html_content):
+        """Combine rendered HTML tables and surrounding text in order."""
         result = ""
         last_table_end = 0
 
@@ -222,6 +232,7 @@ class BodyTableMail(BaseMail):
         return result
     
     def render_body(self, html, **kwargs):
+        """Build the HTML body from the table and text fragments."""
         try:
             tablesPD = pd.read_html(StringIO(html))
             body = self.concatenate_tables_with_text(tablesPD, html)
@@ -254,6 +265,7 @@ class SubscriptionMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
 
     def generate_context(self, **kwargs):
         
+        """Add subscription-specific values to the email template context."""
         super().generate_context(**kwargs)
         
         if not 'user' in kwargs:

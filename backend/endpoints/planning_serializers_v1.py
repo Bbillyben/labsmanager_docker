@@ -142,6 +142,7 @@ class PlanningMilestoneWriteV1Serializer(serializers.ModelSerializer):
         read_only_fields = ("id",)
 
     def validate(self, attrs):
+        """Check planning dates, dependencies, and Project scope."""
         kind = attrs.get("work_kind")
         start = attrs.get("start_date", self.instance.start_date if self.instance else None)
         if kind == "task" and start is None:
@@ -160,6 +161,7 @@ class PlanningMilestoneWriteV1Serializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create a validated Project planning item."""
         employees = validated_data.pop("employee_ids", [])
         validated_data.pop("work_kind", None)
         item = Milestones(project=self.context["project"], **validated_data)
@@ -169,6 +171,7 @@ class PlanningMilestoneWriteV1Serializer(serializers.ModelSerializer):
         return item
 
     def update(self, instance, validated_data):
+        """Update a validated Project planning item."""
         employees = validated_data.pop("employee_ids", None)
         validated_data.pop("work_kind", None)
         for key, value in validated_data.items():
@@ -196,6 +199,7 @@ class EmployeeMilestonePartialWriteV1Serializer(serializers.ModelSerializer):
         fields = ("desc", "quotity", "status")
 
     def to_internal_value(self, data):
+        """Reject fields outside the Employee partial-edit contract."""
         if not isinstance(data, dict):
             raise serializers.ValidationError("An object is required.")
         unknown = set(data) - set(self.fields)
@@ -209,6 +213,7 @@ class EmployeeMilestonePartialWriteV1Serializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
+        """Apply permitted Employee Milestone field changes."""
         for key, value in validated_data.items():
             setattr(instance, key, value)
         user = self.context.get("validation_user")

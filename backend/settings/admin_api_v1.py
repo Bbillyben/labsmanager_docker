@@ -37,6 +37,7 @@ PLUGIN_KEYS = (
 
 
 def setting_data(model, key, **context):
+    """Serialize a setting and its effective administrative value."""
     choices = model.get_setting_choices(key, **context)
     definition = model.get_setting_definition(key, **context)
     probe = model(key=key, **context)
@@ -55,6 +56,7 @@ def setting_data(model, key, **context):
 
 
 def save_setting(model, key, value, **context):
+    """Validate and persist an administrative setting change."""
     choices = model.get_setting_choices(key, **context)
     kind = "choice" if choices is not None else model(key=key, **context).setting_type()
     if kind == "boolean" and type(value) is not bool:
@@ -74,10 +76,12 @@ def save_setting(model, key, value, **context):
 
 
 class StaffView(APIView):
+    """Require the administrative permissions shared by settings endpoints."""
     permission_classes = (permissions.IsAdminUser,)
 
 
 class AdminSettings(StaffView):
+    """List settings available to the current administrator."""
     def get(self, request, section):
         keys = {"general": GENERAL_KEYS, "plugins": PLUGIN_KEYS}.get(section)
         if keys is None:
@@ -86,7 +90,9 @@ class AdminSettings(StaffView):
 
 
 class AdminSettingDetail(StaffView):
+    """Update a single administrative setting."""
     def patch(self, request, section, key):
+        """Validate and update a named global setting."""
         keys = {"general": GENERAL_KEYS, "plugins": PLUGIN_KEYS}.get(section)
         key = key.upper()
         if keys is None or key not in keys:
@@ -97,6 +103,7 @@ class AdminSettingDetail(StaffView):
 
 
 def user_data(user):
+    """Serialize an account and its linked Employee for administration."""
     employee = getattr(user, "employee", None)
     return {"id": user.pk, "username": user.username, "name": user.get_full_name(),
             "last_login": user.last_login, "is_active": user.is_active, "is_staff": user.is_staff,
@@ -104,13 +111,16 @@ def user_data(user):
 
 
 class AdminUsers(StaffView):
+    """List users visible in administrative settings."""
     def get(self, request):
         users = get_user_model().objects.select_related("employee").order_by("username")
         return Response({"results": [user_data(user) for user in users]})
 
 
 class AdminUserEmployee(StaffView):
+    """Update the Employee linked to a user account."""
     def patch(self, request, pk):
+        """Change a user-Employee association under admin permissions."""
         if not isinstance(request.data, dict) or set(request.data) != {"employee_id"}:
             raise serializers.ValidationError({"employee_id": "Expected an Employee id or null."})
         employee_id = request.data["employee_id"]
@@ -141,6 +151,7 @@ class AdminEmployeeOptions(StaffView):
 
 
 def invitation_data(invitation):
+    """Serialize an invitation for the administration list."""
     provisioning = InvitationProvisioning.objects.filter(invitation=invitation).select_related("employee").first()
     return {
         "id": invitation.pk,
@@ -156,6 +167,7 @@ def invitation_data(invitation):
 
 
 def invitation_selection(request, email, *, current=None):
+    """Select invitations matching the requested administrative filter."""
     data = request.data
     employee_id = data.get("employee_id", current.employee_id if current else None)
     group_ids = data.get("group_ids", list(current.groups.values_list("pk", flat=True)) if current else [])
@@ -174,6 +186,7 @@ def invitation_selection(request, email, *, current=None):
 
 
 class AdminInvitations(StaffView):
+    """List and create user invitations."""
     def get(self, request):
         invitations = get_invitation_model().objects.select_related("inviter").order_by("-created", "-pk")
         return Response({
@@ -183,6 +196,7 @@ class AdminInvitations(StaffView):
         })
 
     def post(self, request):
+        """Create an invitation after validating recipient and expiry."""
         if not isinstance(request.data, dict) or not set(request.data) <= {"email", "employee_id", "group_ids"} or "email" not in request.data:
             raise serializers.ValidationError({"email": "An e-mail address is required."})
         form = labInviteForm(data=request.data)
@@ -203,6 +217,7 @@ class AdminInvitations(StaffView):
 
 
 class AdminInvitationDetail(StaffView):
+    """Update one invitation."""
     def patch(self, request, pk):
         if not isinstance(request.data, dict) or not request.data or not set(request.data) <= {"employee_id", "group_ids"}:
             raise serializers.ValidationError({"detail": "Provide Employee and/or groups."})
@@ -217,6 +232,7 @@ class AdminInvitationDetail(StaffView):
 
 
 class AdminRemoveExpiredInvitations(StaffView):
+    """Remove expired invitations on administrator request."""
     def post(self, request):
         invitation_model = get_invitation_model()
         with transaction.atomic():
@@ -226,6 +242,7 @@ class AdminRemoveExpiredInvitations(StaffView):
 
 
 def pending_data():
+    """Serialize a pending notification delivery."""
     rows = UserNotification.objects.filter(send__isnull=True).select_related("user", "source_content_type").order_by("creation")
     return [{"id": row.pk, "user": row.user.username, "source_type": str(row.source_content_type) if row.source_content_type else "",
              "action": row.get_action_type_display(), "object": str(row.source_object) if row.source_object else "",
@@ -233,11 +250,13 @@ def pending_data():
 
 
 class AdminNotifications(StaffView):
+    """List pending administrative notifications."""
     def get(self, request):
         return Response({"results": pending_data()})
 
 
 class AdminNotificationAction(StaffView):
+    """Perform an authorized notification action."""
     def post(self, request, action):
         if action == "check":
             counts = {"stale": check_stale_milestones(), "overdue": check_overdue_milestones(), "overload": check_overload_employee()}
@@ -249,6 +268,7 @@ class AdminNotificationAction(StaffView):
 
 
 def plugin_data(key, plugin):
+    """Serialize registered plugin state and dependency status."""
     return {"key": key, "human_name": str(plugin.human_name), "description": str(plugin.description),
             "author": str(plugin.author), "pub_date": plugin.pub_date, "version": plugin.version,
             "website": plugin.website, "license": plugin.license,
@@ -256,6 +276,7 @@ def plugin_data(key, plugin):
 
 
 def discovered_plugin_data(key, plugin, config):
+    """Serialize a discovered plugin before or without activation."""
     if not isinstance(plugin, type):
         data = plugin_data(key, plugin)
     else:
@@ -279,12 +300,15 @@ def discovered_plugin_data(key, plugin, config):
 
 
 def plugin_errors():
+    """Collect plugin discovery and activation errors for display."""
     return [{"stage": str(stage), "name": str(name), "message": str(message)}
             for stage, errors in registry.errors.items() for entry in errors for name, message in entry.items()]
 
 
 class AdminPlugins(StaffView):
+    """List plugin discovery, activation, and dependency status."""
     def get(self, request):
+        """Return registered and discovered plugins with origin and dependencies."""
         registry.check_reload()
         candidates = discover_candidates()
         configs = {config.key: config for config in PluginConfig.objects.filter(key__in=registry.plugins_full)}
@@ -311,12 +335,14 @@ class AdminPlugins(StaffView):
 
 
 class AdminPluginReload(StaffView):
+    """Refresh plugin discovery under administrator control."""
     def post(self, request):
         registry.reload_plugins(full_reload=True, force_reload=True, collect=True)
         return AdminPlugins().get(request)
 
 
 def plugin_or_404(key):
+    """Resolve a registered plugin or return a not-found response."""
     plugin = registry.get_plugin(key)
     if plugin is None:
         raise Http404
@@ -324,7 +350,9 @@ def plugin_or_404(key):
 
 
 class AdminPluginDetail(StaffView):
+    """Return the administrative detail for one plugin."""
     def get(self, request, key):
+        """Return settings and state for one plugin."""
         registry.check_reload()
         candidates = discover_candidates()
         plugin = registry.plugins_full.get(key)
@@ -365,6 +393,7 @@ class AdminPluginDetail(StaffView):
 
 
 class AdminPluginDependencyInstall(StaffView):
+    """Install a plugin's declared Python dependencies when allowed."""
     authentication_classes = (SessionAuthentication,)
 
     def post(self, request, key):
@@ -378,7 +407,9 @@ class AdminPluginDependencyInstall(StaffView):
 
 
 class AdminPluginSetting(StaffView):
+    """Update an administrator-managed plugin setting."""
     def patch(self, request, key, setting_key):
+        """Validate and update an admin-managed plugin setting."""
         plugin = plugin_or_404(key)
         if not plugin.mixin_enabled("settings"):
             raise Http404

@@ -1,3 +1,5 @@
+"""Legacy Project REST endpoints and calendar adapters retained for compatibility."""
+
 from django.http import JsonResponse
 from django.db.models import Q, Value, Prefetch
 
@@ -26,6 +28,7 @@ from labsmanager.mixin import LabPaginationMixin
 from labsmanager.pagination import LabPagination
 
 class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewSet):
+    """Legacy REST endpoints for Projects and their child resources."""
     queryset = Project.objects.prefetch_related('participant_project').all()
     serializer_class = serializers.ProjectFullSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -56,6 +59,7 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
   
     def get_queryset(self, *arg, **kwargs):
 
+        """Return Projects visible under the legacy permission rules."""
         qset = super().get_queryset( *arg, **kwargs)
         qset = Project.get_instances_for_user('view', self.request.user, qset)
         qset = qset.annotate(has_perm=Value(True))
@@ -63,6 +67,7 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
         return qset
     
     def filter_queryset(self, queryset):
+        """Apply legacy Project filters to visible rows."""
         params = get_data_from_request(self.request)
         status = params.get('status', None)
         if status:
@@ -164,6 +169,7 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
     
     @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
     def contracts(self,request, pk=None):
+        """Return Contracts associated with a visible Project."""
         from expense.apiviews import ContractViewSet
         cv = ContractViewSet()
         request.query_params._mutable = True
@@ -197,6 +203,7 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
     ### For single project
     @action(methods=['get'], detail=True,url_path='calendar-get-event', url_name='calendar-get-event')
     def calendar_get_event(self,request, pk=None):
+        """Return events for a Project calendar scope."""
         slot={}
         if 'start' in request.GET :#request.GET['start']:
             slot['from']=clean_iso_date(request.GET['start'])
@@ -222,6 +229,7 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
     @action(methods=['get'], detail=True,url_path='calendar-get-resources', url_name='calendar-get-resources')
     def calendar_get_resources(self,request, pk=None):
         
+        """Return resources for a Project calendar scope."""
         proj = Project.objects.filter(pk = pk)
         res_proj = serializers.ProjectResourceSerializer_cal_project(proj, many=True, context={'request': request}).data
         emp = Participant.objects.filter(project = pk).order_by('status')
@@ -257,6 +265,7 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
         # print("########################## ALL PROJECT CALENDAR CALL ##########################")
         # print(request.GET)
         
+        """Return events for the global Project calendar."""
         slot={}
         if 'start' in request.GET :#request.GET['start']:
             slot['from']=clean_iso_date(request.GET['start'])
@@ -299,6 +308,7 @@ class ProjectViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelVie
     def calendar_all_get_resources(self,request):
         # print("########################## ALL PROJECT CALENDAR RESSOURCES ##########################")
         # print(request.GET)
+        """Return resources for the global Project calendar."""
         slot={}
         if 'start' in request.GET :#request.GET['start']:
             slot['from']=clean_iso_date(request.GET['start'])

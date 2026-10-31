@@ -88,6 +88,7 @@ class SearchProvider:
         return tuple((str(search_field.label), value) for value in self.field_values(obj, search_field))
 
     def field_query(self, search_field, term, lookup, user):
+        """Build a provider-specific query for one field condition."""
         from django.db.models import Q
         if not search_field.orm_paths:
             return None

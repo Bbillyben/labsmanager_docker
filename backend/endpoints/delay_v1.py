@@ -27,6 +27,7 @@ def _ids(value, field, *, required=False):
 
 
 def _intent(data):
+    """Validate delay roots, blocked dependencies, and positive day count."""
     if not isinstance(data, dict):
         raise ValidationError({"detail": "An object is required."})
     roots = _ids(data.get("root_ids"), "root_ids", required=True)
@@ -60,6 +61,7 @@ def _graph(root_ids, *, lock=False):
 
 
 def _preview(user, project, data, *, lock=False):
+    """Compute affected planning items and permission-aware delay outcomes."""
     roots, cuts, days = _intent(data)
     root_items = {item.pk: item for item in Milestones.objects.filter(pk__in=roots, project=project)}
     if len(root_items) != len(roots):
@@ -74,6 +76,7 @@ def _preview(user, project, data, *, lock=False):
     visible = set(visible_projects(user).filter(pk__in=project_ids).values_list("pk", flat=True))
     editable = set(editable_projects(user).filter(pk__in=project_ids).values_list("pk", flat=True))
     def unavailable(item):
+        """Explain why a planning item cannot be shifted by this user."""
         if item.project_id not in visible:
             return "hidden"
         if item.project_id not in editable:
@@ -144,9 +147,11 @@ def _preview(user, project, data, *, lock=False):
 
 
 class ProjectPlanningDelayV1View(ProjectPlanningScopeV1Mixin, APIView):
+    """Preview or apply a dependency-aware Project planning shift."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, pk, action):
+        """Validate delay intent and update affected planning dates atomically."""
         project = self.get_project(request, pk)
         if not self.can_change(request, project):
             raise PermissionDenied()

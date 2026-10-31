@@ -38,6 +38,7 @@ SECONDARY_NAMES = (
 
 
 def generate_people(ctx):
+    """Create demonstration Employees and related records."""
     User = get_user_model()
     account_by_person = {person: (username, group, password) for username, (person, group, password) in DEMO_ACCOUNTS.items()}
     all_people = list(CORE_PEOPLE)

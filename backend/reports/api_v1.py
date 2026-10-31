@@ -54,6 +54,7 @@ def scoped_report(user, entity, pk, format_name):
 
 
 def validate_legacy_employee_dates(request):
+    """Check date bounds required by legacy Employee reports."""
     values = []
     for field in ("start_date", "end_date"):
         raw = request.GET.get(field)
@@ -68,6 +69,7 @@ def validate_legacy_employee_dates(request):
 
 
 class ReportExportWriteSerializer(serializers.Serializer):
+    """Validate report template, format, and date inputs."""
     template_id = serializers.IntegerField(min_value=1)
     start_date = serializers.DateField(required=False, allow_null=True)
     end_date = serializers.DateField(required=False, allow_null=True)
@@ -82,6 +84,7 @@ class ReportExportWriteSerializer(serializers.Serializer):
 
 
 class ReportExportV1View(APIView):
+    """Generate an authorized report export from a selected template."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def context(self, request, entity, pk, format_name):
@@ -95,6 +98,7 @@ class ReportExportV1View(APIView):
         return Response({"templates": list(report_model.objects.all().order_by("pk").values("id", "name"))})
 
     def post(self, request, entity, pk, format_name):
+        """Validate report options and return an authorized generated export."""
         report_model, instance = self.context(request, entity, pk, format_name)
         serializer = ReportExportWriteSerializer(data=request.data, context={"entity": entity})
         serializer.is_valid(raise_exception=True)

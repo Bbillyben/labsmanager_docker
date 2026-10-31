@@ -60,6 +60,7 @@ class HubDataView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Return data used by the legacy application hub."""
         user = request.user
 
         # Permissions

@@ -41,6 +41,7 @@ def getDateFilter():
 
 ## send an email with specified parameters
 def send_email(subject, body, recipients, from_email=None, html_message=None):
+    """Render and dispatch an email through the configured mail backend."""
     from settings.models import LabsManagerSetting
     
     if type(recipients) == str:

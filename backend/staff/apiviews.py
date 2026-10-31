@@ -1,3 +1,5 @@
+"""Legacy Employee and Team REST endpoints retained for existing clients."""
+
 from django.http import JsonResponse
 from django.db.models import Q, Case, When, BooleanField, Value
 
@@ -64,6 +66,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     }
     
     def filter_queryset(self, queryset):
+        """Apply legacy Employee list filtering and visibility."""
         params = self.request.query_params
         queryset = super().filter_queryset(queryset)
 
@@ -100,6 +103,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     def get_queryset(self, *arg, **kwargs):
 
+        """Return Employees available to the requesting user."""
         qset = super().get_queryset( *arg, **kwargs)
         qset = Employee.get_instances_for_user("view", self.request.user, qset)
         qset = qset.annotate(has_perm=Value(True))
@@ -129,6 +133,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True,url_path='superior', url_name='superior')
     def superior(self, request, pk=None):
+        """Return superior relations for a visible Employee."""
         superior = Employee_Superior.objects.filter(employee=pk).order_by('end_date')
         # ======= Right Management
         user=request.user
@@ -145,6 +150,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True,url_path='subordinate', url_name='subordinate')
     def subordinate(self, request, pk=None):
+        """Return subordinate relations for a visible Employee."""
         subordinate = Employee_Superior.objects.filter(superior=pk).order_by('end_date')
         # ======= Right Management
         user=request.user
@@ -162,6 +168,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True,url_path='contracts', url_name='contracts')
     def contracts(self,request, pk=None):
+        """Return Contracts associated with a visible Employee."""
         from expense.apiviews import ContractViewSet
         emp = self.get_object()
         cvs = ContractViewSet() 
@@ -188,6 +195,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True, url_path='teams', url_name='teams')
     def teams(self, request, pk=None):
+        """Return Teams associated with a visible Employee."""
         emp = self.get_object()
         t1=Team.objects.filter(leader=emp.pk)
         t1 = t1.annotate(has_perm=Value(True))
@@ -206,6 +214,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True, url_path='projects', url_name='projects')
     def projects(self, request, pk=None):
+        """Return Projects associated with a visible Employee."""
         emp = self.get_object()
         t1=Participant.objects.filter(employee=emp.pk)
         # ========= Right Management
@@ -224,6 +233,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
         return JsonResponse(serializers.ParticipantSerializer(t1, many=True).data, safe=False)
     @classmethod
     def select_ressource_from_request(cls, request):
+        """Choose the requested Employee export Resource."""
         emp = request.data.get('employee', request.query_params.get('employee', None))
         if emp is not None:
             if isinstance(emp, str):
@@ -254,6 +264,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
         return t1
     @action(methods=['get'], detail=False, url_path='calendar-resource', url_name='calendar-resource')
     def employee_calendar(self, request, pk=None):
+        """Return events in an Employee calendar scope."""
         t1 = self.__class__.select_ressource_from_request(request)
         return JsonResponse(serializers.EmployeeSerialize_Cal(t1, many=True).data, safe=False)
     
@@ -266,6 +277,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='organization-chart', url_name='organization-chart')
     def organization_chart(self, request, pk=None):
         # get user preference to see past organization
+        """Return Employee hierarchy data for the legacy chart."""
         show_pas = LMUserSetting.get_setting("SHOW_PAST_ORG", user=request.user)
         
         no_sup=Employee_Superior.objects.all().values("employee")
@@ -295,6 +307,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     def emp_organization(self, request, pk=None):
         
         # get user preference to see past organization
+        """Return organization-chart data for a visible Employee."""
         show_pas = LMUserSetting.get_setting("SHOW_PAST_ORG", user=request.user)
         
         emp = Employee.objects.get(pk=pk)
@@ -327,6 +340,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @classmethod    
     def build_tree_down(cls, sup, tree):
+        """Traverse subordinate relations for a hierarchy tree."""
         c_down = Employee_Superior.objects.filter(superior = sup)
         if c_down.exists():
             for sup2 in c_down:
@@ -335,6 +349,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @classmethod    
     def build_tree_up(cls, sup, tree):
+        """Traverse superior relations for a hierarchy tree."""
         c_sup = Employee_Superior.objects.filter(employee = sup)
         child_tree = tree.copy()
         node={}
@@ -355,6 +370,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     @action(methods=['get'], detail=True,url_path='calendar-get-event', url_name='calendar-get-event')
     def calendar_get_event(self,request, pk=None):
         
+        """Supply Employee events to the legacy calendar endpoint."""
         slot={}
         if 'start' in request.GET :#request.GET['start']:
             slot['from']=clean_iso_date(request.GET['start'])
@@ -395,6 +411,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True,url_path='calendar-get-resources', url_name='calendar-get-resources')
     def calendar_get_resources(self,request, pk=None):
+        """Supply Employee resources to the legacy calendar endpoint."""
         slot={}
         if 'start' in request.GET :#request.GET['start']:
             slot['from']=clean_iso_date(request.GET['start'])
@@ -438,6 +455,7 @@ class EmployeeViewSet(LabPaginationMixin, viewsets.ModelViewSet):
         
     
 class TeamViewSet(LabPaginationMixin,viewsets.ModelViewSet):
+    """Legacy REST list and related Project actions for Teams."""
     queryset = Team.objects.select_related('leader').all()
     serializer_class = serializers.TeamSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -467,11 +485,13 @@ class TeamViewSet(LabPaginationMixin,viewsets.ModelViewSet):
     
     def get_queryset(self, *arg, **kwargs):
 
+        """Restrict Team rows to those available to the caller."""
         qset = super().get_queryset( *arg, **kwargs)
         qset = Team.annotate_queryset(qset, self.request.user, "view")
         return qset
     
     def filter_queryset(self, queryset):
+        """Apply legacy Team list filters."""
         params = self.request.query_params
         queryset = super().filter_queryset(queryset)
 
@@ -507,6 +527,7 @@ class TeamViewSet(LabPaginationMixin,viewsets.ModelViewSet):
     
     @action(methods=["get"], detail=True, url_path="projects", url_name="projects",    )
     def team_projects(self, request, pk=None):
+        """Return Projects related to a visible Team."""
         if pk is None:
             raise Exception(
                 "/api/team/<pk>/projects/ => No team Pk Found"

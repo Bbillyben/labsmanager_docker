@@ -250,6 +250,7 @@ class ConfirmImportViewMixin(import_export.admin.ImportMixin, generic.View):
                 return self.process_result(result, request)
             
         def process_result(self, result, request):
+            """Handle row errors and commit results from the legacy import view."""
             self.generate_log_entries(result, request)
             self.add_success_message(result, request)
             post_import.send(sender=None, model=self.model)

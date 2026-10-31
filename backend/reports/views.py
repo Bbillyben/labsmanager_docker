@@ -29,6 +29,7 @@ class WordBaseReportView(BSModalFormView):
     
     def post(self, request, *args, **kwargs):
         
+        """Generate a Word report from validated legacy form input."""
         form = self.get_form()
         if form.is_valid():
             self.form_valid(form)
@@ -100,6 +101,7 @@ def render_legacy_report(request, pk, template, entity, format_name):
 
 @login_required
 def download_template_report(request, app, model, pk):
+    """Return a generated report using its stored template."""
     templateModel = apps.get_model(app_label=app, model_name=model)
     report = get_object_or_404(templateModel, pk=pk)
     if not report.template:

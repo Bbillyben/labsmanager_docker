@@ -5,6 +5,7 @@ from settings.models import LMUserSetting
 # from datetime import date, datetime, timedelta
 
 def getDashboardTimeSlot(request):
+    """Return the date range used by a Dashboard widget."""
     if not request.user:
         return {}
     
@@ -20,6 +21,7 @@ def getDashboardTimeSlot(request):
     return slot
 
 def getDashboardMilestonesTimeSlot(request):
+    """Return the Milestone window selected by Dashboard settings."""
     if not request.user:
         return {}
     
@@ -35,6 +37,7 @@ def getDashboardMilestonesTimeSlot(request):
     return slot   
 
 def getDashboardContractTimeSlot(request):
+    """Return the Contract window selected by Dashboard settings."""
     if not request.user:
         return {}
     nextMonth= LMUserSetting.get_setting('DASHBOARD_CONTRACT_STALE_TO_MONTH',user=request.user)
@@ -46,10 +49,12 @@ def getDashboardContractTimeSlot(request):
     return slot    
 
 def getDateToStale(monthToGo):
+    """Calculate the date at which an item is considered stale."""
     return datetime.now()+ relativedelta(months=+monthToGo)
 
 def getCurrentMonthTimeslot():
     # Obtenir la date du premier jour du mois courant
+    """Return the current calendar month bounds."""
     start_date = date.today().replace(day=1)
     next_first = (start_date + timedelta(days=32)).replace(day=1)
     date_fin = (next_first - timedelta(days=1))
@@ -60,6 +65,7 @@ def getCurrentMonthTimeslot():
     return slot
 
 def get30daysTimeslot():
+    """Return a rolling thirty-day window."""
     start_date = date.today() - timedelta(days=1)
     date_fin = (start_date + timedelta(days=31))
     slot={
@@ -69,6 +75,7 @@ def get30daysTimeslot():
     return slot
 
 def getdaysTimeslot(fromDelta=-1, toDelta=31):
+    """Return a rolling window of the requested number of days."""
     start_date = date.today() + timedelta(days=fromDelta)
     date_fin = date.today() + timedelta(days=toDelta)
     slot={

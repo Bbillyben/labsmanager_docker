@@ -22,15 +22,18 @@ PROJECT_PARTICIPANT_AFTER_PROJECT = "project_participant_after_project_end"
 
 
 def visible_employees(user):
+    """Return Employees the user is allowed to inspect."""
     return Employee.get_instances_for_user("view", user, Employee.objects.all())
 
 
 def visible_team_mates(user):
+    """Return TeamMate relations visible through their Employees."""
     return (TeamMate.objects.filter(team__in=visible_teams(user), employee__in=visible_employees(user))
             .select_related("team", "employee"))
 
 
 def visible_project_participants(user):
+    """Return Project participation visible to the user."""
     projects = Project.get_instances_for_user("view", user, Project.objects.all())
     return (Participant.objects.filter(project__in=projects, employee__in=visible_employees(user))
             .select_related("project", "employee"))
@@ -38,39 +41,47 @@ def visible_project_participants(user):
 
 def active_period(today):
     # ActiveDateMixin uses inclusive endpoints and treats null as open.
+    """Build the date filter for an active relation."""
     return ((Q(start_date__isnull=True) | Q(start_date__lte=today)) &
             (Q(end_date__isnull=True) | Q(end_date__gte=today)))
 
 
 def inactive_employees_without_exit(user):
+    """Find inactive Employees missing an exit date."""
     return visible_employees(user).filter(is_active=False, exit_date__isnull=True).order_by("pk")
 
 
 def active_employees_past_exit(user):
+    """Find active Employees whose exit date has passed."""
     return visible_employees(user).filter(is_active=True, exit_date__lt=timezone.localdate()).order_by("pk")
 
 
 def inactive_team_mates(user):
+    """Find inactive Team membership relations that need review."""
     return visible_team_mates(user).filter(employee__is_active=False).filter(active_period(timezone.localdate())).order_by("pk")
 
 
 def inactive_project_participants(user):
+    """Find inactive Project participation needing review."""
     return visible_project_participants(user).filter(employee__is_active=False).filter(active_period(timezone.localdate())).order_by("pk")
 
 
 def team_mates_before_employee(user):
+    """Find Team memberships starting before their Employee period."""
     return (visible_team_mates(user).filter(employee__entry_date__isnull=False)
             .filter(Q(start_date__isnull=True) | Q(start_date__lt=F("employee__entry_date")))
             .order_by("pk"))
 
 
 def project_participants_before_employee(user):
+    """Find Project participation starting before Employee entry."""
     return (visible_project_participants(user).filter(employee__entry_date__isnull=False)
             .filter(Q(start_date__isnull=True) | Q(start_date__lt=F("employee__entry_date")))
             .order_by("pk"))
 
 
 def team_mates_after_employee(user):
+    """Find Team memberships ending after the Employee period."""
     today = timezone.localdate()
     return (visible_team_mates(user).filter(employee__exit_date__isnull=False)
             .filter(Q(end_date__isnull=True) | Q(end_date__gt=F("employee__exit_date")))
@@ -79,6 +90,7 @@ def team_mates_after_employee(user):
 
 
 def project_participants_after_project(user):
+    """Find participation ending after the Project period."""
     return (visible_project_participants(user).filter(project__end_date__isnull=False)
             .filter(Q(end_date__isnull=True) | Q(end_date__gt=F("project__end_date")))
             .order_by("pk"))
@@ -160,6 +172,7 @@ def correction_values(key, item):
 
 
 def can_correct_item(user, rule, item):
+    """Check whether the caller may correct the item behind an issue."""
     if correction_values(rule.key, item) is None:
         return False
     if rule.object_type == "employee":

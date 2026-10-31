@@ -50,6 +50,7 @@ class LastInManager(models.Manager):
     def get_queryset(self, sel_fund=None):
         # print("---------> LastInManager - get_queryset :"+str(self.model))
         # print("  - sel_fund : "+str(sel_fund))
+        """Return the latest records selected by the legacy manager."""
         queryset = super().get_queryset()
         if sel_fund is not None:
             # print(" type : "+str(type(sel_fund)))
@@ -95,6 +96,7 @@ class FileModelManager(models.Manager):
 
 import os   
 def flush_file(sender, **kwargs):
+    """Write or clear a temporary file used by the manager."""
     print(" -- flush_file called --")
     print("  - sender:"+str(sender))
     print("  - kwargs:"+str(kwargs))

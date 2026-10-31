@@ -36,6 +36,7 @@ GROUPS = {
 
 @dataclass(frozen=True)
 class MutableList:
+    """Describe a model-backed list editable through administrative settings."""
     group: str
     model: type
     form: type
@@ -66,6 +67,7 @@ MUTABLE_LISTS = {
 
 
 def get_list(key, user):
+    """Resolve a registered mutable list by its stable key."""
     config = MUTABLE_LISTS.get(key)
     if config is None or not config.allowed(user, "view"):
         raise Http404
@@ -73,6 +75,7 @@ def get_list(key, user):
 
 
 def capabilities(config, user, instance=None):
+    """Return list actions allowed to the current administrator."""
     form = config.form(instance=instance)
     return {
         "can_view": config.allowed(user, "view"),
@@ -83,6 +86,7 @@ def capabilities(config, user, instance=None):
 
 
 def field_data(name, field):
+    """Describe an editable field for the React list form."""
     if isinstance(field, forms.ModelChoiceField):
         kind = "relation"
         choices = [{"value": obj.pk, "label": str(obj)} for obj in field.queryset]
@@ -101,6 +105,7 @@ def field_data(name, field):
 
 
 def row_data(config, user, obj):
+    """Serialize a list row with its contextual actions."""
     fields = {}
     for name in config.form.base_fields:
         value = getattr(obj, name)
@@ -113,6 +118,7 @@ def row_data(config, user, obj):
 
 
 def list_metadata(key, config, user):
+    """Serialize list fields, choices, and grouping metadata."""
     form = config.form()
     metadata = {"key": key, "group": config.group, "label": str(config.model._meta.verbose_name_plural),
                 "columns": list(config.columns), "fields": [field_data(name, field) for name, field in form.fields.items()],
@@ -123,12 +129,14 @@ def list_metadata(key, config, user):
 
 
 def require_action(config, user, action, instance=None):
+    """Enforce a mutable-list action before writing."""
     if not capabilities(config, user, instance)[f"can_{action}"]:
         from rest_framework.exceptions import PermissionDenied
         raise PermissionDenied()
 
 
 def save_form(config, request, instance=None):
+    """Validate and persist one list row through its Django form."""
     initial = model_to_dict(instance, fields=config.form.base_fields) if instance else {}
     probe = config.form(instance=instance)
     editable = {name for name, field in probe.fields.items() if not field.disabled}
@@ -161,6 +169,7 @@ def save_form(config, request, instance=None):
 
 
 class MutableListsRegistryV1View(APIView):
+    """List mutable-list definitions available in admin settings."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
@@ -174,6 +183,7 @@ class MutableListsRegistryV1View(APIView):
 
 
 class MutableListCollectionV1View(APIView):
+    """Read or create rows in an authorized mutable list."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, list_key):
@@ -190,6 +200,7 @@ class MutableListCollectionV1View(APIView):
 
 
 class MutableListDetailV1View(APIView):
+    """Update or remove one authorized mutable-list row."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def _object(self, list_key, item_id, user):

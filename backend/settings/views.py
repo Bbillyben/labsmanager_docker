@@ -1,3 +1,5 @@
+"""Legacy settings template views retained beside React administration."""
+
 from django.shortcuts import render, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
@@ -26,6 +28,7 @@ class SettingList_cost_type(LoginRequiredMixin, TemplateView):
     
     def get(self,request):
         # print("[SettingList_cost_type] - get")
+        """Render cost-type settings in the legacy administration page."""
         context={
             'url':reverse_lazy("api:settinglist-costtype"),
             'title':_('Cost Type'),
@@ -55,6 +58,7 @@ class SettingList_fundInstitution_type(LoginRequiredMixin, TemplateView):
     
     def get(self,request):
         # print("[SettingList_fundInstitution_type] - get")
+        """Render funder settings in the legacy administration page."""
         context={
             'url':reverse_lazy("api:settinglist-fundinstitution"),
             'title':_('Fund Institution'),
@@ -82,6 +86,7 @@ class SettingList_Contract_type(LoginRequiredMixin, TemplateView):
     model = Contract_type
     
     def get(self,request):
+        """Render Contract-type settings in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-contracttype"),
             'title':_('Contract Type'),
@@ -108,6 +113,7 @@ class SettingList_Leave_type(LoginRequiredMixin, TemplateView):
     model = Leave_Type
     
     def get(self,request):
+        """Render Leave-type settings in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-leavetype"),
             'title':_('Leave Type'),
@@ -137,6 +143,7 @@ class SettingList_Institution(LoginRequiredMixin, TemplateView):
     model = Institution
     
     def get(self,request):
+        """Render institution settings in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-projectinstitution"),
             'title':_('Institution'),
@@ -165,6 +172,7 @@ class SettingList_Employee_Type(LoginRequiredMixin, TemplateView):
     model = Employee_Type
     
     def get(self,request):
+        """Render Employee-type settings in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-employeetype"),
             'title':_('Employee Type'),
@@ -191,6 +199,7 @@ class SettingList_GenericInfo(LoginRequiredMixin, TemplateView):
     model = GenericInfoType
     
     def get(self,request):
+        """Render Employee information types in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-genericinfotype"),
             'title':_('Generic Info Employee'),
@@ -216,6 +225,7 @@ class SettingList_GenericInfoProject(LoginRequiredMixin, TemplateView):
     model = GenericInfoTypeProject
     
     def get(self,request):
+        """Render Project information types in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-genericinfotypeproject"),
             'title':_('Generic Info Project'),
@@ -243,6 +253,7 @@ class SettingList_OrganizationInfosType(LoginRequiredMixin, TemplateView):
     model = OrganizationInfosType
     
     def get(self,request):
+        """Render organization information types in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-organizationinfostype"),
             'title':_('Organization\'s info type'),
@@ -270,6 +281,7 @@ class SettingList_ContactInfosType(LoginRequiredMixin, TemplateView):
     model = ContactInfoType
     
     def get(self,request):
+        """Render contact information types in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-contactinfostype"),
             'title':_('Contact\'s info type'),
@@ -296,6 +308,7 @@ class SettingList_ContactType(LoginRequiredMixin, TemplateView):
     model = ContactType
     
     def get(self,request):
+        """Render contact types in legacy administration."""
         context={
             'url':reverse_lazy("api:settinglist-contacttype"),
             'title':_('Contact type'),

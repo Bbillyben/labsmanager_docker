@@ -75,6 +75,7 @@ class Leave(ActiveDateMixin):
     
     @property
     def dayCount(self):
+        """Count the days covered by a Leave using its half-day boundaries."""
         num_open = self.open_days
         s=0
         e=0
@@ -85,6 +86,7 @@ class Leave(ActiveDateMixin):
         return num_open-s-e
     @property
     def return_date(self):
+        """Return the date on which the Employee is expected back."""
         if self.end_date:
             if self.end_period == "MI":
                 return self.end_date + timedelta(hours=12)
@@ -93,6 +95,7 @@ class Leave(ActiveDateMixin):
         return None
     
     def clean(self):
+        """Validate Leave dates and half-day period ordering."""
         super().clean()
         if not self.start_date or not self.end_date:
             return

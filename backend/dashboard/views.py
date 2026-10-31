@@ -39,6 +39,7 @@ class FundLossCardView(LoginRequiredMixin, BaseBreadcrumbMixin, View):
     template_general="dashboard/dasboard_loss_card.html" 
     
     def get(self, request, *args, **kwargs):
+        """Render the legacy Fund-loss dashboard card."""
         import pandas as pd
         
         q_objects =  Q(project__status=True) # Q(is_active=True) &base Q objkect

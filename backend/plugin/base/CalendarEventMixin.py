@@ -120,6 +120,7 @@ class CalendarEventMixin:
 
     @classmethod
     def _resolve_filter_value(cls, value, context):
+        """Normalize a declared calendar filter value from request input."""
         if not isinstance(value, str) or not hasattr(cls, value):
             return value
         method = getattr(cls, value)

@@ -1,3 +1,5 @@
+"""Legacy Expense and Contract REST endpoints retained for existing clients."""
+
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q, Value, Count, F, CharField, Max, Sum, Case, When, BooleanField
 from django.db.models.functions import Concat
@@ -33,12 +35,14 @@ import logging
 logger = logging.getLogger('labsmanager')
 
 class ExpensePOintViewSet(LabPaginationMixin, viewsets.ModelViewSet):
+    """Legacy REST endpoints for Expense points and aggregates."""
     queryset = Expense_point.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ExpensePOintSerializer
     
     
     def filter_queryset(self, request, queryset):
+      """Apply Fund and type filters to expense points."""
       params = get_params(self.request)
       qset = queryset
       query = Q()
@@ -79,6 +83,7 @@ class ExpensePOintViewSet(LabPaginationMixin, viewsets.ModelViewSet):
       # queryset=queryset.values('ind').annotate(max_date=Max('value_date'))
       
       # queryset =  Expense_point.objects.values('fund', 'type').annotate(max_date=Max('value_date'))
+      """Return the latest expense point per cost type."""
       queryset =  Expense_point.objects.values('fund', 'type').annotate(max_date=Max('value_date'))
       query=Q()
       for t in queryset:
@@ -90,6 +95,7 @@ class ExpensePOintViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='all', url_name='all_expense')
     def all_expense(self, request):
+      """Return all expense points in the selected scope."""
       expGen = self.filter_queryset(request, Expense.objects.all())
       exp = Expense.object_inherit.filter(pk__in = expGen).select_subclasses()
       export = request.GET.get('export', None)
@@ -114,6 +120,7 @@ from project.models import Participant
 from staff.models import Employee_Superior  
 from settings.models import LabsManagerSetting
 class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
+    """Legacy REST endpoints for Contracts and related items."""
     queryset = Contract.objects.select_related('employee', 'fund', 'contract_type').all()
     serializer_class = serializers.ContractSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -134,6 +141,7 @@ class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     def get_queryset(self):
       # print("======================= [ContractViewSet] get_queryset ")
+      """Restrict Contracts to those visible to the caller."""
       if self.request is not None:
         ongoing = self.request.query_params.get('ongoing', None)
         if ongoing is not None:
@@ -150,6 +158,7 @@ class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
       
     
     def filter_queryset(self, queryset):
+        """Apply Contract list filters after visibility."""
         params = self.request.query_params
           # print("[ContractViewSet.filter_queryset] start filtering")
         queryset = super().filter_queryset(queryset)
@@ -227,6 +236,7 @@ class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     def list(self, request, *args, **kwargs):
         # print("======================= [ContractViewSet] list ")
+        """Return the filtered legacy Contract list."""
         self.request = request
         export = request.GET.get('export', None)
         qs = self.filter_queryset(self.get_queryset())
@@ -252,17 +262,20 @@ class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='stale', url_name='contract_stale')
     def get_stale(self, request):
+        """Return Contracts approaching their configured end threshold."""
         slots=getDashboardContractTimeSlot(request)
         cont=Contract.current.timeframe(slots).select_related('employee', 'fund', 'contract_type').filter( Q(fund__project__status=True) & Q(is_active=True)).order_by('-end_date')
         return JsonResponse(serializers.ContractSerializer(cont, many=True).data, safe=False) 
       
     @action(methods=['get'], detail=False, url_path='contract_calendar', url_name='contract_calendar')
     def get_contract_cal(self, request):
+        """Return Contract events for the legacy calendar."""
         qset=self.filter_queryset(self.queryset)
         return JsonResponse(serializers.ContractSerializer1DCal(qset, many=True).data, safe=False) 
     
     @action(methods=['get'], detail=False, url_path='contract_fund_modal/(?P<fund_id>[0-9]+)', url_name='contract_fund_modal')
     def get_contract_fund_modal(self, request, fund_id):
+        """Provide Contract and Fund data for a legacy modal."""
         qset = Contract.futur.select_related('employee', 'fund', 'contract_type').all()
         qset=self.filter_queryset(qset)
         qset=qset.filter(fund=fund_id)
@@ -303,6 +316,7 @@ class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['post'], detail=False, url_path='contract_add', url_name='contract_add')
     def add_contract(self, request):
+        """Create a Contract through the legacy API path."""
         emp = Employee.objects.get(pk=request.data['employee'])
         if(not emp):
           raise ObjectDoesNotExist(f" Employee '{request.data['employee']}' not found in database")
@@ -323,6 +337,7 @@ class ContractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
       
     @action(methods=['post'], detail=False, url_path='contract_update', url_name='contract_update')
     def update_contract(self, request):
+        """Update a Contract through the legacy API path."""
         cont = Contract.objects.get(pk=request.data['pk'])
         if(not cont):
           raise ObjectDoesNotExist(f" Contract '{request.data['pk']}' not found in database")

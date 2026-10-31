@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 
 class SearchSyntaxError(ValueError):
+    """Represent an invalid search expression with its source position."""
     def __init__(self, message, position, expected=()):
         super().__init__(message)
         self.position = position
@@ -12,6 +13,7 @@ class SearchSyntaxError(ValueError):
 
 @dataclass(frozen=True)
 class Token:
+    """A lexical unit in the global-search query language."""
     kind: str
     value: str
     start: int
@@ -20,6 +22,7 @@ class Token:
 
 @dataclass(frozen=True)
 class CompletionContext:
+    """Parser context needed to suggest a valid completion."""
     kind: str
     prefix: str
     key: str | None
@@ -29,12 +32,14 @@ class CompletionContext:
 
 @dataclass(frozen=True)
 class TextNode:
+    """Free-text search term in the parsed expression tree."""
     value: str
     phrase: bool = False
 
 
 @dataclass(frozen=True)
 class KeyNode:
+    """Field-qualified search term in the parsed expression tree."""
     key: str
     value: str
     phrase: bool = False
@@ -43,26 +48,31 @@ class KeyNode:
 
 @dataclass(frozen=True)
 class GenericInfoNode:
+    """Search condition for a typed information field."""
     type_name: str
     value: str
 
 
 @dataclass(frozen=True)
 class AndNode:
+    """Conjunction of search expressions."""
     children: tuple
 
 
 @dataclass(frozen=True)
 class OrNode:
+    """Disjunction of search expressions."""
     children: tuple
 
 
 @dataclass(frozen=True)
 class NotNode:
+    """Negated search expression."""
     child: object
 
 
 def tokenize(source, *, tolerant=False):
+    """Split a search query into positioned tokens."""
     tokens = []
     index = 0
     punctuation = {":": "COLON", "=": "EQUAL", "(": "LPAREN", ")": "RPAREN"}
@@ -191,6 +201,7 @@ class Parser:
         return self.parse_atom()
 
     def parse_atom(self):
+        """Parse a single search term, group, or negation from the token stream."""
         first = self.current
         if first.kind not in ("WORD", "STRING"):
             raise SearchSyntaxError("Expected search term", first.start, ("WORD", "STRING"))
@@ -218,6 +229,7 @@ class Parser:
 
 
 def parse(source):
+    """Parse a search query into an expression tree."""
     return Parser(source).parse()
 
 

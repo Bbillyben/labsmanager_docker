@@ -33,9 +33,11 @@ class ImportProfile:
     preview_columns: tuple[str, ...] = ()
 
     def allowed(self, user):
+        """Check the user permission declared by this import profile."""
         return user.is_authenticated and user.has_perm(self.permission)
 
     def metadata(self):
+        """Serialize profile identity, formats, and preview columns for React."""
         resource = self.resource_class()
         return {
             "key": self.key,
@@ -106,6 +108,7 @@ class PluginImportProfile(ImportProfile):
         return prepared
 
     def check_eligibility(self, dataset, option_data=None):
+        """Delegate plugin-specific eligibility checks before import."""
         return self.plugin.check_eligibility(dataset, self.method, option_data)
 
     def transform(self, dataset):

@@ -24,6 +24,7 @@ PARENTS = {'project': Project, 'employee': Employee, 'team': Team, 'institution'
 
 
 def parent_for(user, scope, pk):
+    """Resolve the parent object for a generic note request."""
     model = PARENTS.get(scope)
     if model is None:
         raise serializers.ValidationError({'scope': 'Unsupported note parent.'})
@@ -61,6 +62,7 @@ def note_admin(user):
 
 
 def parent_change(user, parent):
+    """Check change authority on the note parent object."""
     if isinstance(parent, Contract):
         return user.has_perm('expense.change_contract') or user.has_perm('expense.change_contract', parent)
     if isinstance(parent, Employee):
@@ -86,6 +88,7 @@ def visible_note_counts(user, model, object_ids):
 
 
 def capabilities(user, parent, note=None):
+    """Return note actions available to the current user."""
     administer = note_admin(user)
     can_write = administer or parent_change(user, parent)
     can_see = note is None or note.visibility == 'object' or administer or note.creator_id == user.pk
@@ -99,6 +102,7 @@ def capabilities(user, parent, note=None):
 
 
 def serialize_note(note, user, parent):
+    """Serialize note text, visibility, and contextual actions."""
     creator = note.creator
     return {
         'id': note.pk, 'admin_url': get_admin_change_url(user, note), 'name': note.name, 'note': nh3.clean(note.note or ''),
@@ -133,6 +137,7 @@ def legacy_visible_notes(user, action='view'):
 
 
 def validate_and_save(note):
+    """Run full model validation before saving a note."""
     if GenericNote.objects.filter(content_type=note.content_type, object_id=note.object_id, name=note.name).exclude(pk=note.pk).exists():
         raise serializers.ValidationError({'name': ['already_exists']})
     try:
@@ -145,6 +150,7 @@ def validate_and_save(note):
 
 
 class NoteContext:
+    """Resolve a visible note parent and note for REST operations."""
     def resolve(self, request, scope, pk):
         parent = parent_for(request.user, scope, pk)
         content_type = ContentType.objects.get_for_model(parent)
@@ -162,6 +168,7 @@ class NoteContext:
 
 
 class GenericNotesCollectionV1View(NoteContext, APIView):
+    """List or create notes for an authorized parent object."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, scope, pk):
@@ -176,6 +183,7 @@ class GenericNotesCollectionV1View(NoteContext, APIView):
 
     @transaction.atomic
     def post(self, request, scope, pk):
+        """Create a note after checking parent visibility and add permission."""
         parent, content_type = self.resolve(request, scope, pk)
         if not capabilities(request.user, parent)['can_add']:
             raise PermissionDenied()
@@ -194,6 +202,7 @@ class GenericNotesCollectionV1View(NoteContext, APIView):
 
 
 class GenericNoteDetailV1View(NoteContext, APIView):
+    """Read, update, or remove a visible generic note."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, scope, pk, note_id):
@@ -202,6 +211,7 @@ class GenericNoteDetailV1View(NoteContext, APIView):
 
     @transaction.atomic
     def patch(self, request, scope, pk, note_id):
+        """Update a note after checking visibility and change permission."""
         parent, content_type = self.resolve(request, scope, pk)
         note = self.note(request, parent, content_type, pk, note_id)
         fields = set(request.data)
@@ -230,6 +240,7 @@ class GenericNoteDetailV1View(NoteContext, APIView):
 
     @transaction.atomic
     def delete(self, request, scope, pk, note_id):
+        """Remove a note after checking delete permission."""
         parent, content_type = self.resolve(request, scope, pk)
         note = self.note(request, parent, content_type, pk, note_id)
         if not capabilities(request.user, parent, note)['can_delete']:

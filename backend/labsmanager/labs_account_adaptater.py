@@ -49,6 +49,7 @@ class LabsManagerAccountAdapter(DefaultAccountAdapter):
 
     def get_logged_redirect_url(self, request):
 
+        """Choose the post-login destination for an authenticated user."""
         user = request.user
         ## check wether there is a next_redir param in the login form,if so, redirect to that one
         next_url = request.GET.get("next_redir") or request.POST.get("next_redir")

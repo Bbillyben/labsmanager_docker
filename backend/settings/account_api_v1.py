@@ -16,10 +16,12 @@ from rest_framework.views import APIView
 
 
 def form_errors(form):
+    """Translate account-form errors into API field errors."""
     return {key: [str(error) for error in values] for key, values in form.errors.items()}
 
 
 def email_data(user):
+    """Serialize an address and its confirmation state."""
     rows = EmailAddress.objects.filter(user=user).order_by("email")
     return {
         "can_add": EmailAddress.objects.can_add_email(user),
@@ -33,6 +35,7 @@ def email_data(user):
 
 
 class UserAccountV1View(APIView):
+    """Return the current user’s account details."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
@@ -51,9 +54,11 @@ class UserAccountV1View(APIView):
 @method_decorator(rate_limit(action="change_password"), name="dispatch")
 @method_decorator(sensitive_post_parameters("oldpassword", "password1", "password2"), name="dispatch")
 class UserPasswordV1View(APIView):
+    """Change the current user’s password after validation."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
+        """Validate the current password before saving its replacement."""
         has_password = request.user.has_usable_password()
         key = "change_password" if has_password else "set_password"
         base = ChangePasswordForm if has_password else SetPasswordForm
@@ -68,6 +73,7 @@ class UserPasswordV1View(APIView):
 
 
 class UserEmailsV1View(APIView):
+    """List and add email addresses for the current account."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
@@ -75,6 +81,7 @@ class UserEmailsV1View(APIView):
         return Response(email_data(request.user))
 
     def post(self, request):
+        """Add an email address and initiate confirmation."""
         form_class = get_form_class(app_settings.FORMS, "add_email", AddEmailForm)
         form = form_class(user=request.user, data=request.data)
         if not form.is_valid():
@@ -84,6 +91,7 @@ class UserEmailsV1View(APIView):
 
 
 class UserEmailDetailV1View(APIView):
+    """Confirm, make primary, or remove an account email address."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_email(self, request, email_id):
@@ -108,6 +116,7 @@ class UserEmailDetailV1View(APIView):
         return Response(email_data(request.user))
 
     def delete(self, request, email_id):
+        """Remove an address after ownership and primary-address checks."""
         row = self.get_email(request, email_id)
         if row.primary:
             raise serializers.ValidationError({"email": "A primary email address cannot be removed."})

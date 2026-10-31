@@ -18,6 +18,7 @@ class ListExportContentNegotiation(DefaultContentNegotiation):
 
 
 def export_list_queryset(request, queryset, resource_class, filename_prefix, *, resource_kwargs=None):
+    """Export the exact visible, filtered list in the requested format."""
     format_name = request.query_params.get("format", "xlsx")
     if format_name not in EXPORT_FORMATS:
         raise ValidationError({"format": "Choose csv, tsv, xls, or xlsx."})

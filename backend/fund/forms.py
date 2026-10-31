@@ -23,6 +23,7 @@ class FundItemModelForm(BSModalModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """Configure Fund item choices for the selected Fund."""
         if ('initial' in kwargs and 'fund' in kwargs['initial']):
             self.base_fields['fund'] = forms.ModelChoiceField(
                 queryset=models.Fund.objects.all(),
@@ -79,6 +80,7 @@ class FundModelForm(BSModalModelForm):
             self.fields['institution'].widget = forms.HiddenInput()
     
     def save(self, commit=True):
+        """Persist a Fund and its validated related values."""
         fund_instance = super().save(commit=False)
         project = self.cleaned_data.get('project')
 
@@ -130,6 +132,7 @@ class BudgetModelForm(BSModalModelForm):
         # for k, v in kwargs.items():
         #     print(f'  - {k} : {v}')
         
+        """Configure Budget choices for the selected Project and Fund."""
         if (('initial' in kwargs and 'employee' in kwargs['initial']) or "data" in kwargs):
             self.base_fields['employee'].queryset=Employee.objects.all()
         else:

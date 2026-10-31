@@ -1,3 +1,5 @@
+"""Legacy modal views for Fund, Budget, and Contribution records."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
@@ -20,6 +22,7 @@ class FundItemCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Fund_Item
 
     def get(self, request, *args, **kwargs):
+        """Prepare a Fund item form with contextual choices."""
         kw = self.get_form_kwargs()
         initial={}        
         if 'pk' in kwargs:
@@ -62,6 +65,7 @@ class ExpenseTimepointCreateView(LoginRequiredMixin, BSModalCreateView):
     model = Expense_point
 
     def get(self, request, *args, **kwargs):
+        """Prepare an expense point form in Fund context."""
         kw = self.get_form_kwargs()
         initial={}  
         if 'pk' in kwargs:
@@ -104,6 +108,7 @@ class FundCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Fund
 
     def get(self, request, *args, **kwargs):
+        """Prepare Fund creation in Project context."""
         kw = self.get_form_kwargs()
         initial={}   
         initial={'user':request.user}
@@ -148,6 +153,7 @@ class BudgetCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Budget
 
     def get(self, request, *args, **kwargs):
+        """Prepare Budget creation in Fund context."""
         kw = self.get_form_kwargs()
         initial={}        
         if 'project' in kwargs:

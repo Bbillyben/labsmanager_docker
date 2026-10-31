@@ -30,6 +30,7 @@ CHILDREN = {"infos": (OrganizationInfos, OrganizationInfosType, "info"), "contac
 
 
 def model_for(kind):
+    """Select the organization model declared by an API kind."""
     model = KINDS.get(kind)
     if model is None:
         raise Http404
@@ -37,15 +38,18 @@ def model_for(kind):
 
 
 def allowed(user, model, action, obj=None):
+    """Check whether the user may perform an action on an organization."""
     permission = f"{model._meta.app_label}.{action}_{model._meta.model_name}"
     return user.has_perm(permission) or bool(obj and user.has_perm(permission, obj))
 
 
 def capabilities(user, model, obj=None):
+    """Return available actions for an organization and its children."""
     return {"can_add": allowed(user, model, "add"), "can_change": bool(obj and allowed(user, model, "change", obj)), "can_delete": bool(obj and allowed(user, model, "delete", obj))}
 
 
 def visible_org(user, kind, pk):
+    """Resolve an organization through the caller's view permissions."""
     model = model_for(kind)
     if not user.has_perm("common.display_infos"):
         raise Http404
@@ -53,12 +57,14 @@ def visible_org(user, kind, pk):
 
 
 def require(user, model, action, obj=None):
+    """Reject an organization action without the required permission."""
     if not allowed(user, model, action, obj):
         from rest_framework.exceptions import PermissionDenied
         raise PermissionDenied
 
 
 def validate_save(obj):
+    """Run Django model validation before saving an organization object."""
     try:
         obj.full_clean()
         obj.save()
@@ -69,6 +75,7 @@ def validate_save(obj):
 
 
 def org_data(user, org):
+    """Serialize an organization and its contextual action rights."""
     rights = capabilities(user, type(org), org)
     relation = "institution" if isinstance(org, Institution) else "funder"
     has_funds = getattr(org, "_has_funds", None)
@@ -84,6 +91,7 @@ def type_data(value):
 
 
 def child_data(user, obj, kind):
+    """Serialize a child relation under its parent organization."""
     result = {"id": obj.pk, "admin_url": get_admin_change_url(user, obj), "capabilities": capabilities(user, type(obj), obj)}
     if kind == "contacts":
         result.update(first_name=obj.first_name, last_name=obj.last_name, type=type_data(obj.type), comment=obj.comment)
@@ -93,18 +101,21 @@ def child_data(user, obj, kind):
 
 
 def visible_funds(user, org):
+    """Return Funds connected to organizations visible to the caller."""
     field = "institution" if isinstance(org, Institution) else "funder"
     base = Fund.objects.filter(**{field: org})
     return Fund.get_instances_for_user("view", user, base).filter(pk__in=base.values("pk"))
 
 
 def visible_projects(user, org, funds=None):
+    """Return Projects connected to organizations visible to the caller."""
     funds = funds if funds is not None else visible_funds(user, org)
     base = Project.objects.filter(pk__in=funds.values("project_id"))
     return Project.get_instances_for_user("view", user, base).filter(pk__in=base.values("pk")).distinct()
 
 
 def visible_contracts(user, org, funds=None):
+    """Return Contracts connected to organizations visible to the caller."""
     funds = funds if funds is not None else visible_funds(user, org)
     projects = visible_projects(user, org, funds)
     base = Contract.objects.filter(fund__in=funds, fund__project__in=projects)
@@ -112,9 +123,11 @@ def visible_contracts(user, org, funds=None):
 
 
 class OrganizationList(APIView):
+    """List or create organizations of the requested kind."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, kind):
+        """List visible organizations with search and pagination."""
         model = model_for(kind)
         if not request.user.has_perm("common.display_infos"):
             raise Http404
@@ -132,6 +145,7 @@ class OrganizationList(APIView):
         return result
 
     def post(self, request, kind):
+        """Create an organization after model and permission checks."""
         model = model_for(kind)
         if not request.user.has_perm("common.display_infos"):
             raise Http404
@@ -145,12 +159,14 @@ class OrganizationList(APIView):
 
 
 class OrganizationDetail(APIView):
+    """Read, update, or remove one visible organization."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, kind, pk):
         return Response(org_data(request.user, visible_org(request.user, kind, pk)))
 
     def patch(self, request, kind, pk):
+        """Update a visible organization after checking change authority."""
         obj = visible_org(request.user, kind, pk)
         require(request.user, type(obj), "change", obj)
         data = OrganizationWrite(data=request.data, partial=True)
@@ -162,6 +178,7 @@ class OrganizationDetail(APIView):
         return Response(org_data(request.user, obj))
 
     def delete(self, request, kind, pk):
+        """Remove an organization after checking delete authority."""
         obj = visible_org(request.user, kind, pk)
         require(request.user, type(obj), "delete", obj)
         relation = "institution" if isinstance(obj, Institution) else "funder"
@@ -176,11 +193,13 @@ class OrganizationDetail(APIView):
 
 
 class OrganizationWrite(serializers.Serializer):
+    """Validate fields accepted by organization create and update."""
     short_name = serializers.CharField(max_length=20)
     name = serializers.CharField(max_length=150)
 
 
 class ChildWrite(serializers.Serializer):
+    """Validate a relation owned by an organization."""
     type_id = serializers.IntegerField(required=False)
     info_id = serializers.IntegerField(required=False)
     first_name = serializers.CharField(max_length=50, required=False)
@@ -201,9 +220,11 @@ class OrganizationOptions(APIView):
 
 
 class OrganizationChildren(APIView):
+    """Read or add child relations for a visible organization."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, kind, pk, collection):
+        """List child records for a visible organization."""
         org = visible_org(request.user, kind, pk)
         model, _, relation = CHILDREN[collection]
         ct = ContentType.objects.get_for_model(org)
@@ -211,6 +232,7 @@ class OrganizationChildren(APIView):
         return Response({"items": [child_data(request.user, x, collection) for x in items], "capabilities": {"can_add": allowed(request.user, model, "add")}})
 
     def post(self, request, kind, pk, collection):
+        """Create a child record under an authorized organization."""
         org = visible_org(request.user, kind, pk)
         model, type_model, relation = CHILDREN[collection]
         require(request.user, model, "add")
@@ -229,6 +251,7 @@ class OrganizationChildren(APIView):
 
 
 class OrganizationChildDetail(APIView):
+    """Read, update, or remove an organization child relation."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def child(self, request, kind, pk, collection, item_id):
@@ -240,6 +263,7 @@ class OrganizationChildDetail(APIView):
         return Response(child_data(request.user, self.child(request, kind, pk, collection, item_id), collection))
 
     def patch(self, request, kind, pk, collection, item_id):
+        """Update an organization child after contextual validation."""
         obj = self.child(request, kind, pk, collection, item_id)
         require(request.user, type(obj), "change", obj)
         data = ChildWrite(data=request.data, partial=True)
@@ -265,6 +289,7 @@ class OrganizationChildDetail(APIView):
 
 
 class ContactInfos(APIView):
+    """Read or add contact information for an organization."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, kind, pk, contact_id):
@@ -273,6 +298,7 @@ class ContactInfos(APIView):
         return Response({"items": [child_data(request.user, x, "infos") for x in items], "capabilities": {"can_add": allowed(request.user, ContactInfo, "add")}})
 
     def post(self, request, kind, pk, contact_id):
+        """Add contact information to a visible organization."""
         contact = OrganizationChildDetail().child(request, kind, pk, "contacts", contact_id)
         require(request.user, ContactInfo, "add")
         data = ChildWrite(data=request.data)
@@ -287,6 +313,7 @@ class ContactInfos(APIView):
 
 
 class ContactInfoDetail(APIView):
+    """Read, update, or remove one contact-information record."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def child(self, request, kind, pk, contact_id, item_id):
@@ -297,6 +324,7 @@ class ContactInfoDetail(APIView):
         return Response(child_data(request.user, self.child(request, kind, pk, contact_id, item_id), "infos"))
 
     def patch(self, request, kind, pk, contact_id, item_id):
+        """Update an organization contact-information record."""
         obj = self.child(request, kind, pk, contact_id, item_id)
         require(request.user, ContactInfo, "change", obj)
         data = ChildWrite(data=request.data, partial=True)
@@ -318,9 +346,11 @@ class ContactInfoDetail(APIView):
 
 
 class OrganizationProjects(APIView):
+    """List Projects connected to a visible organization."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, kind, pk):
+        """List visible Projects linked to an organization."""
         org = visible_org(request.user, kind, pk)
         funds = visible_funds(request.user, org)
         projects = visible_projects(request.user, org, funds)
@@ -329,9 +359,11 @@ class OrganizationProjects(APIView):
 
 
 class OrganizationContracts(APIView):
+    """List Contracts connected to a visible organization."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, kind, pk):
+        """List visible Contracts linked to an organization."""
         org = visible_org(request.user, kind, pk)
         scoped = visible_contracts(request.user, org)
         contracts = list(contract_hub_queryset(request.user).filter(pk__in=scoped.values("pk")).order_by("employee__last_name", "employee__first_name", "pk"))
@@ -340,9 +372,11 @@ class OrganizationContracts(APIView):
 
 
 class OrganizationSummary(APIView):
+    """Return counts and summary data for a visible organization."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, kind, pk):
+        """Aggregate visible linked records for the organization summary."""
         org = visible_org(request.user, kind, pk)
         funds = visible_funds(request.user, org).select_related("project")
         projects = visible_projects(request.user, org, funds)

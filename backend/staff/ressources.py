@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 
 class StatusWidget(widgets.CharWidget):
     
+    """Render an Employee status for tabular export."""
     param=None
     def __init__(self, param=''):
         super().__init__()
@@ -29,6 +30,7 @@ class StatusWidget(widgets.CharWidget):
             return "-"
 class AllStatusWidget(widgets.CharWidget):
     
+    """Render status history for tabular export."""
     param=[]
     def __init__(self, param=''):
         super().__init__()
@@ -45,6 +47,7 @@ class AllStatusWidget(widgets.CharWidget):
             return "-"
           
 class ContractWidget(widgets.CharWidget):
+    """Render Employee Contracts for tabular export."""
     def render(self, value, obj=None):
         
         v= value.filter(Q(is_active=True) & getDateFilter())
@@ -61,6 +64,7 @@ class ContractWidget(widgets.CharWidget):
         return "\n".join(li)
     
 class ProjectWidget(widgets.CharWidget):
+    """Render Project participation for tabular export."""
     def render(self, value, obj=None):
         v= value.filter(Q(project__status=True)) # & getDateFilter())
         li=[]
@@ -75,6 +79,7 @@ class ProjectWidget(widgets.CharWidget):
         return "\n".join(li)
     
 class SuperiorWidget(widgets.CharWidget):
+     """Render Employee superior relations for tabular export."""
      def render(self, value, obj=None):
         li=[]
         for c in value:
@@ -84,6 +89,7 @@ class SuperiorWidget(widgets.CharWidget):
         return ", ".join(li)
     
 class EmployeeResource(labResource, SkipErrorRessource):
+    """Export Employee identity and related staffing data."""
     first_name = Field(
         column_name=_('First Name'),
         attribute='first_name', 
@@ -191,6 +197,7 @@ class EmployeeResource(labResource, SkipErrorRessource):
          ]
   
 class EmployeeAdminResource(labResource, SkipErrorRessource):
+    """Import Employee records through Django Admin."""
     first_name = Field(
         column_name=_('First Name'),
         attribute='first_name', 
@@ -237,6 +244,7 @@ class EmployeeAdminResource(labResource, SkipErrorRessource):
     
     def before_import_row(self, row, row_number=None, **kwargs):
         
+        """Normalize Employee fields before Admin import validation."""
         query = Q()
         first_name = row.get('First Name', None)
         if first_name is not None:
@@ -264,6 +272,7 @@ class EmployeeAdminResource(labResource, SkipErrorRessource):
         
 class TeamMateWidget(widgets.CharWidget):
     
+    """Render Team memberships for tabular export."""
     def render(self, value, obj=None):
         pa = obj.loaded_mates if obj is not None and hasattr(obj, 'loaded_mates') else TeamMate.objects.filter(team=value).select_related('employee')
         
@@ -279,6 +288,7 @@ class TeamMateWidget(widgets.CharWidget):
         return "\n".join(li)       
 class TeamResource(labResource):
     
+    """Export Team identity and membership data."""
     name = Field(
         column_name=_('Team Name'),
         attribute='name', 

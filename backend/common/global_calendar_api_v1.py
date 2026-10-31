@@ -37,6 +37,7 @@ def _within_range(event, context):
 
 
 def _filtered_employees(request):
+    """Return Employees visible under the selected global-calendar filters."""
     visible = Employee.get_instances_for_user("view", request.user, Employee.objects.all())
     filtered = EmployeeListV1Filter(request.query_params, queryset=visible, request=request)
     if not filtered.is_valid():
@@ -51,6 +52,7 @@ def _filtered_employees(request):
 
 
 def _filtered_projects(request):
+    """Return Projects visible under the selected global-calendar filters."""
     visible = Project.get_instances_for_user("view", request.user, Project.objects.all())
     filtered = ProjectListV1Filter(request.query_params, queryset=visible, request=request)
     if not filtered.is_valid():
@@ -90,6 +92,7 @@ class GlobalEmployeeCalendar(GlobalCalendarBase):
     calendar_type = CalendarType.MAIN
 
     def get(self, request):
+        """Return visible Employee events for a date range."""
         context = self.context(request, bounded=True)
         service = CalendarService()
         employees = _filtered_employees(request)
@@ -126,6 +129,7 @@ class GlobalProjectPlanning(GlobalCalendarBase):
     calendar_type = CalendarType.PROJECT_ALL
 
     def get(self, request):
+        """Return visible Project planning events for a date range."""
         context = self.context(request, bounded=True)
         projects = _filtered_projects(request).filter(
             Q(start_date__lte=context.end) | Q(start_date__isnull=True),
@@ -163,6 +167,7 @@ class GlobalProjectPlanning(GlobalCalendarBase):
 
 
 class GlobalCalendarFilters(GlobalCalendarBase):
+    """Return filter options available in global calendars."""
     def get(self, request, scope):
         if scope not in ("employees", "projects"):
             raise ValidationError({"scope": "Unknown calendar scope."})

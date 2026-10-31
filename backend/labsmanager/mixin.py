@@ -26,9 +26,11 @@ class TableViewMixin(SingleTableMixin):
     # disable pagination to retrieve all data
     # https://mattsch.com/2021/05/28/django-django_tables2-and-bootstrap-table/
     
+    """Add table context and response handling to legacy views."""
     table_pagination = False
 
     def get_context_data(self, **kwargs):
+        """Add table configuration to a legacy view context."""
         context = super().get_context_data(**kwargs)
 
         # build list of columns and convert it to an
@@ -83,6 +85,7 @@ class CachedModelMixin(models.Model):
                    
             
 class CachedModelDispatchMixin(CachedModelMixin):
+    """Dispatch cache updates when a model is saved."""
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         cmm_postsave.send(sender=self.__class__, instance=self)
@@ -132,6 +135,7 @@ class LabsManagerFocusBudgetMixin(LabsManagerBudgetMixin):
             return "-"
     
 class LabsManagerFocusTypeMixin(models.Model):
+    """Associate a model with a focus-aware cost type."""
     class Meta:
         abstract = True
     type = models.ForeignKey('fund.Cost_Type', on_delete=models.CASCADE, verbose_name=_('Type'))
@@ -196,11 +200,13 @@ class DateMixin(models.Model):
     
 class ActiveDateMixin(DateMixin):
         
+    """Provide active-period filters for dated records."""
     class Meta:
         abstract = True
         
     @property
     def is_active(self):
+        """Check whether the current date falls within this record's active period."""
         is_a = True
         if self.start_date:
             is_a =is_a & (self.start_date <= date.today())
@@ -238,6 +244,7 @@ class CrumbListMixin():
         return self.crumbListQuerySet
     
     def has_crumb_permission(self):
+        """Check whether a breadcrumb target is visible to the user."""
         if not self.request.user.is_authenticated:
             return False
         if self.request.user.is_staff:
@@ -250,6 +257,7 @@ class CrumbListMixin():
         return False
         
     def get_context_data(self, **kwargs):
+        """Add accessible breadcrumb entries to the template context."""
         context = super().get_context_data(**kwargs)
         
         if not self.has_crumb_permission():
@@ -297,6 +305,7 @@ class CreateModalNavigateMixin(BSModalCreateView):
             return self.form_invalid(form)
         
     def form_valid(self, form):
+        """Save a modal form and choose its configured navigation target."""
         isAjaxRequest = is_ajax(self.request.META)
         asyncUpdate = self.request.POST.get('asyncUpdate') == 'True'
 
@@ -333,6 +342,7 @@ class IconFormMixin:
     ''' Mixin class to load specific JS for modal with FAIcon fields'''
     @property
     def media(self):
+        """Include the icon picker assets needed by the form."""
         response = super().media
         response._js_lists.clear()
         response._js_lists.append(['js/faicon_in/faicon.js'])
@@ -354,6 +364,7 @@ class TimeStampMixin(models.Model):
 # to provide list of instance for models
 from settings.models import LabsManagerSetting
 class RightsCheckerMixin():
+    """Centralize legacy model and object visibility filtering."""
     class Meta:
         abstract=True
         
@@ -395,6 +406,7 @@ class RightsCheckerMixin():
     
     @classmethod
     def annotate_queryset(cls, queryset, user, perm):
+        """Annotate legacy querysets with permission-related fields."""
         perm_str = cls.get_perm_string(perm)
         if not perm_str:
             return queryset.annotate(has_perm=Value(False))
@@ -424,6 +436,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 
 class LabPaginationMixin:
+    """Parse legacy list pagination, filtering, search, and ordering."""
     pagination_class = LabPagination
     search_fields = None
     extra_search_fields = []
@@ -482,6 +495,7 @@ class LabPaginationMixin:
         )
     
     def get_search_fields(self, queryset, serializer_class=None):
+        """Resolve allowed search fields for a legacy list."""
         fields = []
 
         serializer = self.get_serializer_instance(
@@ -510,6 +524,7 @@ class LabPaginationMixin:
         return list(dict.fromkeys(fields))
 
     def apply_search(self, queryset, serializer_class=None):
+        """Apply validated search fields to a queryset."""
         search = self.request.query_params.get("search")
 
         if not search:
@@ -572,6 +587,7 @@ class LabPaginationMixin:
             return None
 
     def apply_ordering(self, queryset):
+        """Apply a validated ordering choice to a queryset."""
         ordering = self.request.query_params.get("ordering")
 
         if not ordering:
@@ -609,6 +625,7 @@ class LabPaginationMixin:
         return queryset
 
     def paginated_response(self, queryset, serializer_class=None, many=True):
+        """Build a paginated response with list metadata."""
         queryset = self.prepare_queryset(
             queryset,
             serializer_class=serializer_class,

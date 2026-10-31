@@ -87,6 +87,7 @@ class FrenchHollidayPlugin(DashboardPluginMixin, CalendarEventMixin, SettingsMix
         ),)
 
     def get_dashboard_holidays(self, context, config):
+        """Build upcoming French holiday Dashboard data from local calendar events."""
         today = timezone.localdate()
         horizon = config.get("horizon_days", 180)
         limit = config.get("limit", 5)
@@ -121,6 +122,7 @@ class FrenchHollidayPlugin(DashboardPluginMixin, CalendarEventMixin, SettingsMix
             self.__class__.FHP_pull()
 
     def deactivate(self):
+        """Remove locally cached holiday files when the sample plugin deactivates."""
         logger.debug(f"[FHP] Start {self.__class__.__name__} deactivation .....")
 
         folder = Path(self.__class__.get_static_folder())
@@ -149,6 +151,7 @@ class FrenchHollidayPlugin(DashboardPluginMixin, CalendarEventMixin, SettingsMix
 
     @classmethod
     def FHP_pull(cls):
+        """Download and cache the holiday datasets used by the sample calendar."""
         logger.debug("[FrenchHollidayPlugin / FHP_pull] starting ...")
 
         vac_url = "https://data.education.gouv.fr/api/v2/catalog/datasets/fr-en-calendrier-scolaire/exports/json"
@@ -236,6 +239,7 @@ class FrenchHollidayPlugin(DashboardPluginMixin, CalendarEventMixin, SettingsMix
 
     @classmethod
     def get_vacation_events(cls, context):
+        """Convert cached vacation dates into shared calendar events."""
         folder = Path(cls.get_static_folder())
 
         vac_json = cls.load_json_file(folder / "vac.json", default=[])
@@ -359,6 +363,7 @@ class FrenchHollidayPlugin(DashboardPluginMixin, CalendarEventMixin, SettingsMix
         return  data
     @classmethod
     def get_vacation_zones_choices(cls):
+            """Return vacation-zone choices from the cached dataset."""
             folder = Path(cls.get_static_folder())
             path = folder / "vac.json"
             if not path.is_file():

@@ -76,6 +76,7 @@ class ParticipantModelForm(BSModalModelForm):
         }
         
     def __init__(self, *args, **kwargs):
+        """Configure Employee and Project choices for a participation form."""
         if ('initial' in kwargs and 'project' in kwargs['initial']):
             self.base_fields['project'] = forms.ModelChoiceField(
                 queryset=models.Project.objects.all(),

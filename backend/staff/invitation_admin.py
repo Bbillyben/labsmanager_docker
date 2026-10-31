@@ -16,6 +16,7 @@ from .models import Employee, InvitationProvisioning
 
 class ProvisioningFields:
     def __init__(self, *args, **kwargs):
+        """Limit Employee and group choices to those assignable by the inviter."""
         super().__init__(*args, **kwargs)
         self.was_accepted = bool(self.instance.pk and self.instance.accepted)
         provisioning = InvitationProvisioning.objects.filter(invitation=self.instance).first() if self.instance.pk else None
@@ -37,6 +38,7 @@ class ProvisioningFields:
                 self.fields["groups"].disabled = True
 
     def clean(self):
+        """Validate Employee and group provisioning selected in Admin."""
         data = super().clean()
         if self.was_accepted:
             return data
@@ -76,6 +78,7 @@ class LabsInvitationAdmin(BaseInvitationAdmin):
         return form
 
     def save_related(self, request, form, formsets, change):
+        """Persist invitation provisioning after the Admin form saves."""
         super().save_related(request, form, formsets, change)
         invitation = form.instance
         if form.was_accepted or invitation.accepted:

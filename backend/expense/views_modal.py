@@ -1,3 +1,5 @@
+"""Legacy modal views for Contracts and Expenses."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
@@ -26,6 +28,7 @@ class ContractCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Contract
 
     def get(self, request, *args, **kwargs):
+        """Prepare Contract creation with related Employee and Fund choices."""
         kw = self.get_form_kwargs()
         initial={} 
         
@@ -74,6 +77,7 @@ class ContractExpenseCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Contract_expense
 
     def get(self, request, *args, **kwargs):
+        """Prepare an Expense form in Contract context."""
         kw = self.get_form_kwargs()
         initial={} 
         
@@ -131,6 +135,7 @@ class ExpenseModalView():
         abstract = True
         
     def get_object(self, queryset=None):
+        """Resolve the Expense selected by the legacy modal."""
         pk = self.kwargs.get(self.pk_url_kwarg)
         slug = self.kwargs.get(self.slug_url_kwarg)
         
@@ -183,6 +188,7 @@ class ExpenseCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Expense
 
     def get(self, request, *args, **kwargs):
+        """Prepare an Expense form in Fund context."""
         kw = self.get_form_kwargs()
         initial={} 
         
@@ -207,6 +213,7 @@ class ConfirmSyncView(LoginRequiredMixin, BSmodalConfirmViewMixin):
     hidden_field=['fund_id']
     
     def action(self, *args, **kwargs):
+        """Run the confirmed expense synchronization action."""
         if not "fund_id" in kwargs:
             raise ImproperlyConfigured(
                     "ConfirmSyncView's action method needs 'fund_id' paramater, none has been provided in kwargs" 

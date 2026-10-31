@@ -23,6 +23,7 @@ class Command(BaseCommand):
         
     
     def handle(self, *args, **options):
+        """Migrate legacy expense timepoint records via the command."""
         self.stdout.write("COMMAND etp_migrate called", ending='')
         logger.debug("COMMAND etp_migrate called")
         logger.debug(" use delete : "+str(options['delete']))

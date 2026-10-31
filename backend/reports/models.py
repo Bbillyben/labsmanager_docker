@@ -56,6 +56,7 @@ def rename_template(instance, filename):
 
 class BaseReport(models.Model):
     
+    """Store shared report metadata and template-file behavior."""
     class Meta:
         abstract = True
         
@@ -141,6 +142,7 @@ class BaseReport(models.Model):
     )
 
 class TemplateReport(BaseReport):  
+    """Render a report template from model-specific context."""
     objects = FileModelManager()
     
     class Meta:
@@ -188,6 +190,7 @@ class TemplateReport(BaseReport):
         return template_string.render(context)
     def render(self, request, options):
         # rendering    
+        """Render the report into its output format."""
         raise  Exception("render method as to be overriden in TemplateReport")
     
     def download_link(self):
@@ -220,11 +223,13 @@ class TemplateReport(BaseReport):
     )
     
 class WordReport(TemplateReport):   
+    """Render a report as a Word document."""
     class Meta:
         abstract = True
     
     
     def render(self, request, options):
+        """Render a Word template with report context."""
         options["rendering"]="word"
         # rendering    
         doc = DocxTemplate(self.template_name)
@@ -258,6 +263,7 @@ class WeasyprintReportMixin(WeasyTemplateResponseMixin):
         self.pdf_filename = kwargs.get('filename', 'report.pdf')
         
 class PdfReport(TemplateReport):
+    """Render a report as a PDF document."""
     class Meta:
         abstract = True
         
@@ -274,10 +280,12 @@ class PdfReport(TemplateReport):
         return wp.render_to_response(context, **kwargs)
     
 class EmployeeReport(TemplateReport):   
+    """Provide Employee-specific report context."""
     class Meta:
         abstract = True
            
     def get_context_data(self, request, options):              
+        """Build Employee fields for report templates."""
         pk=options.get('pk', None)
         start_date = request.GET.get("start_date", None)
         end_date = request.GET.get("end_date", None)
@@ -359,10 +367,12 @@ from project.views import get_project_fund_overviewReport_bytType
 from project.models import GenericInfoProject
 from expense.models import Expense
 class ProjectReport(TemplateReport):
+    """Provide Project-specific report context."""
     class Meta:
         abstract = True
     
     def get_context_data(self, request, options):
+        """Build Project fields for report templates."""
         pk=options.get('pk', None)
         if not pk:
             return {}

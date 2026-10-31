@@ -1,3 +1,5 @@
+"""Legacy modal views for Employees, Teams, and hierarchy relations."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView, BSModalFormView
@@ -58,6 +60,7 @@ class TeamMateCreateView(LoginRequiredMixin, BSModalCreateView):
     success_url = reverse_lazy('team_index')
     
     def get(self, request, *args, **kwargs):
+        """Prepare Team membership creation for a selected Team."""
         kw = self.get_form_kwargs()
         initial={} 
         data=request.GET
@@ -130,6 +133,7 @@ class UserEmployeeUpdateView(LoginRequiredMixin, BSModalFormView):
     
     def post(self, request, *args, **kwargs):
         
+        """Update a user-Employee link through the legacy modal."""
         if not 'pk' in kwargs:
             raise ObjectDoesNotExist("User Pk not in post request")
         try:
@@ -186,6 +190,7 @@ class EmployeeSuperiorCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Employee_Superior
     
     def get(self, request, *args, **kwargs):
+        """Prepare a superior relation form for an Employee."""
         kw = self.get_form_kwargs()
         initial={}
         if 'employee' in kwargs:
@@ -205,6 +210,7 @@ class EmployeeSubordinateCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Employee_Superior
     
     def get(self, request, *args, **kwargs):
+        """Prepare a subordinate relation form for an Employee."""
         kw = self.get_form_kwargs()
         initial={}        
         if 'employee' in kwargs:

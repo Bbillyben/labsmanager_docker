@@ -20,6 +20,7 @@ class Command(BaseCommand):
         
     
     def handle(self, *args, **options):
+        """Remove duplicate funding records using the command options."""
         logger.debug("COMMAND remove_duplicate CALLED")
         self.stdout.write("COMMAND remove_duplicate", ending='\n')
         unik=AmountHistory.objects.values('content_type','object_id', 'value_date', 'amount').distinct()

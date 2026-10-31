@@ -41,6 +41,7 @@ def visible_teams(user, queryset=None):
 
 
 def can_change_team(user, team):
+    """Return whether the user may change this Team globally or as an object."""
     return bool(user.has_perm("staff.change_team") or user.has_perm("staff.change_team", team))
 
 
@@ -60,6 +61,19 @@ def team_create_capabilities(user):
 
 
 def validated_employee(value, field="employee_id", active=False):
+    """Resolve an Employee identifier and optionally require an active record.
+
+    Args:
+        value: Identifier received from the request payload.
+        field: Payload key used in validation errors.
+        active: Whether inactive Employees must be rejected.
+
+    Returns:
+        The matching Employee.
+
+    Raises:
+        ValidationError: If the identifier is unknown or the Employee is inactive.
+    """
     try:
         employee = Employee.objects.get(pk=value)
     except (Employee.DoesNotExist, ValueError, TypeError):
@@ -70,6 +84,18 @@ def validated_employee(value, field="employee_id", active=False):
 
 
 def validated_date(value, field):
+    """Parse an optional ISO date from an API payload.
+
+    Args:
+        value: Date string or an empty value.
+        field: Payload key used in validation errors.
+
+    Returns:
+        A date, or ``None`` for an empty value.
+
+    Raises:
+        ValidationError: If the value is not an ISO date.
+    """
     if value in (None, ""):
         return None
     try:
@@ -79,6 +105,7 @@ def validated_date(value, field):
 
 
 def validate_model(instance):
+    """Run TeamMate date ordering and Django model validation before saving."""
     if isinstance(instance, TeamMate) and instance.start_date and instance.end_date and instance.end_date < instance.start_date:
         raise ValidationError({"end_date": "Must be on or after start_date."})
     try:
@@ -88,12 +115,14 @@ def validate_model(instance):
 
 
 def team_members(team):
+    """Return the Team leader and all Employees with TeamMate records."""
     return Employee.objects.filter(
         Q(pk=team.leader_id) | Q(pk__in=TeamMate.objects.filter(team=team).values("employee_id"))
     ).distinct()
 
 
 def employee_data(employee, visible_ids):
+    """Serialize an Employee with the caller's object-level view capability."""
     return {
         "id": employee.pk, "name": str(employee),
         "can_view": employee.pk in visible_ids,
@@ -139,6 +168,7 @@ def team_queryset(user):
 
 
 def team_data(team, user, visible_ids, can_view=True):
+    """Build the Team detail payload with members and contextual capabilities."""
     can_change = can_change_team(user, team)
     return {
         "id": team.pk, "admin_url": get_admin_change_url(user, team), "name": team.name,
@@ -156,6 +186,7 @@ def team_data(team, user, visible_ids, can_view=True):
 
 
 def visible_employee_ids(user, teams):
+    """Return identifiers of Employees the user may view."""
     employee_ids = {team.leader_id for team in teams}
     employee_ids.update(mate.employee_id for team in teams for mate in team.loaded_mates)
     return set(Employee.get_instances_for_user("view", user, Employee.objects.filter(
@@ -164,6 +195,7 @@ def visible_employee_ids(user, teams):
 
 
 class TeamListV1View(generics.ListAPIView):
+    """List visible Teams and create Teams under the existing leader rules."""
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = LabPagination
     filter_backends = (filters.OrderingFilter,)
@@ -171,6 +203,7 @@ class TeamListV1View(generics.ListAPIView):
     ordering = ("name", "pk")
 
     def get_queryset(self):
+        """Return the permission-filtered, preloaded Team queryset for the list."""
         query = team_queryset(self.request.user)
         params = self.request.query_params
         if params.get("name"):
@@ -187,6 +220,7 @@ class TeamListV1View(generics.ListAPIView):
         return query
 
     def list(self, request, *args, **kwargs):
+        """Include Team creation capabilities with the paginated Team list."""
         query = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(query)
         teams = list(page if page is not None else query)
@@ -197,6 +231,7 @@ class TeamListV1View(generics.ListAPIView):
         return response
 
     def post(self, request, *args, **kwargs):
+        """Validate creation and select the permitted leader before saving a Team."""
         capability = team_create_capabilities(request.user)
         if not capability["can_add"]:
             raise PermissionDenied()
@@ -217,17 +252,21 @@ class TeamListExportV1View(TeamListV1View):
     content_negotiation_class = ListExportContentNegotiation
 
     def get(self, request, *args, **kwargs):
+        """Export the current permission-filtered Team list."""
         query = self.filter_queryset(self.get_queryset())
         return export_list_queryset(request, query, TeamResource, "Team")
 
 
 class TeamBaseV1View(APIView):
+    """Resolve the visible Team and enforce object-level mutation access."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def team(self):
+        """Return the Team identified by the URL if it is visible to the caller."""
         return get_object_or_404(team_queryset(self.request.user), pk=self.kwargs["team_id"])
 
     def require_change(self, team):
+        """Reject a Team mutation when the caller lacks change access."""
         if not can_change_team(self.request.user, team):
             raise PermissionDenied()
 
@@ -238,6 +277,7 @@ class TeamDetailV1View(TeamBaseV1View):
         return Response(team_data(team, request.user, visible_employee_ids(request.user, [team])))
 
     def patch(self, request, *args, **kwargs):
+        """Update a Team after checking the caller's change access."""
         team = self.team()
         self.require_change(team)
         if not request.data or set(request.data) - {"name", "leader_id"}:
@@ -265,7 +305,9 @@ class TeamDetailV1View(TeamBaseV1View):
 
 
 class TeamMateCollectionV1View(TeamBaseV1View):
+    """Create Team membership relations for a visible, editable Team."""
     def post(self, request, *args, **kwargs):
+        """Create a dated TeamMate relation after model validation."""
         team = self.team()
         self.require_change(team)
         if "employee_id" not in request.data or set(request.data) - {"employee_id", "start_date", "end_date"}:
@@ -280,7 +322,9 @@ class TeamMateCollectionV1View(TeamBaseV1View):
 
 
 class TeamMateDetailV1View(TeamBaseV1View):
+    """Update or remove one Team membership relation."""
     def patch(self, request, *args, **kwargs):
+        """Update a TeamMate relation after model validation."""
         team = self.team()
         self.require_change(team)
         relation = get_object_or_404(TeamMate, team=team, pk=self.kwargs["mate_id"])
@@ -301,6 +345,7 @@ class TeamMateDetailV1View(TeamBaseV1View):
                          "is_active": relation.is_active})
 
     def delete(self, request, *args, **kwargs):
+        """Remove a TeamMate relation after checking Team access."""
         team = self.team()
         self.require_change(team)
         get_object_or_404(TeamMate, team=team, pk=self.kwargs["mate_id"]).delete()
@@ -308,6 +353,7 @@ class TeamMateDetailV1View(TeamBaseV1View):
 
 
 def led_projects(team, user):
+    """Return Projects led by the Team leader or its members."""
     member_ids = team_members(team).values("pk")
     relevant = Participant.objects.filter(employee_id__in=member_ids, status__in=("l", "cl")).values("project_id")
     visible = Project.get_instances_for_user("view", user, Project.objects.filter(pk__in=relevant))
@@ -326,6 +372,7 @@ class TeamProjectsV1View(TeamBaseV1View):
 
 class TeamBudgetsV1View(TeamBaseV1View):
     def get(self, request, *args, **kwargs):
+        """Return Budgets linked to visible Team Projects."""
         project_ids = led_projects(self.team(), request.user).values("pk")
         visible_funds = Fund.get_instances_for_user("view", request.user, Fund.objects.filter(project_id__in=project_ids))
         visible = Budget.get_instances_for_user("view", request.user, Budget.objects.filter(fund__in=visible_funds))
@@ -339,7 +386,9 @@ class TeamBudgetsV1View(TeamBaseV1View):
 
 
 class TeamCalendarBaseV1View(TeamBaseV1View):
+    """Build the Team-scoped calendar context shared by calendar endpoints."""
     def context(self, bounded=False):
+        """Resolve Team visibility and construct the calendar service context."""
         team = self.team()
         start = end = None
         if bounded:
@@ -381,6 +430,7 @@ class TeamCalendarParticipantsV1View(TeamCalendarBaseV1View):
 
 class TeamCalendarLeaveCreateV1View(TeamCalendarBaseV1View):
     def post(self, request, *args, **kwargs):
+        """Create Leave from the Team calendar when the Employee is editable."""
         team = self.team()
         try:
             employee_id = int(request.data.get("employee_id"))
@@ -403,6 +453,7 @@ class TeamCalendarLeaveDetailV1View(TeamCalendarBaseV1View):
         )
 
     def patch(self, request, *args, **kwargs):
+        """Update Leave from the Team calendar after Employee permission checks."""
         leave = self.leave()
         if not leave_capabilities(request.user, leave.employee)["can_change"]:
             raise PermissionDenied()

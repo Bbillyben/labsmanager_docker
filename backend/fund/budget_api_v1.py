@@ -23,11 +23,13 @@ def project_change(user, project):
 
 
 def capabilities(user, project):
+    """Return contextual actions for a Budget or Contribution."""
     allowed = project_change(user, project)
     return {"can_add": allowed, "can_change": allowed, "can_delete": allowed}
 
 
 def relation(item):
+    """Resolve the related funding object for a budget row."""
     return {"id": item.pk, "name": str(item)} if item else None
 
 
@@ -58,6 +60,7 @@ def budget_data(item, user, project, kind):
 
 
 class BudgetContributionWriteSerializer(serializers.Serializer):
+    """Validate Budget and Contribution writes in Project context."""
     fund_id = serializers.PrimaryKeyRelatedField(source="fund", queryset=Fund.objects.all(), required=False)
     cost_type_id = serializers.PrimaryKeyRelatedField(source="cost_type", queryset=Cost_Type.objects.all(), required=False)
     amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, allow_null=True)
@@ -70,6 +73,7 @@ class BudgetContributionWriteSerializer(serializers.Serializer):
     end_date = serializers.DateField(required=False, allow_null=True)
 
     def to_internal_value(self, data):
+        """Reject unknown fields in a funding write request."""
         if isinstance(data, dict):
             forbidden = set(data) - set(self.fields)
             if forbidden:
@@ -81,6 +85,7 @@ class BudgetContributionWriteSerializer(serializers.Serializer):
         return super().to_internal_value(data)
 
     def validate(self, attrs):
+        """Validate funding references, amounts, and dates."""
         project = self.context["project"]
         fund = attrs.get("fund", self.instance.fund if self.instance else None)
         cost_type = attrs.get("cost_type", self.instance.cost_type if self.instance else None)
@@ -102,6 +107,7 @@ class BudgetContributionWriteSerializer(serializers.Serializer):
         return attrs
 
     def save(self, **kwargs):
+        """Persist the validated Budget or Contribution."""
         values = dict(self.validated_data)
         contract_types = values.pop("contract_types", None)
         model = Budget if self.context["kind"] == "budget" else Contribution
@@ -132,6 +138,7 @@ class ProjectBudgetBase(APIView):
         return self._project
 
     def visible_funds(self):
+        """Return Funds visible in the selected Project."""
         if not hasattr(self, "_funds"):
             self._funds = Fund.get_instances_for_user(
                 "view", self.request.user, Fund.objects.filter(project=self.project())
@@ -147,6 +154,7 @@ class ProjectBudgetBase(APIView):
         return get_object_or_404(self.queryset(), pk=self.kwargs["item_id"])
 
     def require_change(self):
+        """Reject funding changes without Project-level authority."""
         if not project_change(self.request.user, self.project()):
             raise PermissionDenied()
 
@@ -159,6 +167,7 @@ class ProjectBudgetBase(APIView):
 
 
 class ProjectBudgetCollectionV1View(ProjectBudgetBase):
+    """List or create Budget and Contribution records for a Project."""
     def get(self, request, *args, **kwargs):
         project = self.project()
         return Response({"capabilities": capabilities(request.user, project),
@@ -166,6 +175,7 @@ class ProjectBudgetCollectionV1View(ProjectBudgetBase):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Create a Budget or Contribution under Project funding permissions."""
         self.require_change()
         serializer = self.serializer(request.data)
         serializer.is_valid(raise_exception=True)
@@ -174,11 +184,13 @@ class ProjectBudgetCollectionV1View(ProjectBudgetBase):
 
 
 class ProjectBudgetDetailV1View(ProjectBudgetBase):
+    """Read, update, or delete one Project funding record."""
     def get(self, request, *args, **kwargs):
         return Response(budget_data(self.item(), request.user, self.project(), self.kind))
 
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
+        """Update a funding row after contextual validation."""
         item = self.item()
         self.require_change()
         serializer = self.serializer(request.data, item)
@@ -194,6 +206,7 @@ class ProjectBudgetDetailV1View(ProjectBudgetBase):
 
 
 class ProjectBudgetOptionsV1View(ProjectBudgetBase):
+    """Expose available funding choices and creation capabilities."""
     def get(self, request, *args, **kwargs):
         self.project()
         editable_employees = Employee.get_instances_for_user("change", request.user, Employee.objects.all())

@@ -13,6 +13,7 @@ GROUPS = ("Lab_admin", "Lab_Manager", "Lab_leader", "Lab_employee", "favorite_no
 
 
 def ensure_reference_data(ctx):
+    """Create demonstration reference lists if missing."""
     if not all(Group.objects.filter(name=name).exists() for name in GROUPS):
         call_command("loaddata", "group-fixture", verbosity=0)
     missing = [name for name in GROUPS if not Group.objects.filter(name=name).exists()]

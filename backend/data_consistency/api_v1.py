@@ -59,6 +59,7 @@ class BatchAcceptInput(serializers.Serializer):
     selected_count = serializers.IntegerField(min_value=0)
 
     def validate(self, attrs):
+        """Require a nonempty set of issue identifiers for a batch action."""
         if attrs["mode"] == "selected" and not attrs.get("issues"):
             raise ValidationError({"issues": "Select at least one issue."})
         if attrs["mode"] == "selected" and attrs.get("excluded_ids"):
@@ -71,12 +72,14 @@ class BatchAcceptInput(serializers.Serializer):
 
 
 def require_exception_permission(user, action):
+    """Enforce the permission for acknowledging consistency exceptions."""
     allowed = can_accept_exception(user) if action == "add" else can_reopen_exception(user)
     if not allowed:
         raise PermissionDenied()
 
 
 def visible_items(user, rule):
+    """Return only consistency issues visible through their source objects."""
     return {
         "contract": lambda: visible_contracts(user),
         "fund": lambda: visible_funds(user),
@@ -136,6 +139,7 @@ class DataConsistencyIssues(generics.GenericAPIView):
     http_method_names = ("get", "head", "options")
 
     def serialize_item(self, user, rule, item):
+        """Serialize an issue with object identity, current state, and allowed actions."""
         data = rule.serialize(item)
         kind = correction_kind(rule)
         if kind == "lifecycle":
@@ -157,6 +161,7 @@ class DataConsistencyIssues(generics.GenericAPIView):
         return data
 
     def get(self, request):
+        """List issues for a rule after applying visibility and pagination."""
         status = request.query_params.get("status", "active")
         if status not in ("active", "accepted"):
             raise ValidationError({"status": "Expected active or accepted."})
@@ -180,11 +185,13 @@ class DataConsistencyIssues(generics.GenericAPIView):
 
 
 class DataConsistencyAccept(APIView):
+    """Acknowledge one currently valid consistency issue."""
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("post", "options")
 
     @transaction.atomic
     def post(self, request, rule_key, object_id):
+        """Accept a current issue only after locking and rechecking it."""
         require_exception_permission(request.user, "add")
         rule = RULES_BY_KEY.get(rule_key)
         if rule is None:
@@ -197,10 +204,12 @@ class DataConsistencyAccept(APIView):
 
 
 class DataConsistencyBatchAccept(APIView):
+    """Acknowledge selected consistency issues in one request."""
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("post", "options")
 
     def post(self, request, rule_key):
+        """Accept selected or all currently visible issues with exclusions."""
         require_exception_permission(request.user, "add")
         rule = RULES_BY_KEY.get(rule_key)
         if rule is None:
@@ -242,10 +251,12 @@ class DataConsistencyBatchAccept(APIView):
 
 
 class DataConsistencyCorrect(APIView):
+    """Apply a supported correction to one current issue."""
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("post", "options")
 
     def post(self, request, rule_key, object_id):
+        """Apply the rule-specific correction to one current issue."""
         rule = RULES_BY_KEY.get(rule_key)
         if rule is None or correction_kind(rule) in (None, "participant"):
             raise ValidationError({"rule_key": "No automatic correction for this rule."})
@@ -261,10 +272,17 @@ class DataConsistencyCorrect(APIView):
 
 
 class DataConsistencyBatchCorrect(APIView):
+    """Apply supported corrections to selected current issues.
+
+    A global selection freezes candidate IDs first, then each issue is
+    re-evaluated during mutation to avoid correcting stale or hidden data.
+    Rule-specific correction helpers retain the business validation.
+    """
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("post", "options")
 
     def post(self, request, rule_key):
+        """Recheck and correct selected issues, reporting each outcome."""
         rule = RULES_BY_KEY.get(rule_key)
         if rule is None or correction_kind(rule) is None:
             raise ValidationError({"rule_key": "No automatic correction for this rule."})
@@ -316,11 +334,13 @@ class DataConsistencyBatchCorrect(APIView):
 
 
 class DataConsistencyReopen(APIView):
+    """Reopen a previously acknowledged consistency exception."""
     permission_classes = (permissions.IsAuthenticated,)
     http_method_names = ("post", "options")
 
     @transaction.atomic
     def post(self, request, exception_id):
+        """Reopen an accepted exception if the caller is authorized."""
         require_exception_permission(request.user, "change")
         exception = get_object_or_404(open_exceptions().select_for_update(), pk=exception_id)
         rule = RULES_BY_KEY.get(exception.rule_key)

@@ -9,6 +9,7 @@ from .registry import search_registry
 
 
 def _grade(value, query):
+    """Rank a matched search value according to the query term."""
     value, query = value.casefold(), query.casefold()
     if not value or not query:
         return 0
@@ -20,6 +21,7 @@ def _grade(value, query):
 
 
 def _match(provider, obj, user, query):
+    """Check a search value against the normalized query term."""
     axes = [(field, label, str(value)) for field in provider.fields
             for label, value in provider.search_values(obj, field, user) if value]
     if not axes:
@@ -102,6 +104,7 @@ def _node_query(provider, node, user, provider_keys):
 
 
 def _leaf_score(provider, obj, user, node, provider_keys):
+    """Score one matching leaf in the parsed search expression."""
     if isinstance(node, GenericInfoNode):
         values = [(name, value) for name, value in provider.generic_info_values(obj, user)
                   if name.casefold() == node.type_name.casefold() and value.casefold() == node.value.casefold()]
@@ -136,6 +139,7 @@ def _leaf_score(provider, obj, user, node, provider_keys):
 
 
 def _node_score(provider, obj, user, node, provider_keys):
+    """Combine scores across a parsed search expression tree."""
     if isinstance(node, (TextNode, KeyNode, GenericInfoNode)):
         return _leaf_score(provider, obj, user, node, provider_keys)
     if isinstance(node, NotNode):
@@ -159,6 +163,7 @@ def _positive_leaves(node):
 
 
 def _leaf_rank(provider, leaf, user, provider_keys):
+    """Rank one matching leaf for result ordering."""
     if isinstance(leaf, GenericInfoNode):
         condition = _node_query(provider, leaf, user, provider_keys)
         weight = next((field.weight for field in provider.fields if field.key == "generic_info"), 50)
@@ -179,6 +184,7 @@ def _leaf_rank(provider, leaf, user, provider_keys):
 
 
 def _applicable(provider, node, provider_keys):
+    """Check whether a search condition applies to this provider."""
     if isinstance(node, TextNode):
         return bool(provider.fields)
     if isinstance(node, KeyNode):
@@ -199,6 +205,7 @@ class SearchEngine:
         self.registry = registry or search_registry
 
     def search_provider(self, provider, user, query, limit):
+        """Search one provider under its visibility and result limits."""
         if not provider.fields:
             return [], 0
         queryset = provider.visible_queryset(user)
@@ -226,6 +233,7 @@ class SearchEngine:
         return results[:limit], count
 
     def search_provider_ast(self, provider, user, query, limit, provider_keys):
+        """Evaluate a parsed expression against one provider."""
         condition = _node_query(provider, query.ast, user, provider_keys)
         if condition is None:
             return [], 0
@@ -255,6 +263,7 @@ class SearchEngine:
         return results[:limit], count
 
     def search_with_counts(self, user, query: SearchQuery, *, limit=20, per_provider=10):
+        """Search providers and include per-provider hit counts."""
         providers = self.registry.active(user)
         provider_keys = {item.key for item in providers}
         if query.provider_filter:
@@ -281,4 +290,5 @@ class SearchEngine:
         return results[:limit], counts
 
     def search(self, user, query: SearchQuery, *, limit=20, per_provider=10):
+        """Run a global search across available providers."""
         return self.search_with_counts(user, query, limit=limit, per_provider=per_provider)[0]

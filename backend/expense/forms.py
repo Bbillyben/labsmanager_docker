@@ -20,6 +20,7 @@ from labsmanager.widgets import CustomCheckBox
 import logging
 logger = logging.getLogger("labsmanager")
 class ContractModelForm(BSModalModelForm):
+    """Validate Contract dates and active state in legacy forms."""
     quotity = PercentageField(
         label=_("Quotity(%)"),
         max_value=100,
@@ -48,6 +49,7 @@ class ContractModelForm(BSModalModelForm):
         #     print(f'  - args : {a} ')
         # for k, v in kwargs.items():
         #     print(f'  - {k} : {v}')
+        """Configure Contract choices using the selected Employee and Fund."""
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             self.base_fields['employee'] = forms.ModelChoiceField(
                 queryset=Employee.objects.all().order_by('first_name'),
@@ -92,6 +94,7 @@ class ContractModelForm(BSModalModelForm):
                 self.fields['contract_type'].required = True
                 
     def save(self, commit=True):
+        """Persist a validated Contract and related form values."""
         contract_instance = super().save(commit=False)
         employee = self.cleaned_data.get('employee')
 
@@ -106,6 +109,7 @@ class ContractModelForm(BSModalModelForm):
         return contract_instance
     
     def clean_end_date(self):
+        """Reject a Contract end date inconsistent with related periods."""
         if( self.cleaned_data['end_date'] != None and (self.cleaned_data['start_date'] == None or self.cleaned_data['start_date'] > self.cleaned_data['end_date'])):
             raise ValidationError(_('Exit Date (%s) should be later than entry date (%s) ') % (self.cleaned_data['end_date'], self.cleaned_data['start_date']))
         return self.cleaned_data['end_date']
@@ -116,6 +120,7 @@ class ContractModelForm(BSModalModelForm):
         return self.cleaned_data['is_active']
 
 class ExpenseModelForm(BSModalModelForm):
+    """Validate legacy Expense form fields and relationships."""
     class Meta:
         model = models.Contract_expense
         fields = ['expense_id', 'date', 'desc', 'type','budget_item', 'status','amount',]
@@ -124,6 +129,7 @@ class ExpenseModelForm(BSModalModelForm):
         }
         
     def __init__(self, *args, **kwargs):        
+        """Configure Expense fields from the selected Fund context."""
         super().__init__(*args, **kwargs)
         print(f"initial :{kwargs['initial']}")
         if ('initial' in kwargs and 'fund' in kwargs['initial']):
@@ -144,6 +150,7 @@ class ExpenseModelForm(BSModalModelForm):
             self.fields['budget_item'].queryset=Budget.objects.filter(fund=instance.fund_item)
     
     def clean(self, *arg, **kwargs):
+        """Apply Expense-specific field and relationship validation."""
         cleaned_data = super().clean()
         # check if budget  is 1/ same project aka fund and type matches
         budget = cleaned_data['budget_item']
@@ -173,6 +180,7 @@ class ExpenseModelForm(BSModalModelForm):
     
     def save(self, commit=True):
         
+        """Persist an Expense and its related form data."""
         if not is_ajax(self.request.META) or self.request.POST.get('asyncUpdate') == 'True':
             instance = super(ExpenseModelForm, self).save(commit=False)
             if commit:
@@ -184,6 +192,7 @@ class ExpenseModelForm(BSModalModelForm):
     
      
 class ContractExpenseModelForm(ExpenseModelForm):
+    """Edit Expenses associated with a Contract."""
     class Meta:
         model = models.Contract_expense
         fields = ['expense_id', 'contract', 'budget_item', 'desc', 'date', 'type','status','amount',]
@@ -192,6 +201,7 @@ class ContractExpenseModelForm(ExpenseModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """Configure Expense fields from the selected Contract."""
         self.base_fields['type'].queryset = Cost_Type.objects.filter(is_hr=True).get_descendants(include_self=True)
         if ('initial' in kwargs and 'contract' in kwargs['initial']):
             self.base_fields['contract'] = forms.ModelChoiceField(
@@ -224,6 +234,7 @@ class ContractExpenseModelForm(ExpenseModelForm):
     
     
 class ExpenseTimepointModelForm(BSModalModelForm):
+    """Validate per-type Expense point values."""
     class Meta:
         model = models.Expense_point
         fields = ['fund', 'value_date', 'type','amount','entry_date']
@@ -234,6 +245,7 @@ class ExpenseTimepointModelForm(BSModalModelForm):
         
     def __init__(self, *args, **kwargs):
         
+        """Configure expense-point choices for a Fund."""
         if ('initial' in kwargs and 'fund' in kwargs['initial']):
             self.base_fields['fund'].widget=forms.HiddenInput()
         else:
@@ -257,6 +269,7 @@ from fund.models import Fund
 from django.forms.models import construct_instance
 from datetime import date
 class GenericExpenseModelForm(SanitizeDataFormMixin, ExpenseModelForm):
+    """Edit an Expense using the selected subtype."""
     contract = forms.ModelChoiceField(
                 queryset=models.Contract.objects.all(),
                 blank=True,
@@ -290,6 +303,7 @@ class GenericExpenseModelForm(SanitizeDataFormMixin, ExpenseModelForm):
         instance = getattr(self, 'instance', None)
     
     def clean(self, *arg, **kwargs):
+        """Validate Expense subtype and related financial fields."""
         cleaned_data = super().clean()
         contract = cleaned_data['contract']
         exp_type = cleaned_data['type']
@@ -299,6 +313,7 @@ class GenericExpenseModelForm(SanitizeDataFormMixin, ExpenseModelForm):
         return cleaned_data
 
     def save(self, commit=True):
+        """Persist the selected Expense subtype and related fields."""
         if self.cleaned_data['contract'] is None:
             self.instance = models.Expense()
         else:

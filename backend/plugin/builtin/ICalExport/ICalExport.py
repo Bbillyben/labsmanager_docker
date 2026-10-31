@@ -55,6 +55,16 @@ def _dates():
 
 
 def _records(calendar, object_id, user):
+    """Collect native calendar records through their authorized API providers.
+
+            Args:
+                calendar: Native calendar identity.
+                object_id: Optional Employee, Team, or Project scope.
+                user: Owner of the subscription token.
+
+            Returns:
+                Planning items and calendar events inside the export window.
+    """
     from common.calendar import CalendarType
     from common.global_calendar_api_v1 import GlobalEmployeeCalendar, GlobalProjectPlanning
     from endpoints.api_v1 import ProjectPlanningV1View
@@ -134,6 +144,7 @@ def _records(calendar, object_id, user):
 
 
 def _event_in_window(event, start, end):
+    """Check whether an event overlaps the subscribed export window."""
     event_start = _date(event.get("start"))
     event_end = _date(event.get("end")) or event_start
     if event_start is None:
@@ -174,6 +185,7 @@ def _date(value):
 
 def _add_event(ical, uid, title, start, end, description="", all_day=True, url=None,
                last_modified=None, attendees=()):
+    """Serialize one authorized source item into an iCalendar event."""
     if start is None:
         return
     event = Event()
@@ -214,6 +226,7 @@ def _add_event(ical, uid, title, start, end, description="", all_day=True, url=N
 
 
 def _calendar_name(calendar, object_id):
+    """Choose a human-readable title for the native calendar feed."""
     if calendar == "planning":
         return "LabsManager - Planning général"
     if calendar == "absences":
@@ -246,6 +259,7 @@ def _description_with_link(description, url):
 
 
 def _new_calendar(name):
+    """Create iCalendar metadata shared by native and published feeds."""
     ical = Calendar()
     ical.add("prodid", "-//LabsManager//ICalExport//EN")
     ical.add("version", "2.0")
@@ -360,6 +374,7 @@ def build_published_ical(provider_slug, calendar, events):
 
 
 def ics_feed(request, calendar, object_id):
+    """Validate the native subscription token and return its ICS feed."""
     if calendar not in CALENDARS or (calendar in SCOPED) != (object_id > 0):
         raise Http404
     plugin = registry.get_plugin("icalexport", active=True)
@@ -385,6 +400,7 @@ def ics_feed(request, calendar, object_id):
 
 
 def published_ics_feed(request, provider_slug, calendar_id):
+    """Validate a published calendar token and return its ICS feed."""
     plugin = registry.get_plugin("icalexport", active=True)
     if plugin is None:
         raise Http404
@@ -441,6 +457,7 @@ class ICalExport(UrlsMixin, TokenMixin, CalendarSubscriptionMixin, UIContributio
         return bool(get_global_setting("ENABLE_PLUGINS_URL"))
 
     def subscription_visible(self, request, context):
+        """Check whether the subscription action is visible in this context."""
         return self.subscription_available()
 
     @property

@@ -17,6 +17,7 @@ class LeaveItemModelForm(SanitizeDataFormMixin, BSModalModelForm):
             'end_date': DateInput(),
         }
     def __init__(self, *args, **kwargs):
+        """Configure Leave fields for the selected Employee and date context."""
         print("===============>>>>> THIS IS INIT OF LeaveItemModelForm <<<<<<<<<<<<<<<<<===================")
         for a in args:
             print(f" - {a}")

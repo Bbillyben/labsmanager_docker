@@ -23,11 +23,13 @@ class ProjectPlanningScopeV1Mixin:
     """Authorize Project first, then scope every Planning operation to it."""
 
     def get_project(self, request, pk):
+        """Return the Project through object-level view filtering."""
         return get_object_or_404(
             Project.get_instances_for_user("view", request.user, Project.objects.all()), pk=pk,
         )
 
     def can_change(self, request, project):
+        """Check authority to change planning items in this Project."""
         return project_capabilities(request.user, project)["can_change"]
 
     def serialize_item(self, request, project, item):
@@ -39,9 +41,11 @@ class ProjectPlanningScopeV1Mixin:
 
 
 class ProjectPlanningV1View(ProjectPlanningScopeV1Mixin, APIView):
+    """List and create Project Milestones and tasks."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, pk):
+        """Return Project planning items and their action capabilities."""
         project = self.get_project(request, pk)
         scoped = filter_planning_items(Milestones.objects.filter(project=project), request.query_params)
         items = PlanningMilestoneV1Serializer(
@@ -67,6 +71,7 @@ class ProjectPlanningV1View(ProjectPlanningScopeV1Mixin, APIView):
 
     @transaction.atomic
     def post(self, request, pk):
+        """Create a planning item after Project permission and model validation."""
         project = self.get_project(request, pk)
         if not self.can_change(request, project):
             raise PermissionDenied()
@@ -79,10 +84,12 @@ class ProjectPlanningV1View(ProjectPlanningScopeV1Mixin, APIView):
 
 
 class ProjectPlanningItemV1View(ProjectPlanningScopeV1Mixin, APIView):
+    """Update or delete one Project planning item."""
     permission_classes = (permissions.IsAuthenticated,)
 
     @transaction.atomic
     def patch(self, request, pk, item_id):
+        """Partially update a planning item after capability and model checks."""
         project = self.get_project(request, pk)
         item = get_object_or_404(Milestones.objects.filter(project=project), pk=item_id)
         if not self.can_change(request, project):
@@ -96,6 +103,7 @@ class ProjectPlanningItemV1View(ProjectPlanningScopeV1Mixin, APIView):
 
     @transaction.atomic
     def delete(self, request, pk, item_id):
+        """Delete a planning item after checking Project change authority."""
         project = self.get_project(request, pk)
         item = get_object_or_404(Milestones.objects.filter(project=project), pk=item_id)
         if not self.can_change(request, project):
@@ -105,10 +113,12 @@ class ProjectPlanningItemV1View(ProjectPlanningScopeV1Mixin, APIView):
 
 
 def editable_projects(user):
+    """Return Projects whose planning items the user may modify."""
     return Project.get_instances_for_user("change", user, Project.objects.all()).distinct()
 
 
 def visible_projects(user):
+    """Return Projects whose planning items the user may read."""
     viewed = Project.get_instances_for_user("view", user, Project.objects.all())
     return Project.objects.filter(
         Q(pk__in=viewed.values("pk")) | Q(pk__in=editable_projects(user).values("pk"))
@@ -124,6 +134,7 @@ def readable_items(user):
 
 
 def item_dict(item):
+    """Serialize a planning item with its type and action capabilities."""
     return {
         "id": item.pk,
         "name": item.name,
@@ -135,6 +146,7 @@ def item_dict(item):
 
 
 def dependency_dict(dependency, *, can_delete):
+    """Serialize a predecessor dependency for planning display."""
     return {
         "id": dependency.pk,
         "predecessor": item_dict(dependency.predecessor),
@@ -145,6 +157,7 @@ def dependency_dict(dependency, *, can_delete):
 
 
 def successor_dependency_dict(dependency):
+    """Serialize a successor dependency for planning display."""
     return {
         "id": dependency.pk,
         "successor": item_dict(dependency.successor),
@@ -154,9 +167,11 @@ def successor_dependency_dict(dependency):
 
 
 class EditableProjectCandidatesV1View(APIView):
+    """List Projects eligible as dependency targets."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        """List Projects the user may select for planning changes."""
         projects = editable_projects(request.user)
         search = request.query_params.get("search", "").strip()
         if search:
@@ -175,9 +190,11 @@ class EditableProjectCandidatesV1View(APIView):
 
 
 class ProjectPlanningItemsV1View(APIView):
+    """List planning items available for dependency selection."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, project_id):
+        """List visible planning items as dependency candidates."""
         project = get_object_or_404(editable_projects(request.user), pk=project_id)
         items = Milestones.objects.filter(project=project).select_related("project")
         search = request.query_params.get("search", "").strip()
@@ -190,9 +207,11 @@ class ProjectPlanningItemsV1View(APIView):
 
 
 class MilestoneDependenciesV1View(APIView):
+    """Read or add dependencies for one planning item."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, successor_id):
+        """Return predecessor and successor relations for an item."""
         readable = readable_items(request.user)
         successor = get_object_or_404(
             readable.select_related("project"), pk=successor_id,
@@ -215,6 +234,7 @@ class MilestoneDependenciesV1View(APIView):
         })
 
     def post(self, request, successor_id):
+        """Create a dependency after checking cycles and Project permissions."""
         successor = get_object_or_404(
             Milestones.objects.select_related("project"), pk=successor_id
         )
@@ -244,9 +264,11 @@ class MilestoneDependenciesV1View(APIView):
 
 
 class MilestoneDependencyDetailV1View(APIView):
+    """Remove one planning dependency after permission checks."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def delete(self, request, successor_id, dependency_id):
+        """Remove one authorized planning dependency."""
         relation = get_object_or_404(
             MilestoneDependency.objects.select_related("predecessor__project", "successor__project"),
             pk=dependency_id, successor_id=successor_id,

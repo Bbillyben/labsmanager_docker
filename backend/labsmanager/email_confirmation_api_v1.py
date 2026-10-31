@@ -21,6 +21,7 @@ def _clear(request):
 
 
 def _confirmation(request):
+    """Resolve a signed email-confirmation key and its account state."""
     key = request.session.get(SESSION_KEY)
     address_id = request.session.get(SESSION_ADDRESS)
     if not isinstance(key, str) or not isinstance(address_id, int):
@@ -33,9 +34,11 @@ def _confirmation(request):
 
 @method_decorator(csrf_protect, name="dispatch")
 class EmailConfirmationBridgeV1View(APIView):
+    """Exchange a confirmation link key for a session-scoped state."""
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        """Exchange and validate a confirmation key into session state."""
         key = request.data.get("key") if isinstance(request.data, dict) else None
         if not isinstance(key, str) or not key:
             _clear(request)
@@ -57,9 +60,11 @@ class EmailConfirmationBridgeV1View(APIView):
 
 @method_decorator(csrf_protect, name="dispatch")
 class EmailConfirmationV1View(APIView):
+    """Read and complete the pending email confirmation."""
     permission_classes = (AllowAny,)
 
     def get(self, request):
+        """Return the current email confirmation state."""
         if request.session.get(SESSION_RESULT) == "confirmed":
             return Response({"state": "confirmed"}, headers=NO_STORE)
         confirmation = _confirmation(request)
@@ -73,6 +78,7 @@ class EmailConfirmationV1View(APIView):
         return Response({"state": "invalid"}, status=400, headers=NO_STORE)
 
     def post(self, request):
+        """Confirm the address associated with the session key."""
         if request.session.get(SESSION_RESULT) == "confirmed":
             return Response({"state": "already_confirmed"}, headers=NO_STORE)
         confirmation = _confirmation(request)

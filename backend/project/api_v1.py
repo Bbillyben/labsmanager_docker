@@ -51,6 +51,7 @@ def project_child_capabilities(user, project, model_name):
 
 
 def validate_model(instance):
+    """Translate Django model validation errors into API validation errors."""
     try:
         instance.full_clean()
     except DjangoValidationError as error:
@@ -98,6 +99,7 @@ class ProjectWriteV1Serializer(AdminUrlSerializerMixin, serializers.ModelSeriali
         read_only_fields = ("id",)
 
     def validate(self, attrs):
+        """Validate Project dates while preserving immutable fields."""
         instance = self.instance
         if instance and "name" in attrs and attrs["name"] != instance.name:
             raise serializers.ValidationError({"name": "Project name cannot be changed."})
@@ -158,6 +160,7 @@ class ProjectParticipantV1Serializer(serializers.ModelSerializer):
 
 
 class ProjectOverviewV1Serializer(AdminUrlSerializerMixin, serializers.ModelSerializer):
+    """Expose a Project and its permission-filtered overview collections."""
     capabilities = serializers.SerializerMethodField()
     funding_visible = serializers.SerializerMethodField()
     generic_info = serializers.SerializerMethodField()
@@ -177,10 +180,12 @@ class ProjectOverviewV1Serializer(AdminUrlSerializerMixin, serializers.ModelSeri
         }
 
     def get_funding_visible(self, project):
+        """Report whether funding details may be shown to this user."""
         user = self.context["request"].user
         return bool(user.has_perm("fund.view_fund") or user.has_perm("fund.view_fund", project))
 
     def child_collection(self, project, model_name, items, serializer):
+        """Serialize a child collection with its contextual action capabilities."""
         return {
             "capabilities": project_child_capabilities(self.context["request"].user, project, model_name),
             "items": serializer(items, many=True, context=self.context).data,
@@ -200,6 +205,7 @@ class ContextualWriteSerializer(serializers.Serializer):
     """Reject parent substitution and unknown fields for Project-owned resources."""
 
     def to_internal_value(self, data):
+        """Reject input fields outside the contextual write contract."""
         allowed = set(self.fields)
         if self.instance is not None:
             allowed -= self.immutable_on_update
@@ -259,6 +265,7 @@ class ProjectParticipantWriteV1Serializer(ContextualWriteSerializer):
     quotity = serializers.DecimalField(max_digits=4, decimal_places=3, min_value=Decimal("0"), max_value=Decimal("1"))
 
     def validate(self, attrs):
+        """Validate participation dates and Project-Employee relations."""
         start = attrs.get("start_date", self.instance.start_date if self.instance else None)
         end = attrs.get("end_date", self.instance.end_date if self.instance else None)
         if end and (not start or end < start):
@@ -284,6 +291,7 @@ class ProjectParticipantWriteV1Serializer(ContextualWriteSerializer):
 
 
 class ProjectListV1Filter(django_filters.FilterSet):
+    """Filter visible Projects by related people, funding, Team, and dates."""
     project_name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
     participant_name = django_filters.CharFilter(method="by_participant")
     participant = django_filters.NumberFilter(field_name="participant_project__employee_id", distinct=True)
@@ -302,6 +310,7 @@ class ProjectListV1Filter(django_filters.FilterSet):
         return queryset.filter(pk__in=ids)
 
     def visible_funds(self, queryset):
+        """Restrict fund-based filters to funding visible to the caller."""
         return Fund.get_instances_for_user("view", self.request.user, Fund.objects.filter(project__in=queryset))
 
     def by_fundref(self, queryset, name, value):
@@ -326,6 +335,7 @@ class ProjectListV1Filter(django_filters.FilterSet):
 
 
 def project_list_queryset(user):
+    """Preload related data needed by the Project list serializer."""
     visible = Project.get_instances_for_user("view", user, Project.objects.all())
     visible_funds = Fund.get_instances_for_user("view", user, Fund.objects.all())
     return visible.prefetch_related(
@@ -336,11 +346,14 @@ def project_list_queryset(user):
 
 
 class ProjectV1QuerysetMixin:
+    """Apply object-level Project visibility to REST list and detail views."""
     def get_queryset(self):
+        """Return only Projects the requesting user may view."""
         return project_list_queryset(self.request.user)
 
 
 class ProjectListV1View(ProjectV1QuerysetMixin, generics.ListCreateAPIView):
+    """List and create Projects using permission-scoped data and serializers."""
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = LabPagination
     filter_backends = (django_filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
@@ -356,6 +369,7 @@ class ProjectListV1View(ProjectV1QuerysetMixin, generics.ListCreateAPIView):
         return super().get_queryset().distinct()
 
     def list(self, request, *args, **kwargs):
+        """Return paginated Projects with collection capabilities."""
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         projects = page if page is not None else list(queryset)
@@ -367,6 +381,7 @@ class ProjectListV1View(ProjectV1QuerysetMixin, generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
+        """Validate the model and save a newly authorized Project."""
         if not project_capabilities(self.request.user)["can_add"]:
             raise PermissionDenied()
         project = serializer.save()
@@ -391,6 +406,7 @@ class ProjectListExportV1View(ProjectListV1View):
 
 from django.db.models import Prefetch, Case, When, Value, IntegerField
 class ProjectDetailV1View(ProjectV1QuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
+    """Read, update, and delete one visible Project with action checks."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_serializer_class(self):
@@ -462,6 +478,7 @@ class ProjectFilterOptionsV1View(APIView):
 
 
 class ProjectOverviewChildMixin:
+    """Share Project child lookup, capability checks, and serializer context."""
     permission_classes = (permissions.IsAuthenticated,)
     model = None
     model_name = ""
@@ -471,6 +488,7 @@ class ProjectOverviewChildMixin:
     item_kwarg = "item_id"
 
     def get_project(self):
+        """Resolve the Project through the caller's visible queryset."""
         if not hasattr(self, "_project"):
             visible = Project.get_instances_for_user("view", self.request.user, Project.objects.all())
             self._project = get_object_or_404(visible, pk=self.kwargs["pk"])
@@ -486,10 +504,12 @@ class ProjectOverviewChildMixin:
         return project_child_capabilities(self.request.user, self.get_project(), self.model_name)
 
     def require_action(self, action):
+        """Enforce the child-model capability advertised by the overview."""
         if not self.capabilities()[action]:
             raise PermissionDenied()
 
     def serializer_context(self):
+        """Pass Project and request context to child serializers."""
         context = {"request": self.request, "project": self.get_project()}
         if self.model_name == "participant":
             context["visible_employee_ids"] = set(Employee.get_instances_for_user(
@@ -502,6 +522,7 @@ class ProjectOverviewChildMixin:
 
 
 class ProjectOverviewChildCollectionV1View(ProjectOverviewChildMixin, APIView):
+    """Read or create one type of Project overview child object."""
     def get(self, request, *args, **kwargs):
         return Response({
             "capabilities": self.capabilities(),
@@ -517,8 +538,11 @@ class ProjectOverviewChildCollectionV1View(ProjectOverviewChildMixin, APIView):
 
 
 class ProjectOverviewChildDetailV1View(ProjectOverviewChildMixin, APIView):
+    """Update or remove a Project overview child object."""
+
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
+        """Update a Project child after capability and model validation."""
         item = self.get_item()
         self.require_action("can_change")
         serializer = self.write_serializer(item, data=request.data, partial=True, context=self.serializer_context())
@@ -541,6 +565,7 @@ PROJECT_OVERVIEW_RESOURCES = {
 
 
 def project_child_view(resource, detail=False):
+    """Construct the endpoint view for a configured Project child model."""
     model, model_name, write_serializer, read_serializer, related = PROJECT_OVERVIEW_RESOURCES[resource]
     base = ProjectOverviewChildDetailV1View if detail else ProjectOverviewChildCollectionV1View
     return base.as_view(model=model, model_name=model_name, write_serializer=write_serializer, read_serializer=read_serializer, related=related)

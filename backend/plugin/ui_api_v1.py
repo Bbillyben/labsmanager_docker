@@ -178,6 +178,7 @@ class UIUserPluginPanels(UIBase):
     slot = "user.plugin.settings.panels"
 
     def get(self, request, plugin_key, panel_id=None):
+        """Return user-facing panels declared by active UI plugins."""
         context = resolve_user_plugin_context(plugin_key, request)
         matches = [(plugin, item) for plugin, item in declared_contributions()
                    if item["slot"] == self.slot and plugin.slug == plugin_key

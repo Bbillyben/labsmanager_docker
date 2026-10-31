@@ -1,3 +1,5 @@
+"""Legacy Leave REST list, search, and export endpoints."""
+
 from django.http import JsonResponse
 from django.db.models import Q, F, ExpressionWrapper, fields
 from django.db.models.functions import Cast, Coalesce, Now, Extract, Abs
@@ -28,6 +30,7 @@ from labsmanager.pagination import LabPagination
 import logging
 logger=logging.getLogger("labsmanager")
 class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewSet):
+    """Legacy REST list, search, and export operations for Leave."""
     queryset = Leave.objects.select_related('employee', 'type').all()
     serializer_class = serializers.LeaveSerializerBasic
     permission_classes = [permissions.IsAuthenticated]
@@ -43,6 +46,7 @@ class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewS
     }
     def filter_queryset(self, queryset):
         
+        """Apply Leave filters after Employee visibility checks."""
         data=get_data_from_request(self.request)                
         if not data:
             return super().filter_queryset(queryset) 
@@ -135,6 +139,7 @@ class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewS
     
     @action(methods=['get'], detail=False, url_path='employee/(?P<emp_pk>[^/.]+)', url_name='employee')
     def search_employee(self, request, emp_pk=None):
+        """Search Leave by Employee under the caller’s visibility."""
         request.data.update({"employee":int(emp_pk),})
         qset=self.filter_queryset(self.queryset) 
         
@@ -150,6 +155,7 @@ class LeaveViewSet(LabPaginationMixin, CalendarPlulginMixin, viewsets.ModelViewS
     
     @action(methods=['get'], detail=False, url_path='calendar', url_name='search-calendar')
     def search_calendar(self, request):
+        """Search Leave for a calendar date range."""
         qset=self.filter_queryset(self.queryset) 
         
         export = request.GET.get('export', None)

@@ -60,6 +60,7 @@ class Nh3Field():
         return super().formfield(form_class=form_class, **kwargs)
 
     def pre_save(self, model_instance: Model, add: bool) -> Any:
+        """Sanitize HTML content before saving a model field."""
         data = getattr(model_instance, self.attname)
         if data is None:
             return data

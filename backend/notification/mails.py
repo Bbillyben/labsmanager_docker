@@ -13,6 +13,7 @@ class NotificationMail(EmbedImgMail, UserLanguageMail, BodyTableMail):
     default_subject = "Notification Report"
     def generate_context(self, **kwargs):
         
+        """Add notification subject, source, and recipient data to email context."""
         super().generate_context(**kwargs)
         if not 'user' in kwargs:
             raise ObjectDoesNotExist("User Not defined for [SubscriptionMail]")

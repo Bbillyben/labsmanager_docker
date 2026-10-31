@@ -13,6 +13,7 @@ from .financial_sources import visible_projects
 
 
 def _payload(count, label, items, *, alerts=None, progress=None):
+    """Wrap a KPI and optional lists in renderer-keyed dashboard data."""
     data = {"kpi": {"value": count, "label": label, "tone": "neutral"},
             "compact-list": {"items": items}}
     if alerts is not None:
@@ -23,6 +24,7 @@ def _payload(count, label, items, *, alerts=None, progress=None):
 
 
 def _participant_projects(user, statuses=None):
+    """Select Projects with an active participation for the user's Employee."""
     from project.models import Participant
     qs = Participant.objects.filter(employee__user=user).filter(Participant.get_active_filter())
     if statuses:
@@ -31,10 +33,20 @@ def _participant_projects(user, statuses=None):
 
 
 def _managed_projects(user):
+    """Select Projects led or co-led by the user's Employee."""
     return _participant_projects(user, ("l", "cl"))
 
 
 def project_queryset(context, config):
+    """Return the Project queryset allowed by visibility and widget scope.
+
+    Args:
+        context: Dashboard request context with user and optional Project scope.
+        config: Widget filters, including participation, activity, and lateness.
+
+    Returns:
+        A lazy, permission-filtered Project queryset.
+    """
     from project.models import Project
     qs = Project.get_instances_for_user("view", context.user, Project.objects.all())
     if context.scope == "project" or "project_scope" in config:
@@ -56,6 +68,7 @@ PROJECT_PACE_MIN_TEMPORAL_PERCENT = 1.0
 
 
 def _project_temporal_percent(project, today):
+    """Calculate elapsed Project time as a bounded percentage, if dated."""
     if not project.start_date or not project.end_date or project.end_date <= project.start_date:
         return None
     duration = (project.end_date - project.start_date).days
@@ -64,6 +77,7 @@ def _project_temporal_percent(project, today):
 
 
 def _project_financial_state(financial, temporal_percent):
+    """Classify funding progress against elapsed Project time."""
     if financial is None or temporal_percent is None:
         return None, None
     delta = round(financial["budget_percent"] - temporal_percent, 1)
@@ -75,6 +89,19 @@ def _project_financial_state(financial, temporal_percent):
 
 
 def project_portfolio(context, config, qs=None):
+    """Build the visible Project portfolio summary and attention signals.
+
+        Funding, milestones, and dates are aggregated before serializing the
+        limited row set, so each row uses the same permission-scoped sources.
+
+        Args:
+            context: Dashboard request context.
+            config: Scope and row-limit configuration.
+            qs: Optional already-filtered Project queryset.
+
+        Returns:
+            Summary counters and Project rows with health signals.
+    """
     from collections import defaultdict
     from endpoints.models import Milestones
     from settings.models import LMUserSetting
@@ -152,6 +179,7 @@ def project_portfolio(context, config, qs=None):
 
 
 def _project_deadline_relative(item, today):
+    """Describe an upcoming or elapsed Project deadline for a chart."""
     start = date.fromisoformat(item["start_date"]) if item["start_date"] else None
     end = date.fromisoformat(item["end_date"]) if item["end_date"] else None
     if start and start > today:
@@ -169,6 +197,7 @@ def _project_deadline_relative(item, today):
 
 
 def _project_funding_pace(item):
+    """Compare funding consumption with elapsed Project duration."""
     temporal = item["temporal_percent"]
     financial = item["financial"]
     if temporal is None or temporal < PROJECT_PACE_MIN_TEMPORAL_PERCENT or financial is None:
@@ -238,6 +267,7 @@ def project_health_bars(context, config, portfolio):
 
 
 def projects(context, config):
+    """Project the permission-filtered portfolio into widget renderer data."""
     today = timezone.localdate()
     qs = project_queryset(context, config)
     count = qs.count()
@@ -264,6 +294,7 @@ def projects(context, config):
 
 
 def planning_queryset(context, config, *, tasks=False):
+    """Return planning items visible within the dashboard scope."""
     from endpoints.models import Milestones
     from project.models import Project
     today = timezone.localdate()
@@ -300,6 +331,7 @@ def planning_queryset(context, config, *, tasks=False):
 
 
 def planning(context, config, *, tasks=False):
+    """Build planning widget data from visible scheduled work."""
     from settings.models import LMUserSetting
     stale_setting = int(LMUserSetting.get_setting("DASHBOARD_MILESTONES_STALE_TO_DAYS", user=context.user))
 
@@ -417,14 +449,17 @@ def planning(context, config, *, tasks=False):
 
 
 def milestones(context, config):
+    """Build the milestone widget payload from scoped planning data."""
     return planning(context, config)
 
 
 def tasks(context, config):
+    """Build the task widget payload from scoped planning data."""
     return planning(context, config, tasks=True)
 
 
 def funds(context, config):
+    """Aggregate visible funding data for the dashboard widget."""
     from fund.models import Fund
     from settings.models import LMUserSetting
     today = timezone.localdate()
@@ -480,6 +515,7 @@ def funds(context, config):
 
 
 def contracts(context, config):
+    """Aggregate visible Contract data for the dashboard widget."""
     from expense.contract_hub_api_v1 import visible_contracts
     from project.models import Project
     from staff.models import Employee
@@ -546,6 +582,7 @@ def contracts(context, config):
 
 
 def employees(context, config):
+    """Aggregate Employee data under object-level visibility rules."""
     print(f' context {context}')
     print(f' config {config}')
     from staff.models import Employee, Employee_Status, Employee_Superior, Team, TeamMate
@@ -635,6 +672,7 @@ def employees(context, config):
 
 
 def leaves(context, config):
+    """Aggregate visible Leave data for the dashboard widget."""
     from leave.models import Leave
     from staff.models import Employee, Employee_Superior
     today = timezone.localdate()

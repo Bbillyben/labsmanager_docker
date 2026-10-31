@@ -22,6 +22,7 @@ def get_fundItem_table(request, pk):
     return render(request, 'fund/fund_item_table.html', data)
 
 def get_fundExpenseTimepoint_table(request, pk):
+    """Build a legacy table of Fund expense points."""
     fundP=Fund.objects.filter(pk=pk).first()
     data = {'fund': fundP} 
     data['has_perm']=request.user.has_perm('fund.change_fund', fundP)
@@ -37,6 +38,7 @@ def get_fundExpense_table(request, pk):
     return render(request, 'expense/expense_list.html', data)
 
 def get_fund_global_overview(request, pk):
+    """Build legacy summary amounts for a Fund."""
     a=Fund_Item.objects.values_list('type__name', 'amount', named=False).filter(fund=pk)
     if a:
         a=a.annotate(source=Value('Fund'))
@@ -73,6 +75,7 @@ class RecetteGraphView(LoginRequiredMixin, View):
     template_general="project/amount_graph.html" 
     
     def get(self, request, *args, **kwargs):
+        """Render legacy funding graph data."""
         pj_pk=kwargs.get("pk", None)
         context={'data':'',
                  'type':'line',

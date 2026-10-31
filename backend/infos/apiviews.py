@@ -1,3 +1,5 @@
+"""Legacy organization and generic-note REST endpoints."""
+
 from django.http import JsonResponse
 from django.apps import apps
 from django.shortcuts import render, get_object_or_404
@@ -38,6 +40,7 @@ class genericnoteViewSet(viewsets.ModelViewSet):
         raise MethodNotAllowed('PUT')
 
     def partial_update(self, request, pk=None):
+        """Partially update a note under legacy visibility rules."""
         from rest_framework.exceptions import ValidationError
         from .api_v1 import validate_and_save
         note = get_object_or_404(self.get_queryset(), pk=pk)
@@ -62,6 +65,7 @@ class genericnoteViewSet(viewsets.ModelViewSet):
         return Response(data)
     
     def retrieve(self, request, pk=None):
+        """Return a note visible in its parent context."""
         note = get_object_or_404(self.get_queryset(), pk=pk)
         serializer = self.serializer_class(note)
         data = serializer.data
@@ -99,6 +103,7 @@ class organisationViewSet(viewsets.ViewSet):
     @action(methods=['get'], detail=False, url_path='(?P<app>[^/.]+)/(?P<model>[^/.]+)/(?P<id>[0-9]+)/project', url_name='orga_project')
     def get_orga_project(self, request, app, model, id):
         
+        """Return Projects related to a visible organization."""
         model_class = apps.get_model(app_label=app, model_name=model)
         orga = get_object_or_404(model_class, pk=id)
         
@@ -131,6 +136,7 @@ class organisationViewSet(viewsets.ViewSet):
 
     @action(methods=['get'], detail=False, url_path='(?P<app>[^/.]+)/(?P<model>[^/.]+)/(?P<id>[0-9]+)/contract', url_name='orga_contract')
     def get_orga_contract(self, request, app, model, id):
+        """Return Contracts related to a visible organization."""
         from expense.apiviews import ContractViewSet
      
         _mutable = request.query_params._mutable

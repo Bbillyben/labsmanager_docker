@@ -19,6 +19,7 @@ def add_days(value, days):
 
 @register.simple_tag()
 def contact_info(info, user):
+    """Format contact information for a legacy template."""
     if info.info.type == "mail":
         try:
             validate_email(info.value)

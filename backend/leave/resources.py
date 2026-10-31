@@ -59,6 +59,7 @@ from django.db.models.functions import Cast, Coalesce, Now, Extract, Abs, Concat
 class EmployeeLeaveField(Field):
     
     def clean(self, data, **kwargs):
+        """Resolve imported Employee Leave references before validation."""
         userName =data.get('Employee', None)
         if userName is None:
             return None

@@ -57,6 +57,7 @@ def user_setting_data(user, key):
 
 
 class UserSettingsV1View(APIView):
+    """List settings available to the current user."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, section):
@@ -66,9 +67,11 @@ class UserSettingsV1View(APIView):
 
 
 class UserSettingDetailV1View(APIView):
+    """Validate and update one personal setting."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def patch(self, request, section, key):
+        """Validate and save one personal setting."""
         key = key.upper()
         if section not in USER_SETTING_GROUPS or key not in USER_SETTING_GROUPS[section]:
             raise Http404
@@ -97,9 +100,11 @@ class UserSettingDetailV1View(APIView):
 
 
 class NotificationTestSendV1View(APIView):
+    """Send a test notification to the current user."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
+        """Send a test notification with the current user settings."""
         try:
             result = send_notification(user_pk=request.user.pk)
         except Exception:
@@ -114,6 +119,7 @@ class NotificationTestSendV1View(APIView):
 
 
 class NotificationTestPreviewV1View(APIView):
+    """Preview a notification using current settings."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):

@@ -28,6 +28,7 @@ from .service import (CONTRACT_DATES_RULE_KEY, CONTRACT_EMPLOYEE_DATES_RULE_KEY,
 
 
 def correction_kind(rule):
+    """Resolve the correction strategy for a consistency rule."""
     if rule.key == EMPLOYEE_MISSING_EXIT:
         return None
     if rule.key in {definition[0] for definition in LIFECYCLE_DEFINITIONS}:
@@ -44,11 +45,13 @@ def correction_kind(rule):
 
 def extended_bounds(start, end, child_start, child_end):
     # Null bounds are open, as in the existing React correction.
+    """Compute date bounds needed to contain a child record."""
     return (None if start is None or child_start is None else min(start, child_start),
             None if end is None or child_end is None else max(end, child_end))
 
 
 def can_correct_rule(user, rule):
+    """Check whether a rule supports a correction for the caller."""
     kind = correction_kind(rule)
     if kind is None:
         return False

@@ -16,16 +16,19 @@ from .template_service import create_template_dashboard
 
 
 def context_for(request, dashboard=None):
+    """Build the dashboard evaluation context for the requesting user."""
     return resolve_context(request.user, dashboard) if dashboard is not None else DashboardContext.personal(request.user)
 
 
 def owned(request, pk):
+    """Resolve a Dashboard owned by the user or raise a not-found response."""
     dashboard = get_object_or_404(Dashboard.objects.filter(owner=request.user), pk=pk)
     context_for(request, dashboard)
     return dashboard
 
 
 def definition_data(item):
+    """Serialize a widget definition for the dashboard catalogue."""
     return {
         "key": item.key, "title": item.title, "category": item.category,
         "renderer_key": item.renderer_key, "source_key": item.source_key,
@@ -37,6 +40,7 @@ def definition_data(item):
 
 
 def widget_data(widget, definitions, sources, context):
+    """Serialize a configured widget and its renderer payload."""
     definition = definitions.get(widget.definition_key)
     source_key = widget.source_key or (definition.source_key if definition else "")
     source = sources.get(source_key) if definition else None
@@ -60,6 +64,7 @@ def widget_data(widget, definitions, sources, context):
 
 
 def dashboard_data(dashboard, definitions=None, sources=None, context=None):
+    """Serialize a Dashboard with its ordered widgets."""
     data = {
         "id": dashboard.pk, "name": dashboard.name, "icon": dashboard.icon,
         "is_default": dashboard.is_default, "position": dashboard.position,
@@ -71,12 +76,14 @@ def dashboard_data(dashboard, definitions=None, sources=None, context=None):
 
 
 def validated_name(value):
+    """Validate a user-supplied Dashboard name."""
     if not isinstance(value, str) or not value.strip() or len(value.strip()) > 120:
         raise ValidationError({"name": "A name of 1–120 characters is required."})
     return value.strip()
 
 
 def config_schema(source, definition, renderer_key):
+    """Return the configuration schema for a widget definition."""
     schema = dict(source.config_fields)
     # Legacy plugin definitions may still declare string fields on the widget.
     for key, field in definition.config_fields.items():
@@ -90,6 +97,16 @@ def config_schema(source, definition, renderer_key):
 
 
 def validated_config(value, source, definition, renderer_key, context=None):
+    """Validate widget configuration against its registered schema.
+
+        Args:
+            definition: Registered widget definition.
+            config: Submitted configuration values.
+            context: Dashboard context used by scope-sensitive options.
+
+        Returns:
+            Normalized configuration accepted by the widget.
+    """
     schema = config_schema(source, definition, renderer_key)
     if not isinstance(value, dict) or set(value) - set(schema):
         raise ValidationError({"config": "Unsupported configuration field."})
@@ -148,6 +165,7 @@ def validated_config(value, source, definition, renderer_key, context=None):
 
 
 def validated_size(definition, x, y, width, height):
+    """Validate that a widget size is supported by its definition."""
     if any(type(value) is not int for value in (x, y, width, height)):
         raise ValidationError({"layout": "Integer coordinates and size required."})
     if x < 0 or y < 0 or width < definition.min_size[0] or height < definition.min_size[1]:
@@ -157,6 +175,7 @@ def validated_size(definition, x, y, width, height):
 
 
 class DashboardCollection(APIView):
+    """List and create dashboards owned by the current user."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
@@ -169,6 +188,7 @@ class DashboardCollection(APIView):
         return Response([dashboard_data(item) for item in dashboards])
 
     def post(self, request):
+        """Create a Dashboard owned by the authenticated user."""
         if not isinstance(request.data, dict) or set(request.data) - {"name", "template"}:
             raise ValidationError("Expected name and template.")
         name = validated_name(request.data.get("name"))
@@ -180,6 +200,7 @@ class DashboardCollection(APIView):
 
 
 class DashboardDetail(APIView):
+    """Read, update, or remove an owned Dashboard."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, pk):
@@ -189,6 +210,7 @@ class DashboardDetail(APIView):
         return Response(dashboard_data(dashboard, definitions, sources, context))
 
     def patch(self, request, pk):
+        """Update the owned Dashboard name or configuration."""
         if not isinstance(request.data, dict) or set(request.data) != {"name"}:
             raise ValidationError("Only name can be changed here.")
         dashboard = owned(request, pk)
@@ -197,6 +219,7 @@ class DashboardDetail(APIView):
         return Response(dashboard_data(dashboard))
 
     def delete(self, request, pk):
+        """Delete an owned Dashboard and its widgets."""
         with transaction.atomic():
             get_user_model().objects.select_for_update().get(pk=request.user.pk)
             dashboard = owned(request, pk)
@@ -213,6 +236,7 @@ class DashboardDetail(APIView):
 
 
 class DashboardDefault(APIView):
+    """Set the current user's default Dashboard."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, pk):
@@ -232,9 +256,11 @@ class DashboardDefault(APIView):
 
 
 class DashboardDuplicate(APIView):
+    """Copy an owned Dashboard and its widget configuration."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, pk):
+        """Copy an owned Dashboard and its widget instances."""
         with transaction.atomic():
             get_user_model().objects.select_for_update().get(pk=request.user.pk)
             source = owned(request, pk)
@@ -253,9 +279,11 @@ class DashboardDuplicate(APIView):
 
 
 class DashboardReorder(APIView):
+    """Persist ordering of the current user's Dashboards."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def patch(self, request):
+        """Apply a validated ordering to owned Dashboards."""
         ids = request.data.get("ids") if isinstance(request.data, dict) else None
         with transaction.atomic():
             get_user_model().objects.select_for_update().get(pk=request.user.pk)
@@ -271,6 +299,7 @@ class DashboardReorder(APIView):
 
 
 class DashboardCatalog(APIView):
+    """List dashboard definitions available to the current user."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
@@ -280,6 +309,7 @@ class DashboardCatalog(APIView):
 
 
 def catalog_data(context, sources, definitions):
+    """Serialize registered widget definitions with allowed options."""
     from project.models import Project
     used_source_keys = {item.source_key for item in definitions.values()}
     project_options = list(Project.get_instances_for_user(
@@ -306,9 +336,11 @@ def catalog_data(context, sources, definitions):
 
 
 class ProjectDashboard(APIView):
+    """Read the Dashboard associated with a visible Project."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, project_id):
+        """Return the Dashboard configured for a visible Project."""
         project = visible_project(request.user, project_id)
         from .template_service import get_or_create_dashboard_for_context
         dashboard = get_or_create_dashboard_for_context(request.user, project, "project", "Project overview")
@@ -318,6 +350,7 @@ class ProjectDashboard(APIView):
 
 
 class ProjectDashboardCatalog(APIView):
+    """List widgets available in a Project Dashboard."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, project_id):
@@ -328,9 +361,11 @@ class ProjectDashboardCatalog(APIView):
 
 
 class DashboardWidgets(APIView):
+    """Add a permitted widget to an owned Dashboard."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, pk):
+        """Create a widget after schema and permission validation."""
         dashboard = owned(request, pk)
         if not isinstance(request.data, dict) or set(request.data) - {"definition_key", "source_key", "renderer_key", "title", "config"}:
             raise ValidationError("Invalid widget fields.")
@@ -371,9 +406,11 @@ class DashboardWidgets(APIView):
 
 
 class DashboardWidgetDetail(APIView):
+    """Update or delete a widget on an owned Dashboard."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def patch(self, request, pk, widget_id):
+        """Update widget configuration and size after validation."""
         dashboard = owned(request, pk)
         widget = get_object_or_404(dashboard.widgets, pk=widget_id)
         if not isinstance(request.data, dict) or not request.data or set(request.data) - {"title", "config", "renderer_key"}:
@@ -402,15 +439,18 @@ class DashboardWidgetDetail(APIView):
         return Response(widget_data(widget, definitions, sources, context))
 
     def delete(self, request, pk, widget_id):
+        """Remove a widget from an owned Dashboard."""
         dashboard = owned(request, pk)
         get_object_or_404(dashboard.widgets, pk=widget_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class DashboardLayout(APIView):
+    """Persist the layout of widgets on an owned Dashboard."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def patch(self, request, pk):
+        """Persist the validated widget layout and ordering."""
         dashboard = owned(request, pk)
         rows = request.data.get("widgets") if isinstance(request.data, dict) else None
         if not isinstance(rows, list):

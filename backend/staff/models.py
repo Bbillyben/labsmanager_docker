@@ -115,6 +115,7 @@ class Employee(models.Model, RightsCheckerMixin):
         return Employee_Superior.current.filter(employee=self.pk).exists()
     
     def get_current_superior(self):
+        """Return the Employee's currently active superior relationship."""
         from staff.models import Employee_Superior
         return Employee_Superior.current.filter(employee=self.pk)
     
@@ -126,6 +127,7 @@ class Employee(models.Model, RightsCheckerMixin):
         return Employee_Superior.current.filter(superior=self.pk).exists()
     
     def get_current_subordinate(self):
+        """Return currently active subordinate relationships."""
         from staff.models import Employee_Superior
         return Employee_Superior.current.filter(superior=self.pk, employee__is_active=True)
     
@@ -139,6 +141,7 @@ class Employee(models.Model, RightsCheckerMixin):
     
     @classmethod
     def get_instances_for_user(cls,perm, user, queryset=None):
+        """Filter Employees by global permission or the caller's hierarchy."""
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
@@ -239,6 +242,7 @@ class Employee_Superior(ActiveDateMixin):
         
 class Employee_Type(models.Model):
     
+    """Classify Employees for staffing and reporting."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Employee Type")
@@ -304,6 +308,7 @@ class TeamMate(ActiveDateMixin, RightsCheckerMixin):
     
     
     def clean(self):
+        """Validate the Team membership dates and associated Employee."""
         team = self.team
         inuser = TeamMate.objects.filter(Q(employee=self.employee), Q(team=team), ~Q(pk=self.pk))
         if inuser:
@@ -314,6 +319,7 @@ class TeamMate(ActiveDateMixin, RightsCheckerMixin):
         
 
 class GenericInfoType(models.Model):
+    """Define a reusable category of Employee information."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Type of Generic Info")
@@ -326,6 +332,7 @@ class GenericInfoType(models.Model):
         return self.name
 
 class GenericInfo(models.Model):
+    """Store a categorized information entry for an Employee."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Generic Info")

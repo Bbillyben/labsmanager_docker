@@ -65,12 +65,14 @@ class ChangeText(HTMLParser):
             self.new.append(data)
 
     def values(self, html):
+        """Extract plain old and new values from a Resource HTML diff."""
         self.mode, self.old, self.new = None, [], []
         self.feed(str(html or ""))
         return "".join(self.old).strip(), "".join(self.new).strip()
 
 
 def _temp_path(identifier):
+    """Validate an import-file identifier before resolving its temporary path."""
     try:
         uuid.UUID(identifier)
     except (TypeError, ValueError):
@@ -79,6 +81,7 @@ def _temp_path(identifier):
 
 
 def _clean_expired():
+    """Delete temporary import files older than the token lifetime."""
     TEMP_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
     cutoff = time.time() - TOKEN_AGE
     for path in TEMP_DIR.iterdir():
@@ -127,6 +130,7 @@ def _read_token(token, user, profile, *, previewed=None):
 
 
 def _datasets(data, file_format):
+    """Parse uploaded content into tabular datasets for the selected format."""
     try:
         if file_format in ("xls", "xlsx"):
             return {sheet.title: sheet for sheet in tablib.import_book(data, format=file_format).sheets()}
@@ -137,6 +141,7 @@ def _datasets(data, file_format):
 
 
 def _dataset(value, path, *, sheet=None, header_row=None):
+    """Select one dataset or sheet from an uploaded file."""
     datasets = _datasets(path.read_bytes(), value["format"])
     name = value.get("sheet") if sheet is None else sheet
     if name is None and len(datasets) == 1:
@@ -158,6 +163,7 @@ def _dataset(value, path, *, sheet=None, header_row=None):
 
 
 def _structure(resource, dataset):
+    """Describe the columns and sheets found in a parsed upload."""
     expected = [field.column_name for field in resource.get_import_fields()]
     actual = list(dataset.headers or [])
     return {"expected": expected, "recognized": [h for h in actual if h in expected],
@@ -200,6 +206,7 @@ def _structure_for(item, dataset, option_data=None):
 
 
 def _prepare_dataset(item, dataset, option_data=None):
+    """Let a plugin prepare parsed rows before Resource validation."""
     if not isinstance(item, PluginImportProfile):
         return dataset
     try:
@@ -220,6 +227,7 @@ def _error_message(row):
 
 
 def _normalize(result, dataset, resource, profile):
+    """Normalize preview rows and error details for the React import table."""
     headers = list(dataset.headers or [])
     key_fields = list(resource._meta.import_id_fields or ("id",))
     fields = {field.attribute: field.column_name for field in resource.get_fields()}
@@ -287,6 +295,7 @@ class ImportBase(APIView):
     permission_classes = [IsAuthenticated]
 
     def profile(self, request, profile):
+        """Check profile existence and permission for the current user."""
         item = get_profiles().get(profile)
         if item is None:
             raise NotFound()
@@ -307,6 +316,7 @@ class ImportTemplate(ImportBase):
 
     content_negotiation_class = ListExportContentNegotiation
     def get(self, request, profile):
+        """Return a Resource template in an allowed format."""
         item = self.profile(request, profile)
         file_format = request.query_params.get("format", "xlsx")
         if file_format not in item.template_formats:
@@ -328,6 +338,7 @@ class ImportUpload(ImportBase):
     """
 
     def post(self, request, profile):
+        """Store an authorized upload and sign its temporary reference."""
         item = self.profile(request, profile)
         upload = request.FILES.get("file")
         if upload is None:
@@ -374,6 +385,7 @@ class ImportPreview(ImportBase):
     """
 
     def post(self, request, profile):
+        """Preview Resource validation without committing any rows."""
         item = self.profile(request, profile)
         value, path = _read_token(request.data.get("import_token"), request.user, item, previewed=False)
         header_row = request.data.get("header_row", 1) if isinstance(item, PluginImportProfile) else 1
@@ -422,6 +434,7 @@ class ImportCommit(ImportBase):
     """
 
     def post(self, request, profile):
+        """Consume a preview-bound token and commit the import once."""
         item = self.profile(request, profile)
         value, path = _read_token(request.data.get("import_token"), request.user, item, previewed=True)
         claimed = path.with_suffix(".processing")
@@ -473,6 +486,7 @@ class ImportErrors(ImportBase):
     """Retrieve row errors associated with a valid preview token."""
 
     def get(self, request, profile):
+        """Return saved row errors for a matching signed preview."""
         item = self.profile(request, profile)
         value, path = _read_token(request.query_params.get("import_token"), request.user, item, previewed=True)
         if isinstance(item, PluginImportProfile):

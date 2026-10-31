@@ -24,6 +24,7 @@ import logging
 logger = logging.getLogger('labsmanager')
 
 class Cost_Type(MPTTModel):
+    """Hierarchical cost category used to group funding and spending."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Cost Type")
@@ -42,6 +43,7 @@ class Cost_Type(MPTTModel):
         return f'{self.name}'
     
 class Fund_Institution(RightsCheckerMixin, models.Model):
+    """Institution providing funding to a Project."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Funder Institution")
@@ -54,6 +56,7 @@ class Fund_Institution(RightsCheckerMixin, models.Model):
         return f'{self.short_name}'
     
 class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelDispatchMixin, RightsCheckerMixin):
+    """Per-cost-type line within a Fund with cached amounts."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund Line")
@@ -69,6 +72,7 @@ class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelDi
     
     @classmethod
     def get_instances_for_user(cls,perm, user, queryset=None):
+        """Include Fund lines in Projects where the user has a qualifying role."""
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
@@ -86,6 +90,7 @@ class Fund_Item(LabsManagerBudgetMixin, LabsManagerFocusTypeMixin, CachedModelDi
     
     
 class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
+    """Project funding source with cached budget and expense totals."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Fund")
@@ -108,6 +113,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
     
     
     def get_advancement_ratio(self):
+        """Compare spending with the elapsed fraction of the Fund period."""
         if self.amount == 0 or self.start_date is None or self.end_date is None:
             return "-"
         
@@ -115,6 +121,14 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
         return abs(self.expense)/(self.amount*date_ratio)
     
     def calculate(self, force=False):
+        """Refresh cached Fund totals and per-type spending.
+
+                Args:
+                    force: Reset cached Fund item expenses before applying points.
+
+                Notes:
+                    Saves this Fund and may update or create Fund items.
+        """
         logger.debug(f'[Fund]-calculate :{str(self)} / (force: {force})')
         from expense.models import Expense_point
         # get all fund_items
@@ -157,6 +171,15 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
                 fiS.save()
         
     def calculate_expense(self, force=False, exp_type=None):
+        """Aggregate Expenses into per-type Expense points.
+
+                Args:
+                    force: Zero matching points before rebuilding them.
+                    exp_type: Optional cost type restricting the recalculation.
+
+                Notes:
+                    Updates or creates Expense points, which can trigger recalculation.
+        """
         from expense.models import Expense, Expense_point
         logger.debug(f'[Fund]-calculate_expense :{str(self)} / (force: {force}) / Expense Type :{exp_type}')
         
@@ -201,6 +224,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
         return self.end_date
     
     def get_available(self):
+        """Build the legacy tabular availability projection for this Fund."""
         from expense.models import Expense_point
         import pandas as pd
         
@@ -217,6 +241,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
     
     @classmethod
     def get_availables(cls, funds):
+        """Build the legacy tabular availability projection for Funds."""
         from expense.models import Expense_point
         import pandas as pd
         fi =Fund_Item.objects.filter(fund__in=funds).values_list('fund__project__name', 'fund__funder__short_name','fund__institution__short_name', 'type__short_name', 'fund__end_date', 'amount')
@@ -228,6 +253,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
     
     @classmethod
     def get_instances_for_user(cls,perm, user, queryset=None):
+        """Restrict Funds to Projects available through the caller's permission."""
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
@@ -245,6 +271,7 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
         return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
 
 def calculate_fund(*arg):
+        """Recalculate a Fund when its related records change."""
         logger.debug('[calculate_fund] :'+str(arg))
         fuPk=arg[0]
         if not fuPk or not isinstance(fuPk, int) or fuPk<=0:
@@ -256,6 +283,7 @@ def calculate_fund(*arg):
         
 
 class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
+    """Shared amount and spending calculations for budget-like entries."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("BudgetAbstract")
@@ -294,6 +322,7 @@ class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
             raise ValidationError(_('Employee Type, Contract Type and employee can not be defined if Cost Type is not of RH or descendant '))
         
     def calculate_expense(self):
+        """Refresh cached spending for a Budget-like allocation."""
         from expense.models import Expense
         logger.debug(f'[Budget]-calculate_expense :{str(self)}')
         total = (
@@ -326,6 +355,7 @@ class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
     
     @classmethod
     def get_instances_for_user(cls,perm, user, queryset=None):
+        """Filter allocations through their related Fund and Project access."""
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
@@ -338,15 +368,18 @@ class BudgetAbstract(LabsManagerBudgetMixin, RightsCheckerMixin):
     
 
 class Budget(BudgetAbstract):
+    """Allocated amount for a Fund and cost category."""
     class Meta:
         verbose_name = _("Budget")
         
 class Contribution(BudgetAbstract, ActiveDateMixin):
+    """Funding contribution associated with a Fund."""
     class Meta:
         verbose_name = _("Contribution")
     
         
 class AmountHistory(models.Model):
+    """Historical amount record for a funding object."""
     content_type = models.ForeignKey(ContentType, related_name="content_type_amountHistory", on_delete=models.CASCADE, )
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')

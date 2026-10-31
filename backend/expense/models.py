@@ -22,6 +22,7 @@ import django.dispatch
 exp_postsave = django.dispatch.Signal()
 class Expense(LabsManagerFocusTypeMixin, CachedModelMixin):
     
+    """Individual spending record attached to a Fund and optional Budget."""
     object_inherit = InheritanceManager()
     
     class Meta:
@@ -52,6 +53,11 @@ class Expense(LabsManagerFocusTypeMixin, CachedModelMixin):
     history = AuditlogHistoryField()
     
     def save(self, *args, **kwargs):
+        """Persist an Expense and emit the legacy post-save signal.
+
+                Notes:
+                    Downstream receivers may recalculate Fund totals.
+        """
         result = super().save(*args, **kwargs)
         exp_postsave.send(sender=self.__class__, instance=self)
         
@@ -59,6 +65,7 @@ class Expense(LabsManagerFocusTypeMixin, CachedModelMixin):
         return f'{self.fund_item.__str__()}/{self.type}'
 
 class Contract_expense(Expense):
+    """Expense attributed to a specific Contract."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Contract Expense")
@@ -66,6 +73,7 @@ class Contract_expense(Expense):
     
 
 class Expense_point(LabsManagerFocusTypeMixin, CachedModelDispatchMixin):
+    """Cached total spending for one Fund and cost type."""
     class Meta:
         verbose_name = _("Total Expense Timepoint")
         unique_together = ('fund', 'type')
@@ -91,6 +99,7 @@ class Expense_point(LabsManagerFocusTypeMixin, CachedModelDispatchMixin):
     @classmethod
     def get_lastpoint_by_fund(self, fundPk):
         # get cost type
+        """Return the latest Expense point for each cost type in a Fund."""
         cts=Cost_Type.objects.all()
         bp = []
         for ct in cts:
@@ -102,6 +111,7 @@ class Expense_point(LabsManagerFocusTypeMixin, CachedModelDispatchMixin):
     @classmethod
     def get_lastpoint_by_fund_qs(cls, ExpensePointItems):
         # get cost type
+        """Build a queryset containing the latest point per cost type."""
         cts=Cost_Type.objects.all().values('pk')
         bp = Expense_point.objects.none()
         for ct in cts:
@@ -118,6 +128,7 @@ class Expense_point(LabsManagerFocusTypeMixin, CachedModelDispatchMixin):
     
     
 class Contract_type(models.Model):
+    """Category assigned to an Employee Contract."""
     class Meta:
         verbose_name = _("Contract Type")
         ordering = ['name']
@@ -129,6 +140,7 @@ class Contract_type(models.Model):
 from .manager import effective_Manager, provisionnal_Manager
 import decimal
 class Contract(DateMixin, RightsCheckerMixin):
+    """Dated employment allocation charged to a Fund."""
     objects = models.Manager()
     provisionnal = provisionnal_Manager()
     effective = effective_Manager()
@@ -160,6 +172,7 @@ class Contract(DateMixin, RightsCheckerMixin):
     
     @property
     def total_amount(self):
+        """Sum expenses attached to this Contract."""
         exp = Contract_expense.objects.filter(contract=self.pk)
         if exp:
             return exp.aggregate(Sum('amount'))["amount__sum"]
@@ -167,6 +180,7 @@ class Contract(DateMixin, RightsCheckerMixin):
     
     @property
     def remain_amount(self):
+        """Estimate the amount associated with the remaining Contract period."""
         ratio = self.get_left_time_ratio()
         amount = self.total_amount
         if ratio != "-" and amount:
@@ -175,6 +189,7 @@ class Contract(DateMixin, RightsCheckerMixin):
     
     @property
     def man_month(self):
+        """Calculate Contract duration in months weighted by its workload share."""
         if not self.start_date or not self.end_date or not self.quotity:
             return 0
         return ((self.end_date.year - self.start_date.year) * 12 + self.end_date.month - self.start_date.month)*self.quotity
@@ -182,12 +197,14 @@ class Contract(DateMixin, RightsCheckerMixin):
     
     @classmethod
     def staleFilter(cls):
+        """Build a filter for active Contracts approaching their end date."""
         monthToGo=LMUserSetting.get_setting('DASHBOARD_CONTRACT_STALE_TO_MONTH')
         maxDate=utils.getDateToStale(monthToGo)
         return (Q(is_active=True) & Q(end_date__lte=maxDate))
     
     @classmethod
     def get_instances_for_user(cls,perm, user, queryset=None):
+        """Filter Contracts through the caller's object-level access."""
         from project.models import Project, Participant
         from staff.models import Employee_Superior
         qset = super().get_instances_for_user(perm, user, queryset)

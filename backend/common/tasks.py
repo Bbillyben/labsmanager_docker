@@ -20,6 +20,7 @@ logger = logging.getLogger('labsmanager')
 
 
 def checkuser_notification_tasks(user):
+    """Evaluate user-specific notification checks on schedule."""
     currSch = Schedule.objects.filter(name='send_notification_'+str(user.username))
     sub_enab =  LMUserSetting.get_setting("NOTIFCATION_STATUS", user=user)
     
@@ -56,6 +57,7 @@ def checkuser_notification_tasks(user):
         logger.debug(f"Update Notification cron for user {user.username} at {freq}")
     
 def check_notifications_tasks():
+    """Evaluate shared notification checks on schedule."""
     logger.debug(f"[check_notifications_tasks] called")
     # get all user involved
     
@@ -73,6 +75,7 @@ def check_notifications_tasks():
 
 
 def send_notification(*args, **kwargs):
+    """Deliver a queued notification through its email path."""
     logger.debug("###############   [cdmmon.tasks.send_notification]    #######")
     pkU = kwargs.get("user_pk", None)
     if pkU == None:
@@ -100,6 +103,7 @@ def send_notification(*args, **kwargs):
     
 
 def send_test_mail(request, *args, **kwargs):
+    """Send a test message for notification configuration."""
     logger.info("[send_test_mail] Called")
     
     upk = request.POST.get("user", None)
@@ -120,6 +124,7 @@ def send_test_mail(request, *args, **kwargs):
 def test_check(request):  
 
 
+    """Run the diagnostic notification check task."""
     upk = request.GET["user"]
     user = User.objects.get(pk=upk)
     

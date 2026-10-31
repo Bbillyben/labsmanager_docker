@@ -82,6 +82,7 @@ class EmployeeStatusForm(BSModalModelForm):
     
     def __init__(self, *args, **kwargs): 
         
+        """Configure status choices for the selected Employee."""
         self.base_fields['employee'] = forms.ModelChoiceField(
             queryset=Employee.objects.all(),
             widget=forms.HiddenInput
@@ -119,6 +120,7 @@ class EmployeeSuperiorSubordinateFOrm(BSModalModelForm):
                                   params = {"end":self.cleaned_data['end_date'], "start": self.cleaned_data['start_date']})
         return self.cleaned_data['end_date']
     def clean(self):
+        """Reject invalid or cyclic Employee hierarchy relations."""
         super().clean()
         sub =  self.cleaned_data.get("employee")
         sup =  self.cleaned_data.get("superior")
@@ -132,6 +134,7 @@ class EmployeeSuperiorForm(EmployeeSuperiorSubordinateFOrm):
         
     def __init__(self, *args, **kwargs): 
         
+        """Configure eligible superior Employees for the relation form."""
         query = Q(is_active=True)
         if ('initial' in kwargs and 'employee' in kwargs['initial']):
             query =query & ~Q(pk=kwargs['initial']['employee'])
@@ -161,6 +164,7 @@ class EmployeeSubordinateForm(EmployeeSuperiorSubordinateFOrm):
 
     def __init__(self, *args, **kwargs): 
         
+        """Configure eligible subordinate Employees for the relation form."""
         query = Q(is_active=True)
         if ('initial' in kwargs and 'superior' in kwargs['initial']):
             query =query & ~Q(pk=kwargs['initial']['superior'])  
@@ -194,6 +198,7 @@ class TeamModelForm(SanitizeDataFormMixin, BSModalModelForm):
         fields = ['name', 'leader',]
 
     def __init__(self, *args, **kwargs): 
+        """Limit Team leader choices according to the current user."""
         print ('--------------------------------  TeamModelForm')
         for a in args:
             print(f" - {a}")
@@ -225,6 +230,7 @@ class TeamMateModelForm(BSModalModelForm):
         }
         
     def __init__(self, *args, **kwargs):
+        """Configure membership choices for the selected Team."""
         if ('initial' in kwargs and 'team' in kwargs['initial'] and not 'is_update' in kwargs):
             team_id=kwargs['initial']['team']
             mateInTeam=TeamMate.objects.filter(team=team_id).values('employee')

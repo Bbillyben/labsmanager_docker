@@ -18,6 +18,7 @@ def is_project_leader(user, project = None):
     
 @rules.predicate
 def is_project_coleader(user, project = None):
+    """Check whether an Employee co-leads a Project."""
     cet_colead =LabsManagerSetting.get_setting('CO_LEADER_CAN_EDIT_PROJECT')
     if not cet_colead:
         return False

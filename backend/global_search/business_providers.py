@@ -11,6 +11,7 @@ from .destinations import fund_url, contract_url, team_url
 
 
 class FundSearchProvider(SearchProvider):
+    """Search visible Funds and build their navigation results."""
     key = "fund"
     label = _("Funds")
     icon = "PiggyBank"
@@ -39,6 +40,7 @@ class FundSearchProvider(SearchProvider):
 
 
 class ContractSearchProvider(SearchProvider):
+    """Search visible Contracts and build their navigation results."""
     key = "contract"
     label = _("Contracts")
     icon = "FileSignature"
@@ -60,6 +62,7 @@ class ContractSearchProvider(SearchProvider):
         )
 
     def field_query(self, search_field, term, lookup, user):
+        """Translate a Contract field condition into a permission-scoped queryset filter."""
         from expense.models import Contract
         from staff.models import Employee
         if search_field.key == "email":
@@ -77,6 +80,7 @@ class ContractSearchProvider(SearchProvider):
         return super().field_query(search_field, term, lookup, user)
 
     def search_values(self, obj, search_field, user):
+        """Collect Contract values matching the parsed search expression."""
         if search_field.key == "employee":
             return tuple((str(search_field.label), value) for value in person_values(obj.employee))
         if search_field.key == "email":
@@ -99,6 +103,7 @@ class ContractSearchProvider(SearchProvider):
 
 
 class TeamSearchProvider(SearchProvider):
+    """Search visible Teams and build their navigation results."""
     key = "team"
     label = _("Teams")
     icon = "UsersRound"

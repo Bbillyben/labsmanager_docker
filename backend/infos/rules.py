@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404
 
 @rules.predicate
 def is_user_custom_note(user, rulesname):
+    """Check whether the user may manage a custom note."""
     print(f" >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   is_user_custom_note : {user} / {rulesname}")
     perms=rulesname.split("#")
     perm_name = rulesname[0]

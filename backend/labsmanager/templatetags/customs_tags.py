@@ -117,6 +117,7 @@ def setting_object(key, *args, **kwargs):
 
 @register.simple_tag()
 def settings_value(key, *args, **kwargs):
+    """Resolve a setting value for a legacy template."""
     from settings.models import LMUserSetting, LabsManagerSetting, LMProjectSetting
     """Return a settings value specified by the given key."""
     if 'user' in kwargs:
@@ -196,6 +197,7 @@ def get_color_theme(user):
 
 @register.simple_tag()
 def get_color_theme_browser(request):
+    """Choose the browser color theme from user preferences."""
     if request.user and not request.user.is_anonymous:
         return get_color_theme(request.user)
     

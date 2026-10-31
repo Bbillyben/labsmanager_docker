@@ -1,3 +1,5 @@
+"""Legacy Project template views and financial summary helpers."""
+
 from django.contrib.auth.decorators import permission_required
 from http.client import HTTPResponse
 from django.http import HttpResponse, JsonResponse
@@ -107,6 +109,7 @@ def get_project_resume(request, pk):
 
 
 def get_project_fund_panda(pk):
+    """Build the legacy pandas funding table for a Project."""
     fund=Fund.objects.filter(project=pk)#.values("pk")
     
     # get funitem related to funds
@@ -156,6 +159,7 @@ def get_project_fund_panda(pk):
     
     
 def get_project_fund_overviewReport(pk):
+    """Build funding summary values for a legacy Project report."""
     out = get_project_fund_panda(pk)
     if out is None:
         return '<i>'+_('No Matching Fund Item')+'</i>'
@@ -170,6 +174,7 @@ def get_project_fund_overviewReport(pk):
     
 def get_project_fund_overview(request, pk):
     
+    """Build legacy funding overview values for a Project."""
     out = get_project_fund_panda(pk)
     if out is None:
         resp='<i>'+_('No Matching Fund Item')+'</i>'
@@ -192,6 +197,7 @@ from django.db.models import Sum
 from django.db.models import F  
 
 def get_project_fund_overviewReport_bytType(pk, funds=None):
+    """Group Project report funding by cost type."""
     fund=funds if funds is not None else Fund.objects.filter(project=pk)
     a=Fund_Item.objects.filter(fund__in=fund)
     if not a:
@@ -232,6 +238,7 @@ def get_project_info_table(request, pk):
 
 ####################### Project Calendar 
 def project_calendar_print(request):
+    """Render the legacy Project calendar for printing."""
     context={}
     
     # options={}

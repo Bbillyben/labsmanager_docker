@@ -25,6 +25,7 @@ def _bounded_int(raw, name, *, default, maximum):
 
 
 class SearchSchemaV1View(APIView):
+    """Expose search providers and fields available to the caller."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
@@ -32,9 +33,11 @@ class SearchSchemaV1View(APIView):
 
 
 class SearchAutocompleteV1View(APIView):
+    """Return completion suggestions for the current query and cursor."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        """Validate query and cursor input before returning suggestions."""
         raw = request.query_params.get("q", "")
         if len(raw) > 200:
             raise ValidationError({"q": "Query is too long."})
@@ -57,9 +60,11 @@ class SearchAutocompleteV1View(APIView):
 
 
 class SearchV1View(APIView):
+    """Execute permission-scoped global search and serialize its results."""
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        """Run provider searches, preserving visibility and result limits."""
         raw = request.query_params.get("q", "")
         provider_key = request.query_params.get("provider") or None
         if len(raw) > 200:

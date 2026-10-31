@@ -321,6 +321,7 @@ def get_team_resume(request, pk):
     return render(request, 'team/team_desc_table.html', data)
 
 def get_team_mate(request, pk):
+    """Return Team membership information for a legacy template."""
     teamMate = TeamMate.objects.filter(team=pk)
     teamMate = TeamMate.annotate_queryset(teamMate, request.user, "view")
     team = Team.objects.get(pk=pk)

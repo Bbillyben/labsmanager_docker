@@ -162,6 +162,7 @@ class ProjectListFitler(admin.SimpleListFilter):
     
     def queryset(self, request, queryset):
         
+        """Restrict Admin rows by the selected Project."""
         if self.value()==None:
             return queryset
 
@@ -186,6 +187,7 @@ class InstitutionListFitler(admin.SimpleListFilter):
             ]   
     def queryset(self, request, queryset):
         
+        """Restrict Admin rows by the selected institution."""
         if self.value()==None:
             return queryset
 
@@ -210,6 +212,7 @@ class FunderListFitler(admin.SimpleListFilter):
             ]   
     def queryset(self, request, queryset):
         
+        """Restrict Admin rows by the selected funder."""
         if self.value()==None:
             return queryset
 
@@ -235,6 +238,7 @@ class CostTypeListFitler(admin.SimpleListFilter):
         
     def queryset(self, request, queryset):
        
+        """Restrict Admin rows by the selected cost type."""
         if self.value()==None:
             return queryset
 

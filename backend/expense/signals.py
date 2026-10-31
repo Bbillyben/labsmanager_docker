@@ -23,6 +23,7 @@ def save_Expense_point_handler(sender, instance, **kwargs):
 from expense.models import exp_postsave
 @receiver(exp_postsave) # signals dispatch on save by Expense and child classes
 def save_expense_handler(sender, instance, **kwargs):
+    """Update cached financial totals after an Expense is saved."""
     logger.debug('[save_expense_handler] called')
     
     # check if there is a budget in save and recalculate total budget expense
@@ -49,6 +50,7 @@ def save_expense_handler(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Expense)
 def delete_expense_handler(sender, instance, **kwargs):
+    """Update cached financial totals after an Expense is removed."""
     logger.debug('[delete_expense_handler] called')
     d_type = instance.type
      # get project setting

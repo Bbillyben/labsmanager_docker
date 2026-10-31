@@ -109,6 +109,7 @@ class Milestones(endpoint, ActiveDateMixin):
         self.normalize_completion()
 
     def save(self, *args, validation_user=None, **kwargs):
+        """Persist a Milestone and dispatch dependent planning updates."""
         author = validation_user or getattr(self, "_validation_user", None)
         if hasattr(self, "_validation_user"):
             del self._validation_user
@@ -166,6 +167,7 @@ class MilestoneDependency(models.Model):
         )
 
     def clean(self):
+        """Reject invalid or cyclic Milestone dependencies."""
         super().clean()
         if not self.predecessor_id or not self.successor_id:
             return

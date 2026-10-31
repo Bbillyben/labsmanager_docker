@@ -295,6 +295,7 @@ class PasswordResetRequestV1View(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Validate an address and send a password reset email."""
         if not settings.REACT_PUBLIC_URL.strip():
             return Response({"detail": "React public URL is not configured."}, status=503)
         email = request.data.get("email") if isinstance(request.data, dict) else None
@@ -321,6 +322,7 @@ class PasswordResetBridgeV1View(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, key):
+        """Validate the reset link and establish reset session state."""
         if not ratelimit.consume(request._request, action="reset_password_from_key"):
             return Response({"detail": "Too many requests."}, status=429)
         uid, separator, token = key.partition("-")
@@ -353,6 +355,7 @@ class PasswordResetConfirmV1View(APIView):
         return Response({"valid": True, "password_hints": password_validation.password_validators_help_texts()})
 
     def post(self, request, uid):
+        """Validate and save a new password from reset session state."""
         user = _reset_user(request, uid)
         if user is None:
             return Response({"valid": False}, status=400)

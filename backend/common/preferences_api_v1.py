@@ -21,6 +21,7 @@ class ObjectPreferenceV1View(APIView):
         return Response(preference_status(request.user, self.object(request, type_name, object_id)))
 
     def put(self, request, type_name, object_id):
+        """Update a favorite or subscription for a visible object."""
         obj = self.object(request, type_name, object_id)
         if not request.data or set(request.data) - {"favorite", "subscription"}:
             raise ValidationError({"detail": "Expected favorite and/or subscription."})

@@ -48,6 +48,7 @@ class TokenCollection(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, key, kind):
+        """List token metadata without exposing stored secrets."""
         plugin, config = token_target(key, kind, request.user)
         tokens = PluginAccessToken.objects.filter(plugin=config, kind=kind)
         if kind == 'user':
@@ -61,6 +62,7 @@ class TokenCollection(APIView):
                          'tokens': [token_data(token) for token in tokens.order_by('-created_at', '-pk')]})
 
     def post(self, request, key, kind):
+        """Create a scoped token and reveal its secret in this response only."""
         plugin, _ = token_target(key, kind, request.user)
         if not isinstance(request.data, dict) or not set(request.data) <= {'name', 'scopes', 'expires_at'}:
             raise serializers.ValidationError({'detail': 'Unexpected token fields.'})
@@ -86,6 +88,7 @@ class TokenDetail(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def _token(self, request, key, kind, public_id):
+        """Resolve a token owned by the caller without exposing its secret."""
         _, config = token_target(key, kind, request.user)
         tokens = PluginAccessToken.objects.filter(plugin=config, kind=kind, public_id=public_id)
         if kind == 'user':
@@ -96,6 +99,7 @@ class TokenDetail(APIView):
         return token
 
     def patch(self, request, key, kind, public_id):
+        """Update an allowed token field after ownership checks."""
         token = self._token(request, key, kind, public_id)
         if not isinstance(request.data, dict) or set(request.data) != {'name'}:
             raise serializers.ValidationError({'name': 'Expected one name.'})

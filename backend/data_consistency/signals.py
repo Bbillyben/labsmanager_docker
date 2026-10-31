@@ -27,10 +27,12 @@ _table_exists = {}
 def reset_table_cache(**kwargs):
     # Fresh database migrations may save business objects before our initial
     # migration creates the exception table.
+    """Invalidate cached consistency data after a relevant model change."""
     _table_exists.clear()
 
 
 def close_open(queryset, reason, using, rule_key=CONTRACT_PARTICIPANT_RULE_KEY):
+    """Close open exceptions for a consistency rule and object."""
     if using not in _table_exists:
         _table_exists[using] = DataConsistencyException._meta.db_table in connections[using].introspection.table_names()
     if _table_exists[using]:
@@ -41,6 +43,7 @@ def close_open(queryset, reason, using, rule_key=CONTRACT_PARTICIPANT_RULE_KEY):
 
 @receiver(pre_save, sender=Contract)
 def remember_contract_relation(sender, instance, using, **kwargs):
+    """Record the original Contract relation before mutation."""
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("employee_id", "fund_id", "start_date", "end_date").first()
@@ -50,6 +53,7 @@ def remember_contract_relation(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Contract)
 def close_changed_contract(sender, instance, using, **kwargs):
+    """Close exceptions invalidated by a Contract change."""
     old = getattr(instance, "_consistency_old_relation", None)
     if old is None:
         return
@@ -64,6 +68,7 @@ def close_changed_contract(sender, instance, using, **kwargs):
 
 @receiver(post_delete, sender=Contract)
 def close_deleted_contract(sender, instance, using, **kwargs):
+    """Close exceptions for a removed Contract."""
     for key in (CONTRACT_PARTICIPANT_RULE_KEY, CONTRACT_DATES_RULE_KEY,
                 CONTRACT_EMPLOYEE_DATES_RULE_KEY, CONTRACT_FUND_DATES_RULE_KEY):
         close_open(DataConsistencyException.objects.filter(contract_id=instance.pk), "deleted", using, key)
@@ -71,6 +76,7 @@ def close_deleted_contract(sender, instance, using, **kwargs):
 
 @receiver(pre_save, sender=Fund)
 def remember_fund_project(sender, instance, using, **kwargs):
+    """Record the original Fund Project before mutation."""
     instance._consistency_old_project_dates = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("project_id", "start_date", "end_date").first()
@@ -80,6 +86,7 @@ def remember_fund_project(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Fund)
 def close_changed_fund_project(sender, instance, using, **kwargs):
+    """Close exceptions invalidated by a Fund relation change."""
     old = getattr(instance, "_consistency_old_project_dates", None)
     if old is None:
         return
@@ -100,12 +107,14 @@ def close_changed_fund_project(sender, instance, using, **kwargs):
 
 @receiver(post_delete, sender=Fund)
 def close_deleted_fund(sender, instance, using, **kwargs):
+    """Close exceptions for a removed Fund."""
     close_open(DataConsistencyException.objects.filter(fund_id=instance.pk), "deleted", using,
                FUND_DATES_RULE_KEY)
 
 
 @receiver(pre_save, sender=Project)
 def remember_project_dates(sender, instance, using, **kwargs):
+    """Record Project dates before mutation for exception cleanup."""
     instance._consistency_old_dates = (
         sender.objects.using(using).filter(pk=instance.pk).values_list("start_date", "end_date").first()
         if instance.pk else None
@@ -114,6 +123,7 @@ def remember_project_dates(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Project)
 def close_changed_project_dates(sender, instance, using, **kwargs):
+    """Close exceptions invalidated by Project date changes."""
     old = getattr(instance, "_consistency_old_dates", None)
     if old is None:
         return
@@ -126,6 +136,7 @@ def close_changed_project_dates(sender, instance, using, **kwargs):
 
 @receiver(pre_save, sender=Employee)
 def remember_employee_dates(sender, instance, using, **kwargs):
+    """Record Employee dates before mutation for exception cleanup."""
     instance._consistency_old_dates = (
         sender.objects.using(using).filter(pk=instance.pk).values_list("entry_date", "exit_date").first()
         if instance.pk else None
@@ -134,6 +145,7 @@ def remember_employee_dates(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Employee)
 def close_changed_employee_dates(sender, instance, using, **kwargs):
+    """Close exceptions invalidated by Employee date changes."""
     old = getattr(instance, "_consistency_old_dates", None)
     if old is None:
         return
@@ -145,6 +157,7 @@ def close_changed_employee_dates(sender, instance, using, **kwargs):
 
 @receiver(pre_save, sender=Milestones)
 def remember_milestone_relation(sender, instance, using, **kwargs):
+    """Record a Milestone relation before mutation."""
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("project_id", "start_date", "end_date").first()
@@ -154,6 +167,7 @@ def remember_milestone_relation(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Milestones)
 def close_changed_milestone(sender, instance, using, **kwargs):
+    """Close exceptions invalidated by a Milestone change."""
     old = getattr(instance, "_consistency_old_relation", None)
     if old is None:
         return
@@ -166,12 +180,14 @@ def close_changed_milestone(sender, instance, using, **kwargs):
 
 @receiver(post_delete, sender=Milestones)
 def close_deleted_milestone(sender, instance, using, **kwargs):
+    """Close exceptions for a removed Milestone."""
     for key in (MILESTONE_DATES_RULE_KEY, TASK_DATES_RULE_KEY):
         close_open(DataConsistencyException.objects.filter(milestone_id=instance.pk), "deleted", using, key)
 
 
 @receiver(pre_save, sender=Expense)
 def remember_expense_relation(sender, instance, using, **kwargs):
+    """Record Expense relations before mutation."""
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk).values_list("fund_item_id", "date").first()
         if instance.pk else None
@@ -180,6 +196,7 @@ def remember_expense_relation(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Expense)
 def close_changed_expense(sender, instance, using, **kwargs):
+    """Close exceptions invalidated by an Expense change."""
     old = getattr(instance, "_consistency_old_relation", None)
     if old is None:
         return
@@ -191,12 +208,14 @@ def close_changed_expense(sender, instance, using, **kwargs):
 
 @receiver(post_delete, sender=Expense)
 def close_deleted_expense(sender, instance, using, **kwargs):
+    """Close exceptions for a removed Expense."""
     close_open(DataConsistencyException.objects.filter(expense_id=instance.pk), "deleted", using,
                EXPENSE_FUND_DATES_RULE_KEY)
 
 
 @receiver(pre_save, sender=Participant)
 def remember_participant_relation(sender, instance, using, **kwargs):
+    """Record Project participation before mutation."""
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("employee_id", "project_id", "status").first()
@@ -206,6 +225,7 @@ def remember_participant_relation(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Participant)
 def close_resolved_participant(sender, instance, using, **kwargs):
+    """Close exceptions resolved by participation changes."""
     old = getattr(instance, "_consistency_old_relation", None)
     current = sender.objects.using(using).filter(pk=instance.pk).values_list("employee_id", "project_id", "status").first()
     if old and old[:2] != current[:2]:
@@ -222,6 +242,7 @@ def close_resolved_participant(sender, instance, using, **kwargs):
 
 @receiver(post_delete, sender=Participant)
 def close_deleted_participant(sender, instance, using, **kwargs):
+    """Close exceptions for removed Project participation."""
     close_open(DataConsistencyException.objects.filter(employee_id=instance.employee_id,
                                                         project_id=instance.project_id), "relation_changed", using)
     if instance.status == "l":

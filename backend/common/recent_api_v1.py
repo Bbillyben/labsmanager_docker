@@ -24,6 +24,7 @@ class RecentItemsV1View(APIView):
         return Response(results)
 
     def post(self, request):
+        """Record a recently visited object for the current user."""
         data = request.data
         if not isinstance(data, dict) or set(data) - {"url_id", "obj_id"}:
             return Response({"detail": "Invalid destination."}, status=status.HTTP_400_BAD_REQUEST)

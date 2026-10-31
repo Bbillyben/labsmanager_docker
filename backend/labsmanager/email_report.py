@@ -10,6 +10,7 @@ from project.views import get_project_fund_overviewReport_bytType
 
 
 def _financial_row(item, amount, expense, available, available_focus, *, absolute_ratio=False):
+    """Format one financial row for a report email table."""
     amount = amount if amount is not None else None
     expense = expense if expense is not None else None
     temporal_percent = _project_temporal_percent(item, timezone.localdate())

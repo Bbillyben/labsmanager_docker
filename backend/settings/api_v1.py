@@ -66,6 +66,7 @@ class ProjectSettingsV1View(ProjectSettingsV1Base):
 class ProjectSettingDetailV1View(ProjectSettingsV1Base):
     """Persist a single Project Setting through its model validation and hooks."""
     def patch(self, request, pk, key):
+        """Validate and update a Project-specific setting."""
         project = self.get_project(request, pk)
         key = key.upper()
         if not LMProjectSetting.get_setting_definition(key):

@@ -17,6 +17,7 @@ class OrganizationChartV1View(APIView):
 
     def get(self, request):
         # The historical key is inverted in name only: True means current only.
+        """Return the visible Employee hierarchy for the selected scope."""
         current_only = LMUserSetting.get_setting("SHOW_PAST_ORG", user=request.user)
         visible = Employee.get_instances_for_user("view", request.user, Employee.objects.all())
         if current_only:

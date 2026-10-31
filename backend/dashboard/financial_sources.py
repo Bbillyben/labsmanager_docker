@@ -14,6 +14,7 @@ from project.models import Project
 
 
 def visible_projects(context, config):
+    """Return Projects available to the Dashboard context."""
     projects = Project.get_instances_for_user("view", context.user, Project.objects.all())
     scope = config.get("project_scope", "context" if context.scope == "project" else "all_visible")
     if scope == "context":
@@ -25,6 +26,7 @@ def visible_projects(context, config):
 
 
 def visible_funds(context, config):
+    """Return Funds in visible Projects and the selected widget scope."""
     project_ids = visible_projects(context, config).values("pk")
     return Fund.get_instances_for_user("view", context.user, Fund.objects.filter(project_id__in=project_ids))
 
@@ -56,6 +58,7 @@ def advancement_for_funds(funds, today=None):
 
 
 def financial_advancement(context, config):
+    """Build financial progress data for a Dashboard widget."""
     result = advancement_for_funds(visible_funds(context, config).only("amount", "expense", "start_date", "end_date"))
     if result is None:
         return {"value": "—", "label": _("Financial advancement"), "tone": "muted"}
@@ -67,6 +70,7 @@ def financial_advancement(context, config):
 
 
 def financial_summary(context, config):
+    """Build summary amounts from permission-scoped financial records."""
     funds = visible_funds(context, config)
     amount = sum((item.amount or Decimal("0") for item in funds), Decimal("0"))
     spent = sum((abs(item.expense or Decimal("0")) for item in funds), Decimal("0"))
@@ -93,6 +97,7 @@ def _group(point, kind):
 
 
 def expense_trend(context, config):
+    """Aggregate Expenses into a dated trend for the Dashboard."""
     funds = list(visible_funds(context, config).select_related("institution", "project"))
     by_fund = {item.pk: item for item in funds}
     if not by_fund:

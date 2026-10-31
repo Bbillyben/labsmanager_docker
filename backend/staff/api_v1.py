@@ -58,6 +58,7 @@ class EmployeeContractV1Mixin:
     """Resolve Employee first, then expose its contextual Contracts."""
 
     def get_employee(self):
+        """Resolve the Employee through the caller's view-filtered queryset."""
         if not hasattr(self, "_v1_employee"):
             visible_employees = Employee.get_instances_for_user(
                 "view", self.request.user, Employee.objects.all()
@@ -68,6 +69,7 @@ class EmployeeContractV1Mixin:
         return self._v1_employee
 
     def get_contract_queryset(self):
+        """Preload Contracts belonging to the resolved Employee."""
         employee = self.get_employee()
         return Contract.objects.filter(employee=employee).select_related(
             "employee",
@@ -78,6 +80,7 @@ class EmployeeContractV1Mixin:
         )
 
     def get_contract_context(self):
+        """Provide Project and organization visibility to Contract serializers."""
         visible_project_ids = set(
             Project.get_instances_for_user(
                 "view", self.request.user, Project.objects.all()
@@ -101,6 +104,7 @@ class EmployeeContractListV1View(EmployeeContractV1Mixin, generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
+        """Order Employee Contracts as current, future, then past."""
         today = timezone.localdate()
         future = Q(start_date__gt=today)
         past = ~future & Q(end_date__lt=today)
@@ -172,6 +176,7 @@ class EmployeeContributionListV1View(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
+        """Return Contributions available for this Employee."""
         visible_employees = Employee.get_instances_for_user(
             "view", self.request.user, Employee.objects.all()
         )
@@ -236,6 +241,7 @@ class EmployeeBudgetListV1View(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
+        """Return Budgets available for this Employee."""
         visible_employees = Employee.get_instances_for_user(
             "view", self.request.user, Employee.objects.all()
         )
@@ -280,6 +286,7 @@ class EmployeeLeaveQuerysetMixin:
     """Resolve Employee scope before loading its contextual Leave objects."""
 
     def get_employee(self):
+        """Resolve the visible Employee named in the URL."""
         visible_employees = Employee.get_instances_for_user(
                 "view", self.request.user, Employee.objects.all()
             )
@@ -287,6 +294,7 @@ class EmployeeLeaveQuerysetMixin:
         return get_object_or_404(visible_employees, pk=self.kwargs["pk"])
 
     def get_leave_queryset(self, *, require_bounds=False):
+        """Return Leave records belonging to that Employee."""
         employee = self.get_employee()
         start = _v1_date_parameter(self.request, "from", required=require_bounds)
         end = _v1_date_parameter(self.request, "to", required=require_bounds)
@@ -320,6 +328,7 @@ class EmployeeLeaveListV1View(EmployeeLeaveQuerysetMixin, generics.ListAPIView):
         return queryset
 
     def post(self, request, *args, **kwargs):
+        """Validate and create a Leave if the user can edit this Employee."""
         employee = self.get_employee()
         if not leave_capabilities(request.user, employee)["can_add"]:
             raise PermissionDenied()
@@ -346,6 +355,7 @@ class EmployeeLeaveDetailV1View(EmployeeLeaveQuerysetMixin, APIView):
         )
 
     def patch(self, request, *args, **kwargs):
+        """Update a Leave after checking Employee-level capability."""
         leave = self.get_leave()
         if not leave_capabilities(request.user, leave.employee)["can_change"]:
             raise PermissionDenied()
@@ -354,6 +364,7 @@ class EmployeeLeaveDetailV1View(EmployeeLeaveQuerysetMixin, APIView):
         return Response(EmployeeLeaveV1Serializer(serializer.save(), context={"request": request}).data)
 
     def delete(self, request, *args, **kwargs):
+        """Delete a Leave after checking Employee-level capability."""
         leave = self.get_leave()
         if not leave_capabilities(request.user, leave.employee)["can_delete"]:
             raise PermissionDenied()
@@ -381,6 +392,7 @@ class EmployeeCalendarV1View(EmployeeLeaveQuerysetMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
+        """Return Employee-scoped events for the requested range."""
         gantt = request.query_params.get("context") == CalendarType.EMPLOYEE_GANTT.value
         if gantt:
             employee = self.get_employee()
@@ -416,6 +428,7 @@ class EmployeeCalendarFilterV1View(EmployeeLeaveQuerysetMixin, APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
+        """Return filter choices available in the Employee calendar."""
         employee = self.get_employee()
         gantt = request.query_params.get("context") == CalendarType.EMPLOYEE_GANTT.value
         context = CalendarContext(
@@ -516,12 +529,27 @@ class EmployeeListV1View(EmployeeV1QuerysetMixin, generics.ListAPIView):
     ordering = ("first_name", "last_name", "pk")
 
     def get_paginated_response(self, data):
+        """Include Employee creation capability in the paginated list."""
         response = super().get_paginated_response(data)
         response.data["capabilities"] = {"can_add": can_add_employee(self.request.user)}
         return response
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Create an Employee and apply the hierarchy rule atomically.
+
+        A caller without global Employee visibility is linked to the new
+        Employee as superior when the caller has an Employee account. Explicit
+        superior fields are rejected here so a contradictory relation cannot
+        silently replace this rule.
+
+        Returns:
+            The new Employee identifier and identity fields for navigation.
+
+        Raises:
+            PermissionDenied: The caller may not create Employees.
+            ValidationError: Input or the proposed relation is invalid.
+        """
         if not can_add_employee(request.user):
             raise PermissionDenied()
         if any(key in request.data for key in ("superior", "superior_id", "superiors", "employee_hierarchy")):
@@ -556,6 +584,7 @@ class EmployeeListFilterOptionsV1View(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        """Return status and Team choices scoped to visible Employees."""
         visible = Employee.objects.all()
         if not (request.user.is_staff or request.user.has_perm("staff.change_employee")):
             visible = Employee.get_instances_for_user("view", request.user, visible)
@@ -579,6 +608,7 @@ class EmployeeDetailV1View(EmployeeV1QuerysetMixin, generics.RetrieveAPIView):
     allow_editor_view = True
 
     def patch(self, request, *args, **kwargs):
+        """Update a visible Employee after checking detail capability."""
         employee = self.get_object()
         if not employee_detail_capabilities(request.user, employee)["can_change"]:
             raise PermissionDenied()
@@ -604,6 +634,7 @@ class EmployeeGenericInfoV1Mixin:
         return self._employee
 
     def get_queryset(self):
+        """Return generic information for the resolved Employee."""
         return GenericInfo.objects.filter(employee=self.get_employee()).select_related(
             "info"
         ).order_by("info__name", "pk")
@@ -629,6 +660,7 @@ class EmployeeGenericInfoV1View(EmployeeGenericInfoV1Mixin, generics.GenericAPIV
         })
 
     def post(self, request, *args, **kwargs):
+        """Create typed Employee information when permitted."""
         self.require_capability("can_add")
         serializer = GenericInfoWriteV1Serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -643,6 +675,7 @@ class EmployeeGenericInfoDetailV1View(EmployeeGenericInfoV1Mixin, generics.Gener
     lookup_url_kwarg = "generic_info_id"
 
     def patch(self, request, *args, **kwargs):
+        """Update an Employee information entry when permitted."""
         info = self.get_object()
         self.require_capability("can_change")
         serializer = GenericInfoWriteV1Serializer(info, data=request.data, partial=True)
@@ -651,6 +684,7 @@ class EmployeeGenericInfoDetailV1View(EmployeeGenericInfoV1Mixin, generics.Gener
         return Response(self.get_serializer(info).data)
 
     def delete(self, request, *args, **kwargs):
+        """Remove an Employee information entry when permitted."""
         info = self.get_object()
         self.require_capability("can_delete")
         info.delete()
@@ -707,6 +741,7 @@ class EmployeeMilestoneDetailV1View(APIView):
 
     @transaction.atomic
     def patch(self, request, pk, item_id):
+        """Partially update a Milestone in Employee planning context."""
         visible = Employee.get_instances_for_user("view", request.user, Employee.objects.all())
         employee = get_object_or_404(visible, pk=pk)
         item = get_object_or_404(
@@ -778,6 +813,7 @@ class EmployeeStatusHistoryV1View(generics.ListAPIView):
 
     @transaction.atomic
     def post(self, request, pk):
+        """Create a dated Employee status after validation."""
         employee = _status_root(request.user, pk)
         if not _status_can_change(request.user, employee):
             raise PermissionDenied()
@@ -819,6 +855,7 @@ class EmployeeStatusDetailV1View(APIView):
 
     @transaction.atomic
     def patch(self, request, pk, status_pk):
+        """Update an Employee status relation after permission checks."""
         status = self._status(request, pk, status_pk)
         if any(field in request.data for field in ("type", "employee", "employee_id")):
             raise ValidationError({"type": "immutable"})
@@ -832,6 +869,7 @@ class EmployeeStatusDetailV1View(APIView):
 
     @transaction.atomic
     def delete(self, request, pk, status_pk):
+        """Delete an Employee status relation after permission checks."""
         status = self._status(request, pk, status_pk)
         status.delete()
         return Response(status=204)
@@ -853,6 +891,7 @@ def _hierarchy_can_change(user, employee):
 
 
 def _hierarchy_validate(relation, *, exclude_pk=None):
+    """Validate hierarchy dates and reject a relation that creates a cycle."""
     if relation.employee_id == relation.superior_id:
         raise ValidationError({"employee_id": "self_relation"})
     if relation.end_date and (not relation.start_date or relation.end_date < relation.start_date):
@@ -926,6 +965,7 @@ class EmployeeHierarchyV1View(generics.RetrieveAPIView):
         )
 
     def retrieve(self, request, *args, **kwargs):
+        """Return the Employee hierarchy and available relation actions."""
         employee = self.get_object()
         linked_ids = {relation.superior_id for relation in employee.hierarchy_superiors}
         linked_ids.update(relation.employee_id for relation in employee.hierarchy_subordinates)
@@ -939,6 +979,7 @@ class EmployeeHierarchyV1View(generics.RetrieveAPIView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        """Create a superior relation after validating dates and cycle safety."""
         root = _hierarchy_root(request.user, kwargs["pk"])
         if not _hierarchy_can_change(request.user, root):
             raise PermissionDenied()
@@ -960,6 +1001,7 @@ class EmployeeHierarchyCandidatesV1View(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, pk):
+        """Return eligible superior Employees while excluding cycles."""
         root = _hierarchy_root(request.user, pk)
         if not _hierarchy_can_change(request.user, root):
             raise PermissionDenied()
@@ -998,6 +1040,7 @@ class EmployeeHierarchyRelationV1View(APIView):
 
     @transaction.atomic
     def patch(self, request, pk, relation_pk):
+        """Update a superior relation after validation and capability checks."""
         relation = self._relation(request, pk, relation_pk)
         serializer = EmployeeHierarchyDatesV1Serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1010,6 +1053,7 @@ class EmployeeHierarchyRelationV1View(APIView):
 
     @transaction.atomic
     def delete(self, request, pk, relation_pk):
+        """Remove a superior relation when the user is authorized."""
         relation = self._relation(request, pk, relation_pk)
         relation.delete()
         return Response(status=204)
@@ -1182,6 +1226,7 @@ class EmployeeProjectWorkloadV1View(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, pk):
+        """Return dated Project workload segments for an Employee."""
         visible_employees = Employee.get_instances_for_user(
             "view", request.user, Employee.objects.all()
         )
@@ -1350,6 +1395,7 @@ class EmployeeContributionWorkloadV1View(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request, pk):
+        """Return dated Contribution workload segments for an Employee."""
         visible_employees = Employee.get_instances_for_user(
             "view", request.user, Employee.objects.all()
         )

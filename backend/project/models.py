@@ -17,6 +17,7 @@ import logging
 logger = logging.getLogger('labsmanager')
 
 class Institution(RightsCheckerMixin, models.Model):
+    """Represent an institution that can manage Project funding."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Lab Institution")
@@ -79,6 +80,7 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
     
     @property
     def get_funds_available(self):
+        """Sum available amounts across this Project’s Funds."""
         from fund.models import Fund
         fs = Fund.objects.filter(project=self.pk)
         sumA=0
@@ -89,6 +91,7 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
     
     @property
     def get_funds_available_f(self):
+        """Sum focus-category availability across this Project’s Funds."""
         from fund.models import Fund
         fs = Fund.objects.filter(project=self.pk)
         sumA=0
@@ -102,11 +105,13 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
     
     @property
     def get_total_participant_quotity(self):
+        """Aggregate participant workload shares for this Project."""
         parti=Participant.objects.filter(Q(project=self.pk) & (Q(end_date=None) | Q(end_date__gte=date.today()))).only('quotity')
         return parti.aggregate(Sum('quotity'))["quotity__sum"]
     
     @property
     def get_total_contract_quotity(self):
+        """Aggregate Contract workload shares for this Project."""
         from expense.models import Contract
         from fund.models import Fund, Fund_Item
         fundP=Fund.objects.filter(project=self.pk).only('pk').all()
@@ -141,6 +146,7 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
     
     def get_advancement_ratio(self):
 
+        """Compare Project spending with its elapsed date interval."""
         amount = self.get_funds_amount
         expense = self.get_funds_expense
         if amount == 0 or amount == None or expense == None or self.start_date == None or self.end_date == None:
@@ -161,6 +167,7 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
         return f"{self.name}"
     
     def calculate(self, force=False):
+        """Recalculate cached Project funding and progress values."""
         logger.debug(f'[Project]-calculate :{str(self)} / (force: {force})')
         from fund.models import Fund
         fi= Fund.objects.filter(project=self.pk)
@@ -174,6 +181,7 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
     @classmethod
     def get_instances_for_user(cls, perm, user, queryset=None):
         
+        """Filter Projects by global permission and participant authority."""
         qset = super().get_instances_for_user(perm, user, queryset)
         if qset:
             return qset
@@ -188,6 +196,7 @@ class Project(ActiveDateMixin, RightsCheckerMixin):
         return queryset
         
 def calculate_project(*arg):
+        """Recalculate a Project after related funding changes."""
         logger.debug('[calculate_project] :'+str(arg))
         pjPk=arg[0]
         if not pjPk or not isinstance(pjPk, int) or pjPk<=0:
@@ -255,6 +264,7 @@ class Participant(ActiveDateMixin, RightsCheckerMixin):
     #     return self.project.status
     
     def clean(self):
+        """Validate the participation period and related Project data."""
         project = self.project
         ## user already in team withou end date
         inuser = Participant.objects.filter(Q(employee=self.employee), Q(project=project), ~Q(pk=self.pk), Q(end_date=None))
@@ -279,6 +289,7 @@ class Participant(ActiveDateMixin, RightsCheckerMixin):
     #     return reverse("_detail", kwargs={"pk": self.pk})
     
 class GenericInfoTypeProject(models.Model):
+    """Define a category of Project information."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Type of Generic Info")
@@ -291,6 +302,7 @@ class GenericInfoTypeProject(models.Model):
         return self.name
 
 class GenericInfoProject(models.Model):
+    """Store categorized information about a Project."""
     class Meta:
         """Metaclass defines extra model properties"""
         verbose_name = _("Generic Info")

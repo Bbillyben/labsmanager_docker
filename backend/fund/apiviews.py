@@ -1,3 +1,5 @@
+"""Legacy funding REST endpoints retained alongside the React v1 API."""
+
 from django.http import JsonResponse
 from django.db.models import Q, F, ExpressionWrapper, Value, Case, When, BooleanField
 from django.db.models.functions import Cast, Coalesce, Now, Extract, Abs
@@ -31,6 +33,7 @@ from labsmanager.mixin import LabPaginationMixin
 from labsmanager.pagination import LabPagination
 
 class FundViewSet(LabPaginationMixin, viewsets.ModelViewSet):
+    """Legacy REST actions for Funds and their financial summaries."""
     queryset = Fund.objects.select_related('funder', 'institution').all()
     serializer_class = serializers.FundSerialize
     permission_classes = [permissions.IsAuthenticated]
@@ -66,6 +69,7 @@ class FundViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='stale', url_name='stale_fund')
     def staleFunds(self, request, pk=None):
         
+        """List Funds approaching the configured stale threshold."""
         q_objects = Q(project__status=True)  # & Q(is_active=True) &  base Q objkect
         slot = utils.getDashboardTimeSlot(request)
             
@@ -80,6 +84,7 @@ class FundViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='noconsumption_fund', url_name='noconsumption_fund')
     def noConsumationFunds(self, request, pk=None):
+        """List Funds without recorded consumption."""
         q_objects = Q(project__status=True) # Q(is_active=True) &  base Q objkect
         
          # get the settings
@@ -123,6 +128,7 @@ class FundViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True, url_path='expense', url_name='fund_expense_list')
     def expense_list(self, request, pk=None):
+        """List Expenses linked to a Fund."""
         if pk==None:
              exp = Expense.objects.none()
         else:
@@ -139,6 +145,7 @@ class FundViewSet(LabPaginationMixin, viewsets.ModelViewSet):
         return DownloadFile(filedata, filename)
     
 class FundItemViewSet(LabPaginationMixin, viewsets.ModelViewSet):
+    """Legacy REST list and export actions for Fund lines."""
     queryset = Fund_Item.objects.select_related('fund').all()
     serializer_class = serializers.FundItemSerializePlus #serializers.FundItemSerialize
     permission_classes = [permissions.IsAuthenticated]        
@@ -182,6 +189,7 @@ class FundItemViewSet(LabPaginationMixin, viewsets.ModelViewSet):
         
         return queryset
     def filter_queryset(self, queryset):
+        """Apply Fund line filters to a visibility-scoped queryset."""
         params = self.request.GET
         queryset = super().filter_queryset(queryset)
         
@@ -251,6 +259,7 @@ class FundItemViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     
 class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
+    """Shared legacy REST filtering for Budgets and Contributions."""
     class Meta:
         model = Budget
         ressourceClass = BudgetResource
@@ -291,6 +300,7 @@ class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
         return params
         
     def get_queryset(self):
+        """Return allocation rows available to the caller."""
         return self.__class__.Meta.model.objects.select_related('fund', 'employee', 'cost_type').all()
         
     def list(self, request, *args, **kwargs):
@@ -311,6 +321,7 @@ class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     
     def filter_queryset(self, queryset):
+        """Apply allocation list filters."""
         params=self.get_params(self.request)                
                 
         queryset = super().filter_queryset(self.get_queryset())
@@ -369,6 +380,7 @@ class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='project/(?P<proj_pk>[0-9]+)', url_name='project')
     def project(self, request, proj_pk=None):
+        """List allocations associated with a visible Project."""
         request.data.update({"project":int(proj_pk),})
         qset=self.filter_queryset(self.queryset) 
         
@@ -385,6 +397,7 @@ class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='employee/(?P<emp_pk>[0-9]+)', url_name='employee')
     def employee(self, request, emp_pk=None):
+        """List allocations associated with a visible Employee."""
         request.data.update({"employee":int(emp_pk),})
         qset=self.filter_queryset(self.queryset) 
         
@@ -407,6 +420,7 @@ class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='team/(?P<team_pk>[0-9]+)', url_name='team')
     def team(self, request, team_pk=None):
+        """List allocations associated with a visible Team."""
         request.data.update({"team":int(team_pk),})
         qset=self.filter_queryset(self.queryset) 
         export = request.GET.get('export', None)
@@ -417,6 +431,7 @@ class BudgetAbstractViewSet(LabPaginationMixin, viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, url_path='search', url_name='search')
     def search(self, request):
+        """Search allocations through the legacy REST endpoint."""
         qset=self.filter_queryset(self.queryset) 
         export = request.GET.get('export', None)
         if export is not None:
@@ -434,6 +449,7 @@ class BudgetViewSet(BudgetAbstractViewSet):
         filenameSuffix="Budget"
         
     def filter_queryset(self, queryset):
+        """Apply Budget-specific filters after visibility checks."""
         params=self.get_params(self.request)                
         queryset = super().filter_queryset(self.get_queryset())
         

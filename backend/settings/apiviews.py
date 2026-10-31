@@ -257,6 +257,7 @@ class SettingListViewSet(LabPaginationMixin, viewsets.GenericViewSet):
         except FieldError:
             return None
     def apply_ordering(self, queryset):
+        """Apply supported ordering to a legacy settings list."""
         ordering = self.request.query_params.get("ordering")
 
         if not ordering:

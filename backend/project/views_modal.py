@@ -1,3 +1,5 @@
+"""Legacy modal views for Project child records."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from bootstrap_modal_forms.generic import BSModalCreateView, BSModalUpdateView, BSModalDeleteView
@@ -100,6 +102,7 @@ class ParticipantCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Participant
 
     def get(self, request, *args, **kwargs):
+        """Prepare Project participant creation."""
         kw = self.get_form_kwargs()
         initial={}
         if 'pk' in kwargs:
@@ -121,6 +124,7 @@ class InstitutionCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.Institution_Participant
 
     def get(self, request, *args, **kwargs):
+        """Prepare Project institution relation creation."""
         kw = self.get_form_kwargs()
         initial={} 
         if 'pk' in kwargs:
@@ -162,6 +166,7 @@ class ProjectInfoCreateView(LoginRequiredMixin, BSModalCreateView):
     model = models.GenericInfoProject
 
     def get(self, request, *args, **kwargs):
+        """Prepare typed Project information creation."""
         kw = self.get_form_kwargs()
         initial={} 
         if 'project' in kwargs:
