@@ -1,9 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ApiError } from '../api/errors';
+import { AuthProvider } from '../auth/AuthProvider';
+import { authenticatedUser, jsonResponse } from '../test/fixtures';
 import { SettingsHubPage } from './SettingsHubPage';
 import { MutableListGroupPage } from './MutableListPage';
 
@@ -63,17 +65,19 @@ function renderPage() {
   return render(
     <I18nProvider>
       <MemoryRouter initialEntries={['/settings/lists/fund']}>
-        <Routes>
-          <Route
-            path="settings"
-            element={<SettingsHubPage />}
-          >
+        <AuthProvider>
+          <Routes>
             <Route
-              path="lists/:groupKey"
-              element={<MutableListGroupPage />}
-            />
-          </Route>
-        </Routes>
+              path="settings"
+              element={<SettingsHubPage />}
+            >
+              <Route
+                path="lists/:groupKey"
+                element={<MutableListGroupPage />}
+              />
+            </Route>
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>
     </I18nProvider>,
   );
@@ -81,6 +85,7 @@ function renderPage() {
 
 describe('MutableListPage', () => {
   beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(authenticatedUser));
     api.getMutableLists.mockReset().mockResolvedValue({ groups });
     api.getMutableList.mockReset().mockResolvedValue({ list, rows: [row] });
     api.createMutableItem.mockReset().mockResolvedValue(row);
@@ -88,6 +93,8 @@ describe('MutableListPage', () => {
     api.deleteMutableItem.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] });
   });
+
+  afterEach(() => vi.restoreAllMocks());
 
   it('shows backend groups and a generic compact list with create fields', async () => {
     const user = userEvent.setup();

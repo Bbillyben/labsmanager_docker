@@ -186,7 +186,7 @@ describe('Global Search UI', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Rechercher (/)' }));
     const input = screen.getByPlaceholderText('Rechercher dans LabsManager…');
-    expect(input).toHaveFocus();
+    await waitFor(() => expect(input).toHaveFocus());
     await user.type(input, 'precise');
     expect(searchApi).not.toHaveBeenCalled();
     expect(await screen.findByRole('group', { name: 'Publications' })).toBeInTheDocument();

@@ -56,14 +56,16 @@ function mockApi(
       ? Promise.resolve(jsonResponse(user))
       : String(input).startsWith('/api/v1/dashboards/')
         ? Promise.resolve(jsonResponse([]))
-        : String(input) === '/api/v1/employees/filter-options/'
-          ? Promise.resolve(
-              jsonResponse({
-                statuses: [{ id: 3, name: 'Chercheuse' }],
-                teams: [{ id: 6, name: 'Recherche' }],
-              }),
-            )
-          : response(String(input), init),
+        : String(input) === '/api/v1/system-info/'
+          ? Promise.resolve(jsonResponse({ system_info: {}, help_links: [] }))
+          : String(input) === '/api/v1/employees/filter-options/'
+            ? Promise.resolve(
+                jsonResponse({
+                  statuses: [{ id: 3, name: 'Chercheuse' }],
+                  teams: [{ id: 6, name: 'Recherche' }],
+                }),
+              )
+            : response(String(input), init),
   );
 }
 function renderAt(path = '/app/employees/', language = 'fr-FR') {

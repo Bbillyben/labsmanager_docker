@@ -480,7 +480,7 @@ describe('Project Calendar', () => {
     },
   );
 
-  it('advances and goes back by the active 15-day period, reloading its exact bounds', async () => {
+  it('navigates 15-day bounds across modes and returns to today', async () => {
     const fetchMock = mockApi(false);
     const user = userEvent.setup();
     const anchor = new Date();
@@ -503,6 +503,13 @@ describe('Project Calendar', () => {
         ),
       ).toBe(true),
     );
+    await user.click(screen.getByRole('button', { name: 'Liste' }));
+    expect(screen.getByRole('row', { name: 'Ouvrir le congé Paid leave' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Ressources' }));
+    expect(screen.getByTestId('calendar')).toHaveAttribute(
+      'data-view',
+      projectCalendarScopes.fifteenDays.resourceView,
+    );
     const callsBeforePrevious = fetchMock.mock.calls.length;
     await user.click(screen.getByRole('button', { name: 'Période précédente' }));
     const current = projectCalendarRange('fifteenDays', anchor);
@@ -510,6 +517,18 @@ describe('Project Calendar', () => {
       expect(
         fetchMock.mock.calls
           .slice(callsBeforePrevious)
+          .some(([url]) =>
+            String(url).includes(`/calendar/?from=${current.from}&to=${current.to}`),
+          ),
+      ).toBe(true),
+    );
+    await user.click(screen.getByRole('button', { name: 'Période précédente' }));
+    const callsBeforeToday = fetchMock.mock.calls.length;
+    await user.click(screen.getByRole('button', { name: 'Aujourd’hui' }));
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls
+          .slice(callsBeforeToday)
           .some(([url]) =>
             String(url).includes(`/calendar/?from=${current.from}&to=${current.to}`),
           ),

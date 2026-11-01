@@ -512,7 +512,7 @@ describe('Dashboard foundation', () => {
     await user.click(screen.getByRole('button', { name: 'Personnaliser' }));
     expect(screen.getByRole('heading', { name: 'Finances' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ressources humaines' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Financements visibles' }));
+    await user.click(screen.getByRole('button', { name: 'Vue d’ensemble des financements' }));
     expect(screen.getByRole('option', { name: 'Liste de progression' })).toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText('Fin sous'), '30');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
