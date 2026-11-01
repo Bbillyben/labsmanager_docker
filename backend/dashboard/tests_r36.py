@@ -79,12 +79,14 @@ class ProjectDashboardTests(TestCase):
         self.assertEqual(stored.owner, self.user)
         self.assertEqual(len(response.data["widgets"]), 7)
         self.assertEqual([(item["source_key"], item["renderer_key"]) for item in response.data["widgets"]], [
-            ("core.projects", "project-health-bars"), ("core.timeline", "calendar-grid"),
-            ("core.tasks", "task-workload"), ("core.milestones", "deadline-list"),
+            ("core.projects", "project-health-bars"), ("core.tasks", "task-workload"),
+            ("core.milestones", "deadline-list"), ("core.timeline", "calendar-grid"),
             ("core.funds", "overview-list"), ("core.contracts", "contract-list"),
             ("core.expense-trend", "line-chart"),
         ])
-        timeline_config = response.data["widgets"][1]["config"]
+        self.assertEqual(sum(item["source_key"] == "core.tasks" for item in response.data["widgets"]), 1)
+        self.assertEqual(response.data["widgets"][1]["config"]["status"], "open")
+        timeline_config = response.data["widgets"][3]["config"]
         self.assertEqual(timeline_config["tasks_project_scope"], "context")
         self.assertEqual(timeline_config["milestones_project_scope"], "context")
         rectangles = []
@@ -144,7 +146,7 @@ class ProjectDashboardTests(TestCase):
     def test_history_effective_date_modes_groups_and_visibility(self):
         today = timezone.localdate()
         old = (today.replace(day=1) - timedelta(days=1)).replace(day=15)
-        current = today.replace(day=2)
+        current = today
         first = Expense_point.objects.create(fund=self.fund, type=self.cost, amount=0, entry_date=old, value_date=old)
         second = Expense_point.objects.create(fund=self.fund, type=self.other_cost, amount=0, entry_date=old, value_date=old)
         third = Expense_point.objects.create(fund=self.other_fund, type=self.cost, amount=0, entry_date=old, value_date=old)

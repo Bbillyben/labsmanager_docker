@@ -77,12 +77,20 @@ class DashboardApiTests(TestCase):
         return response.data["id"]
 
     def test_templates_are_copied_and_multiple_dashboards_are_owned(self):
-        expected = {"employee": 5, "leader": 8, "lab-manager": 6, "blank": 0}
+        expected = {
+            "employee": ("core.milestones", "core.tasks", "core.timeline", "core.leaves", "core.projects"),
+            "leader": ("core.projects", "core.employee-workload", "core.contracts", "core.leaves",
+                       "core.tasks", "core.milestones", "core.timeline", "core.funds"),
+            "lab-manager": ("core.funds", "core.contracts", "core.employees", "core.milestones",
+                            "core.tasks", "core.timeline", "core.projects"),
+            "blank": (),
+        }
         ids = [self.create(name, name) for name in expected]
         self.assertEqual(Dashboard.objects.filter(owner=self.user).count(), 4)
         self.assertEqual(Dashboard.objects.filter(owner=self.user, is_default=True).count(), 1)
-        for (name, count), pk in zip(expected.items(), ids):
-            self.assertEqual(Dashboard.objects.get(pk=pk).widgets.count(), count)
+        for (name, sources), pk in zip(expected.items(), ids):
+            self.assertEqual(tuple(Dashboard.objects.get(pk=pk).widgets.order_by("logical_order")
+                                   .values_list("source_key", flat=True)), sources, name)
         leader_detail = self.client.get(f"/api/v1/dashboards/{ids[1]}/")
         self.assertEqual(leader_detail.status_code, 200)
         health = next(item for item in leader_detail.data["widgets"] if item["source_key"] == "core.projects")
@@ -275,7 +283,7 @@ class DashboardApiTests(TestCase):
     def test_new_templates_are_copied_without_changing_existing_dashboards(self):
         old = self.create("Existing", "blank")
         WidgetInstance.objects.create(dashboard_id=old, definition_key="core.note", source_key="core.note", renderer_key="empty")
-        for template, expected in (("employee", 5), ("leader", 8), ("lab-manager", 6), ("blank", 0)):
+        for template, expected in (("employee", 5), ("leader", 8), ("lab-manager", 7), ("blank", 0)):
             pk = self.create(template, template)
             self.assertEqual(Dashboard.objects.get(pk=pk).widgets.count(), expected)
             detail = self.client.get(f"/api/v1/dashboards/{pk}/")
@@ -319,9 +327,9 @@ class DashboardApiTests(TestCase):
         pk = self.create("Employee", "employee")
         widgets = list(Dashboard.objects.get(pk=pk).widgets.order_by("logical_order"))
         self.assertEqual([(item.source_key, item.renderer_key) for item in widgets], [
-            ("core.employee-workload", "employee-workload"), ("core.projects", "project-portfolio"),
-            ("core.tasks", "task-workload"), ("core.milestones", "deadline-list"),
-            ("core.timeline", "calendar-grid"), ("core.leaves", "compact-list"),
+            ("core.employee-workload", "employee-workload"), ("core.milestones", "deadline-list"),
+            ("core.tasks", "task-workload"), ("core.timeline", "calendar-grid"),
+            ("core.leaves", "compact-list"), ("core.projects", "compact-list"),
         ])
         self.assertEqual(widgets[0].config["employee_id"], employee.pk)
         detail = self.client.get(f"/api/v1/dashboards/{pk}/")
@@ -434,8 +442,8 @@ class DashboardBusinessSourceTests(TestCase):
         from project.models import Project
         overdue = Milestones.objects.create(project=self.project, name="Overdue ethics",
                                             end_date=self.today - timedelta(days=2))
-        Milestones.objects.create(project=self.project, name="Completed report", status=True,
-                                  end_date=self.today - timedelta(days=10))
+        completed = Milestones.objects.create(project=self.project, name="Completed report", status=True,
+                                              end_date=self.today - timedelta(days=10))
         with patch.object(Project, "get_instances_for_user", return_value=Project.objects.filter(pk=self.project.pk)):
             data = business_sources.milestones(self.context, {"status": "all", "limit": 2})["__renderers__"]
             soon = business_sources.milestones(self.context, {"due_within_days": "7"})["__renderers__"]
@@ -443,16 +451,20 @@ class DashboardBusinessSourceTests(TestCase):
             tasks = business_sources.tasks(self.context, {})["__renderers__"]
         timeline = data["deadline-list"]
         self.assertEqual(timeline["summary"], {"count": 3, "overdue_count": 1, "due_soon_count": 1})
-        self.assertEqual([item["key"] for item in timeline["items"]], [str(overdue.pk), str(self.milestone.pk)])
+        self.assertEqual([item["key"] for item in timeline["items"]],
+                         [str(overdue.pk), str(self.milestone.pk), str(completed.pk)])
         self.assertEqual(timeline["items"][0]["state"], "overdue")
+        self.assertEqual(timeline["items"][2]["state"], "completed")
         self.assertEqual(timeline["items"][0]["days_until"], -2)
         self.assertEqual(timeline["items"][1]["project_name"], self.project.name)
         self.assertEqual(data["compact-list"]["items"][0]["label"], "Overdue ethics")
         self.assertEqual(data["alert-list"]["items"][0]["severity"], "danger")
         self.assertNotIn("deadline", data["compact-list"])
         self.assertNotIn("deadline", data["alert-list"])
-        self.assertEqual(soon["deadline-list"]["summary"]["count"], 1)
-        self.assertEqual(soon["deadline-list"]["summary"]["overdue_count"], 0)
+        self.assertEqual(soon["deadline-list"]["summary"],
+                         {"count": 2, "overdue_count": 1, "due_soon_count": 1})
+        self.assertEqual([item["key"] for item in soon["deadline-list"]["items"]],
+                         [str(overdue.pk), str(self.milestone.pk)])
         self.assertEqual(late["deadline-list"]["summary"]["count"], 1)
         self.assertNotIn("deadline-list", tasks)
 
@@ -491,7 +503,7 @@ class DashboardBusinessSourceTests(TestCase):
             self.assertEqual(business_sources.tasks(self.context, {"overdue_only": True})["__renderers__"]["task-workload"]["summary"],
                              {"count": 1, "overdue_count": 1, "due_soon_count": 0})
             self.assertEqual(business_sources.tasks(self.context, {"due_within_days": "7"})["__renderers__"]["task-workload"]["summary"],
-                             {"count": 1, "overdue_count": 0, "due_soon_count": 1})
+                             {"count": 2, "overdue_count": 1, "due_soon_count": 1})
             self.assertEqual(business_sources.tasks(self.context, {"scope": "mine"})["__renderers__"]["task-workload"]["summary"]["count"], 2)
             self.assertEqual(business_sources.tasks(self.context, {
                 "project_scope": "specific_project", "project_id": self.project.pk,

@@ -1,8 +1,13 @@
+from copy import deepcopy
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.http import HttpResponse
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -18,7 +23,7 @@ class ReportExportV1Tests(APITestCase):
         self.hidden_employee = Employee.objects.create(first_name="Hidden", last_name="Person")
         self.project = Project.objects.create(name="Visible project", status=True)
         self.hidden_project = Project.objects.create(name="Hidden project", status=True)
-        Participant.objects.create(project=self.project, employee=self.employee, status="l")
+        Participant.objects.create(project=self.project, employee=self.employee, status="p")
         self.client.force_login(self.user)
         self.models = {
             ("project", "word"): ProjectWordReport,
@@ -61,6 +66,18 @@ class ReportExportV1Tests(APITestCase):
                 self.grant(self.models[(entity, "pdf")])
                 self.assertTrue(self.client.get(detail).json()["capabilities"]["can_export_pdf"])
 
+    def test_project_leader_has_object_report_permissions_without_global_grant(self):
+        Participant.objects.filter(project=self.project, employee=self.employee).update(status="l")
+        detail = reverse("api_v1:project-detail", kwargs={"pk": self.project.pk})
+        capabilities = self.client.get(detail).json()["capabilities"]
+        for format_name in ("word", "pdf"):
+            permission = f"reports.view_project{format_name}report"
+            with self.subTest(format=format_name):
+                self.assertFalse(self.user.has_perm(permission))
+                self.assertTrue(self.user.has_perm(permission, self.project))
+                self.assertTrue(capabilities[f"can_export_{format_name}"])
+                self.assertEqual(self.client.get(self.url("project", format_name)).status_code, 200)
+
     def test_templates_and_existing_renderers_for_all_four_types(self):
         for (entity, format_name), model in self.models.items():
             with self.subTest(entity=entity, format=format_name):
@@ -81,6 +98,27 @@ class ReportExportV1Tests(APITestCase):
                 if entity == "employee":
                     self.assertEqual(request.GET["start_date"], "2025-01-01")
                     self.assertEqual(request.GET["end_date"], "2026-01-01")
+
+    def test_project_pdf_renders_a_real_template_from_media_root(self):
+        self.grant(ProjectPDFReport)
+        with TemporaryDirectory() as media_root:
+            template_file = Path(media_root, "report", "report_template", "project", "valid.html")
+            template_file.parent.mkdir(parents=True)
+            template_file.write_text("<html><body>{{ project.name }}</body></html>", encoding="utf-8")
+            templates = deepcopy(settings.TEMPLATES)
+            templates[0]["DIRS"].insert(0, template_file.parent)
+            with override_settings(MEDIA_ROOT=Path(media_root), TEMPLATES=templates), patch(
+                "reports.models.settings.MEDIA_ROOT", Path(media_root)
+            ):
+                report = ProjectPDFReport.objects.create(
+                    name="PDF", description="Template", template="report/report_template/project/valid.html"
+                )
+                response = self.client.post(
+                    self.url("project", "pdf"), {"template_id": report.pk}, format="json"
+                )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["Content-Type"], "application/pdf")
+            self.assertTrue(response.content.startswith(b"%PDF"))
 
     def test_wrong_template_type_invalid_template_and_project_dates_are_rejected(self):
         self.grant(ProjectWordReport)

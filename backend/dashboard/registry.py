@@ -320,8 +320,6 @@ TEMPLATES = {
         
         TemplateWidget("core.timeline", "calendar-grid", {"tasks_project_scope": "context", "milestones_project_scope": "context",
                                                     "include_tasks": True, "include_milestones": True, "calendar_days": "14"}),
-        TemplateWidget("core.tasks", "task-workload", {"project_scope": "context", "status": "open"}),
-        
         TemplateWidget("core.funds", "overview-list", {"project_scope": "context"}),
         TemplateWidget("core.contracts", "contract-list", {"project_scope": "context"}),
         TemplateWidget("core.expense-trend", "line-chart", {"project_scope": "context"}),

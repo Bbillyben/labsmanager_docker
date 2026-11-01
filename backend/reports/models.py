@@ -259,7 +259,7 @@ class WeasyprintReportMixin(WeasyTemplateResponseMixin):
     def __init__(self, request, template, **kwargs):
         """Initialize the report mixin with some standard attributes"""
         self.request = request
-        self.template_name = template
+        self.template_name = os.fspath(template)
         self.pdf_filename = kwargs.get('filename', 'report.pdf')
         
 class PdfReport(TemplateReport):
