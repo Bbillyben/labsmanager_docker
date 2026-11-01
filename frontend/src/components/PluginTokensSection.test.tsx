@@ -26,11 +26,25 @@ const mount = (kind: 'plugin' | 'user' = 'plugin') =>
     </I18nProvider>,
   );
 
+const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
+const originalClipboard = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard');
+const originalExecCommand = Object.getOwnPropertyDescriptor(document, 'execCommand');
+
+function restoreProperty(target: object, key: PropertyKey, descriptor?: PropertyDescriptor) {
+  if (descriptor) Object.defineProperty(target, key, descriptor);
+  else Reflect.deleteProperty(target, key);
+}
+
 describe('Shared plugin token management', () => {
   beforeEach(() => {
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] });
   });
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    restoreProperty(window.navigator, 'languages', originalLanguages);
+    restoreProperty(window.navigator, 'clipboard', originalClipboard);
+    restoreProperty(document, 'execCommand', originalExecCommand);
+  });
 
   it('creates multiple technical tokens, reveals each secret once and supports manual HTTP copy fallback', async () => {
     const rows = [token('existing', 'Existing')];

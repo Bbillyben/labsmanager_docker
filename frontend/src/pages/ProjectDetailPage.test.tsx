@@ -329,6 +329,13 @@ describe('ProjectSingle Overview', () => {
   it('opens the Project Dashboard through its own tab and direct route', async () => {
     const { fetchMock } = mockApi(base);
     mount('/app/projects/3/dashboard');
+    await waitFor(
+      () =>
+        expect(
+          fetchMock.mock.calls.some(([url]) => String(url) === '/api/v1/projects/3/dashboard/'),
+        ).toBe(true),
+      { timeout: 5000 },
+    );
     expect(
       await screen.findByText('Aucun widget. Ajoutez-en un en mode personnalisation.'),
     ).toBeInTheDocument();

@@ -157,10 +157,24 @@ function setup(
   return { fetch, ...view };
 }
 
+const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
+const originalCreateObjectURL = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+const originalRevokeObjectURL = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
+
+function restoreProperty(target: object, key: PropertyKey, descriptor?: PropertyDescriptor) {
+  if (descriptor) Object.defineProperty(target, key, descriptor);
+  else Reflect.deleteProperty(target, key);
+}
+
 beforeEach(() =>
   Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] }),
 );
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  restoreProperty(window.navigator, 'languages', originalLanguages);
+  restoreProperty(URL, 'createObjectURL', originalCreateObjectURL);
+  restoreProperty(URL, 'revokeObjectURL', originalRevokeObjectURL);
+});
 
 describe('Contract Hub', () => {
   it('accumulates and removes canonical filters, then sorts and pages through URL requests', async () => {
