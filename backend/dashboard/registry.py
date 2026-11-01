@@ -314,15 +314,16 @@ TEMPLATES = {
     ),
     "blank": (),
     "project": (
-        TemplateWidget("core.projects", "project-health-bars", {"project_scope": "context"}, width=3, height=8),
-        TemplateWidget("core.tasks", "task-workload", {"project_scope": "context", "status": "open"}, width=4, height=5),
-        TemplateWidget("core.milestones", "deadline-list", {"project_scope": "context", "due_within_days": "30"}, width=4, height=5),
+        TemplateWidget("core.projects", "project-health-bars", {"project_scope": "context"}, width=4, height=7),
+        TemplateWidget("core.tasks", "task-workload", {"project_scope": "context","scope":"all_visible", "status": "open"}, width=4, height=7),
+        TemplateWidget("core.milestones", "deadline-list", {"project_scope": "context", "due_within_days": "90"}, width=4, height=7),
         
         TemplateWidget("core.timeline", "calendar-grid", {"tasks_project_scope": "context", "milestones_project_scope": "context",
-                                                    "include_tasks": True, "include_milestones": True, "calendar_days": "14"}),
-        TemplateWidget("core.funds", "overview-list", {"project_scope": "context"}),
-        TemplateWidget("core.contracts", "contract-list", {"project_scope": "context"}),
-        TemplateWidget("core.expense-trend", "line-chart", {"project_scope": "context"}),
+                                                    "include_tasks": True, "include_milestones": True, "calendar_days": "14"},width=8, height=5),
+        TemplateWidget("core.contracts", "contract-list", {"project_scope": "context"},width=4, height=5),
+        TemplateWidget("core.funds", "overview-list", {"project_scope": "context"},width=5, height=6),
+        
+        TemplateWidget("core.expense-trend", "line-chart", {"project_scope": "context"},width=7, height=6)
     ),
 }
 
