@@ -66,7 +66,9 @@ class GlobalCalendarsV1Tests(APITestCase):
         self.assertEqual({item["id"] for item in response.data["events"]},
                          {f"leave:{self.visible_leave.pk}", f"leave:{self.other_leave.pk}"})
         self.assertEqual(response.data["employee_names"], {str(self.employee.pk): str(self.employee)})
-        self.assertEqual(response.data["resources"], [{"id": str(self.employee.pk), "title": str(self.employee)}])
+        self.assertEqual(response.data["resources"], [
+            {"id": str(self.employee.pk), "title": str(self.employee), "can_view": True},
+        ])
         filtered = self.client.get(url, self.range(type=self.leave_type.pk,
                                                   current_status=self.status.pk, team=self.team.pk,
                                                   employee=self.employee.pk, is_active="true"))
@@ -78,7 +80,9 @@ class GlobalCalendarsV1Tests(APITestCase):
             self.assertEqual(len(self.client.get(url, self.range(**query)).data["events"]), expected)
         empty_period = self.client.get(url, {"from": "2020-01-01", "to": "2020-01-31"}).data
         self.assertEqual(empty_period["events"], [])
-        self.assertEqual(empty_period["resources"], [{"id": str(self.employee.pk), "title": str(self.employee)}])
+        self.assertEqual(empty_period["resources"], [
+            {"id": str(self.employee.pk), "title": str(self.employee), "can_view": True},
+        ])
         self.assertEqual(self.client.get(url, self.range(team=self.other_team.pk)).data["resources"], [])
         self.assertEqual(self.client.get(url).status_code, 400)
 

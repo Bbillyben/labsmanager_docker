@@ -89,20 +89,27 @@ class CurrentUserApiTests(APITestCase):
         response = self.client.get(reverse("api_v1:system-info"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(response.data), {"labsmanager_version", "python_version", "django_version", "database", "help_links"})
-        self.assertEqual(response.data["labsmanager_version"], lab_version.LABSMANAGER_VERSION)
-        self.assertEqual(response.data["python_version"], platform.python_version())
-        self.assertEqual(response.data["django_version"], django.get_version())
-        self.assertEqual(set(response.data["database"]), {"vendor", "version"})
-        self.assertEqual(response.data["database"]["vendor"], connection.vendor)
+        self.assertEqual(set(response.data), {"system_info", "help_links"})
+        info = response.data["system_info"]
+        self.assertEqual(set(info), {"labsmanager_version", "python_version", "django_version", "database", "plugins"})
+        self.assertEqual(info["labsmanager_version"], lab_version.LABSMANAGER_VERSION)
+        self.assertEqual(info["python_version"], platform.python_version())
+        self.assertEqual(info["django_version"], django.get_version())
+        self.assertEqual(set(info["database"]), {"vendor", "version"})
+        self.assertEqual(info["database"]["vendor"], connection.vendor)
+        self.assertIsInstance(info["plugins"], list)
+        for plugin in info["plugins"]:
+            self.assertEqual(set(plugin), {"slug", "name", "active", "mixins"})
+            self.assertIsInstance(plugin["mixins"], list)
         self.assertEqual(response.data["help_links"], [{"label": "Documentation", "url": "https://example.test/docs"}])
-        self.assertFalse({"host", "name", "user", "password", "dsn", "path", "secret"} & set(response.data))
+        self.assertFalse({"host", "name", "user", "password", "dsn", "path", "secret"} & set(info))
+        self.assertFalse({"host", "name", "user", "password", "dsn", "path", "secret"} & set(info["database"]))
 
     def test_postgresql_runtime_contains_only_formatted_server_version(self):
         with patch("labsmanager.api_v1.connection", SimpleNamespace(vendor="postgresql", pg_version=130017)):
             info = get_system_info()
 
-        self.assertEqual(info["database"], {"vendor": "postgresql", "version": "13.17"})
+        self.assertEqual(info["system_info"]["database"], {"vendor": "postgresql", "version": "13.17"})
 
     def test_authenticated_user_without_permissions_has_no_capabilities(self):
         user = self.create_user(

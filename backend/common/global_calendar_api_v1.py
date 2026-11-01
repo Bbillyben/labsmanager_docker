@@ -113,7 +113,7 @@ class GlobalEmployeeCalendar(GlobalCalendarBase):
             {
                 "id": str(pk), 
                 "title": f"{first} {last}".strip(),
-                "can_view": pk in visible_employees.values_list("pk")
+                "can_view": pk in visible_employees.values_list("pk", flat=True)
             }
             for pk, first, last in employees.order_by("first_name", "last_name", "pk")
             .values_list("pk", "first_name", "last_name")

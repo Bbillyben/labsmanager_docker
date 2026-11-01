@@ -303,10 +303,12 @@ class ImportHubTests(APITestCase):
         self.assertIs(profiles["expense"].resource_class, ExpenseResource)
         self.assertIs(profiles["employee"].resource_class, EmployeeAdminResource)
         self.assertIs(profiles["expense-timepoint"].resource_class, ExpensePointResource)
-        columns = ("expense_id", "desc", "type", "amount", "project", "fund",
+        columns = ("desc", "type", "amount", "project", "fund",
                    "funder", "institution", "date")
         self.assertEqual(profiles["expense"].preview_columns, columns)
+        self.assertEqual(profiles["expense"].identity_columns, ("Expense Id", "id"))
         resource = ExpenseResource()
+        self.assertIn("expense_id", resource.fields)
         self.assertIn("date", resource.fields)
         self.assertTrue(all(name in resource.fields for name in columns))
         metadata = {item["key"]: item for item in response.data["items"]}
@@ -323,6 +325,7 @@ class ImportHubTests(APITestCase):
             self.assertEqual(response.status_code, 200)
             dataset = tablib.import_set(response.content.decode() if file_format == "csv" else response.content, format=file_format)
             self.assertEqual(dataset.headers, ExpenseResource().export(queryset=Expense.objects.none()).headers)
+            self.assertIn("Expense Id", dataset.headers)
             self.assertEqual(len(dataset), 0)
         other = get_user_model().objects.create_user("no-import")
         self.client.force_login(other)
@@ -335,9 +338,9 @@ class ImportHubTests(APITestCase):
         self.assertEqual(preview.status_code, 200, preview.data)
         self.assertEqual(preview.data["summary"]["new"], 2)
         values = preview.data["rows"][0]["values"]
-        self.assertEqual(set(values), {"expense_id", "desc", "type", "amount", "project",
+        self.assertEqual(set(values), {"desc", "type", "amount", "project",
                                        "fund", "funder", "institution", "date"})
-        self.assertEqual(values["expense_id"], "IMP-1")
+        self.assertEqual(preview.data["rows"][0]["identity"], "IMP-1")
         self.assertEqual(values["desc"], "First")
         self.assertEqual(values["type"], self.type.short_name)
         self.assertEqual(values["amount"], "10")
@@ -353,6 +356,24 @@ class ImportHubTests(APITestCase):
         self.assertEqual(final["rows"][0]["values"], values)
         self.assertEqual(Expense.objects.filter(expense_id__startswith="IMP-").count(), 2)
         self.assertEqual(self.client.post(self.url("commit"), {"import_token": token}, format="json").status_code, 400)
+
+    def test_expense_reference_is_optional_for_creation(self):
+        headers = [header for header in ExpenseResource().export(queryset=Expense.objects.none()).headers
+                   if header != "Expense Id"]
+        output = StringIO()
+        writer = csv.DictWriter(output, fieldnames=headers)
+        writer.writeheader()
+        writer.writerow({"Description": "Without reference", "type": self.type.short_name,
+                         "Amount": "10", "Ref": self.fund.ref, "date": "2026-03-01"})
+
+        uploaded = self.upload(output.getvalue().encode())
+        preview = self.client.post(self.url("preview"), {"import_token": uploaded["import_token"], "sheet": ""}, format="json")
+        self.assertEqual(preview.status_code, 200, preview.data)
+        self.assertEqual(preview.data["summary"]["new"], 1)
+        self.assertEqual(preview.data["rows"][0]["identity"], "")
+        result = self.client.post(self.url("commit"), {"import_token": preview.data["import_token"]}, format="json")
+        self.assertEqual(result.status_code, 200, result.data)
+        self.assertTrue(Expense.objects.filter(desc="Without reference", expense_id__isnull=True).exists())
 
     def test_excel_sheets_and_token_scope(self):
         fields = ExpenseResource().export(queryset=Expense.objects.none()).headers
