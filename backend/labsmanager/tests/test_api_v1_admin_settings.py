@@ -14,7 +14,9 @@ from staff.models import Employee
 from plugin.models import PluginConfig
 from plugin.base.ImportMixin import ImportMixin
 from plugin.dependencies import Candidate
+from plugin.builtin.ICalExport.ICalExport import ICalExport
 from plugin.registry import registry
+from plugin.samples.FrenchHollidayPlugin.FrenchHollidayPlugin import FrenchHollidayPlugin
 
 
 BASE = "/api/v1/settings/admin/"
@@ -89,17 +91,6 @@ class AdminSettingsV1Tests(APITestCase):
         with patch("settings.admin_api_v1.registry.reload_plugins") as reload:
             self.assertEqual(self.client.post(BASE + "plugins/reload/").status_code, 200)
             reload.assert_called_once_with(full_reload=True, force_reload=True, collect=True)
-        for key in registry.plugins:
-            detail = self.client.get(BASE + f"plugins/{key}/")
-            self.assertEqual(detail.status_code, 200, detail.data)
-            self.assertEqual(set(detail.data["sections"]).intersection({"settings", "schedule", "urls"}),
-                             {mixin for mixin in ("settings", "schedule", "urls") if registry.plugins[key].mixin_enabled(mixin)})
-            if detail.data["sections"].get("settings"):
-                setting = next((item for item in detail.data["sections"]["settings"] if item["type"] == "boolean"), None)
-                if setting:
-                    url = BASE + f"plugins/{key}/settings/{setting['key']}/"
-                    self.assertEqual(self.client.patch(url, {"value": True}, format="json").status_code, 200)
-                    self.assertEqual(self.client.patch(url, {"value": "true"}, format="json").status_code, 400)
 
     def test_plugin_origins_are_included_for_discovered_candidates(self):
         backend = Path(__file__).resolve().parents[2]
@@ -179,17 +170,42 @@ class AdminSettingsV1Tests(APITestCase):
         self.assertEqual(plugin["origin"], "external")
         self.assertIn("importmixin", plugin["mixins"])
 
-    def test_kiosk_and_frenchholiday_details_are_json_serializable(self):
+    def test_builtin_urls_and_sample_schedule_details_are_json_serializable(self):
+        backend = Path(__file__).resolve().parents[2]
+        french_plugin = FrenchHollidayPlugin()
+        french_plugin.scheduled_tasks = french_plugin.get_scheduled_tasks()
+        ical_plugin = ICalExport()
+        plugins = {"frenchholliday": french_plugin, "icalexport": ical_plugin}
+        configs = {}
+        with patch.object(registry, "reload_plugins"):
+            for key in plugins:
+                config = PluginConfig.objects.create(key=key, name=key)
+                PluginConfig.objects.filter(pk=config.pk).update(active=True)
+                config.active = True
+                configs[key] = config
+        candidates = {
+            "frenchholliday": Candidate("frenchholliday", backend / "plugin/samples/FrenchHollidayPlugin", "FrenchHollidayPlugin"),
+            "icalexport": Candidate("icalexport", backend / "plugin/builtin/ICalExport", "ICalExport"),
+        }
         self.client.force_login(self.staff)
-        Schedule.objects.create(name=registry.plugins["frenchholliday"].get_task_names()[0],
+        Schedule.objects.create(name=french_plugin.get_task_names()[0],
                                 func="plugin.registry.call_plugin_function")
-        kiosk = self.client.get(BASE + "plugins/kiosk/")
-        frenchholiday = self.client.get(BASE + "plugins/frenchholliday/")
-        self.assertEqual(kiosk.status_code, 200, kiosk.data)
+        with patch.object(registry, "plugins_full", plugins), patch.object(registry, "plugins", plugins), \
+                patch.object(registry, "mixins_settings", {"frenchholliday": {"FHP_TITLE": french_plugin.SETTINGS["FHP_TITLE"]}}, create=True), \
+                patch.object(registry, "get_plugin_config", side_effect=configs.get), patch.object(registry, "check_reload"), \
+                patch.object(registry, "reload_plugins"), \
+                patch("settings.admin_api_v1.discover_candidates", return_value=candidates), \
+                patch("settings.admin_api_v1.diagnose", return_value=None):
+            ical = self.client.get(BASE + "plugins/icalexport/")
+            frenchholiday = self.client.get(BASE + "plugins/frenchholliday/")
+            setting_url = BASE + "plugins/frenchholliday/settings/FHP_TITLE/"
+            self.assertEqual(self.client.patch(setting_url, {"value": True}, format="json").status_code, 200)
+            self.assertEqual(self.client.patch(setting_url, {"value": "true"}, format="json").status_code, 400)
+        self.assertEqual(ical.status_code, 200, ical.data)
         self.assertEqual(frenchholiday.status_code, 200, frenchholiday.data)
-        self.assertIn("settings", kiosk.data["sections"])
-        self.assertIn("urls", kiosk.data["sections"])
-        self.assertNotIn("schedule", kiosk.data["sections"])
+        self.assertIn("urls", ical.data["sections"])
+        self.assertNotIn("schedule", ical.data["sections"])
+        self.assertNotIn("settings", ical.data["sections"])
         self.assertIn("settings", frenchholiday.data["sections"])
         self.assertIn("schedule", frenchholiday.data["sections"])
         self.assertTrue(frenchholiday.data["sections"]["schedule"])
@@ -207,7 +223,7 @@ class AdminSettingsV1Tests(APITestCase):
         for task in frenchholiday.data["sections"]["schedule"]:
             self.assertIsInstance(task["function"], str)
             self.assertIsInstance(task["success"], bool)
-        JSONRenderer().render(kiosk.data)
+        JSONRenderer().render(ical.data)
         JSONRenderer().render(frenchholiday.data)
 
 

@@ -163,7 +163,7 @@ class TokenTests(TestCase):
         self.assertEqual(technical.status_code, 201, technical.content)
         self.assertEqual(PluginAccessToken.objects.filter(kind='plugin').count(), 1)
 
-    def test_admin_create_shows_secret_once_and_filters_personal_tokens(self):
+    def test_admin_create_shows_secret_once_and_filters_token_kinds(self):
         self.client.force_login(self.alice)
         self.assertEqual(self.client.get('/admin/plugin/pluginaccesstoken/add/').status_code, 302)
         self.client.force_login(self.staff)
@@ -188,10 +188,17 @@ class TokenTests(TestCase):
         self.assertNotContains(self.client.get('/admin/plugin/pluginaccesstoken/'), raw_token)
         self.assertNotContains(self.client.get(f'/admin/plugin/pluginaccesstoken/{token.pk}/change/'), raw_token)
         self.assertNotContains(self.client.get('/admin/plugin/pluginaccesstoken/'), token.secret_hash)
-        self.plugin.create_token(kind='user', name='Personal', user=self.alice)
+        personal, personal_secret = self.plugin.create_token(kind='user', name='Personal', user=self.alice)
         changelist = self.client.get('/admin/plugin/pluginaccesstoken/')
         self.assertContains(changelist, 'Admin token')
-        self.assertNotContains(changelist, 'Personal')
+        self.assertContains(changelist, 'Personal')
+        self.assertContains(changelist, personal.public_id)
+        self.assertNotContains(changelist, personal_secret)
+        self.assertNotContains(changelist, personal.secret_hash)
+        self.assertContains(self.client.get('/admin/plugin/pluginaccesstoken/?token_user=user'), 'Personal')
+        self.assertNotContains(self.client.get('/admin/plugin/pluginaccesstoken/?token_user=user'), 'Admin token')
+        self.assertContains(self.client.get('/admin/plugin/pluginaccesstoken/?token_user=plugin'), 'Admin token')
+        self.assertNotContains(self.client.get('/admin/plugin/pluginaccesstoken/?token_user=plugin'), 'Personal')
         self.assertContains(self.client.get('/admin/plugin/pluginaccesstoken/?token_status=active'), 'Admin token')
         self.assertNotContains(self.client.get('/admin/plugin/pluginaccesstoken/?token_status=revoked'), 'Admin token')
 
