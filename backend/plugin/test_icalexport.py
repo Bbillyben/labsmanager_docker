@@ -172,6 +172,96 @@ class ICalExportTests(TestCase):
                 build_published_ical("source", calendar, [event])).walk("VEVENT"))
         self.assertIn("Employés affectés", str(french["DESCRIPTION"]))
 
+    def test_published_native_location_is_optional(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        calendar = PublishedCalendar("1", "Réunions")
+        with_location = LabsManagerCalendarEvent(
+            id="one", title="Réunion", start=self.today,
+            end=self.today + timedelta(days=1), all_day=True,
+            metadata={"location": "Salle Émile, 2e étage"},
+        )
+        without_location = LabsManagerCalendarEvent(
+            id="two", title="Sans lieu", start=self.today,
+            end=self.today + timedelta(days=1), all_day=True,
+        )
+        entries = list(Calendar.from_ical(build_published_ical(
+            "calendars", calendar, [with_location, without_location],
+        )).walk("VEVENT"))
+        self.assertEqual(str(entries[0]["LOCATION"]), "Salle Émile, 2e étage")
+        self.assertNotIn("LOCATION", entries[1])
+
+    def test_published_native_recurrence_keeps_exceptions_and_namespaces_uid(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        raw = ("BEGIN:VEVENT\r\nUID:remote-one\r\nDTSTART:20261101T090000Z\r\n"
+               "DTEND:20261101T100000Z\r\nRRULE:FREQ=DAILY;COUNT=3\r\n"
+               "EXDATE:20261102T090000Z\r\nSUMMARY:Remote\r\nEND:VEVENT\r\n")
+        override = ("BEGIN:VEVENT\r\nUID:remote-one\r\nRECURRENCE-ID:20261103T090000Z\r\n"
+                    "DTSTART:20261104T090000Z\r\nDTEND:20261104T100000Z\r\n"
+                    "SUMMARY:Moved\r\nEND:VEVENT\r\n")
+        timezone_component = ("BEGIN:VTIMEZONE\r\nTZID:Europe/Paris\r\nBEGIN:STANDARD\r\n"
+                              "DTSTART:19701025T030000\r\nTZOFFSETFROM:+0200\r\n"
+                              "TZOFFSETTO:+0100\r\nEND:STANDARD\r\nEND:VTIMEZONE\r\n")
+        sources = [LabsManagerCalendarEvent(
+            id=str(index), title="ignored", start=timezone.now(),
+            end=timezone.now() + timedelta(hours=1), all_day=False,
+            metadata={"ical_uid": "remote-one", "ical_component": component,
+                      "ical_timezones": [timezone_component]},
+        ) for index, component in enumerate((raw, override))]
+        calendar = PublishedCalendar("one", "External")
+        parsed = Calendar.from_ical(build_published_ical("provider", calendar, sources))
+        entries = list(parsed.walk("VEVENT"))
+        self.assertEqual(len(entries), 2)
+        self.assertEqual(len(list(parsed.walk("VTIMEZONE"))), 1)
+        self.assertEqual(entries[0]["UID"], entries[1]["UID"])
+        self.assertNotEqual(str(entries[0]["UID"]), "remote-one")
+        self.assertIn("RRULE", entries[0])
+        self.assertIn("EXDATE", entries[0])
+        self.assertIn("RECURRENCE-ID", entries[1])
+        other = Calendar.from_ical(build_published_ical("provider", PublishedCalendar("two", "External"), sources))
+        self.assertNotEqual(entries[0]["UID"], list(other.walk("VEVENT"))[0]["UID"])
+
+    @override_settings(REACT_PUBLIC_URL="https://labs.example.org/app")
+    def test_published_remote_components_keep_descriptions_recurrence_and_add_one_link(self):
+        from plugin.published_calendars import PublishedCalendar
+
+        link = "https://labs.example.org/app/plugins/calendars/calendars"
+        master = ("BEGIN:VEVENT\r\nUID:remote-one\r\nDTSTART:20261101T090000Z\r\n"
+                  "DTEND:20261101T100000Z\r\nRRULE:FREQ=DAILY;COUNT=3\r\n"
+                  "RDATE:20261105T090000Z\r\nEXDATE:20261102T090000Z\r\n"
+                  "LOCATION:Salle Émile\r\nDESCRIPTION;LANGUAGE=fr:Notes distantes\\nDeuxième ligne\r\n"
+                  "END:VEVENT\r\n")
+        exception = ("BEGIN:VEVENT\r\nUID:remote-one\r\nRECURRENCE-ID:20261103T090000Z\r\n"
+                     "DTSTART:20261104T090000Z\r\nDTEND:20261104T100000Z\r\n"
+                     "SUMMARY:Déplacé\r\nEND:VEVENT\r\n")
+        already_linked = ("BEGIN:VEVENT\r\nUID:remote-two\r\nDTSTART:20261106T090000Z\r\n"
+                          "DTEND:20261106T100000Z\r\nDESCRIPTION:Déjà lié\\n\\n"
+                          f"Ouvrir dans LabsManager :\\n{link}\r\nEND:VEVENT\r\n")
+        events = [LabsManagerCalendarEvent(
+            id=str(index), title="unused", start=timezone.now(),
+            end=timezone.now() + timedelta(hours=1), all_day=False,
+            metadata={"ical_uid": "remote-one" if index < 2 else "remote-two",
+                      "ical_component": component,
+                      "links": ["plugins/calendars/calendars", "plugins/calendars/calendars"]},
+        ) for index, component in enumerate((master, exception, already_linked))]
+        raw = build_published_ical("calendars", PublishedCalendar("1", "Remote"), events)
+        self.assertNotIn(b"calendar.example.test/secret", raw)
+        parsed = list(Calendar.from_ical(raw).walk("VEVENT"))
+        self.assertEqual(len(parsed), 3)
+        self.assertEqual(parsed[0]["UID"], parsed[1]["UID"])
+        self.assertIn("RRULE", parsed[0])
+        self.assertIn("RDATE", parsed[0])
+        self.assertIn("EXDATE", parsed[0])
+        self.assertIn("RECURRENCE-ID", parsed[1])
+        self.assertEqual(str(parsed[0]["LOCATION"]), "Salle Émile")
+        self.assertEqual(parsed[0]["DESCRIPTION"].params["LANGUAGE"], "fr")
+        self.assertIn("Notes distantes\nDeuxième ligne", str(parsed[0]["DESCRIPTION"]))
+        for item in parsed:
+            self.assertEqual(str(item["DESCRIPTION"]).count(link), 1)
+        self.assertTrue(str(parsed[1]["DESCRIPTION"]).startswith("Ouvrir dans LabsManager :"))
+        self.assertTrue(str(parsed[2]["DESCRIPTION"]).startswith("Déjà lié"))
+
     @override_settings(REACT_PUBLIC_URL="https://labs.example.org/app")
     def test_published_description_reuses_native_links_without_duplicates(self):
         from plugin.published_calendars import PublishedCalendar

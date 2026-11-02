@@ -11,7 +11,7 @@ from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBadReque
 from django.urls import path
 from django.utils import timezone
 from django.utils.translation import get_language
-from icalendar import Calendar, Event, vCalAddress, vText
+from icalendar import Calendar, Event, Timezone, vCalAddress, vText
 from rest_framework.exceptions import ValidationError
 
 from labsmanager.react_urls import react_public_url
@@ -184,7 +184,7 @@ def _date(value):
 
 
 def _add_event(ical, uid, title, start, end, description="", all_day=True, url=None,
-               last_modified=None, attendees=()):
+               last_modified=None, attendees=(), location=None):
     """Serialize one authorized source item into an iCalendar event."""
     if start is None:
         return
@@ -212,6 +212,8 @@ def _add_event(ical, uid, title, start, end, description="", all_day=True, url=N
         event.add("dtend", end.astimezone(datetime_timezone.utc))
     if description:
         event.add("description", str(description))
+    if location:
+        event.add("location", str(location))
     if url:
         event.add("url", url)
     if last_modified:
@@ -256,6 +258,25 @@ def _description_with_link(description, url):
     if not url:
         return description
     return f"{description}\n\nOuvrir dans LabsManager :\n{url}" if description else f"Ouvrir dans LabsManager :\n{url}"
+
+
+def _published_description_with_links(description, links, *, keep_existing=False):
+    """Append visible provider destinations using the native ICS link format.
+
+    Raw remote VEVENT descriptions may already contain a LabsManager link;
+    ``keep_existing`` prevents adding it again when that component is exported.
+    """
+    if not isinstance(links, (list, tuple)):
+        return description
+    seen = set()
+    for path in links:
+        if not isinstance(path, str) or not path or path in seen:
+            continue
+        seen.add(path)
+        url = _public_react_url(path)
+        if not keep_existing or not url or url not in description:
+            description = _description_with_link(description, url)
+    return description
 
 
 def _new_calendar(name):
@@ -343,21 +364,43 @@ def build_published_ical(provider_slug, calendar, events):
     """
     ical = _new_calendar(calendar.name)
     seen = set()
+    seen_timezones = set()
     for source in events:
         if source.id in seen:
             continue
         seen.add(source.id)
         metadata = source.metadata or {}
+        if metadata.get("ical_component"):
+            # A provider can supply a complete VEVENT for native recurrences.
+            # Keep its properties and exceptions, but namespace its UID to this
+            # published calendar so subscriptions cannot collide.
+            event = Event.from_ical(metadata["ical_component"])
+            if event.name != "VEVENT" or not metadata.get("ical_uid"):
+                raise ValueError("Invalid published iCalendar component")
+            original_description = event.get("DESCRIPTION")
+            description = _published_description_with_links(
+                str(original_description or ""), metadata.get("links"), keep_existing=True,
+            )
+            if description != str(original_description or ""):
+                event.pop("DESCRIPTION", None)
+                event.add("description", description, parameters=(
+                    original_description.params if original_description is not None else None
+                ))
+            event.pop("UID", None)
+            uid_seed = f"published:{provider_slug}:{calendar.id}:{metadata['ical_uid']}"
+            event.add("uid", f"{sha256(uid_seed.encode('utf-8')).hexdigest()}@labsmanager")
+            for raw_timezone in metadata.get("ical_timezones") or ():
+                component = Timezone.from_ical(raw_timezone)
+                zone_id = str(component.get("TZID", ""))
+                if component.name != "VTIMEZONE" or not zone_id:
+                    raise ValueError("Invalid published iCalendar timezone")
+                if zone_id not in seen_timezones:
+                    seen_timezones.add(zone_id)
+                    ical.add_component(component)
+            ical.add_component(event)
+            continue
         assignees = metadata.get("assignees") or ()
-        description = source.description or ""
-        links = metadata.get("links") or ()
-        if isinstance(links, (list, tuple)):
-            seen_links = set()
-            for path in links:
-                if not isinstance(path, str) or not path or path in seen_links:
-                    continue
-                seen_links.add(path)
-                description = _description_with_link(description, _public_react_url(path))
+        description = _published_description_with_links(source.description or "", metadata.get("links"))
         names = [person.get("name") for person in assignees if isinstance(person, dict) and person.get("name")]
         if names:
             label = "Employés affectés" if (get_language() or "").startswith("fr") else "Assigned employees"
@@ -369,7 +412,8 @@ def build_published_ical(provider_slug, calendar, events):
             end = end.astimezone(zone) if isinstance(end, datetime) and timezone.is_aware(end) else end
         _add_event(ical, f"published:{provider_slug}:{calendar.id}:{source.id}", source.title,
                    start, end, description, source.all_day,
-                   url=metadata.get("url"), last_modified=metadata.get("last_modified"), attendees=assignees)
+                   url=metadata.get("url"), last_modified=metadata.get("last_modified"),
+                   attendees=assignees, location=metadata.get("location"))
     return ical.to_ical()
 
 

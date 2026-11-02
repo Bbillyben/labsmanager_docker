@@ -97,6 +97,13 @@ def get_calendar(user, provider_slug, calendar_id):
 def get_events(user, provider_slug, calendar_id, start, end, *, options=None):
     """Yield validated events for a visible published calendar.
 
+    For native recurrence export, an event may carry ``ical_component``
+    (a complete VEVENT), ``ical_uid`` (the source series UID), and optional
+    ``ical_timezones`` (complete VTIMEZONE components) in its metadata.
+    ICalExport serializes these components while replacing the UID with a
+    stable, provider-and-calendar-scoped identity. Ordinary events continue
+    through the existing point-event writer.
+
     Args:
         user: Owner whose visibility the provider must enforce.
         provider_slug: Active provider identity.

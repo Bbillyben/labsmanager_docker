@@ -1229,3 +1229,11 @@ docker compose up -d --no-build
 ```
 
 Ne jamais faire tourner deux versions Django différentes sur la même base. Conserver le dump initial jusqu'à validation complète. Les journaux de `lab-server`, `lab-worker` et `lab-proxy`, ainsi que les états healthcheck de Compose, sont les premiers contrôles en cas d'échec.
+
+## Calendars — récurrences natives, migration 0006
+
+Après avoir déployé la version correspondante du plugin externe, vérifier la base cible et le plan depuis `backend/` avec `python3 manage.py migrate plugin_calendars --plan`. Appliquer ensuite `python3 manage.py migrate plugin_calendars --noinput` sur l'environnement concerné, avant de redémarrer le serveur et le worker Django. La migration ajoute les champs de récurrence et la table d'exceptions ; elle ne convertit pas les événements ponctuels existants. Aucune compilation frontend n'est nécessaire pour ce lot backend.
+
+## Calendars — interface React des récurrences, lot 2
+
+La migration `0006` doit déjà être appliquée ; ce lot ne crée pas de migration. Compiler le plugin actif depuis `/home/labsmanager/data/plugins/Calendars/frontend/` avec `bash build_script.sh` (Node 24.11.1 et dépendances npm du cœur), puis publier son `frontend/dist/` et exécuter `collectstatic` selon l'installation. Le cœur React et ICalExport ne nécessitent pas de nouvelle compilation pour ce lot. Pour les tests locaux, lier temporairement `node_modules` du cœur, puis exécuter `node node_modules/vitest/vitest.mjs run src/main.test.tsx src/recurrence.test.ts --config vitest.config.ts --maxWorkers=1`; retirer le lien après le test. La vérification backend est `python3 manage.py test plugins.Calendars --keepdb --noinput` depuis `backend/`, avec la configuration de base de données habituelle. Vérifier au navigateur création et édition en FR/EN, fuseau et changement d'heure, portée occurrence/série, confirmation 409, sélection multiple, modes calendrier/liste/ressources et impression.

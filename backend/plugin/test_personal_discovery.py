@@ -40,9 +40,17 @@ class PluginDiscoveryTests(TestCase):
         self.client.force_login(self.staff)
         url = '/api/v1/settings/admin/plugins/technical/'
         plugin = example('Technical', plugin_token=True)
-        with patch.object(registry, 'get_plugin', return_value=plugin), patch.object(registry, 'get_plugin_config', return_value=None), patch(
+        with patch.object(registry, 'check_reload'), patch.object(registry, 'plugins_full', {'technical': plugin}), patch.object(
+            registry, 'plugins', {'technical': plugin}
+        ), patch.object(registry, 'get_plugin_config', return_value=None), patch(
             'settings.admin_api_v1.discovered_plugin_data', return_value={'key': 'technical'}
+        ), patch('settings.admin_api_v1.discover_candidates', return_value={}), patch(
+            'settings.admin_api_v1.diagnose', return_value=None
         ):
-            self.assertTrue(self.client.get(url).json()['sections']['tokens'])
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, response.content)
+            self.assertTrue(response.json()['sections']['tokens'])
             plugin.TOKEN_CONFIG['plugin'] = False
-            self.assertNotIn('tokens', self.client.get(url).json()['sections'])
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, response.content)
+            self.assertNotIn('tokens', response.json()['sections'])

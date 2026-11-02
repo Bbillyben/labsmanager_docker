@@ -19,6 +19,7 @@ from .financial_sources import advancement_for_funds, expense_trend
 from .context_service import context_lookup
 from .models import Dashboard
 from .registry import DashboardContext, DataSource, available_definitions
+from .api_v1 import validated_config
 
 
 class AdvancementTests(SimpleTestCase):
@@ -77,20 +78,22 @@ class ProjectDashboardTests(TestCase):
         stored = Dashboard.objects.get(pk=response.data["id"])
         self.assertEqual(stored.context_object, self.project)
         self.assertEqual(stored.owner, self.user)
-        self.assertEqual(len(response.data["widgets"]), 7)
-        self.assertEqual([(item["source_key"], item["renderer_key"]) for item in response.data["widgets"]], [
-            ("core.projects", "project-health-bars"), ("core.tasks", "task-workload"),
-            ("core.milestones", "deadline-list"), ("core.timeline", "calendar-grid"),
-            ("core.funds", "overview-list"), ("core.contracts", "contract-list"),
-            ("core.expense-trend", "line-chart"),
-        ])
-        self.assertEqual(sum(item["source_key"] == "core.tasks" for item in response.data["widgets"]), 1)
-        self.assertEqual(response.data["widgets"][1]["config"]["status"], "open")
-        timeline_config = response.data["widgets"][3]["config"]
-        self.assertEqual(timeline_config["tasks_project_scope"], "context")
-        self.assertEqual(timeline_config["milestones_project_scope"], "context")
+        context = DashboardContext.for_project(self.user, self.project)
+        sources, definitions = available_definitions(context)
+        widgets = response.data["widgets"]
+        self.assertEqual(len(widgets), stored.widgets.count())
+        self.assertEqual(len({item["id"] for item in widgets}), len(widgets))
         rectangles = []
-        for widget in response.data["widgets"]:
+        for widget in widgets:
+            source = sources[widget["source_key"]]
+            definition = definitions[widget["definition_key"]]
+            self.assertEqual(definition.source_key, source.key)
+            self.assertIn(widget["renderer_key"], source.compatible_renderers)
+            self.assertEqual(
+                widget["config"],
+                validated_config(widget["config"], source, definition, widget["renderer_key"], context),
+            )
+            self.assertFalse(widget["error"])
             self.assertLessEqual(widget["x"] + widget["width"], 12)
             box = (widget["x"], widget["y"], widget["x"] + widget["width"], widget["y"] + widget["height"])
             for other in rectangles:

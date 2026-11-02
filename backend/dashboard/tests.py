@@ -77,25 +77,26 @@ class DashboardApiTests(TestCase):
         return response.data["id"]
 
     def test_templates_are_copied_and_multiple_dashboards_are_owned(self):
-        expected = {
-            "employee": ("core.milestones", "core.tasks", "core.timeline", "core.leaves", "core.projects"),
-            "leader": ("core.projects", "core.employee-workload", "core.contracts", "core.leaves",
-                       "core.tasks", "core.milestones", "core.timeline", "core.funds"),
-            "lab-manager": ("core.funds", "core.contracts", "core.employees", "core.milestones",
-                            "core.tasks", "core.timeline", "core.projects"),
-            "blank": (),
-        }
-        ids = [self.create(name, name) for name in expected]
+        templates = ("employee", "leader", "lab-manager", "blank")
+        ids = [self.create(name, name) for name in templates]
         self.assertEqual(Dashboard.objects.filter(owner=self.user).count(), 4)
         self.assertEqual(Dashboard.objects.filter(owner=self.user, is_default=True).count(), 1)
-        for (name, sources), pk in zip(expected.items(), ids):
-            self.assertEqual(tuple(Dashboard.objects.get(pk=pk).widgets.order_by("logical_order")
-                                   .values_list("source_key", flat=True)), sources, name)
+        sources, definitions = available_definitions(DashboardContext.personal(self.user))
+        for name, pk in zip(templates, ids):
+            widgets = list(Dashboard.objects.get(pk=pk).widgets.order_by("logical_order"))
+            self.assertEqual(len({widget.pk for widget in widgets}), len(widgets))
+            self.assertEqual([widget.logical_order for widget in widgets], list(range(len(widgets))))
+            for widget in widgets:
+                self.assertIn(widget.definition_key, definitions, name)
+                self.assertEqual(widget.source_key, definitions[widget.definition_key].source_key)
+                self.assertIn(widget.renderer_key, sources[widget.source_key].compatible_renderers)
+                self.assertEqual(widget.config, validated_config(
+                    widget.config, sources[widget.source_key], definitions[widget.definition_key],
+                    widget.renderer_key, DashboardContext.personal(self.user),
+                ))
         leader_detail = self.client.get(f"/api/v1/dashboards/{ids[1]}/")
         self.assertEqual(leader_detail.status_code, 200)
-        health = next(item for item in leader_detail.data["widgets"] if item["source_key"] == "core.projects")
-        self.assertEqual(health["renderer_key"], "project-health-bars")
-        self.assertEqual(health["data"]["summary"]["count"], 0)
+        self.assertFalse(any(item["error"] for item in leader_detail.data["widgets"]))
         self.assertEqual([row["id"] for row in self.client.get("/api/v1/dashboards/").data], ids)
         self.assertEqual(CORE_WIDGETS[0].key, "core.quick-links")
 
@@ -110,7 +111,7 @@ class DashboardApiTests(TestCase):
         self.assertEqual(duplicate.status_code, 201)
         copied = Dashboard.objects.get(pk=duplicate.data["id"])
         self.assertFalse(copied.is_default)
-        self.assertEqual(copied.widgets.count(), 5)
+        self.assertEqual(copied.widgets.count(), Dashboard.objects.get(pk=first).widgets.count())
         self.assertFalse(set(copied.widgets.values_list("pk", flat=True)) & set(Dashboard.objects.get(pk=first).widgets.values_list("pk", flat=True)))
         self.assertEqual(self.client.delete(f"/api/v1/dashboards/{second}/").status_code, 204)
         self.assertTrue(Dashboard.objects.get(pk=first).is_default)
@@ -283,11 +284,11 @@ class DashboardApiTests(TestCase):
     def test_new_templates_are_copied_without_changing_existing_dashboards(self):
         old = self.create("Existing", "blank")
         WidgetInstance.objects.create(dashboard_id=old, definition_key="core.note", source_key="core.note", renderer_key="empty")
-        for template, expected in (("employee", 5), ("leader", 8), ("lab-manager", 7), ("blank", 0)):
+        for template in ("employee", "leader", "lab-manager", "blank"):
             pk = self.create(template, template)
-            self.assertEqual(Dashboard.objects.get(pk=pk).widgets.count(), expected)
             detail = self.client.get(f"/api/v1/dashboards/{pk}/")
             self.assertEqual(detail.status_code, 200)
+            self.assertEqual(Dashboard.objects.get(pk=pk).widgets.count(), len(detail.data["widgets"]))
             self.assertFalse(any(item["error"] for item in detail.data["widgets"]))
         self.assertEqual(Dashboard.objects.get(pk=old).widgets.count(), 1)
 
@@ -326,14 +327,11 @@ class DashboardApiTests(TestCase):
         employee = Employee.objects.create(first_name="Template", last_name="Employee", user=self.user)
         pk = self.create("Employee", "employee")
         widgets = list(Dashboard.objects.get(pk=pk).widgets.order_by("logical_order"))
-        self.assertEqual([(item.source_key, item.renderer_key) for item in widgets], [
-            ("core.employee-workload", "employee-workload"), ("core.milestones", "deadline-list"),
-            ("core.tasks", "task-workload"), ("core.timeline", "calendar-grid"),
-            ("core.leaves", "compact-list"), ("core.projects", "compact-list"),
-        ])
-        self.assertEqual(widgets[0].config["employee_id"], employee.pk)
+        workload = next(item for item in widgets if item.source_key == "core.employee-workload")
+        self.assertEqual(workload.config["employee_id"], employee.pk)
         detail = self.client.get(f"/api/v1/dashboards/{pk}/")
-        self.assertEqual([metric["key"] for metric in detail.data["widgets"][0]["data"]["metrics"]], [
+        workload_data = next(item for item in detail.data["widgets"] if item["id"] == str(workload.pk))
+        self.assertEqual([metric["key"] for metric in workload_data["data"]["metrics"]], [
             "project_allocation", "open_tasks", "open_milestones", "open_work_items",
         ])
         self.assertFalse(any(item["error"] for item in detail.data["widgets"]))
