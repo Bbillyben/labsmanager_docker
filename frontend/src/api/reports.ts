@@ -1,6 +1,6 @@
 import { apiFileRequest, apiRequest } from './client';
 
-export type ReportEntity = 'project' | 'employee';
+export type ReportEntity = 'project' | 'employee' | 'equipment';
 export type ReportFormat = 'word' | 'pdf';
 export type ReportTemplate = { id: number; name: string };
 export type ReportExportWrite = {

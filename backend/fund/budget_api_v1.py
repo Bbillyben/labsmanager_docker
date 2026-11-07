@@ -201,6 +201,10 @@ class ProjectBudgetDetailV1View(ProjectBudgetBase):
     def delete(self, request, *args, **kwargs):
         item = self.item()
         self.require_change()
+        if self.kind == "budget":
+            from equipment.expense_access import require_linked_expense_deletion
+            from expense.models import Expense
+            require_linked_expense_deletion(request.user, Expense.objects.filter(budget_item=item))
         item.delete()
         return Response(status=204)
 

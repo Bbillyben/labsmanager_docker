@@ -357,3 +357,9 @@ Le générateur de démonstration opère sur une base dédiée, refuse une gén�
 
 - Le Dashboard possède une grammaire visuelle dédiée construite sur le design system LabsManager. Ses renderers peuvent hiérarchiser métriques, densité, progression et statut différemment des composants génériques, tout en conservant tokens Light/Dark, Lucide, typographie et accessibilité.
 - Les renderers restent associés à `renderer_key` et consomment des payloads de présentation explicites. Les calculs et la visibilité métier demeurent côté backend ; la configuration demeure dans l’éditeur. Une amélioration de renderer ne crée ni runtime frontend plugin ni abstraction universelle de payload.
+
+## Equipment — décisions du socle
+
+- Equipment appartient au cœur Django. Sa référence interne est unique et immuable ; aucune numérotation ni catégorie initiale n'est imposée. Les statuts de fonctionnement sont indépendants des futures maintenances.
+- Les responsabilités Employee et inventaires Institution sont des lignes historisées avec FK protégées. Leurs périodes peuvent se chevaucher ; le statut d'inventaire se limite à `registered` ou `closed` et ne signifie pas propriété juridique. La catégorie peut être désactivée sans invalider les équipements existants.
+- La visibilité V1 est la permission globale `equipment.view_equipment`, sans droit dérivé du statut de responsable. Les notes réutilisent `GenericNote` et ne sont pas supprimées par cascade. Les fonctionnalités Expense, calendrier, notifications, Dashboard, localisation et React sont reportées.

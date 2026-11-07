@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from project.models import Project
+from equipment.models import Equipment
 from staff.models import Employee
 
 from .models import (
@@ -18,6 +19,8 @@ from .models import (
     EmployeeWordReport,
     ProjectPDFReport,
     ProjectWordReport,
+    EquipmentWordReport,
+    EquipmentPDFReport,
 )
 
 
@@ -26,6 +29,8 @@ REPORTS = {
     ("project", "pdf"): (Project, ProjectPDFReport, "reports.view_projectpdfreport"),
     ("employee", "word"): (Employee, EmployeeWordReport, "reports.view_employeewordreport"),
     ("employee", "pdf"): (Employee, EmployeePDFReport, "reports.view_employeepdfreport"),
+    ("equipment", "word"): (Equipment, EquipmentWordReport, "reports.view_equipmentwordreport"),
+    ("equipment", "pdf"): (Equipment, EquipmentPDFReport, "reports.view_equipmentpdfreport"),
 }
 
 
@@ -75,8 +80,8 @@ class ReportExportWriteSerializer(serializers.Serializer):
     end_date = serializers.DateField(required=False, allow_null=True)
 
     def validate(self, attrs):
-        if self.context["entity"] == "project" and ("start_date" in attrs or "end_date" in attrs):
-            raise serializers.ValidationError("Project reports do not accept dates.")
+        if self.context["entity"] in ("project", "equipment") and ("start_date" in attrs or "end_date" in attrs):
+            raise serializers.ValidationError(f"{self.context['entity'].title()} reports do not accept dates.")
         start, end = attrs.get("start_date"), attrs.get("end_date")
         if start and end and start > end:
             raise serializers.ValidationError({"end_date": "End date must be on or after start date."})
@@ -95,14 +100,14 @@ class ReportExportV1View(APIView):
 
     def get(self, request, entity, pk, format_name):
         report_model, _ = self.context(request, entity, pk, format_name)
-        return Response({"templates": list(report_model.objects.all().order_by("pk").values("id", "name"))})
+        return Response({"templates": list(report_model.objects.filter(enabled=True).order_by("pk").values("id", "name"))})
 
     def post(self, request, entity, pk, format_name):
         """Validate report options and return an authorized generated export."""
         report_model, instance = self.context(request, entity, pk, format_name)
         serializer = ReportExportWriteSerializer(data=request.data, context={"entity": entity})
         serializer.is_valid(raise_exception=True)
-        report = get_object_or_404(report_model.objects.all(), pk=serializer.validated_data["template_id"])
+        report = get_object_or_404(report_model.objects.filter(enabled=True), pk=serializer.validated_data["template_id"])
         raw_request = request._request
         dates = raw_request.GET.copy()
         if entity == "employee":

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EmployeeWordReport, ProjectWordReport, EmployeePDFReport, ProjectPDFReport
+from .models import EmployeeWordReport, ProjectWordReport, EmployeePDFReport, ProjectPDFReport, EquipmentWordReport, EquipmentPDFReport
 
 # Register your models here.
 # @admin.register(EmployeeWordReport)
@@ -19,3 +19,5 @@ admin.site.register(EmployeeWordReport, EmployeeWordReportAdmin)
 admin.site.register(EmployeePDFReport, EmployeeWordReportAdmin)
 admin.site.register(ProjectWordReport, EmployeeWordReportAdmin)
 admin.site.register(ProjectPDFReport, EmployeeWordReportAdmin)
+admin.site.register(EquipmentWordReport, EmployeeWordReportAdmin)
+admin.site.register(EquipmentPDFReport, EmployeeWordReportAdmin)

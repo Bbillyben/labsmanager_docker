@@ -1178,6 +1178,18 @@ class LMUserSetting(BaseLabsManagerSetting):
             'validator': bool,
             # 'after_save': checkNotif,
         },
+        'NOTIFICATION_EQUIPMENT_EQUIPMENTMAINTENANCE': {
+            'name': _('Equipment maintenance notification'),
+            'description': _('Enable notifications for visible equipment maintenance deadlines.'),
+            'default': True,
+            'validator': bool,
+        },
+        'EQUIPMENT_MAINTENANCE_ADVANCE_DAYS': {
+            'name': _('Equipment maintenance advance notice (days)'),
+            'description': _('Days before a scheduled maintenance to send a notification.'),
+            'default': 7,
+            'validator': [int, MinValueValidator(0), MaxValueValidator(365)],
+        },
         
         'STICKY_NAVBAR': {
             'name': _('Fixed Navbar'),

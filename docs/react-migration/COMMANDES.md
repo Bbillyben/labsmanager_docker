@@ -1237,3 +1237,19 @@ Après avoir déployé la version correspondante du plugin externe, vérifier la
 ## Calendars — interface React des récurrences, lot 2
 
 La migration `0006` doit déjà être appliquée ; ce lot ne crée pas de migration. Compiler le plugin actif depuis `/home/labsmanager/data/plugins/Calendars/frontend/` avec `bash build_script.sh` (Node 24.11.1 et dépendances npm du cœur), puis publier son `frontend/dist/` et exécuter `collectstatic` selon l'installation. Le cœur React et ICalExport ne nécessitent pas de nouvelle compilation pour ce lot. Pour les tests locaux, lier temporairement `node_modules` du cœur, puis exécuter `node node_modules/vitest/vitest.mjs run src/main.test.tsx src/recurrence.test.ts --config vitest.config.ts --maxWorkers=1`; retirer le lien après le test. La vérification backend est `python3 manage.py test plugins.Calendars --keepdb --noinput` depuis `backend/`, avec la configuration de base de données habituelle. Vérifier au navigateur création et édition en FR/EN, fuseau et changement d'heure, portée occurrence/série, confirmation 409, sélection multiple, modes calendrier/liste/ressources et impression.
+
+## Calendars — état actif et suppression, migration 0007
+
+Après publication du code du plugin actif dans `/home/labsmanager/data/plugins/Calendars`, vérifier puis appliquer explicitement la migration additive `0007_calendar_is_active` avant de servir les nouveaux endpoints :
+
+```bash
+python3 backend/manage.py showmigrations plugin_calendars
+python3 backend/manage.py migrate plugin_calendars --plan
+python3 backend/manage.py migrate plugin_calendars --noinput
+```
+
+La migration marque les calendriers existants comme actifs. Reconstruire le frontend depuis `/home/labsmanager/data/plugins/Calendars/frontend/` avec Node 24 et les dépendances npm du projet, puis republier les assets selon le déploiement habituel. Redémarrer serveur et worker après migration ; en Docker, utiliser le conteneur ponctuel de migration décrit dans `PLUGIN_MODELS.md` avant de redémarrer les services.
+
+## Equipment — lot 1 Django
+
+La migration initiale est `equipment.0001_initial` ; elle crée seulement les nouvelles tables. Elle n'a pas été appliquée en production pendant ce développement. Après sauvegarde et publication du code, suivre le processus de migration explicite du déploiement concerné. Depuis `backend/`, contrôler `python3 manage.py migrate equipment --plan`, puis exécuter une seule fois `python3 manage.py migrate equipment --noinput` dans l'environnement cible avant le redémarrage des services. Les permissions Django des nouveaux modèles sont créées par `post_migrate` : attribuer `equipment.view_equipment` aux lecteurs voulus et les droits `add/change/delete` requis aux administrateurs fonctionnels ; aucune fixture de groupe existante n'est modifiée automatiquement. Le lot 2 ajoute le frontend : il doit être compilé lors du déploiement normal pour exposer les routes React, la section Equipment de Settings Lists et Global Search.

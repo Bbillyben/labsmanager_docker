@@ -170,6 +170,7 @@ INSTALLED_APPS = [
     # App
     'staff.apps.StaffConfig',
     'project.apps.ProjectConfig',
+    'equipment.apps.EquipmentConfig',
     'fund.apps.FundConfig',
     'expense.apps.ExpenseConfig',
     'data_consistency.apps.DataConsistencyConfig',

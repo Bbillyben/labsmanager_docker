@@ -16,6 +16,8 @@ class CalendarType(str, Enum):
     PROJECT = "project"
     PROJECT_ALL = "project_all"
     EMPLOYEE_PROJECT = "employee_project"
+    EQUIPMENT_MAINTENANCE = "equipment_maintenance"
+    EQUIPMENT = "equipment"
 
     @classmethod
     def from_value(cls, value):
@@ -44,6 +46,7 @@ class CalendarContext:
     employee_id: int | None = None
     project_id: int | None = None
     team_id: int | None = None
+    equipment_id: int | None = None
     filters: Mapping[str, Any] = field(default_factory=dict)
     include_details: bool = False
     consumer: str = "labsmanager"

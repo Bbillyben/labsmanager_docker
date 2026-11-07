@@ -15,6 +15,7 @@ import { normalizeMutationError } from '../api/errors';
 import { useMutation } from '../api/useMutation';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { ItemActionMenu } from '../components/ItemActionMenu';
+import { CurrentPreviousList } from '../components/CurrentPreviousList';
 import { EmployeeHierarchySheet } from './EmployeeHierarchySheet';
 import { EmployeeStatusSheet } from './EmployeeStatusSheet';
 import { Alert } from '../ui/Alert';
@@ -416,10 +417,13 @@ function StatusHistory({
 }) {
   const { t } = useTranslation();
   return (
-    <HistoryList
+    <CurrentPreviousList
       current={items.filter((item) => item.is_active)}
       empty={t('employee.noCurrentStatus')}
       previous={items.filter((item) => !item.is_active)}
+      listClassName={styles.relations}
+      emptyClassName={styles.muted}
+      previousClassName={styles.previous}
       render={(item) => (
         <div
           className={styles.relationRow}
@@ -493,10 +497,13 @@ function RelationshipHistory({
           </Button>
         )}
       </div>
-      <HistoryList
+      <CurrentPreviousList
         current={items.filter((item) => item.is_active)}
         empty={t('employee.noneCurrently')}
         previous={items.filter((item) => !item.is_active)}
+        listClassName={styles.relations}
+        emptyClassName={styles.muted}
+        previousClassName={styles.previous}
         render={(item) => (
           <div
             className={styles.relationRow}
@@ -528,43 +535,6 @@ function RelationshipHistory({
         )}
       />
     </div>
-  );
-}
-
-function HistoryList<T extends { id: number }>({
-  current,
-  empty,
-  previous,
-  render,
-}: {
-  current: T[];
-  empty: string;
-  previous: T[];
-  render: (item: T) => ReactNode;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const { t } = useTranslation();
-  return (
-    <>
-      <div className={styles.relations}>
-        {current.length ? current.map(render) : <span className={styles.muted}>{empty}</span>}
-        {expanded && previous.map(render)}
-      </div>
-      {previous.length > 0 && (
-        <Button
-          className={styles.previous}
-          onClick={() => setExpanded((value) => !value)}
-          size="xs"
-          variant="ghost"
-        >
-          {expanded
-            ? t('employee.reduceHistory')
-            : t(previous.length === 1 ? 'employee.previousOne' : 'employee.previousMany', {
-                count: previous.length,
-              })}
-        </Button>
-      )}
-    </>
   );
 }
 

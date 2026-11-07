@@ -3,6 +3,7 @@ from django.http import FileResponse, Http404, HttpResponse, HttpResponseBadRequ
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.apps import apps
+from django.core.exceptions import PermissionDenied
 
 from bootstrap_modal_forms.generic import BSModalFormView
 from .models import EmployeeWordReport, EmployeePDFReport, ProjectWordReport, ProjectPDFReport, TemplateReport
@@ -102,6 +103,11 @@ def render_legacy_report(request, pk, template, entity, format_name):
 @login_required
 def download_template_report(request, app, model, pk):
     """Return a generated report using its stored template."""
+    if app == "reports" and model.lower() in ("equipmentwordreport", "equipmentpdfreport"):
+        model_name = model.lower()
+        if not (request.user.has_perm(f"reports.view_{model_name}") or
+                request.user.has_perm(f"reports.change_{model_name}")):
+            raise PermissionDenied
     templateModel = apps.get_model(app_label=app, model_name=model)
     report = get_object_or_404(templateModel, pk=pk)
     if not report.template:

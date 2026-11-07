@@ -16,6 +16,8 @@ from rest_framework.views import APIView
 
 from expense.forms import ContractTypeModelForm
 from expense.models import Contract_type
+from equipment.forms import EquipmentCategoryListForm, EquipmentInfoTypeListForm
+from equipment.models import EquipmentCategory, EquipmentGenericInfoType
 from fund.forms import CostTypeModelForm
 from fund.models import Cost_Type
 from infos.forms import ContactInfoTypeForm, ContactTypeForm, OrganizationInfosTypeForm
@@ -31,6 +33,7 @@ from staff.models import Employee_Type, GenericInfoType
 GROUPS = {
     "fund": _("Fund"), "contract": _("Contract"), "leaves": _("Leaves"),
     "project": _("Project"), "staff": _("Staff"), "organization": _("Organization"),
+    "equipment": _("Equipment"),
 }
 
 
@@ -47,6 +50,14 @@ class MutableList:
 
     def allowed(self, user, action):
         if action == "view":
+            if self.model._meta.app_label == "equipment":
+                model = self.model._meta.model_name
+                return user.is_authenticated and (
+                    user.has_perm("equipment.view_equipment") or any(
+                        user.has_perm(f"equipment.{permission}_{model}")
+                        for permission in ("view", "add", "change", "delete")
+                    )
+                )
             return user.is_authenticated  # Legacy Settings lists were readable after login.
         if action == "delete" and not self.allow_delete:
             return False
@@ -63,6 +74,8 @@ MUTABLE_LISTS = {
     "organization-info-types": MutableList("organization", OrganizationInfosType, OrganizationInfosTypeForm, ("name", "icon", "type")),
     "contact-info-types": MutableList("organization", ContactInfoType, ContactInfoTypeForm, ("name", "icon", "type")),
     "contact-types": MutableList("organization", ContactType, ContactTypeForm, ("name",)),
+    "equipment-categories": MutableList("equipment", EquipmentCategory, EquipmentCategoryListForm, ("name", "is_active"), allow_delete=True),
+    "equipment-info-types": MutableList("equipment", EquipmentGenericInfoType, EquipmentInfoTypeListForm, ("name", "icon"), allow_delete=True),
 }
 
 

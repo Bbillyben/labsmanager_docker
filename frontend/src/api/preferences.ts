@@ -1,10 +1,16 @@
 import { apiRequest } from './client';
 
-export type PreferenceType = 'project' | 'employee' | 'team' | 'institution' | 'fund_institution';
+export type PreferenceType =
+  | 'project'
+  | 'employee'
+  | 'team'
+  | 'institution'
+  | 'fund_institution'
+  | 'equipment';
 export type PreferenceStatus = { favorite: boolean; subscription: boolean };
 export type FavoriteItem = {
   type: string;
-  group: 'projects' | 'employees' | 'teams' | 'institutions';
+  group: 'projects' | 'employees' | 'teams' | 'institutions' | 'equipment';
   id: number;
   label: string;
   url: string;

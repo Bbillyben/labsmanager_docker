@@ -1,7 +1,14 @@
 import { apiRequest } from './client';
 
 /** Entity identity and visibility scope used by generic notes. */
-export type NoteScope = 'project' | 'employee' | 'team' | 'institution' | 'funder' | 'contract';
+export type NoteScope =
+  | 'project'
+  | 'employee'
+  | 'team'
+  | 'institution'
+  | 'funder'
+  | 'contract'
+  | 'equipment';
 export type NoteVisibility = 'object' | 'creator';
 export type NoteCapabilities = {
   can_add: boolean;

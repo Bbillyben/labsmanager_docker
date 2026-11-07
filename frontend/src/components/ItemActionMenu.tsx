@@ -16,10 +16,11 @@ type Props = {
   canChange: boolean;
   canDelete: boolean;
   adminUrl?: string | null;
-  onOpen: () => void;
+  onOpen?: () => void;
   onEdit: () => void;
   onDelete: () => void;
   extraAction?: { label: string; icon: ReactNode; onSelect: () => void };
+  extraActions?: Array<{ label: string; icon: ReactNode; onSelect: () => void }>;
   onTrigger?: (trigger: HTMLElement) => void;
   finalFocus?: ComponentProps<typeof DropdownMenuContent>['finalFocus'];
 };
@@ -34,15 +35,16 @@ export function ItemActionMenu({
   onEdit,
   onDelete,
   extraAction,
+  extraActions = [],
   onTrigger,
   finalFocus,
 }: Props) {
   const { t } = useTranslation();
-  if (!canChange && !canDelete && !adminUrl && !extraAction) return null;
+  if (!canChange && !canDelete && !adminUrl && !extraAction && !extraActions.length) return null;
   return (
     <DropdownMenu
       onOpenChange={(open) => {
-        if (open) onOpen();
+        if (open) onOpen?.();
       }}
     >
       <DropdownMenuTrigger
@@ -67,6 +69,15 @@ export function ItemActionMenu({
             {t('common.edit')}
           </DropdownMenuItem>
         )}
+        {extraActions.map((action) => (
+          <DropdownMenuItem
+            key={action.label}
+            onClick={action.onSelect}
+          >
+            {action.icon}
+            {action.label}
+          </DropdownMenuItem>
+        ))}
         {canDelete && (
           <DropdownMenuItem onClick={onDelete}>
             <Trash2 aria-hidden="true" />
@@ -81,7 +92,9 @@ export function ItemActionMenu({
         )}
         {adminUrl && (
           <>
-            {(canChange || canDelete || extraAction) && <DropdownMenuSeparator />}
+            {(canChange || canDelete || extraAction || extraActions.length > 0) && (
+              <DropdownMenuSeparator />
+            )}
             <AdminObjectAction adminUrl={adminUrl} />
           </>
         )}

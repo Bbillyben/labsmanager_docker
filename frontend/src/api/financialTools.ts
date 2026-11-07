@@ -39,6 +39,7 @@ export type ExpenseRow = {
   type: FundItemRow['type'];
   amount: string;
   status: 'e' | 'r' | 'p';
+  can_view_business_assignments?: boolean;
 };
 /** Union of financial list rows displayed by the tools page. */
 export type FinancialRow = FundItemRow | BudgetRow | ExpenseRow;

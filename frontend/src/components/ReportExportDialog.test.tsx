@@ -9,7 +9,7 @@ const api = vi.hoisted(() => ({ getReportTemplates: vi.fn(), exportReport: vi.fn
 vi.mock('../api/reports', () => api);
 
 function mount(
-  entity: 'project' | 'employee' = 'project',
+  entity: 'project' | 'employee' | 'equipment' = 'project',
   format: 'word' | 'pdf' = 'word',
   onClose = vi.fn(),
 ) {
@@ -101,6 +101,18 @@ describe('ReportExportDialog', () => {
         start_date: '2026-12-31',
         end_date: null,
       }),
+    );
+  });
+
+  it('uses the existing template workflow for Equipment without dates', async () => {
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    mount('equipment', 'pdf');
+    const dialog = screen.getByRole('dialog');
+    expect(await within(dialog).findByRole('option', { name: 'Modèle A' })).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText('Du')).not.toBeInTheDocument();
+    await userEvent.setup().click(within(dialog).getByRole('button', { name: 'Exporter' }));
+    await waitFor(() =>
+      expect(api.exportReport).toHaveBeenCalledWith('equipment', 12, 'pdf', { template_id: 3 }),
     );
   });
 

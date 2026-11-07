@@ -11,7 +11,7 @@ Ce document décrit le **code courant**. « Extension » signifie ici un point d
 | Global Search | `global_search/registry.py` | `api/globalSearch.ts` | Oui, via mixin | `SearchProvider`, `SearchQuery`, `SearchResult` | Engine, schéma, recherche, autocomplétion | Actif |
 | Calendar events/filters | `common/calendar/`, `plugin/base/CalendarEventMixin.py` | `calendar/fullCalendarAdapter.ts` | Oui, via mixin | `CalendarContext`, `LabsManagerCalendarEvent`, `LabsManagerCalendarFilter` | API Calendar, FullCalendar | Actif + façade legacy |
 | Import profiles | `import/profiles.py` | `api/imports.ts` | Non | `ImportProfile` | API Import Hub | Allowlist statique |
-| Mutable Settings Lists | `settings/mutable_lists_api_v1.py` | `api/mutableLists.ts` | Non | `MutableList` | Settings Hub | Allowlist statique |
+| Mutable Settings Lists | `settings/mutable_lists_api_v1.py` | `api/mutableLists.ts` | Non | `MutableList` | Settings Hub, dont Equipment | Allowlist statique |
 | Data Consistency rules | `data_consistency/service.py` | API Data Consistency | Non | `ConsistencyRule` | Summary, issues, exceptions | Tuple statique |
 | Preference types | `common/preferences.py` | `api/preferences.ts` | Non | `PreferenceType` | Favoris, abonnements | Allowlist statique |
 | Filtres de listes React | — | `filters/types.ts`, `config/*Filters.ts` | Non | `FilterDefinition`, `SupportedFilter` | `FilterBar` | Catalogues statiques |

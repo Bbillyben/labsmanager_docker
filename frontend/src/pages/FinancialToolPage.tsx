@@ -1,4 +1,4 @@
-import { Download, FileSignature } from 'lucide-react';
+import { Download, FileSignature, Link2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
@@ -41,6 +41,7 @@ import { PageHeader } from '../ui/PageHeader';
 import { BudgetReadOnlyDetails } from './ProjectBudgetsPanel';
 import { useTrackRecent } from '../hooks/useTrackRecent';
 import { ExpenseReadOnlyDetails } from './ExpenseSection';
+import { ExpenseBusinessAssignments } from './ExpenseBusinessAssignments';
 import styles from './EmployeeListPage.module.css';
 
 const sources = { ...employeeFilterSources, ...projectFilterSources, ...financialFilterSources };
@@ -82,6 +83,7 @@ export function FinancialToolPage({ kind }: { kind: FinancialKind }) {
   const [contracts, setContracts] = useState<FinancialContract[] | null>(null);
   const [contractsError, setContractsError] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [assigning, setAssigning] = useState<ExpenseRow | null>(null);
   const exportTrigger = useRef<HTMLButtonElement | null>(null);
   const focus = useRef<HTMLElement | null>(null);
   const title = t(
@@ -428,6 +430,15 @@ export function FinancialToolPage({ kind }: { kind: FinancialKind }) {
                           }}
                           onEdit={() => {}}
                           onDelete={() => {}}
+                          extraAction={
+                            kind === 'expenses' && (row as ExpenseRow).can_view_business_assignments
+                              ? {
+                                  label: t('expenseAssignments.action'),
+                                  icon: <Link2 aria-hidden="true" />,
+                                  onSelect: () => setAssigning(row as ExpenseRow),
+                                }
+                              : undefined
+                          }
                         />
                       </span>
                     </td>
@@ -551,6 +562,14 @@ export function FinancialToolPage({ kind }: { kind: FinancialKind }) {
               ))}
           </SheetContent>
         </Sheet>
+      )}
+      {assigning && (
+        <ExpenseBusinessAssignments
+          expenseId={assigning.id}
+          returnFocus={focus}
+          onClose={() => setAssigning(null)}
+          onChanged={() => setRevision((value) => value + 1)}
+        />
       )}
       {exportOpen && (
         <ListExportDialog

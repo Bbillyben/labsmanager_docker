@@ -55,16 +55,18 @@ const row = {
   capabilities,
   editable_fields: ['name', 'type', 'parent'],
 };
-const groups = ['fund', 'contract', 'leaves', 'project', 'staff', 'organization'].map((key) => ({
-  key,
-  label: key,
-  lists: key === 'fund' ? [list] : [{ ...list, key: `${key}-types`, group: key }],
-}));
+const groups = ['fund', 'contract', 'leaves', 'project', 'staff', 'organization', 'equipment'].map(
+  (key) => ({
+    key,
+    label: key,
+    lists: key === 'fund' ? [list] : [{ ...list, key: `${key}-types`, group: key }],
+  }),
+);
 
-function renderPage() {
+function renderPage(path = '/settings/lists/fund') {
   return render(
     <I18nProvider>
-      <MemoryRouter initialEntries={['/settings/lists/fund']}>
+      <MemoryRouter initialEntries={[path]}>
         <AuthProvider>
           <Routes>
             <Route
@@ -95,6 +97,70 @@ describe('MutableListPage', () => {
   });
 
   afterEach(() => vi.restoreAllMocks());
+
+  it('manages Equipment categories and information types within LabsManager lists', async () => {
+    const categoryList = {
+      ...list,
+      key: 'equipment-categories',
+      group: 'equipment',
+      label: 'Equipment categories',
+      fields: [
+        fields[0],
+        {
+          key: 'is_active',
+          label: 'Active',
+          type: 'boolean',
+          required: false,
+          readonly: false,
+          choices: [],
+          default: true,
+        },
+      ],
+      columns: ['name', 'is_active'],
+    };
+    const infoList = {
+      ...list,
+      key: 'equipment-info-types',
+      group: 'equipment',
+      label: 'Types of equipment information',
+    };
+    api.getMutableLists.mockResolvedValue({
+      groups: groups.map((group) =>
+        group.key === 'equipment' ? { ...group, lists: [categoryList, infoList] } : group,
+      ),
+    });
+    api.getMutableList.mockImplementation(async (key: string) =>
+      key === 'equipment-categories'
+        ? {
+            list: categoryList,
+            rows: [
+              {
+                ...row,
+                values: { name: 'Microscope', is_active: true },
+                editable_fields: ['name', 'is_active'],
+              },
+            ],
+          }
+        : { list: infoList, rows: [] },
+    );
+    renderPage('/settings/lists/equipment');
+    expect(await screen.findByRole('link', { name: 'equipment' })).toHaveAttribute(
+      'href',
+      '/settings/lists/equipment',
+    );
+    expect(await screen.findByText('Microscope')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Types of equipment information' }),
+    ).toBeInTheDocument();
+    expect(api.getMutableList).toHaveBeenCalledWith(
+      'equipment-categories',
+      expect.any(AbortSignal),
+    );
+    expect(api.getMutableList).toHaveBeenCalledWith(
+      'equipment-info-types',
+      expect.any(AbortSignal),
+    );
+  });
 
   it('shows backend groups and a generic compact list with create fields', async () => {
     const user = userEvent.setup();

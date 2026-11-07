@@ -1,5 +1,21 @@
 # État de la migration React
 
+## Equipment — lot 3.1 affectations métier depuis Expense
+
+Les menus des tableaux Expense communs et de l'explorateur financier ouvrent `ExpenseBusinessAssignments`. La section Equipment permet d'associer une dépense existante, de changer la nature ou l'Equipment, puis de détacher la liaison sans supprimer l'écriture. La fiche Equipment conserve création et consultation des dépenses mais ne propose plus la recherche d'une Expense existante. La route `/api/v1/expenses/:id/business-assignments/` résout l'Expense directement et applique les permissions financières et de liaison. `EquipmentExpenseLink` et les contrats du lot 3 restent inchangés ; aucune affectation Contract n'est encore implémentée et aucune migration supplémentaire n'est requise.
+
+## Equipment — lot 3 dépenses
+
+La fiche Equipment possède un onglet Dépenses fondé sur `ExpenseSection`. `EquipmentExpenseLink` associe plusieurs Expenses de Funds différents à un Equipment, avec une seule liaison possible par Expense et une nature achat, maintenance, réparation ou autre. La création demande un Fund explicite ; associer, modifier la nature, détacher et supprimer l'écriture sont des actions distinctes. Les droits de liaison s'ajoutent aux droits financiers et à la visibilité Equipment/Fund. La migration `equipment.0002` est créée mais non appliquée sur une base réelle ; les nouvelles permissions de liaison doivent être attribuées par l'administrateur. La refonte de l'héritage `Contract_expense` reste reportée. Maintenance, calendrier, notifications et Dashboard restent hors de ce lot.
+
+## Equipment — lot 2 React et recherche
+
+Les routes `/app/equipment/`, `/app/equipment/new` et `/app/equipment/:id` exposent la liste paginée, les formulaires et la fiche. La liste montre les responsables et institutions en cours et les filtre via les sélecteurs de recherche existants. La vue d’ensemble réunit les données du modèle, informations génériques, responsabilités et inventaires dans une disposition compacte ; les notes gardent leur onglet. Les catégories et types d'information sont gérés dans `/app/settings/lists/equipment`, sous « Listes LabsManager ». Le provider Global Search Equipment réutilise la visibilité de l'API Equipment et cherche aussi les informations génériques et numéros d'inventaire. Les permissions restent vérifiées côté serveur. La migration `equipment.0001` reste à appliquer par l'administrateur avant utilisation ; aucune permission de groupe n'est attribuée automatiquement. Les dépenses, maintenances, calendriers et widgets Equipment restent hors périmètre.
+
+## Equipment — lot 1 Django
+
+Le cœur contient désormais l'application `equipment` : catalogue, catégories configurables, informations génériques, responsabilités Employee et inscriptions institutionnelles historisées. L'API v1 et Django Admin sont disponibles ; les notes existantes acceptent `equipment` comme parent avec leurs règles de visibilité. La permission `equipment.view_equipment` donne une visibilité globale V1 ; les écritures demandent les droits du modèle concerné et `change_equipment` pour les relations. Aucune interface React Equipment ni intégration financière, calendrier, notification, Dashboard ou Global Search n'est livrée dans ce lot. La migration `equipment.0001` est créée, non appliquée à la base de production.
+
 ## État courant
 
 LabsManager conserve Django comme backend et l'interface historique pendant la migration progressive. La SPA React/TypeScript est montée sous `/app/`, utilise les sessions Django et le cookie CSRF, et appelle les contrats stables sous `/api/v1/`. Le backend reste l'autorité pour les permissions et les périmètres objet.
@@ -924,3 +940,8 @@ Le gestionnaire central des dépendances Python des plugins lit `requirements.tx
 Les actions `UIContributionMixin` peuvent désormais ouvrir un module React de plugin à la demande, via `behavior: "module"`. Le cœur fournit le contexte, les composants UI partagés et le slot générique `published-calendar.actions`; le plugin garde son formulaire et son exécution métier. Les calendriers publiés peuvent annoncer des options de consultation facultatives et des liens de fiche dans leurs événements. Voir [le contrat UI](PLUGIN_UI.md#actions-ouvrant-un-module-react), [les contributions](UI_CONTRIBUTIONS.md) et [la publication de calendriers](PLUGIN_CALENDAR_PUBLICATION.md). Validation navigateur de la fenêtre d'abonnement attendue.
 
 Calendars adopte le composant `PluginCalendarView` du cœur pour les quatre périodes natives et les modes calendrier, liste et ressources Employee. Les lignes Employee sont résolues par son API selon les droits existants ; les événements sans ligne visible gardent une ressource virtuelle. L'impression réutilise `PrintProvider` avec un renderer spécifique aux DTO de présentation, sans toucher au renderer des calendriers natifs. Voir [le contrat des modules React](PLUGIN_UI.md#présentation-calendaire-réutilisable). Validation visuelle des impressions et des périodes longues attendue.
+## Equipment — lot 4 maintenance
+
+Modèle Maintenance additif, API v1, section historique de la fiche Equipment et calendriers dédiés général/par Equipment. Récurrence automatique, notifications et widgets Dashboard restent hors périmètre. La migration `equipment.0003_equipmentmaintenance` est préparée, sans application sur la base de production.
+
+Lot 4.1 : la liste et la fiche Equipment reprennent les tableaux et la grille responsive de Project/Employee. La section Maintenance utilise les lignes et menus d'actions des Milestones, les champs partagés des Sheets et un basculement local Liste/Calendrier ; le calendrier général garde sa page dédiée. Aucun contrat backend ni règle métier ne change. Validation visuelle en navigateur attendue.

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { Plus } from 'lucide-react';
+import { Link2, Plus } from 'lucide-react';
 import {
   createExpense,
   deleteExpense,
+  deleteEquipmentExpense,
   getExpenseOptions,
   getExpenses,
   syncExpenses,
@@ -12,11 +13,13 @@ import {
   type ExpenseOptions,
   type ExpenseScope,
   type ExpenseWrite,
+  type EquipmentExpenseNature,
 } from '../api/expenses';
 import { normalizeMutationError } from '../api/errors';
 import { useMutation } from '../api/useMutation';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { ItemActionMenu } from '../components/ItemActionMenu';
+import { EntityActionMenu } from '../components/EntityActionMenu';
 import { SelectableTableRow } from '../components/SelectableTableRow';
 import {
   Sheet,
@@ -29,6 +32,7 @@ import { NativeSelect } from '../components/ui/native-select';
 import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../i18n/i18n';
+import { ExpenseBusinessAssignments } from './ExpenseBusinessAssignments';
 import { useEmployeeResource } from './useEmployeeResource';
 import styles from './ExpenseSection.module.css';
 
@@ -99,19 +103,22 @@ export function ExpenseSection({
   const [editing, setEditing] = useState<Expense | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Expense | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [assigning, setAssigning] = useState<Expense | null>(null);
   const trigger = useRef<HTMLElement | null>(null);
   const section = useRef<HTMLElement | null>(null);
   const [focusVersion, setFocusVersion] = useState(0);
   const scopeKey =
-    'hubContractId' in scope
-      ? `hub-contract:${scope.hubContractId}`
-      : 'budgetId' in scope
-        ? `budget:${scope.projectId}:${scope.budgetId}`
-        : 'fundId' in scope
-          ? `fund:${scope.fundId}`
-          : 'projectId' in scope
-            ? `project-contract:${scope.projectId}:${scope.contractId}`
-            : `contract:${scope.employeeId}:${scope.contractId}`;
+    'equipmentId' in scope
+      ? `equipment:${scope.equipmentId}`
+      : 'hubContractId' in scope
+        ? `hub-contract:${scope.hubContractId}`
+        : 'budgetId' in scope
+          ? `budget:${scope.projectId}:${scope.budgetId}`
+          : 'fundId' in scope
+            ? `fund:${scope.fundId}`
+            : 'projectId' in scope
+              ? `project-contract:${scope.projectId}:${scope.contractId}`
+              : `contract:${scope.employeeId}:${scope.contractId}`;
   const filterKey = JSON.stringify(filters);
   const loader = useCallback(
     (_id: string, signal: AbortSignal) => getExpenses(scope, filters, signal),
@@ -255,6 +262,7 @@ export function ExpenseSection({
               <thead>
                 <tr>
                   <th>{t('expenses.date')}</th>
+                  {'equipmentId' in scope && <th>{t('equipmentExpenses.fund')}</th>}
                   <th>{t('expenses.reference')}</th>
                   <th>{t('expenses.description')}</th>
                   <th>{t('funding.costType')}</th>
@@ -262,6 +270,7 @@ export function ExpenseSection({
                   <th>{t('expenses.contract')}</th>
                   <th>{t('expenses.budget')}</th>
                   <th>{t('funding.amount')}</th>
+                  {'equipmentId' in scope && <th>{t('equipmentExpenses.nature')}</th>}
                   <th>
                     <span className="sr-only">{t('list.menu')}</span>
                   </th>
@@ -277,6 +286,7 @@ export function ExpenseSection({
                     onSelect={setSelectedId}
                   >
                     <td>{dateLabel(item.date, language)}</td>
+                    {'equipmentId' in scope && <td>{item.fund?.name ?? '—'}</td>}
                     <td>{item.expense_id || '—'}</td>
                     <td>{item.desc || '—'}</td>
                     <td>{item.type.name}</td>
@@ -284,22 +294,77 @@ export function ExpenseSection({
                     <td>{item.contract?.name || '—'}</td>
                     <td>{item.budget?.name || '—'}</td>
                     <td className={styles.number}>{amountLabel(item.amount, language)}</td>
+                    {'equipmentId' in scope && (
+                      <td>{item.nature ? t(`equipmentExpenses.${item.nature}`) : '—'}</td>
+                    )}
                     <td className={styles.actions}>
-                      <ItemActionMenu
-                        label={t('common.actionsFor', {
-                          name: item.expense_id || item.desc || item.type.name,
-                        })}
-                        canChange={item.capabilities.can_change}
-                        canDelete={item.capabilities.can_delete}
-                        adminUrl={item.admin_url}
-                        onOpen={() => setSelectedId(item.id)}
-                        onTrigger={(element) => {
-                          trigger.current = element;
-                        }}
-                        finalFocus={() => (editing || deleting ? false : true)}
-                        onEdit={() => setEditing(item)}
-                        onDelete={() => setDeleting(item)}
-                      />
+                      {'equipmentId' in scope ? (
+                        <EntityActionMenu
+                          label={t('common.actionsFor', {
+                            name: item.expense_id || item.desc || item.type.name,
+                          })}
+                          groups={[
+                            [
+                              ...(item.capabilities.can_change
+                                ? [
+                                    {
+                                      id: 'edit',
+                                      label: t('common.edit'),
+                                      onSelect: () => setEditing(item),
+                                    },
+                                  ]
+                                : []),
+                              ...(item.can_view_business_assignments
+                                ? [
+                                    {
+                                      id: 'assignments',
+                                      label: t('expenseAssignments.action'),
+                                      onSelect: () => setAssigning(item),
+                                    },
+                                  ]
+                                : []),
+                              ...(item.capabilities.can_delete
+                                ? [
+                                    {
+                                      id: 'delete',
+                                      label: t('equipmentExpenses.delete'),
+                                      onSelect: () => setDeleting(item),
+                                    },
+                                  ]
+                                : []),
+                            ],
+                          ]}
+                          onTrigger={(element) => {
+                            trigger.current = element;
+                          }}
+                          finalFocus={() => (editing || assigning || deleting ? false : true)}
+                        />
+                      ) : (
+                        <ItemActionMenu
+                          label={t('common.actionsFor', {
+                            name: item.expense_id || item.desc || item.type.name,
+                          })}
+                          canChange={item.capabilities.can_change}
+                          canDelete={item.capabilities.can_delete}
+                          adminUrl={item.admin_url}
+                          onOpen={() => setSelectedId(item.id)}
+                          onTrigger={(element) => {
+                            trigger.current = element;
+                          }}
+                          finalFocus={() => (editing || deleting ? false : true)}
+                          onEdit={() => setEditing(item)}
+                          onDelete={() => setDeleting(item)}
+                          extraAction={
+                            item.can_view_business_assignments
+                              ? {
+                                  label: t('expenseAssignments.action'),
+                                  icon: <Link2 aria-hidden="true" />,
+                                  onSelect: () => setAssigning(item),
+                                }
+                              : undefined
+                          }
+                        />
+                      )}
                     </td>
                   </SelectableTableRow>
                 ))}
@@ -331,6 +396,11 @@ export function ExpenseSection({
           </Button>
         </nav>
       )}
+      {'equipmentId' in scope && data?.total_visible !== undefined && (
+        <p className="text-sm text-muted-foreground">
+          {t('equipmentExpenses.visibleTotal')}: {amountLabel(data.total_visible, language)}
+        </p>
+      )}
       {editing && (
         <ExpenseSheet
           scope={scope}
@@ -352,13 +422,25 @@ export function ExpenseSection({
           })}
           returnFocus={trigger}
           onCancel={() => setDeleting(null)}
-          onConfirm={() => deleteExpense(scope, deleting.id)}
+          onConfirm={() =>
+            'equipmentId' in scope
+              ? deleteEquipmentExpense(scope.equipmentId, deleting.id)
+              : deleteExpense(scope, deleting.id)
+          }
           onDone={() => {
             trigger.current = section.current;
             setSelectedId(null);
             setFocusVersion((v) => v + 1);
             void changed();
           }}
+        />
+      )}
+      {assigning && (
+        <ExpenseBusinessAssignments
+          expenseId={assigning.id}
+          returnFocus={trigger}
+          onClose={() => setAssigning(null)}
+          onChanged={() => void changed()}
         />
       )}
       {syncing && scope.fundId !== undefined && (
@@ -414,6 +496,9 @@ function ExpenseSheet({
       ('hubContractId' in scope ? scope.hubContractId : scope.contractId) ??
       null,
     budget_id: scope.budgetId ?? item?.budget?.id ?? null,
+    ...('equipmentId' in scope
+      ? { fund_id: item?.fund?.id, nature: item?.nature ?? ('other' as EquipmentExpenseNature) }
+      : {}),
   });
   const mutation = useMutation();
   const error = mutation.error ? normalizeMutationError(mutation.error) : null;
@@ -421,11 +506,20 @@ function ExpenseSheet({
     setDraft((previous) => ({ ...previous, [key]: value }));
   async function save(event: FormEvent) {
     event.preventDefault();
+    const financialDraft = { ...draft };
+    if ('equipmentId' in scope && item) {
+      delete financialDraft.fund_id;
+      delete financialDraft.nature;
+    }
     const result = await mutation.run(() =>
-      item ? updateExpense(scope, item.id, draft) : createExpense(scope, draft),
+      item ? updateExpense(scope, item.id, financialDraft) : createExpense(scope, financialDraft),
     );
     if (result) onSaved();
   }
+  const modeForFund =
+    'equipmentId' in scope
+      ? (options?.funds?.find((fund) => fund.id === draft.fund_id)?.expense_mode ?? 's')
+      : mode;
   const typeChoices = draft.contract_id
     ? options?.cost_types.filter((entry) => options.hr_type_ids.includes(entry.id))
     : options?.cost_types;
@@ -462,6 +556,52 @@ function ExpenseSheet({
                 {t('common.retry')}
               </Button>
             </Alert>
+          )}
+          {'equipmentId' in scope && !item && (
+            <>
+              <label>
+                {t('equipmentExpenses.fund')}
+                <NativeSelect
+                  required
+                  value={draft.fund_id ?? ''}
+                  disabled={!options}
+                  onChange={(event) =>
+                    setDraft((value) => ({
+                      ...value,
+                      fund_id: Number(event.target.value) || undefined,
+                      contract_id: null,
+                      budget_id: null,
+                    }))
+                  }
+                >
+                  <option value="">{t('common.choose')}</option>
+                  {options?.funds?.map((fund) => (
+                    <option
+                      key={fund.id}
+                      value={fund.id}
+                    >
+                      {fund.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+              <label>
+                {t('equipmentExpenses.nature')}
+                <NativeSelect
+                  value={draft.nature ?? 'other'}
+                  onChange={(event) => set('nature', event.target.value as EquipmentExpenseNature)}
+                >
+                  {(['purchase', 'maintenance', 'repair', 'other'] as const).map((nature) => (
+                    <option
+                      key={nature}
+                      value={nature}
+                    >
+                      {t(`equipmentExpenses.${nature}`)}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+            </>
           )}
           <label>
             {t('expenses.reference')}
@@ -544,14 +684,16 @@ function ExpenseSheet({
               }
             >
               <option value="">{t('expenses.noContract')}</option>
-              {options?.contracts.map((entry) => (
-                <option
-                  key={entry.id}
-                  value={entry.id}
-                >
-                  {entry.name}
-                </option>
-              ))}
+              {options?.contracts
+                .filter((entry) => !('equipmentId' in scope) || entry.fund_id === draft.fund_id)
+                .map((entry) => (
+                  <option
+                    key={entry.id}
+                    value={entry.id}
+                  >
+                    {entry.name}
+                  </option>
+                ))}
             </NativeSelect>
           </label>
           <label>
@@ -564,17 +706,19 @@ function ExpenseSheet({
               }
             >
               <option value="">{t('expenses.noBudget')}</option>
-              {options?.budgets.map((entry) => (
-                <option
-                  key={entry.id}
-                  value={entry.id}
-                >
-                  {entry.name}
-                </option>
-              ))}
+              {options?.budgets
+                .filter((entry) => !('equipmentId' in scope) || entry.fund_id === draft.fund_id)
+                .map((entry) => (
+                  <option
+                    key={entry.id}
+                    value={entry.id}
+                  >
+                    {entry.name}
+                  </option>
+                ))}
             </NativeSelect>
           </label>
-          {mode === 's' && !item && !draft.contract_id && !draft.budget_id && (
+          {modeForFund === 's' && !item && !draft.contract_id && !draft.budget_id && (
             <p>{t('expenses.simpleHint')}</p>
           )}
           <div className={styles.buttons}>
@@ -591,7 +735,8 @@ function ExpenseSheet({
               disabled={
                 mutation.pending ||
                 !options ||
-                (mode === 's' && !item && !draft.contract_id && !draft.budget_id)
+                ('equipmentId' in scope && !item && !draft.fund_id) ||
+                (modeForFund === 's' && !item && !draft.contract_id && !draft.budget_id)
               }
             >
               {t('common.save')}

@@ -343,7 +343,10 @@ class FundingFundView(FundingBase):
         # Deleting Fund_Item while a point remains makes Fund.calculate() recreate
         # that line. Remove unit expenses first (their signals may update points),
         # then points, before the Fund cascade deletes its lines.
-        Expense.objects.filter(fund_item=fund).delete()
+        expenses = Expense.objects.filter(fund_item=fund)
+        from equipment.expense_access import require_linked_expense_deletion
+        require_linked_expense_deletion(request.user, expenses)
+        expenses.delete()
         Expense_point.objects.filter(fund=fund).delete()
         fund.delete()
         return Response(status=204)

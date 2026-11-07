@@ -133,7 +133,12 @@ export function SharedCalendar({
     });
   }, [events, print, canChange, canChangeEvent, viewMode, visibleResources]);
   const openEvent = (event: CalendarEvent) => {
-    if (!print && !suppressClick.current && event.source === 'core' && event.kind === 'leave')
+    if (
+      !print &&
+      !suppressClick.current &&
+      event.source === 'core' &&
+      (event.kind === 'leave' || event.kind === 'equipment-maintenance')
+    )
       onOpen?.(event);
   };
   const applyGesture = async (id: string, write: LeaveWrite, revert: () => void) => {
@@ -171,10 +176,14 @@ export function SharedCalendar({
         {period && <small>{period}</small>}
       </>
     );
-    if (isLeave && !print)
+    if ((isLeave || event?.kind === 'equipment-maintenance') && !print)
       return (
         <button
-          aria-label={t('leaves.open', { name: title })}
+          aria-label={
+            isLeave
+              ? t('leaves.open', { name: title })
+              : t('equipmentMaintenance.open', { name: title })
+          }
           className={styles.fullCalendarEventButton}
           onClick={(click) => {
             click.stopPropagation();

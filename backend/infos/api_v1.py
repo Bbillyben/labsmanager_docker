@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 import nh3
 
 from project.models import Institution, Project
+from equipment.models import Equipment
 from staff.models import Employee, Team
 from expense.models import Contract
 from fund.models import Fund_Institution
@@ -20,7 +21,7 @@ from labsmanager.admin_links_v1 import get_admin_change_url
 from .models import GenericNote
 
 
-PARENTS = {'project': Project, 'employee': Employee, 'team': Team, 'institution': Institution, 'funder': Fund_Institution, 'contract': Contract}
+PARENTS = {'project': Project, 'employee': Employee, 'team': Team, 'institution': Institution, 'funder': Fund_Institution, 'contract': Contract, 'equipment': Equipment}
 
 
 def parent_for(user, scope, pk):
@@ -28,7 +29,7 @@ def parent_for(user, scope, pk):
     model = PARENTS.get(scope)
     if model is None:
         raise serializers.ValidationError({'scope': 'Unsupported note parent.'})
-    if model in (Project, Employee):
+    if model in (Project, Employee, Equipment):
         queryset = model.get_instances_for_user('view', user, model.objects.filter(pk=pk))
         return get_object_or_404(queryset, pk=pk)
     if model is Contract:
@@ -63,6 +64,8 @@ def note_admin(user):
 
 def parent_change(user, parent):
     """Check change authority on the note parent object."""
+    if isinstance(parent, Equipment):
+        return user.has_perm('equipment.change_equipment')
     if isinstance(parent, Contract):
         return user.has_perm('expense.change_contract') or user.has_perm('expense.change_contract', parent)
     if isinstance(parent, Employee):

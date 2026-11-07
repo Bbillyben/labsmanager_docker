@@ -6,7 +6,7 @@ import { getDjangoUrl } from '../config/django';
 import { useTranslation } from '../i18n/i18n';
 import styles from './Sidebar.module.css';
 
-const groups = ['projects', 'employees', 'teams', 'institutions'] as const;
+const groups = ['projects', 'employees', 'teams', 'institutions', 'equipment'] as const;
 
 /** List the current user’s visible favorites in application navigation. */
 export function FavoritesMenu({

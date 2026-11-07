@@ -63,6 +63,13 @@ from data_consistency.api_v1 import (DataConsistencySummary, DataConsistencyIssu
     DataConsistencyAccept, DataConsistencyBatchAccept, DataConsistencyReopen)
 from global_search.api_v1 import SearchV1View, SearchSchemaV1View, SearchAutocompleteV1View
 from project.api_v1 import ProjectCapabilitiesV1View, ProjectDetailV1View, ProjectFilterOptionsV1View, ProjectListV1View, ProjectListExportV1View, ProjectOverviewOptionsV1View, project_child_view
+from equipment.api_v1 import (EquipmentCollection, EquipmentDetail, EquipmentCapabilities, EquipmentInstitutionOptions,
+    CategoryCollection, CategoryDetail, GenericInfoTypeCollection, GenericInfoTypeDetail, child_view as equipment_child_view)
+from equipment.expenses_api_v1 import (EquipmentExpenses, EquipmentExpenseOptions,
+    EquipmentExpenseCandidates, EquipmentExpenseDetail, EquipmentExpenseDelete)
+from equipment.business_assignments_api_v1 import ExpenseBusinessAssignments
+from equipment.maintenance_api_v1 import (MaintenanceCollection, MaintenanceDetail, MaintenanceAction,
+    MaintenanceCalendar, MaintenanceExpenseOptions)
 from project.calendar_api_v1 import ProjectCalendarV1View, ProjectCalendarFiltersV1View, ProjectCalendarParticipantsV1View, ProjectCalendarLeaveCreateV1View, ProjectCalendarLeaveDetailV1View
 from fund.api_v1 import ProjectFundingView, FundingOptionsView, FundingFundView, FundItemView, ExpensePointView
 from fund.financial_tools_api_v1 import (
@@ -268,10 +275,37 @@ urlpatterns = [
     path("funds/<int:fund_id>/expenses/options/", ExpenseOptionsV1View.as_view(), name="fund-expense-options"),
     path("funds/<int:fund_id>/expenses/sync/", ExpenseSyncV1View.as_view(), name="fund-expense-sync"),
     path("funds/<int:fund_id>/expenses/<int:expense_id>/", ExpenseDetailV1View.as_view(), name="fund-expense-detail"),
+    path("expenses/<int:expense_id>/business-assignments/", ExpenseBusinessAssignments.as_view(), name="expense-business-assignments"),
     path("employees/<int:employee_id>/contracts/<int:contract_id>/expenses/", ExpenseCollectionV1View.as_view(), name="contract-expenses"),
     path("employees/<int:employee_id>/contracts/<int:contract_id>/expenses/options/", ExpenseOptionsV1View.as_view(), name="contract-expense-options"),
     path("employees/<int:employee_id>/contracts/<int:contract_id>/expenses/<int:expense_id>/", ExpenseDetailV1View.as_view(), name="contract-expense-detail"),
     path("projects/", ProjectListV1View.as_view(), name="projects"),
+    path("equipment/", EquipmentCollection.as_view(), name="equipment-list"),
+    path("equipment/maintenances/", MaintenanceCollection.as_view(), name="equipment-maintenance-list"),
+    path("equipment/maintenances/calendar/", MaintenanceCalendar.as_view(), name="equipment-maintenance-calendar"),
+    path("equipment/maintenances/<int:maintenance_id>/", MaintenanceDetail.as_view(), name="equipment-maintenance-detail"),
+    path("equipment/maintenances/<int:maintenance_id>/<str:action>/", MaintenanceAction.as_view(), name="equipment-maintenance-action"),
+    path("equipment/capabilities/", EquipmentCapabilities.as_view(), name="equipment-capabilities"),
+    path("equipment/institution-options/", EquipmentInstitutionOptions.as_view(), name="equipment-institution-options"),
+    path("equipment/categories/", CategoryCollection.as_view(), name="equipment-categories"),
+    path("equipment/categories/<int:pk>/", CategoryDetail.as_view(), name="equipment-category-detail"),
+    path("equipment/generic-info-types/", GenericInfoTypeCollection.as_view(), name="equipment-generic-info-types"),
+    path("equipment/generic-info-types/<int:pk>/", GenericInfoTypeDetail.as_view(), name="equipment-generic-info-type-detail"),
+    path("equipment/<int:pk>/", EquipmentDetail.as_view(), name="equipment-detail"),
+    path("equipment/<int:equipment_id>/maintenances/", MaintenanceCollection.as_view(), name="equipment-maintenance-equipment-list"),
+    path("equipment/<int:equipment_id>/maintenances/calendar/", MaintenanceCalendar.as_view(), name="equipment-maintenance-equipment-calendar"),
+    path("equipment/<int:equipment_id>/maintenances/expense-options/", MaintenanceExpenseOptions.as_view(), name="equipment-maintenance-expense-options"),
+    path("equipment/<int:pk>/expenses/", EquipmentExpenses.as_view(), name="equipment-expenses"),
+    path("equipment/<int:pk>/expenses/options/", EquipmentExpenseOptions.as_view(), name="equipment-expense-options"),
+    path("equipment/<int:pk>/expenses/candidates/", EquipmentExpenseCandidates.as_view(), name="equipment-expense-candidates"),
+    path("equipment/<int:pk>/expenses/<int:expense_id>/", EquipmentExpenseDetail.as_view(), name="equipment-expense-detail"),
+    path("equipment/<int:pk>/expenses/<int:expense_id>/delete-expense/", EquipmentExpenseDelete.as_view(), name="equipment-expense-delete"),
+    path("equipment/<int:pk>/generic-info/", equipment_child_view("generic-info"), name="equipment-generic-info"),
+    path("equipment/<int:pk>/generic-info/<int:item_id>/", equipment_child_view("generic-info", detail=True), name="equipment-generic-info-detail"),
+    path("equipment/<int:pk>/responsibilities/", equipment_child_view("responsibilities"), name="equipment-responsibilities"),
+    path("equipment/<int:pk>/responsibilities/<int:item_id>/", equipment_child_view("responsibilities", detail=True), name="equipment-responsibility-detail"),
+    path("equipment/<int:pk>/institutions/", equipment_child_view("institutions"), name="equipment-institutions"),
+    path("equipment/<int:pk>/institutions/<int:item_id>/", equipment_child_view("institutions", detail=True), name="equipment-institution-detail"),
     path("projects/export/", ProjectListExportV1View.as_view(), name="project-list-export"),
     path("projects/capabilities/", ProjectCapabilitiesV1View.as_view(), name="project-capabilities"),
     path("projects/filter-options/", ProjectFilterOptionsV1View.as_view(), name="project-filter-options"),

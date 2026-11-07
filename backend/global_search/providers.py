@@ -155,6 +155,8 @@ class ProjectSearchProvider(SearchProvider):
 
 from .business_providers import FundSearchProvider, ContractSearchProvider, TeamSearchProvider  # noqa: E402
 from .organization_provider import OrganizationSearchProvider  # noqa: E402
+from .equipment_provider import EquipmentSearchProvider  # noqa: E402
 
 CORE_PROVIDERS = (EmployeeSearchProvider(), ProjectSearchProvider(), FundSearchProvider(),
-                  ContractSearchProvider(), TeamSearchProvider(), OrganizationSearchProvider())
+                  ContractSearchProvider(), TeamSearchProvider(), OrganizationSearchProvider(),
+                  EquipmentSearchProvider())

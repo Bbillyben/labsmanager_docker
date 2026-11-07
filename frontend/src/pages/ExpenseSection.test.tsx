@@ -177,3 +177,63 @@ describe('ExpenseSection shared Fund/Contract collection', () => {
     );
   });
 });
+
+describe('ExpenseSection Equipment scope', () => {
+  it('requires a Fund, preserves the form on failure, then creates one linked Expense', async () => {
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['fr-FR'] });
+    let fail = true;
+    const writes: Record<string, unknown>[] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith('/expenses/options/'))
+        return jsonResponse({
+          cost_types: [costType],
+          hr_type_ids: [1],
+          funds: [{ id: 7, name: 'Fund A', expense_mode: 'e' }],
+          contracts: [],
+          budgets: [],
+        });
+      if (url.includes('/expenses/?'))
+        return jsonResponse({
+          count: 0,
+          next: null,
+          previous: null,
+          results: [],
+          total_visible: '0.00',
+          capabilities: {
+            expense_mode: 'e',
+            can_add: true,
+            can_link: true,
+            can_sync_expenses: false,
+          },
+        });
+      if (url.endsWith('/expenses/') && init?.method === 'POST') {
+        writes.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+        if (fail) return jsonResponse({ detail: 'Invalid financial entry.' }, 400);
+        return jsonResponse({ ...item, fund: { id: 7, name: 'Fund A' }, nature: 'purchase' }, 201);
+      }
+      throw new Error(url);
+    });
+    render(
+      <I18nProvider>
+        <ExpenseSection scope={{ equipmentId: 7 }} />
+      </I18nProvider>,
+    );
+    expect(await screen.findByText('Aucune dépense.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter une dépense' }));
+    const sheet = screen.getByRole('dialog');
+    expect(within(sheet).getByRole('button', { name: 'Enregistrer' })).toBeDisabled();
+    await userEvent.selectOptions(within(sheet).getByLabelText('Financement'), '7');
+    await userEvent.selectOptions(within(sheet).getByLabelText('Nature'), 'purchase');
+    await userEvent.selectOptions(within(sheet).getByLabelText('Type de coût'), '1');
+    await userEvent.type(within(sheet).getByLabelText('Montant'), '42');
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Enregistrer' }));
+    expect(await within(sheet).findByText('Invalid financial entry.')).toBeInTheDocument();
+    expect(sheet).toBeInTheDocument();
+    fail = false;
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(sheet).not.toBeInTheDocument());
+    expect(writes).toHaveLength(2);
+    expect(writes[0]).toMatchObject({ fund_id: 7, nature: 'purchase', amount: '42' });
+  });
+});

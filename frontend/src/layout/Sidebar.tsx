@@ -7,6 +7,7 @@ import {
   Home,
   Upload,
   Network,
+  Microscope,
   ShieldCheck,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
@@ -103,6 +104,34 @@ export function Sidebar({ expanded, interactive, onRequestExpand, user }: Sideba
               strokeWidth={1.8}
             />
             <span className={styles.label}>{t('navigation.projects')}</span>
+          </NavLink>
+        )}
+        {user.capabilities.view_equipment_list && (
+          <NavLink
+            className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+            to="/equipment/"
+            title={t('equipment.title')}
+          >
+            <Microscope
+              aria-hidden="true"
+              size={19}
+              strokeWidth={1.8}
+            />
+            <span className={styles.label}>{t('equipment.title')}</span>
+          </NavLink>
+        )}
+        {user.capabilities.view_equipment_maintenance && (
+          <NavLink
+            className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+            to="/equipment/maintenance-calendar"
+            title={t('equipmentMaintenance.calendar')}
+          >
+            <CalendarDays
+              aria-hidden="true"
+              size={19}
+              strokeWidth={1.8}
+            />
+            <span className={styles.label}>{t('equipmentMaintenance.calendar')}</span>
           </NavLink>
         )}
         {user.capabilities.view_team_list && (

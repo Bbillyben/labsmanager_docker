@@ -24,6 +24,7 @@ def preference_types():
     # Import lazily: Project and Fund models import common elsewhere.
     """Return the supported models and their React or legacy destinations."""
     from fund.models import Fund_Institution
+    from equipment.models import Equipment
     from project.models import Institution, Project
     from staff.models import Employee, Team
 
@@ -33,6 +34,7 @@ def preference_types():
         "team": PreferenceType(Team, "teams", "/teams/{id}"),
         "institution": PreferenceType(Institution, "institutions", "/organizations/institutions/{id}"),
         "fund_institution": PreferenceType(Fund_Institution, "institutions", "/organizations/funders/{id}"),
+        "equipment": PreferenceType(Equipment, "equipment", "/equipment/{id}"),
     }
 
 
@@ -104,6 +106,10 @@ def set_preference(user, obj, kind, enabled):
 
 def legacy_object_url(type_name, object_id):
     """Build the legacy route for a supported preference target."""
+    if type_name == "equipment":
+        from django.conf import settings
+        from labsmanager.react_urls import react_public_url
+        return react_public_url(f"equipment/{object_id}") if settings.REACT_PUBLIC_URL.strip() else f"/app/equipment/{object_id}"
     if type_name == "project":
         return reverse("project_single", args=[object_id])
     if type_name == "employee":
@@ -138,7 +144,7 @@ def _list_user_relations(user, model):
             "legacy_group": str(spec.model._meta.verbose_name).title(),
             "legacy": spec.react_path is None,
         })
-    order = {"projects": 0, "employees": 1, "teams": 2, "institutions": 3}
+    order = {"projects": 0, "employees": 1, "teams": 2, "institutions": 3, "equipment": 4}
     return sorted(result, key=lambda row: (order[row["group"]], row["label"].casefold(), row["type"], row["id"]))
 
 

@@ -173,7 +173,9 @@ class ContractContextView(APIView):
                    "can_view_organizations": user.has_perm("common.display_infos")}
         if detailed:
             from .models import Contract_expense
-            context["contract_expenses"] = list(Contract_expense.objects.filter(contract=contract).select_related("type").order_by("-date", "-pk"))
+            from equipment.expense_access import visible_linked_expenses
+            expenses = Contract_expense.objects.filter(contract=contract).select_related("type").order_by("-date", "-pk")
+            context["contract_expenses"] = list(visible_linked_expenses(user, expenses))
         serializer = EmployeeContractDetailV1Serializer if detailed else EmployeeContractV1Serializer
         data = serializer(contract, context=context).data
         data["capabilities"] = contract_capabilities(user, contract, project=project, employee=employee)
@@ -259,6 +261,9 @@ class ContractDetailV1View(ContractContextView):
         contract = self.contract()
         if not self.capabilities(contract)["can_delete"]:
             raise PermissionDenied()
+        from equipment.expense_access import require_linked_expense_deletion
+        from .models import Expense
+        require_linked_expense_deletion(request.user, Expense.objects.filter(contract_expense__contract=contract))
         contract.delete()
         return Response(status=204)
 

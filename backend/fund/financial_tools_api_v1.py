@@ -34,7 +34,11 @@ def visible_funds(user):
 def visible_financial_items(model, user):
     """Use the parent visibility already enforced by Project funding endpoints."""
     relation = "fund_item" if model is Expense else "fund"
-    return model.objects.filter(**{f"{relation}__in": visible_funds(user)})
+    queryset = model.objects.filter(**{f"{relation}__in": visible_funds(user)})
+    if model is Expense:
+        from equipment.expense_access import visible_linked_expenses
+        return visible_linked_expenses(user, queryset)
+    return queryset
 
 
 def cost_descendants(queryset, field, value):
@@ -194,7 +198,9 @@ class FinancialList(generics.ListAPIView):
             else:
                 data["admin_url"] = get_admin_change_url(user, item)
                 data.update({"expense_id": item.expense_id or "", "desc": item.desc or "", "date": item.date,
-                             "type": cost_type_data(item.type), "amount": money(item.amount), "status": item.status})
+                             "type": cost_type_data(item.type), "amount": money(item.amount), "status": item.status,
+                             "can_view_business_assignments": bool(user.has_perm("equipment.view_equipment") and
+                                                                   user.has_perm("equipment.view_equipmentexpenselink"))})
             result.append(data)
         return result
 

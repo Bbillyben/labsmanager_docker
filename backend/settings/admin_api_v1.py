@@ -16,6 +16,7 @@ from rest_framework import status
 from notification.models import UserNotification
 from notification.tasks import send_pending_notification
 from notification.utils import check_overdue_milestones, check_overload_employee, check_stale_milestones
+from notification.equipment import check_equipment_maintenance
 from plugin.models import PluginConfig, PluginSetting
 from plugin.registry import registry
 from plugin.dependencies import discover_candidates, diagnose, request_install
@@ -259,7 +260,12 @@ class AdminNotificationAction(StaffView):
     """Perform an authorized notification action."""
     def post(self, request, action):
         if action == "check":
-            counts = {"stale": check_stale_milestones(), "overdue": check_overdue_milestones(), "overload": check_overload_employee()}
+            counts = {
+                "stale": check_stale_milestones(), 
+                "overdue": check_overdue_milestones(), 
+                "overload": check_overload_employee(),
+                "maintenance": check_equipment_maintenance()
+                }
             return Response({"counts": counts, "results": pending_data()})
         if action == "send":
             sent = send_pending_notification()

@@ -109,7 +109,11 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
     
     @property
     def getId(self):
-        return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
+        return (
+            f"{self.project.name} | {self.funder.short_name} "
+            f"-> {self.institution.short_name}"
+            f"{f' {self.ref}' if self.ref else ''}"
+        )
     
     
     def get_advancement_ratio(self):
@@ -268,7 +272,13 @@ class Fund(LabsManagerFocusBudgetMixin, ActiveDateMixin, RightsCheckerMixin):
         
         
     def __str__(self):
-        return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
+        # return f'{self.project.name} | {self.funder.short_name} -> {self.institution.short_name}'
+        return (
+            f"{self.funder.short_name} "
+            f"-> {self.institution.short_name}"
+            f"{f' ({self.ref}) - ' if self.ref else ''}"
+            f" {self.project.name}"
+        )
 
 def calculate_fund(*arg):
         """Recalculate a Fund when its related records change."""

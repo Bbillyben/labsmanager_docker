@@ -19,6 +19,7 @@ export function toFullCalendarEvent(event: CalendarEvent, canChange = false): Ev
     Number.isInteger(leaveId) &&
     leaveId > 0 &&
     event.display !== 'background';
+  const isMaintenance = event.source === 'core' && event.kind === 'equipment-maintenance';
   const resourceIds = calendarEventResourceIds(event);
   return {
     id: event.id,
@@ -28,7 +29,7 @@ export function toFullCalendarEvent(event: CalendarEvent, canChange = false): Ev
     allDay: event.all_day,
     color: event.color ?? undefined,
     display: event.display || 'auto',
-    interactive: isLeave,
+    interactive: isLeave || isMaintenance,
     editable: isLeave && canChange,
     resourceId: resourceIds.length === 1 ? resourceIds[0] : undefined,
     resourceIds: resourceIds.length > 1 ? resourceIds : undefined,

@@ -20,9 +20,17 @@ def can_print_project_report(user, project= None):
     return user.has_perm("project.change_project", project)
 
 
+@rules.predicate
+def can_print_equipment_report(user, equipment=None):
+    """Permit object-level exports to users who may edit this Equipment."""
+    return bool(equipment and user.has_perm("equipment.change_equipment", equipment))
+
+
 #    Rules ======================
 rules.add_perm("reports.view_employeewordreport", can_print_employee_report)
 rules.add_perm("reports.view_employeepdfreport", can_print_employee_report)
 rules.add_perm("reports.view_projectwordreport", can_print_project_report)
 rules.add_perm("reports.view_projectpdfreport", can_print_project_report)
+rules.add_perm("reports.view_equipmentwordreport", can_print_equipment_report)
+rules.add_perm("reports.view_equipmentpdfreport", can_print_equipment_report)
 

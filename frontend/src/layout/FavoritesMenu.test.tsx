@@ -59,6 +59,14 @@ describe('FavoritesMenu', () => {
           url: '/organizations/funders/5',
           legacy: false,
         },
+        {
+          type: 'equipment',
+          group: 'equipment',
+          id: 7,
+          label: 'Scope',
+          url: '/equipment/7',
+          legacy: false,
+        },
       ]),
     );
     mount();
@@ -84,6 +92,8 @@ describe('FavoritesMenu', () => {
       'href',
       '/organizations/funders/5',
     );
+    expect(screen.getByRole('link', { name: 'Scope' })).toHaveAttribute('href', '/equipment/7');
+    expect(screen.getByText('Équipements')).toBeInTheDocument();
     expect(screen.getByText('Institutions')).toBeInTheDocument();
   });
 

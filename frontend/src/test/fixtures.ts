@@ -20,6 +20,7 @@ export const authenticatedUser: AuthenticatedUser = {
     view_team_list: false,
     view_contract_list: false,
     view_project_list: true,
+    view_equipment_list: false,
     view_organizations: false,
     view_calendar: true,
     view_dashboard: true,

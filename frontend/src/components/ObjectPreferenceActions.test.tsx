@@ -11,7 +11,7 @@ describe('ObjectPreferenceActions', () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it.each(['project', 'employee', 'team'] as const)(
+  it.each(['project', 'employee', 'team', 'equipment'] as const)(
     'loads and updates both preferences for %s',
     async (type) => {
       let state = { favorite: false, subscription: false };
@@ -40,6 +40,16 @@ describe('ObjectPreferenceActions', () => {
       expect(await screen.findByRole('button', { name: 'Se désabonner' })).toHaveAttribute(
         'aria-pressed',
         'true',
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Retirer des favoris' }));
+      expect(await screen.findByRole('button', { name: 'Ajouter aux favoris' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Se désabonner' }));
+      expect(await screen.findByRole('button', { name: 'S’abonner' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
       );
       expect(
         fetch.mock.calls.some(

@@ -14,6 +14,7 @@ from settings.models import LMUserSetting
 from .models import UserNotification
 from .mails import NotificationMail
 from .utils import check_overdue_milestones, check_stale_milestones, check_overload_employee
+from .equipment import check_equipment_maintenance
 
 
 import logging
@@ -25,6 +26,7 @@ def check_all_notification():
     check_overdue_milestones()
     check_stale_milestones(), 
     check_overload_employee()
+    check_equipment_maintenance()
 
 
 

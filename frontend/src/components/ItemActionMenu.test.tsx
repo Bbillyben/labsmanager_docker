@@ -55,6 +55,23 @@ describe('ItemActionMenu', () => {
     expect(onSelect).toHaveBeenCalledOnce();
   });
 
+  it('supports several contextual actions without requiring Edit or Delete', async () => {
+    const complete = vi.fn();
+    const cancel = vi.fn();
+    setup(false, false, {
+      onOpen: undefined,
+      extraActions: [
+        { label: 'Réaliser', icon: <CalendarClock aria-hidden="true" />, onSelect: complete },
+        { label: 'Annuler', icon: <CalendarClock aria-hidden="true" />, onSelect: cancel },
+      ],
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Actions pour Badge' }));
+    expect(await screen.findAllByRole('menuitem')).toHaveLength(2);
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Réaliser' }));
+    expect(complete).toHaveBeenCalledOnce();
+    expect(cancel).not.toHaveBeenCalled();
+  });
+
   it('shows an authorized Admin link even without business actions', async () => {
     setup(false, false, { adminUrl: '/admin/fund/budget/12/change/' });
     await userEvent.click(screen.getByRole('button', { name: 'Actions pour Badge' }));

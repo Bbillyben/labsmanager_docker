@@ -3,6 +3,8 @@ export type Capabilities = {
   view_team_list: boolean;
   view_contract_list: boolean;
   view_project_list: boolean;
+  view_equipment_list: boolean;
+  view_equipment_maintenance?: boolean;
   view_organizations: boolean;
   view_calendar: boolean;
   view_dashboard: boolean;

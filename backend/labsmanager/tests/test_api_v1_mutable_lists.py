@@ -7,6 +7,7 @@ from django.db.models.deletion import ProtectedError
 from rest_framework.test import APITestCase
 
 from expense.models import Contract_type
+from equipment.models import EquipmentCategory, EquipmentGenericInfoType, Equipment
 from fund.models import Cost_Type
 from infos.models import OrganizationInfosType
 from leave.models import Leave_Type
@@ -26,12 +27,15 @@ class MutableListsV1Tests(APITestCase):
             self.user.user_permissions.add(permission)
         self.user = get_user_model().objects.get(pk=self.user.pk)
 
-    def test_registry_contains_only_nine_active_legacy_lists(self):
+    def test_registry_contains_legacy_and_equipment_lists(self):
+        self.grant(EquipmentCategory, "view")
+        self.grant(EquipmentGenericInfoType, "view")
         response = self.client.get("/api/v1/settings/lists/")
         self.assertEqual(response.status_code, 200, response.data)
         groups = response.data["groups"]
-        self.assertEqual([group["key"] for group in groups], ["fund", "contract", "leaves", "project", "staff", "organization"])
-        self.assertEqual(sum(len(group["lists"]) for group in groups), 9)
+        self.assertEqual([group["key"] for group in groups], ["fund", "contract", "leaves", "project", "staff", "organization", "equipment"])
+        self.assertEqual(sum(len(group["lists"]) for group in groups), 11)
+        self.assertEqual([item["key"] for item in groups[-1]["lists"]], ["equipment-categories", "equipment-info-types"])
         self.assertNotIn("fund-institutions", MUTABLE_LISTS)
         self.assertNotIn("institutions", MUTABLE_LISTS)
         cost = groups[0]["lists"][0]
@@ -39,10 +43,31 @@ class MutableListsV1Tests(APITestCase):
         self.assertEqual(next(field for field in cost["fields"] if field["key"] == "parent")["type"], "relation")
         leave = groups[2]["lists"][0]
         self.assertEqual(next(field for field in leave["fields"] if field["key"] == "color")["type"], "color")
-        org = next(item for item in groups[-1]["lists"] if item["key"] == "organization-info-types")
+        org = next(item for item in groups[-2]["lists"] if item["key"] == "organization-info-types")
         self.assertEqual(next(field for field in org["fields"] if field["key"] == "type")["type"], "choice")
         self.assertFalse(cost["capabilities"]["can_add"])
         self.assertFalse(cost["capabilities"]["can_delete"])
+
+    def test_equipment_lists_use_model_permissions_and_protect_used_categories(self):
+        category_url = "/api/v1/settings/lists/equipment-categories/"
+        type_url = "/api/v1/settings/lists/equipment-info-types/"
+        self.assertNotIn("equipment", [group["key"] for group in self.client.get("/api/v1/settings/lists/").data["groups"]])
+        self.assertEqual(self.client.get(category_url).status_code, 404)
+        self.assertEqual(self.client.post(category_url, {"name": "Microscope"}, format="json").status_code, 404)
+        self.grant(EquipmentCategory, "add", "change", "delete")
+        self.grant(EquipmentGenericInfoType, "add", "change", "delete")
+        category = self.client.post(category_url, {"name": "Microscope", "is_active": True}, format="json")
+        self.assertEqual(category.status_code, 201, category.data)
+        pk = category.data["id"]
+        self.assertEqual(self.client.patch(f"{category_url}{pk}/", {"is_active": False}, format="json").status_code, 200)
+        self.assertFalse(EquipmentCategory.objects.get(pk=pk).is_active)
+        info_type = self.client.post(type_url, {"name": "Serial number", "icon": "hash"}, format="json")
+        self.assertEqual(info_type.status_code, 201, info_type.data)
+        self.assertEqual(self.client.patch(f"{type_url}{info_type.data['id']}/", {"icon": "tag"}, format="json").status_code, 200)
+        self.assertEqual(self.client.delete(f"{type_url}{info_type.data['id']}/").status_code, 204)
+        Equipment.objects.create(name="Scope", internal_reference="EQ-SETTINGS", category_id=pk)
+        self.assertEqual(self.client.delete(f"{category_url}{pk}/").status_code, 400)
+        self.assertTrue(EquipmentCategory.objects.filter(pk=pk).exists())
 
     def test_authentication_and_unknown_list(self):
         self.client.logout()

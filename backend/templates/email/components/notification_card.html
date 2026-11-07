@@ -28,6 +28,15 @@
           <div style="margin-top:8px;"><a href="{{ link_url }}" style="color:#456583;text-decoration:underline;font-weight:700;">{% trans "View project" %} →</a></div>
         {% endif %}
       {% endif %}
+    {% elif kind == "equipment_maintenance" %}
+      {% include "email/components/notification_badge.html" with label=n.get_action_type_display only %}
+      {% if n.source_object %}
+        <div style="margin-top:7px;color:#243347;font-size:15px;font-weight:700;line-height:21px;">{{ n.source_object.title }}</div>
+        <div style="margin-top:2px;color:#69788a;font-size:12px;">{{ n.source_object.equipment.name }}</div>
+        <div style="margin-top:5px;color:#69788a;">{% trans "Due date" %}: {{ n.source_object.scheduled_date|date:"DATE_FORMAT" }}</div>
+        {% notification_email_link "equipment_maintenance" n.source_object.equipment_id as link_url %}
+        <div style="margin-top:8px;"><a href="{{ link_url }}" style="color:#456583;text-decoration:underline;font-weight:700;">{% trans "View equipment maintenance" %} →</a></div>
+      {% endif %}
     {% elif kind == "employee" %}
       {% include "email/components/notification_badge.html" with label=n.get_action_type_display only %}
       {% if n.source_object %}
@@ -37,6 +46,6 @@
         <div style="margin-top:8px;"><a href="{{ link_url }}" style="color:#456583;text-decoration:underline;font-weight:700;">{% trans "View employee" %} →</a></div>
       {% endif %}
     {% endif %}
-    {% if n.message %}<div style="margin-top:8px;color:#43566d;white-space:pre-wrap;overflow-wrap:anywhere;">{{ n.message }}</div>{% endif %}
+    {% if n.message and kind != "equipment_maintenance" %}<div style="margin-top:8px;color:#43566d;white-space:pre-wrap;overflow-wrap:anywhere;">{{ n.message }}</div>{% endif %}
   </td></tr>
 </table>

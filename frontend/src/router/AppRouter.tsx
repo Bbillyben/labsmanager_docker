@@ -5,6 +5,9 @@ import { AppShell } from '../components/AppShell';
 import { HomePage } from '../pages/HomePage';
 import { EmployeeListPage } from '../pages/EmployeeListPage';
 import { ProjectListPage } from '../pages/ProjectListPage';
+import { EquipmentListPage, EquipmentCreatePage } from '../pages/EquipmentListPage';
+import { EquipmentDetailPage } from '../pages/EquipmentDetailPage';
+import { EquipmentMaintenanceCalendarPage } from '../pages/EquipmentMaintenanceCalendarPage';
 import { TeamListPage } from '../pages/TeamListPage';
 import { TeamDetailPage } from '../pages/TeamDetailPage';
 import { ContractHubPage } from '../pages/ContractHubPage';
@@ -324,6 +327,30 @@ export function AppRouter() {
             <Route
               path="projects/"
               element={<ProjectListPage />}
+            />
+            <Route
+              path="equipment/"
+              element={<EquipmentListPage />}
+            />
+            <Route
+              path="equipment/new"
+              element={<EquipmentCreatePage />}
+            />
+            <Route
+              path="equipment/maintenance-calendar"
+              element={<EquipmentMaintenanceCalendarPage />}
+            />
+            <Route
+              path="equipment/:equipmentId/maintenance-calendar"
+              element={<EquipmentMaintenanceCalendarPage />}
+            />
+            <Route
+              path="equipment/:equipmentId"
+              element={<EquipmentDetailPage />}
+            />
+            <Route
+              path="equipment/:equipmentId/:section"
+              element={<EquipmentDetailPage />}
             />
             <Route
               path="projects/:projectId"

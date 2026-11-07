@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Equipment report</title>
+<style>
+@page { size: A4; margin: 22mm 18mm 21mm 18mm; @bottom-left { content: "LabsManager  /  Equipment"; color: #718196; font: 9px Arial,sans-serif; } @bottom-right { content: counter(page) " / " counter(pages); color: #718196; font: 9px Arial,sans-serif; } }
+* { box-sizing: border-box; }
+body { font: 10pt/1.42 Arial,Helvetica,sans-serif; color: #233448; margin: 0; }
+.mast { border-bottom: 2px solid #8faac4; display: flex; align-items: center; justify-content: space-between; padding-bottom: 13px; margin-bottom: 22px; }
+.brand { display: flex; align-items: center; gap: 10px; color: #36506a; font-weight: bold; font-size: 15pt; letter-spacing: -.35px; }
+.monogram { display: inline-block; background: #36506a; color: white; font-size: 10pt; line-height: 30px; width: 32px; height: 32px; text-align: center; border-radius: 6px; letter-spacing: -1px; }
+.reporttype { color: #68788a; font-size: 8pt; text-transform: uppercase; letter-spacing: 1.2px; text-align:right; }
+.hero { margin-bottom: 18px; }
+.eyebrow { font-size: 8pt; text-transform: uppercase; letter-spacing: 1.15px; color:#6b7d8f; font-weight: bold; }
+h1 { font-size: 22pt; color:#36506a; margin: 5px 0 4px; letter-spacing: -0.5px; font-weight:700; }
+.sub { color:#68788a; font-size: 9pt; }
+.status { display: inline-block; background:#edf3f8; color:#36506a; border:1px solid #ccdae7; padding: 3px 8px; border-radius: 4px; font-size:8pt; margin-left:8px; }
+section { margin: 17px 0 0; break-inside: avoid; }
+section.large { break-inside: auto; }
+h2 { font-size: 11pt; margin: 0 0 9px; padding-bottom: 6px; border-bottom: 1px solid #cad8e5; color:#36506a; }
+.keygrid { display: table; width:100%; border-spacing:0; }
+.keyrow { display: table-row; }
+.key { display: table-cell; width: 50%; padding: 6px 12px 7px 0; vertical-align:top; border-bottom:1px solid #edf0f3; }
+.key b { display:block; font-size:7.5pt; color:#718196; font-weight:600; margin-bottom:2px; }
+.key span { font-size:9.5pt; }
+table { width:100%; border-collapse: collapse; margin-top:2px; table-layout:fixed; font-size:8.7pt; }
+th { background:#edf3f8; color:#36506a; font-size:8pt; font-weight:700; text-align:left; padding:7px 8px; border-bottom:1px solid #cfdae5; }
+td { padding:7px 8px; vertical-align:top; border-bottom:1px solid #e6ecf1; overflow-wrap:break-word; }
+tr { break-inside:avoid; }
+.notes { border-left:3px solid #8faac4; padding:8px 11px; margin:8px 0; background:#f7f9fb; }
+.notes strong { font-size:9pt; }
+.notes p { margin: 4px 0 0; white-space:pre-wrap; }
+.muted {color:#718196;}.small {font-size:8pt;}.right{text-align:right}.num{white-space:nowrap;text-align:right;}
+.meta { color:#8190a1; font-size:7.7pt; margin-top:16px; border-top:1px solid #e2e9f0; padding-top:8px; }
+</style></head><body>
+<header class="mast"><div class="brand"><span class="monogram">LM</span> LabsManager</div><div class="reporttype">Equipment report<br>{{ request.site.name|default:'Laboratory' }}</div></header>
+<div class="hero"><div class="eyebrow">Equipment record</div><h1>{{ equipment.name }}</h1><div class="sub">{{ equipment.internal_reference|default:'—' }} {% if equipment.status %}<span class="status">{{ equipment.get_status_display }}</span>{% endif %}</div></div>
+<section><h2>General information</h2><div class="keygrid">
+<div class="keyrow"><div class="key"><b>Category</b><span>{{ equipment.category.name|default:'—' }}</span></div><div class="key"><b>Reference</b><span>{{ equipment.internal_reference|default:'—' }}</span></div></div>
+<div class="keyrow"><div class="key"><b>Acquisition date</b><span>{{ equipment.acquisition_date|default:'—' }}</span></div><div class="key"><b>Commissioning date</b><span>{{ equipment.commissioning_date|default:'—' }}</span></div></div>
+<div class="keyrow"><div class="key"><b>Decommissioning date</b><span>{{ equipment.decommissioning_date|default:'—' }}</span></div><div class="key"><b>Equipment ID</b><span>{{ equipment.pk }}</span></div></div></div></section>
+{% if info %}<section class="large"><h2>Additional information</h2><table><thead><tr><th style="width:38%">Field</th><th>Value</th></tr></thead><tbody>{% for item in info %}<tr><td>{{ item.info }}</td><td>{{ item.value|default:'—' }}</td></tr>{% endfor %}</tbody></table></section>{% endif %}
+{% if responsibility %}<section class="large"><h2>Responsibilities</h2><table><thead><tr><th>Employee</th><th style="width:20%">From</th><th style="width:20%">To</th></tr></thead><tbody>{% for item in responsibility %}<tr><td>{{ item.employee.user_name|default:'—' }}</td><td>{{ item.start_date|default:'—' }}</td><td>{{ item.end_date|default:'Current' }}</td></tr>{% endfor %}</tbody></table></section>{% endif %}
+{% if institution %}<section class="large"><h2>Institutional inventories</h2><table><thead><tr><th>Institution</th><th>Inventory number</th><th>Status</th><th>Period</th></tr></thead><tbody>{% for item in institution %}<tr><td>{{ item.institution.short_name|default:'—' }}</td><td>{{ item.inventory_number|default:'—' }}</td><td>{{ item.get_status_display|default:'—' }}</td><td>{{ item.start_date|default:'—' }} – {{ item.end_date|default:'Current' }}</td></tr>{% endfor %}</tbody></table></section>{% endif %}
+{% if maintenance %}<section class="large"><h2>Maintenance history and schedule</h2><table><thead><tr><th>Intervention</th><th>Type</th><th>Scheduled</th><th>Status</th></tr></thead><tbody>{% for item in maintenance %}<tr><td>{{ item.title }}</td><td>{{ item.get_maintenance_type_display }}</td><td>{{ item.scheduled_date }}</td><td>{{ item.get_status_display }}</td></tr>{% endfor %}</tbody></table></section>{% endif %}
+{% if expense %}<section class="large"><h2>Related expenses</h2><table><thead><tr><th>Date</th><th>Description</th><th>Purpose</th><th class="right">Amount</th></tr></thead><tbody>{% for item in expense %}<tr><td>{{ item.date }}</td><td>{{ item.desc|default:'—' }}</td><td>{{ item.equipment_link.get_nature_display|default:'—' }}</td><td class="num">{{ item.amount }}</td></tr>{% endfor %}</tbody></table></section>{% endif %}
+{% if notes %}<section class="large"><h2>Notes</h2>{% for note in notes %}<div class="notes"><strong>{{ note.name }}</strong><p>{{ note.note|striptags }}</p></div>{% endfor %}</section>{% endif %}
+<div class="meta">Generated {{ date }} · {{ report_name }} · Revision {{ report_revision }} · {{ request.user }}</div>
+</body></html>

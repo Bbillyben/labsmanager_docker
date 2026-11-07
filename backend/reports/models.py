@@ -453,3 +453,88 @@ class ProjectPDFReport(ProjectReport, PdfReport):
     @classmethod
     def getSubdir(cls):
         return 'project'
+
+
+class EquipmentReport(TemplateReport):
+    """Provide the Equipment report context within the existing renderers."""
+
+    class Meta:
+        abstract = True
+
+    def get_context_data(self, request, options):
+        from django.shortcuts import get_object_or_404
+
+        from equipment.models import (
+            Equipment, EquipmentGenericInfo, EquipmentInstitutionInventory,
+            EquipmentMaintenance, EquipmentResponsibility,
+        )
+        from fund.financial_tools_api_v1 import visible_funds
+        from infos.api_v1 import note_admin
+
+        context = super().get_context_data(request, options)
+        equipment = get_object_or_404(
+            Equipment.get_instances_for_user("view", request.user, Equipment.objects.all()),
+            pk=options.get("pk"),
+        )
+        user = request.user
+        context["equipment"] = equipment
+        context["info"] = (EquipmentGenericInfo.objects.filter(equipment=equipment)
+                           if user.has_perm("equipment.view_equipmentgenericinfo") else EquipmentGenericInfo.objects.none())
+
+        responsibilities = EquipmentResponsibility.objects.filter(equipment=equipment)
+        if user.has_perm("equipment.view_equipmentresponsibility"):
+            visible_employees = Employee.get_instances_for_user(
+                "view", user, Employee.objects.filter(
+                    pk__in=responsibilities.values("employee_id")
+                )
+            )
+            responsibilities = responsibilities.filter(employee__in=visible_employees).select_related("employee")
+        else:
+            responsibilities = responsibilities.none()
+        context["responsibility"] = responsibilities
+
+        institutions = EquipmentInstitutionInventory.objects.filter(equipment=equipment)
+        if (not user.has_perm("equipment.view_equipmentinstitutioninventory") or
+                not (user.has_perm("common.display_infos") or user.has_perm("project.view_institution"))):
+            institutions = institutions.none()
+        context["institution"] = institutions.select_related("institution")
+
+        maintenances = EquipmentMaintenance.objects.filter(equipment=equipment)
+        if not (user.has_perm("equipment.view_equipment") and user.has_perm("equipment.view_equipmentmaintenance")):
+            maintenances = maintenances.none()
+        context["maintenance"] = maintenances
+
+        # Both the Equipment link and its Fund must be visible before an
+        # accounting row is made available to a template or plugin.
+        expenses = Expense.objects.filter(equipment_link__equipment=equipment)
+        if user.has_perm("equipment.view_equipmentexpenselink"):
+            expenses = expenses.filter(fund_item__in=visible_funds(user)).select_related("fund_item")
+        else:
+            expenses = expenses.none()
+        context["expense"] = expenses
+
+        notes = GenericNote.objects.filter(
+            content_type=ContentType.objects.get_for_model(Equipment), object_id=equipment.pk,
+        )
+        if not note_admin(user):
+            notes = notes.filter(models.Q(visibility="object") | models.Q(visibility="creator", creator=user))
+        context["notes"] = notes
+
+        for plugin in registry.with_mixin('report'):
+            try:
+                plugin.add_report_data(self, request, context)
+            except Exception as error:
+                logger.error('plugins.%s.add_report_context on %s raise error: %s', plugin.slug, self, error)
+        return context
+
+
+class EquipmentWordReport(EquipmentReport, WordReport):
+    @classmethod
+    def getSubdir(cls):
+        return "equipment"
+
+
+class EquipmentPDFReport(EquipmentReport, PdfReport):
+    @classmethod
+    def getSubdir(cls):
+        return "equipment"

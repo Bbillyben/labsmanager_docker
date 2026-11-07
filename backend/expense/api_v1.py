@@ -42,6 +42,8 @@ def expense_data(expense, user):
         "contract": {"id": contract.pk, "name": str(contract.employee)} if contract else None,
         "budget": {"id": budget.pk, "name": str(budget)} if budget else None,
         "capabilities": expense_capabilities(user, expense),
+        "can_view_business_assignments": bool(user.has_perm("equipment.view_equipment") and
+                                               user.has_perm("equipment.view_equipmentexpenselink")),
     }
 
 
@@ -224,7 +226,8 @@ class ExpenseBase(APIView):
             qs = qs.filter(contract_expense__contract=contract)
         if "budget_id" in self.kwargs:
             qs = qs.filter(budget_item=self._budget)
-        return qs
+        from equipment.expense_access import visible_linked_expenses
+        return visible_linked_expenses(self.request.user, qs)
 
     def budget_context(self):
         """Resolve the related Budget under the caller's permissions."""
@@ -320,6 +323,8 @@ class ExpenseDetailV1View(ExpenseBase):
         """Delete an Expense after checking contextual authority."""
         item = self.expense()
         self.require(expense_capabilities(request.user, item)["can_delete"])
+        from equipment.expense_access import require_linked_expense_deletion
+        require_linked_expense_deletion(request.user, Expense.objects.filter(pk=item.pk))
         fund = item.fund_item
         budget = item.budget_item
         item.delete()

@@ -43,6 +43,8 @@ def notification_destination(kind, pk=None):
         return react_email_url(f"employees/{pk}/", reverse("employee", kwargs={"pk": pk}))
     if kind == "team":
         return react_email_url(f"teams/{pk}", reverse("team_single", kwargs={"pk": pk}))
+    if kind == "equipment_maintenance":
+        return react_email_url(f"equipment/{pk}/maintenance", f"/app/equipment/{pk}/maintenance")
     if kind == "calendar":
         return react_email_url("calendars", reverse("calendar_main"))
     if kind == "settings":

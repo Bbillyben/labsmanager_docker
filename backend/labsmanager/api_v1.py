@@ -52,6 +52,8 @@ CAPABILITY_PERMISSIONS = {
     "view_team_list": ("common.team_list", "staff.view_team"),
     "view_contract_list": ("common.contract_list", "expense.view_contract"),
     "view_project_list": ("common.project_list", "project.view_project"),
+    "view_equipment_list": ("equipment.view_equipment",),
+    "view_equipment_maintenance": ("equipment.view_equipment", "equipment.view_equipmentmaintenance"),
     "view_organizations": ("common.display_infos",),
     "view_calendar": ("common.display_calendar", "leave.view_leave"),
     "view_dashboard": ("common.display_dashboard",),
