@@ -21,6 +21,12 @@ All notable changes to LabsManager are documented in this file.
 - Data consistency checks cover dates for contracts, projects, funds, tasks, milestones, and expenses, plus projects without a leader.
 - Project Planning supports individual and grouped date shifts for tasks and milestones, with a preview of affected dependencies.
 - Tasks and milestones record their validation date and validator, shown in their React detail view.
+- Equipment catalogue and React pages for categories, generic information, dated responsibilities, and institutional inventories, with dedicated permissions.
+- Equipment in Global Search, favorites, and subscriptions; expenses can be linked through `EquipmentExpenseLink` and the Expense business assignments panel.
+- Equipment maintenance planning and history with dedicated calendars and configurable advance notifications.
+- Configurable Word and PDF Equipment reports, plus Equipment and maintenance indicators in personal dashboards.
+- Extensible plugin imports, user settings and tokens, and React UI contributions; iCalendar subscriptions are provided by ICalExport.
+- Calendars plugin support for native, assignment, and external calendars, including recurring events and iCalendar publication.
 
 ### Changed
 
@@ -41,6 +47,7 @@ All notable changes to LabsManager are documented in this file.
 - New Employee, Leader, Lab Manager, and Project dashboards include the updated widget summaries.
 - Project and global Gantt views can hide tasks and milestones independently.3
 - Inactive Hierarchy link is now editable
+- Plugin Python dependencies are checked before installation, and public iCalendar subscription links use the deployment's public URL.
 
 ### Fixed
 
@@ -52,6 +59,14 @@ All notable changes to LabsManager are documented in this file.
 
 - Add mail notification task.
 - Review stale-item checks for funds.
+
+### Updating an existing installation
+
+- Back up the database and apply pending Django migrations with `python3 manage.py migrate --noinput` from `backend/` (or the equivalent one-off migration command for Docker) before restarting the application. This includes `equipment.0001_initial`, `equipment.0002_equipmentexpenselink`, `equipment.0003_equipmentmaintenance`, and `reports.0007_equipmentpdfreport_equipmentwordreport`.
+- Keep both initialization fixtures current in the repository: `backend/labsmanager/fixtures/group-fixture.json` for Equipment, EquipmentExpenseLink, EquipmentMaintenance, and Reports permissions; `backend/reports/fixtures/report-fixture.json` for Employee, Project, and Equipment Word/PDF report definitions. The report definitions are present, but the group fixture still needs the intended Equipment report permissions. The `invoke install` task currently names `initial-report-data`; confirm its report fixture source before a fresh installation.
+- On an existing database, review and assign the new permissions and report definitions individually. Do not reload either fixture blindly: customized group grants and report IDs may differ.
+- Ensure the referenced DOCX and HTML templates exist under `MEDIA_ROOT/report/report_template/`; fixture JSON contains paths, not the template files. Publish updated React assets through the normal build and static collection process.
+- Review users' maintenance notification preferences and advance days. Maintenance checks run through the existing notification schedule; no separate scheduled task is required.
 
 ---
 
