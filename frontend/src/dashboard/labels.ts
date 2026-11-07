@@ -191,6 +191,12 @@ export function dashboardSourceLabel(key: string, fallback: string, t: Translate
       return t('dashboard.source.employees');
     case 'core.leaves':
       return t('dashboard.source.leaves');
+    case 'core.my-equipment':
+      return t('dashboard.source.myEquipment');
+    case 'core.upcoming-maintenance':
+      return t('dashboard.source.upcomingMaintenance');
+    case 'core.overdue-maintenance':
+      return t('dashboard.source.overdueMaintenance');
     case 'core.tasks':
       return t('dashboard.source.tasks');
     case 'core.timeline':
@@ -208,6 +214,17 @@ export function dashboardSourceLabel(key: string, fallback: string, t: Translate
     default:
       return fallback;
   }
+}
+
+/** Keep Equipment KPI captions in the current React language. */
+export function dashboardKpiLabel(key: string, fallback: string, t: Translate) {
+  if (
+    key === 'core.my-equipment' ||
+    key === 'core.upcoming-maintenance' ||
+    key === 'core.overdue-maintenance'
+  )
+    return dashboardSourceLabel(key, fallback, t);
+  return fallback;
 }
 export function dashboardSourceDescription(key: string, fallback: string, t: Translate) {
   switch (key) {
@@ -227,6 +244,12 @@ export function dashboardSourceDescription(key: string, fallback: string, t: Tra
       return t('dashboard.sourceDescription.employees');
     case 'core.leaves':
       return t('dashboard.sourceDescription.leaves');
+    case 'core.my-equipment':
+      return t('dashboard.sourceDescription.myEquipment');
+    case 'core.upcoming-maintenance':
+      return t('dashboard.sourceDescription.upcomingMaintenance');
+    case 'core.overdue-maintenance':
+      return t('dashboard.sourceDescription.overdueMaintenance');
     case 'core.tasks':
       return t('dashboard.sourceDescription.tasks');
     case 'core.timeline':
@@ -257,6 +280,8 @@ export function dashboardCategoryLabel(key: string, t: Translate) {
       return t('dashboard.category.administration');
     case 'HR':
       return t('dashboard.category.hr');
+    case 'Equipment':
+      return t('dashboard.category.equipment');
     case 'Work':
       return t('dashboard.category.work');
     default:

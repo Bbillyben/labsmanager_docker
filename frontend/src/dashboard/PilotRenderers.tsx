@@ -1,5 +1,6 @@
 import type { DashboardKpiData, DashboardListItem, DashboardWidget } from '../api/dashboards';
 import { useTranslation } from '../i18n/i18n';
+import { dashboardKpiLabel } from './labels';
 import type { DashboardSize } from './size';
 import { genericInfoIcon } from '../pages/genericInfoIcons';
 import type { DashboardMode } from './mode';
@@ -110,7 +111,7 @@ export function KpiRenderer({ widget, size }: Props) {
       data-tone={data.tone}
     >
       <strong className="dashboard-kpi">{data.value ?? '—'}</strong>
-      {data.label && <span>{data.label}</span>}
+      {data.label && <span>{dashboardKpiLabel(widget.source_key, data.label, t)}</span>}
       {ratio !== null && (
         <div
           className="dashboard-centered-ratio"

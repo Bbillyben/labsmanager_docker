@@ -63,6 +63,21 @@ describe('core dashboard renderers', () => {
     expect(screen.getByText('Current scope')).toBeInTheDocument();
     expect(screen.getByText('Updated today')).toBeInTheDocument();
   });
+  it('renders the Equipment indicator through the existing KPI renderer', () => {
+    render(
+      <I18nProvider>
+        <KpiRenderer
+          widget={{
+            ...widget({ value: 3, label: 'Backend caption', tone: 'neutral' }),
+            source_key: 'core.upcoming-maintenance',
+          }}
+          size="standard"
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('Upcoming maintenance')).toBeInTheDocument();
+  });
   it('renders compact, alert and progress lists from normalized items', () => {
     const data = {
       items: [

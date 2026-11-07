@@ -8,6 +8,7 @@ from . import business_sources
 from . import financial_sources
 from . import timeline_sources
 from . import employee_workload_sources
+from . import equipment_sources
 
 logger = logging.getLogger("labsmanager")
 
@@ -238,6 +239,20 @@ CORE_SOURCES = (
                config_fields={"scope": _choice("Leave scope", ["all_visible", "mine", "subordinates"], "all_visible"),
                               "upcoming_days": _choice("Upcoming within", ["7", "30", "60", "90"], "30"),
                               "current_only": _bool("Current absences only"), "limit": _limit()}),
+    DataSource("core.my-equipment", "My equipment", "Equipment", ("user",), ("kpi",), equipment_sources.my_equipment,
+               available=equipment_sources.can_view_equipment, description="Equipment currently assigned to me",
+               default_renderer="kpi"),
+    DataSource("core.upcoming-maintenance", "Upcoming maintenance", "Equipment", ("user",), ("kpi",),
+               equipment_sources.upcoming_maintenance, available=equipment_sources.can_view_maintenance,
+               description="Open interventions due within the selected number of days", allow_multiple=True,
+               default_renderer="kpi",
+               config_fields={"scope": _choice("Equipment scope", ["all_visible", "mine"], "all_visible"),
+                              "within_days": {"type": "integer", "label": "Within (days)", "default": 30, "min": 1, "max": 365}}),
+    DataSource("core.overdue-maintenance", "Overdue maintenance", "Equipment", ("user",), ("kpi",),
+               equipment_sources.overdue_maintenance, available=equipment_sources.can_view_maintenance,
+               description="Open interventions past their scheduled date", allow_multiple=True,
+               default_renderer="kpi",
+               config_fields={"scope": _choice("Equipment scope", ["all_visible", "mine"], "all_visible")}),
     DataSource("core.tasks", "Project tasks", "Work", ("user", "project"), ("kpi", "compact-list", "alert-list", "task-workload"), business_sources.tasks,
                description="Assigned tasks on visible projects", allow_multiple=True, default_renderer="task-workload",
                config_fields=TASK_CONFIG_FIELDS),
