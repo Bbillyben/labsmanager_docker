@@ -1,10 +1,6 @@
 # LabsManager
 
-**LabsManager**
-
-A web application for managing academic research laboratories.
-
-LabsManager is a Django and React application designed to help research laboratories manage their day-to-day administrative and project activity: employees, projects, funding, budgets, expenses, contracts, leave, institutions, reporting, and related information.
+**LabsManager** is a web application for managing academic research laboratories. Its Django backend and React interface bring together staff, projects, equipment, finances, calendars, and administrative workflows in one place.
 
 Documentation is available at:
 
@@ -16,19 +12,21 @@ Documentation is available at:
 
 LabsManager currently includes tools for managing:
 
-- **Employees** — employee records, status, contracts, project involvement, dedicated budgets, leave, and related information.
+- **Employees** — employee records, status and hierarchy, contracts, project involvement, dedicated budgets, leave, and related information.
 - **Teams** — organisation of employees into teams.
 - **Contracts** — employee contracts, dates, funding sources, and associated information.
-- **Projects** — project management, participants, milestones, funding, and administrative information.
+- **Projects** — participants, tasks, milestones, planning, funding, and administrative information.
+- **Equipment** — catalogue and categories, dated responsibilities, institutional inventories, related expenses, and maintenance planning, history and notifications.
 - **Funds** — management of project and institutional funding.
 - **Budgets** — budget allocation and monitoring.
 - **Expenses** — expense tracking and financial follow-up.
-- **Leave** — employee leave management.
+- **Calendars and leave** — employee absences, project and equipment maintenance calendars, and calendars supplied by plugins.
 - **Institutions and funders** — organisations, contacts, and associated information.
-- **Dashboards** — configurable views for employees, team leaders, and laboratory managers.
-- **Reports** — template-based reporting for employees, projects, and other entities.
+- **Dashboards** — configurable widgets and indicators, including Equipment and maintenance indicators.
+- **Reports** — configurable Word and PDF templates for employees, projects, and equipment.
+- **Tools** — financial tools, imports, an organisation chart, and data consistency checks.
 - **Global search** — cross-application search with support for structured and extensible fields.
-- **Plugins** — extensible features and integrations loaded from the application plugin system.
+- **Plugins** — extensible backend and React features, including imports, UI contributions, calendars, and iCalendar subscriptions.
 
 ---
 
@@ -38,18 +36,18 @@ LabsManager is maintained as a single repository containing both the backend and
 
 ```
 labsmanager/
-├── backend/              # Django application, API and legacy interface
+├── backend/              # Django application, REST API and legacy interface
 ├── frontend/             # React application
-├── react-migration/      # Architecture and migration documentation
+├── docs/react-migration/ # Architecture and migration documentation
 ├── Dockerfile
 ├── docker-compose.yml
-├── CHANGELOG.md
+├── changelog.md
 └── README.md
 ```
 
 The application uses:
 
-- **Django** as the backend and API server.
+- **Django** as the backend, REST API server and permission authority.
 - **React** as the main user interface.
 - **PostgreSQL** as the database.
 - **Nginx** as the reverse proxy and static file server.
@@ -68,7 +66,7 @@ The React SPA is served under:
 Django continues to handle server-side routes such as:
 
 ```
-/api/
+/api/v1/ (alongside historical /api/ routes)
 /admin/
 ```
 
@@ -78,7 +76,7 @@ React static assets are served under:
 /static/frontend/
 ```
 
-During the React migration period, the legacy Django interface remains available as a fallback.
+The historical Django interface remains available during the migration. React uses the same Django sessions and database; existing permissions continue to be enforced by the backend. In the Docker setup, a separate temporary port can expose the legacy interface.
 
 ---
 
@@ -138,7 +136,9 @@ LAB_DB_PORT=5432
 LAB_WEB_PORT=1337
 LAB_TAG=latest
 LAB_EXT_VOLUME=/srv/labsmanager/data
+# Enable only behind a trusted HTTPS-terminating reverse proxy.
 LAB_TRUST_PROXY_SSL_HEADER=true
+REACT_PUBLIC_URL=https://labs.example.org/app
 
 
 # ---------------------------------------------------------------------
@@ -182,7 +182,7 @@ ADMIN_SITE_TITLE=LabsManager
 ADMIN_INDEX_TITLE=Menu
 ```
 
-Environment variable names and available settings may evolve. Refer to the project configuration and deployment documentation for the authoritative list.
+Set `LAB_TRUST_PROXY_SSL_HEADER=false` for direct HTTP access. The HTTPS setting assumes traffic reaches Django only through the trusted proxy. Set `REACT_PUBLIC_URL` to the public React base URL, including `/app`, for links sent outside the application. Environment variable names and available settings may evolve; refer to the [installation guide](https://labsmanager-doc.readthedocs.io/en/latest/admin/installation/) and project configuration for the authoritative list.
 
 ---
 
@@ -204,15 +204,15 @@ The exact host paths depend on the deployment environment and should not be hard
 
 ## Plugins
 
-LabsManager supports plugins stored in:
+LabsManager discovers plugins in the built-in and sample directories under `backend/plugin/`, as well as external plugins stored in:
 
 ```
 data/plugins/
 ```
 
-The presence of a plugin in this directory is the source of truth for plugin discovery.
+External plugins must be installed in this directory to be discovered. Plugin activation and permissions remain under application control.
 
-Plugins may extend backend behaviour and expose frontend capabilities, including multiple dashboard widgets.
+Plugins may extend backend behaviour with models, URLs, imports, tokens, settings and published calendars. They can also contribute React modules, actions and dashboard widgets through the shared extension contracts. ICalExport provides iCalendar subscriptions; the Calendars plugin provides calendar types and events when installed.
 
 The application plugin registry is responsible for discovering and exposing plugin capabilities.
 
@@ -220,9 +220,9 @@ The application plugin registry is responsible for discovering and exposing plug
 
 ## Initial setup and database migrations
 
-Migrations are intentionally **not executed automatically when containers start**. For a new instance, start PostgreSQL first, then run the one-off **invoke install** task in the application image before starting Gunicorn or the worker. The task performs migrations, Django checks and static collection, then loads the required **group-fixture** and **initial-report-data** fixtures. Use **invoke install --super-user** to create the first administrator during installation, or **invoke superuser** afterward. The exact Compose bootstrap command and the bare-metal layout are in the [current installation guide](https://labsmanager-doc.readthedocs.io/en/latest/admin/installation/).
+Migrations are intentionally **not executed automatically when containers start**. For a new instance, start PostgreSQL first, then follow the one-off installation procedure in the [installation guide](https://labsmanager-doc.readthedocs.io/en/latest/admin/installation/) before starting the application services. This includes migrations, Django checks, static collection and initial data. The guide also covers administrator creation and the bare-metal layout.
 
-For an existing instance, plan schema upgrades explicitly before restarting the application services; do not assume the container entrypoint will apply migrations.
+For an existing instance, back up the database and apply pending migrations explicitly before restarting application services. Review new permissions and report definitions before updating existing data; do not blindly reload initialization fixtures. See the [Unreleased update notes](changelog.md#updating-an-existing-installation) for current migration and template requirements.
 
 ---
 
@@ -260,7 +260,7 @@ It contains:
 - database migrations
 - backend tests
 
-The legacy Django interface is intentionally preserved during the first phase of the React migration.
+The legacy Django interface remains available alongside the React application for historical workflows and compatibility.
 
 ---
 
@@ -269,7 +269,7 @@ The legacy Django interface is intentionally preserved during the first phase of
 Architecture and migration decisions are documented under:
 
 ```
-react-migration/
+docs/react-migration/
 ```
 
 This directory contains documentation such as:
@@ -284,6 +284,8 @@ REUSABLE.md
 ```
 
 These files document the product architecture and migration strategy.
+
+Start with the [current migration status](docs/react-migration/STATUS.md) and [React architecture](docs/react-migration/ARCHITECTURE.md); the [reusable components guide](docs/react-migration/REUSABLE.md) records established frontend patterns.
 
 They must not contain information specific to a particular production instance, such as:
 
@@ -301,7 +303,7 @@ They must not contain information specific to a particular production instance, 
 Before implementing a new component or pattern, check whether an existing reusable implementation is already documented in:
 
 ```
-react-migration/REUSABLE.md
+docs/react-migration/REUSABLE.md
 ```
 
 The project favours reuse of existing components and patterns over duplication.
@@ -333,7 +335,7 @@ the existing code documentation.
 Project changes are documented in:
 
 ```
-CHANGELOG.md
+changelog.md
 ```
 
 The changelog now covers the LabsManager product as a whole, including backend, frontend, deployment architecture, and migration-related changes.
@@ -363,183 +365,8 @@ Historical menu illustrations were sourced from:
 - [https://www.freevector.com](https://www.freevector.com/)
 - [https://fr.vecteezy.com](https://fr.vecteezy.com/)
 
+---
 
+## AI-assisted development
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+The migration of LabsManager's user interface to React was carried out with the assistance of artificial intelligence tools, particularly for code development, refactoring, and testing. Architectural decisions, functional specifications, code review, and validation remained under human supervision.
