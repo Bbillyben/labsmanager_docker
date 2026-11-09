@@ -135,7 +135,11 @@ describe('Home hub', () => {
   it('uses the same navigation cards and sidebar icons for all five quick links', async () => {
     const user = {
       ...authenticatedUser,
-      capabilities: { ...authenticatedUser.capabilities, view_team_list: true },
+      capabilities: {
+        ...authenticatedUser.capabilities,
+        view_team_list: true,
+        view_equipment_maintenance: true,
+      },
     };
     mocks.useAuth.mockReturnValue({ status: 'authenticated', user });
     mocks.listRecentItems.mockResolvedValue([
@@ -166,6 +170,9 @@ describe('Home hub', () => {
     const resume = await screen.findByRole('region', { name: 'Reprendre' });
     const quick = screen.getByRole('region', { name: 'Accès rapides' });
     const navigation = screen.getByRole('navigation', { name: 'Navigation principale' });
+    expect(
+      within(navigation).queryByRole('link', { name: 'Calendrier de maintenance' }),
+    ).toBeNull();
     fireEvent.click(within(navigation).getByRole('button', { name: 'Outils' }));
     const expected = [
       ['Calendriers', '/calendars'],

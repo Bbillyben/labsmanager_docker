@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { CalendarEvent } from '../api/employees';
+import { AuthContext, type AuthContextValue } from '../auth/AuthContext';
 import { I18nProvider } from '../i18n/I18nProvider';
-import { jsonResponse } from '../test/fixtures';
+import { authenticatedUser, jsonResponse } from '../test/fixtures';
 import { EquipmentMaintenanceCalendarPage } from './EquipmentMaintenanceCalendarPage';
 import { EquipmentMaintenanceSection } from './EquipmentMaintenanceSection';
+import { GlobalCalendarsPage } from './GlobalCalendarsPage';
 
 vi.mock('../calendar/SharedCalendar', () => ({
   SharedCalendar: ({
@@ -19,6 +21,18 @@ vi.mock('../calendar/SharedCalendar', () => ({
 }));
 
 const capabilities = { can_view: true, can_add: true, can_change: true, can_delete: true };
+const calendarAuth: AuthContextValue = {
+  status: 'authenticated',
+  user: {
+    ...authenticatedUser,
+    capabilities: { ...authenticatedUser.capabilities, view_equipment_maintenance: true },
+  },
+  refresh: async () => {},
+  markUnauthenticated: () => {},
+  changeTheme: async () => {
+    throw new Error('Not used in this test');
+  },
+};
 const maintenance = {
   id: 9,
   equipment: { id: 7, name: 'Scope' },
@@ -45,8 +59,12 @@ function renderAt(path: string) {
             element={<EquipmentMaintenanceSection equipmentId="7" />}
           />
           <Route
-            path="/equipment/maintenance-calendar"
-            element={<EquipmentMaintenanceCalendarPage />}
+            path="/calendars"
+            element={
+              <AuthContext.Provider value={calendarAuth}>
+                <GlobalCalendarsPage />
+              </AuthContext.Provider>
+            }
           />
           <Route
             path="/equipment/:equipmentId/maintenance-calendar"
@@ -271,7 +289,7 @@ describe('Equipment maintenance', () => {
       if (url === '/api/v1/equipment/maintenances/9/') return jsonResponse(maintenance);
       throw new Error(url);
     });
-    renderAt('/equipment/maintenance-calendar?date=2026-05-12');
+    renderAt('/calendars?tab=maintenance&date=2026-05-12');
     await userEvent.click(await screen.findByRole('button', { name: 'Open calendar event' }));
     expect(await screen.findByRole('dialog', { name: 'Inspect optics' })).toBeInTheDocument();
     expect(requests.some((url) => url.includes('/api/v1/equipment/maintenances/9/'))).toBe(true);

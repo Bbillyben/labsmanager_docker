@@ -808,7 +808,7 @@ describe('ProjectSingle Overview', () => {
     expect(await screen.findByRole('menuitem', { name: 'Supprimer' })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: 'Modifier' })).not.toBeInTheDocument();
     await userEvent.setup().keyboard('{Escape}');
-    await userEvent.setup().click(screen.getByRole('heading', { name: 'Atlas' }));
+    await userEvent.setup().click(screen.getByRole('heading', { name: 'Atlas', level: 2 }));
     expect(item).toHaveAttribute('data-selected', 'false');
     expect(
       within(institutions).getByRole('button', { name: 'Ajouter une institution' }),

@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
@@ -82,13 +82,6 @@ export function TeamDetailPage() {
       key={team.data.id}
       scope={{ entity: 'team', objectId: team.data.id }}
     >
-      <Link
-        className={styles.back}
-        to={`/teams/${typeof location.state?.teamListSearch === 'string' && location.state.teamListSearch ? `?${location.state.teamListSearch}` : ''}`}
-      >
-        <ArrowLeft aria-hidden="true" />
-        {t('team.back')}
-      </Link>
       <PageHeader
         title={team.data.name}
         actions={

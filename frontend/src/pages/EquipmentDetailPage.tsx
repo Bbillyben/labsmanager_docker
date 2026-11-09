@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { Link, NavLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, FileDown, FileText, Pencil, Trash2 } from 'lucide-react';
+import { NavLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { FileDown, FileText, Pencil, Trash2 } from 'lucide-react';
 import { ApiError, normalizeMutationError } from '../api/errors';
 import {
   createEquipmentChild,
@@ -105,13 +105,6 @@ export function EquipmentDetailPage() {
       : '—';
   return (
     <>
-      <Link
-        className={styles.back}
-        to="/equipment/"
-      >
-        <ArrowLeft aria-hidden="true" />
-        {t('equipment.back')}
-      </Link>
       {location.state?.equipmentCreated && <Alert tone="success">{t('equipment.created')}</Alert>}
       <PageHeader
         title={item.name}

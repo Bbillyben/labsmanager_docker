@@ -361,6 +361,8 @@ export function DashboardPage({ projectId }: { projectId?: string } = {}) {
     <div className="dashboard-page">
       <PageHeader
         title={t(projectId ? 'dashboard.projectTitle' : 'dashboard.title')}
+        registerTitle={!projectId}
+        keepTitle={!!projectId}
         description={t(projectId ? 'dashboard.projectDescription' : 'dashboard.description')}
         actions={
           <div className="dashboard-header-actions">

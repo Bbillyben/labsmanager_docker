@@ -28,6 +28,7 @@ import { Button } from '../ui/Button';
 import { ThemeMenuItem } from '../ui/ThemeToggle';
 import { IconButton } from '../ui/IconButton';
 import { getPageContext } from './pageContext';
+import { usePageTitleContext } from './PageTitleContext';
 import { GlobalSearch } from '../search/GlobalSearch';
 import styles from './Topbar.module.css';
 
@@ -49,6 +50,14 @@ export function Topbar({ navigationExpanded, onToggleNavigation, user }: TopbarP
     [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
   const displayName = user.employee?.first_name || userDisplayName;
   const pageContext = getPageContext(location.pathname);
+  const dynamicContext = usePageTitleContext();
+  const pageTitle = dynamicContext?.title;
+  const title = pageTitle || (pageContext ? t(pageContext.label) : t('common.notFound'));
+  const parent =
+    dynamicContext?.parent ||
+    (pageContext?.parent
+      ? { href: pageContext.parent.href, label: t(pageContext.parent.label) }
+      : null);
   const ToggleIcon = navigationExpanded ? PanelLeftClose : PanelLeftOpen;
 
   async function handleLogout() {
@@ -80,7 +89,28 @@ export function Topbar({ navigationExpanded, onToggleNavigation, user }: TopbarP
             strokeWidth={1.8}
           />
         </IconButton>
-        {pageContext && <span className={styles.context}>{t(pageContext.label)}</span>}
+        {parent ? (
+          <nav
+            aria-label={t('navigation.breadcrumb')}
+            className={styles.context}
+          >
+            <Link to={parent.href}>{parent.label}</Link>
+            <span aria-hidden="true">›</span>
+            <h1
+              aria-current="page"
+              title={title}
+            >
+              {title}
+            </h1>
+          </nav>
+        ) : (
+          <h1
+            className={styles.context}
+            title={title}
+          >
+            {title}
+          </h1>
+        )}
       </div>
       <div className={styles.account}>
         <GlobalSearch />

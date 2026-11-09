@@ -337,10 +337,10 @@ describe('AppRouter', () => {
 
     expect(await screen.findByRole('heading', { name: 'Bienvenue, Ada' })).toBeInTheDocument();
     expect(screen.getByTitle('ada')).toHaveTextContent('Ada');
-    expect(screen.getAllByText('Accueil', { selector: 'span' })).toHaveLength(2);
     const topbar = screen
       .getByRole('button', { name: 'Menu utilisateur : Ada' })
       .closest('header')!;
+    expect(within(topbar).getByRole('heading', { name: 'Accueil', level: 1 })).toBeInTheDocument();
     expect(within(topbar).queryByText('Interface historique')).not.toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navigation principale' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page');

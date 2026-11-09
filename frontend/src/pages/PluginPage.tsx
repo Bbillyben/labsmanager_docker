@@ -7,6 +7,7 @@ import { useTranslation } from '../i18n/i18n';
 import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
 import { useEmployeeResource } from './useEmployeeResource';
+import { usePageTitle } from '../layout/PageTitleContext';
 
 /** Resolve a plugin page from its route and render its module.
  *
@@ -16,12 +17,18 @@ import { useEmployeeResource } from './useEmployeeResource';
 export function PluginPage() {
   const { pluginSlug = '', pageId = '' } = useParams();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const loader = useCallback(
     (_key: string, signal: AbortSignal) => getUIPage(pluginSlug, pageId, signal),
     [pluginSlug, pageId],
   );
   const resource = useEmployeeResource(`${pluginSlug}:${pageId}`, loader);
+  usePageTitle(
+    resource.data?.navigation?.labels[language] || resource.data?.label,
+    resource.data?.navigation?.location === 'calendars'
+      ? { href: '/calendars', label: t('calendars.title') }
+      : undefined,
+  );
   const content = resource.loading ? (
     <p role="status">{t('common.loading')}</p>
   ) : resource.error ? (

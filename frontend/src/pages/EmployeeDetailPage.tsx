@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { ArrowLeft, FileDown, FileText, Pencil } from 'lucide-react';
-import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom';
+import { FileDown, FileText, Pencil } from 'lucide-react';
+import { NavLink, Outlet, useLocation, useParams } from 'react-router-dom';
 import { getEmployee } from '../api/employees';
 import { ApiError } from '../api/errors';
 import { LoadingState } from '../components/LoadingState';
@@ -96,12 +96,6 @@ export function EmployeeDetailPage() {
       <EmployeeDetailContext.Provider
         value={{ employee: employee.data, employeeId, refreshEmployee: employee.refresh }}
       >
-        <Link
-          className={styles.back}
-          to={`/employees/${typeof location.state?.employeeListSearch === 'string' && location.state.employeeListSearch ? `?${location.state.employeeListSearch}` : ''}`}
-        >
-          <ArrowLeft aria-hidden="true" /> {t('common.backToEmployees')}
-        </Link>
         {location.state?.employeeCreated === true && (
           <Alert tone="success">{t('employee.created')}</Alert>
         )}

@@ -337,10 +337,6 @@ export function AppRouter() {
               element={<EquipmentCreatePage />}
             />
             <Route
-              path="equipment/maintenance-calendar"
-              element={<EquipmentMaintenanceCalendarPage />}
-            />
-            <Route
               path="equipment/:equipmentId/maintenance-calendar"
               element={<EquipmentMaintenanceCalendarPage />}
             />

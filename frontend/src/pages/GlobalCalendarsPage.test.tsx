@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
+import { AuthContext, type AuthContextValue } from '../auth/AuthContext';
 import { localToday } from '../calendar/resourceVisibility';
-import { jsonResponse } from '../test/fixtures';
+import { authenticatedUser, jsonResponse } from '../test/fixtures';
 import { GlobalCalendarsPage } from './GlobalCalendarsPage';
 
 vi.mock('./EmployeeCalendar', () => ({
@@ -119,7 +120,20 @@ const item = {
   display_state: 'in_progress',
 };
 
-function setup(path = '/app/calendars') {
+const calendarAuth: AuthContextValue = {
+  status: 'authenticated',
+  user: {
+    ...authenticatedUser,
+    capabilities: { ...authenticatedUser.capabilities, view_equipment_maintenance: true },
+  },
+  refresh: async () => {},
+  markUnauthenticated: () => {},
+  changeTheme: async () => {
+    throw new Error('Not used in this test');
+  },
+};
+
+function setup(path = '/app/calendars', maintenanceAccess = false) {
   window.history.pushState({}, '', path);
   const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input);
@@ -223,13 +237,17 @@ function setup(path = '/app/calendars') {
         events: [],
         milestone_statuses: ['completed', 'overdue', 'due_soon', 'planned', 'in_progress'],
       });
+    if (url.startsWith('/api/v1/equipment/maintenances/calendar/?'))
+      return jsonResponse({ events: [], capabilities: { can_view: true } });
     throw new Error(url);
   });
   render(
     <I18nProvider>
-      <BrowserRouter basename="/app">
-        <GlobalCalendarsPage />
-      </BrowserRouter>
+      <AuthContext.Provider value={maintenanceAccess ? calendarAuth : undefined}>
+        <BrowserRouter basename="/app">
+          <GlobalCalendarsPage />
+        </BrowserRouter>
+      </AuthContext.Provider>
     </I18nProvider>,
   );
   return fetch;
@@ -241,6 +259,34 @@ beforeEach(() =>
 afterEach(() => vi.restoreAllMocks());
 
 describe('Global calendars', () => {
+  it('opens permitted maintenance in the native calendar tabs', async () => {
+    const fetch = setup('/app/calendars?tab=projects', true);
+    await userEvent.click(screen.getByRole('button', { name: 'Calendrier de maintenance' }));
+    await waitFor(() =>
+      expect(
+        fetch.mock.calls.some(([url]) =>
+          String(url).startsWith('/api/v1/equipment/maintenances/calendar/?'),
+        ),
+      ).toBe(true),
+    );
+    expect(window.location.search).toContain('tab=maintenance');
+    expect(screen.getByRole('button', { name: 'Calendrier de maintenance' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('does not select maintenance without its capability', async () => {
+    const fetch = setup('/app/calendars?tab=maintenance');
+    await waitFor(() => expect(window.location.search).toContain('tab=employees'));
+    expect(
+      screen.queryByRole('button', { name: 'Calendrier de maintenance' }),
+    ).not.toBeInTheDocument();
+    expect(
+      fetch.mock.calls.some(([url]) => String(url).includes('/equipment/maintenances/calendar/')),
+    ).toBe(false);
+  });
+
   it('loads global calendar plugin actions in the toolbar', async () => {
     setup();
     const trigger = await screen.findByRole('button', { name: 'Actions des plugins' });
@@ -259,6 +305,15 @@ describe('Global calendars', () => {
     const fetch = setup('/app/calendars?tab=employees&employees_date=2026-10-01&view=month');
     const user = userEvent.setup();
     await screen.findByTestId('shared-calendar');
+    const navigation = screen.getByRole('group', { name: 'Calendriers' });
+    expect(screen.queryByRole('heading', { name: 'Calendriers' })).not.toBeInTheDocument();
+    expect(navigation.parentElement).toContainElement(
+      screen.getByRole('button', { name: 'Présentation' }),
+    );
+    expect(
+      navigation.compareDocumentPosition(screen.getByRole('button', { name: 'Présentation' })) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     const calendarRequests = () =>
       fetch.mock.calls.filter(([input]) =>
         String(input).startsWith('/api/v1/calendars/employees/?'),

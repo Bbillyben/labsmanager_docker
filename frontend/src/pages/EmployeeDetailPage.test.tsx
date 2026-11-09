@@ -511,6 +511,16 @@ describe('Employee R2 detail', () => {
     expect(
       await screen.findByRole('heading', { name: 'Jean Dupont', level: 1 }),
     ).toBeInTheDocument();
+    const breadcrumb = screen.getByRole('navigation', { name: 'Fil d’Ariane' });
+    expect(within(breadcrumb).getByRole('link', { name: 'Employés' })).toHaveAttribute(
+      'href',
+      '/app/employees/',
+    );
+    expect(within(breadcrumb).getByRole('heading', { name: 'Jean Dupont' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('heading', { name: 'Jean Dupont', level: 2 })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Vue d’ensemble' })).toHaveAttribute(
       'aria-current',
       'page',

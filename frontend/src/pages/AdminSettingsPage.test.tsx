@@ -306,7 +306,9 @@ describe('Settings administration', () => {
   });
   it('shows the group only to staff and protects direct routes', async () => {
     renderAt('/app/settings/stale', false);
-    expect(await screen.findByRole('heading', { name: 'Alertes d’échéance' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Alertes d’échéance', level: 1 }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Général' })).not.toBeInTheDocument();
     cleanup();
     renderAt('/app/settings/admin/general', true);

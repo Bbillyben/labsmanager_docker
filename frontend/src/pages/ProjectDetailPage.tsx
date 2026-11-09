@@ -1,7 +1,7 @@
 import { lazy, Suspense, useRef, useState } from 'react';
 import { useTranslation } from '../i18n/i18n';
-import { ArrowLeft, FileDown, FileText, Pencil, Settings2 } from 'lucide-react';
-import { Link, NavLink, useLocation, useParams } from 'react-router-dom';
+import { FileDown, FileText, Pencil, Settings2 } from 'lucide-react';
+import { NavLink, useLocation, useParams } from 'react-router-dom';
 import { getProject } from '../api/projects';
 import { ApiError } from '../api/errors';
 import { LoadingState } from '../components/LoadingState';
@@ -152,12 +152,6 @@ export function ProjectDetailPage() {
       key={project.id}
       scope={{ entity: 'project', objectId: project.id }}
     >
-      <Link
-        className={styles.back}
-        to={`/projects/${typeof location.state?.projectListSearch === 'string' && location.state.projectListSearch ? `?${location.state.projectListSearch}` : ''}`}
-      >
-        <ArrowLeft aria-hidden="true" /> {t('project.backToProjects')}
-      </Link>
       <PageHeader
         title={project.name}
         meta={

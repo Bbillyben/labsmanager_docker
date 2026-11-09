@@ -15,6 +15,7 @@ import { useTranslation } from '../i18n/i18n';
 import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
 import { useEmployeeResource } from './useEmployeeResource';
+import { usePageTitle } from '../layout/PageTitleContext';
 import styles from './SettingsHubPage.module.css';
 
 /** Show personal plugin preferences, settings, and tokens. */
@@ -163,9 +164,9 @@ export function UserPluginDetailPage() {
   const loader = useCallback((_key: string, signal: AbortSignal) => getPersonalPlugins(signal), []);
   const resource = useEmployeeResource(pluginKey, loader);
   const plugin = resource.data?.results.find((item) => item.key === pluginKey);
+  usePageTitle(plugin?.human_name);
   return (
     <div className={styles.content}>
-      <Link to="/settings/my-plugins">← {t('pluginSettings.mine')}</Link>
       {resource.loading && <p role="status">{t('common.loading')}</p>}
       {!!resource.error && (
         <Alert tone="danger">

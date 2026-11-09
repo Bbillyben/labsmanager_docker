@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Presentation } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AuthContext } from '../auth/AuthContext';
 import {
   getEmployeeFilterOptions,
   getLeaveTypes,
@@ -38,9 +39,9 @@ import { PrintButton } from '../print/PrintButton';
 import type { CalendarPrintState } from '../print/CalendarPrintView';
 import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
-import { PageHeader } from '../ui/PageHeader';
 import { EmployeeCalendar } from './EmployeeCalendar';
 import { EmployeeLeaveSheet } from './EmployeeLeaveSheet';
+import { EquipmentMaintenanceCalendarPage } from './EquipmentMaintenanceCalendarPage';
 import { leaveFromEvent, rangeLabel } from './leaveCalendarPresentation';
 import { MilestoneDetailSheet } from './MilestoneDetailSheet';
 import { milestoneStateKey } from './milestonePresentation';
@@ -148,13 +149,39 @@ function apiFilters(catalogue: SupportedFilter[], query: URLSearchParams, tab: T
  */
 export function GlobalCalendarsPage() {
   useTrackRecent('calendar');
+  const auth = useContext(AuthContext);
+  const [query, setQuery] = useSearchParams();
+  if (
+    query.get('tab') === 'maintenance' &&
+    auth?.status === 'authenticated' &&
+    auth.user.capabilities.view_equipment_maintenance
+  ) {
+    return (
+      <main className="grid gap-5">
+        <CalendarPageNavigation
+          active="maintenance"
+          onSelectNative={(tab) => {
+            const next = new URLSearchParams(query);
+            next.set('tab', tab);
+            setQuery(next);
+          }}
+        />
+        <EquipmentMaintenanceCalendarPage embedded />
+      </main>
+    );
+  }
+  return <NativeGlobalCalendarsPage />;
+}
+
+function NativeGlobalCalendarsPage() {
   const { language, t } = useTranslation();
   const navigate = useNavigate();
   const [query, setQuery] = useSearchParams();
   const catalog = useMemo(() => catalogues(t), [t]);
   const canonicalQuery = useMemo(() => {
     const next = withFilterDefaults([...catalog.employees, ...catalog.projects], query);
-    if (!next.has('tab')) next.set('tab', 'employees');
+    if (next.get('tab') !== 'employees' && next.get('tab') !== 'projects')
+      next.set('tab', 'employees');
     if (!next.has('employees_date')) next.set('employees_date', dateText(new Date()));
     if (!next.has('projects_date')) next.set('projects_date', dateText(new Date()));
     if (!next.has('view')) next.set('view', 'month');
@@ -264,7 +291,7 @@ export function GlobalCalendarsPage() {
     next.set(key, value);
     setQuery(next);
   }
-  function setTab(nextTab: Tab) {
+  function setTab(nextTab: Tab | 'maintenance') {
     setSelectedLeave(null);
     setSelectedWork(null);
     setParameter('tab', nextTab);
@@ -325,10 +352,23 @@ export function GlobalCalendarsPage() {
           : 'grid gap-5'
       }
     >
-      <div hidden={presentation}>
-        <PageHeader
-          title={t('calendars.title')}
-          actions={
+      {presentation && (
+        <header className="dashboard-presentation-header">
+          <Button
+            ref={exitPresentationButton}
+            onClick={() => setPresentation(false)}
+            variant="ghost"
+          >
+            <ArrowLeft aria-hidden="true" />
+            {t('dashboard.exitPresentation')}
+          </Button>
+        </header>
+      )}
+      <CalendarPageNavigation
+        active={tab}
+        onSelectNative={setTab}
+        actions={
+          !presentation && (
             <Button
               ref={enterPresentationButton}
               onClick={() => {
@@ -341,25 +381,8 @@ export function GlobalCalendarsPage() {
               <Presentation aria-hidden="true" />
               {t('dashboard.presentation')}
             </Button>
-          }
-        />
-      </div>
-      {presentation && (
-        <header className="dashboard-presentation-header">
-          <Button
-            ref={exitPresentationButton}
-            onClick={() => setPresentation(false)}
-            variant="ghost"
-          >
-            <ArrowLeft aria-hidden="true" />
-            {t('dashboard.exitPresentation')}
-          </Button>
-          <h1>{t('calendars.title')}</h1>
-        </header>
-      )}
-      <CalendarPageNavigation
-        active={tab}
-        onSelectNative={setTab}
+          )
+        }
       />
       {Boolean(options.error) && (
         <Alert tone="danger">

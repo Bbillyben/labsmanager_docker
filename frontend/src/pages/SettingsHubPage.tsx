@@ -78,7 +78,10 @@ export function SettingsHubPage() {
   const lists = useEmployeeResource('mutable-lists', loader);
   return (
     <div className="grid gap-5">
-      <PageHeader title={t('userSettings.title')} />
+      <PageHeader
+        title={t('userSettings.title')}
+        registerTitle={false}
+      />
       <div className={styles.layout}>
         <nav
           aria-label={t('userSettings.navigation')}
@@ -210,7 +213,6 @@ export function UserSettingsSection({ section }: { section: UserSettingSection }
       aria-label={t(`userSettings.${section}`)}
       className={styles.section}
     >
-      <h2 className="text-lg font-semibold">{t(`userSettings.${section}`)}</h2>
       {resource.loading && <p role="status">{t('common.loading')}</p>}
       {!!resource.error && (
         <Alert tone="danger">
@@ -606,7 +608,6 @@ export function UserAccountSection() {
       aria-label={t('userSettings.user')}
       className={styles.content}
     >
-      <h2 className="text-lg font-semibold">{t('userSettings.user')}</h2>
       {resource.loading && <p role="status">{t('common.loading')}</p>}
       {!!resource.error && (
         <Alert tone="danger">
@@ -890,7 +891,6 @@ export function UserPreferencesSection() {
       aria-label={t('userSettings.common')}
       className={styles.content}
     >
-      <h2 className="text-lg font-semibold">{t('userSettings.common')}</h2>
       {resource.loading && <p role="status">{t('common.loading')}</p>}
       {!!resource.error && (
         <Alert tone="danger">

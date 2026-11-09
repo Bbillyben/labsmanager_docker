@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useCallback, useRef, useState, type FormEvent } from 'react';
 import { useOutletContext, useParams } from 'react-router-dom';
+import { usePageTitle } from '../layout/PageTitleContext';
 import {
   createMutableItem,
   deleteMutableItem,
@@ -80,12 +81,12 @@ export function MutableListGroupPage() {
   const { groupKey } = useParams();
   const groups = useOutletContext<MutableGroup[] | null>();
   const group = groups?.find((entry) => entry.key === groupKey);
+  usePageTitle(group?.label);
   const { t } = useTranslation();
   if (!groups) return <p role="status">{t('common.loading')}</p>;
   if (!group) return <p>{t('mutableLists.unavailable')}</p>;
   return (
     <div className={styles.content}>
-      <h2 className="text-lg font-semibold">{group.label}</h2>
       {group.lists.map((item) => (
         <MutableListSection
           key={item.key}

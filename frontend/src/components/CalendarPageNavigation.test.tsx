@@ -3,7 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getUIPages, type UIContribution } from '../api/uiContributions';
+import { AuthContext, type AuthContextValue } from '../auth/AuthContext';
 import { I18nProvider } from '../i18n/I18nProvider';
+import { authenticatedUser } from '../test/fixtures';
 import { CalendarPageNavigation } from './CalendarPageNavigation';
 
 vi.mock('../api/uiContributions', async (original) => ({
@@ -43,8 +45,8 @@ function Location() {
 function NativeRoute() {
   const location = useLocation();
   const navigate = useNavigate();
-  const tab =
-    new URLSearchParams(location.search).get('tab') === 'projects' ? 'projects' : 'employees';
+  const selected = new URLSearchParams(location.search).get('tab');
+  const tab = selected === 'projects' || selected === 'maintenance' ? selected : 'employees';
   return (
     <CalendarPageNavigation
       active={tab}
@@ -63,23 +65,38 @@ function HistoryButtons() {
   );
 }
 
-function renderAt(path = '/calendars') {
+const calendarAuth: AuthContextValue = {
+  status: 'authenticated',
+  user: {
+    ...authenticatedUser,
+    capabilities: { ...authenticatedUser.capabilities, view_equipment_maintenance: true },
+  },
+  refresh: async () => {},
+  markUnauthenticated: () => {},
+  changeTheme: async () => {
+    throw new Error('Not used in this test');
+  },
+};
+
+function renderAt(path = '/calendars', maintenanceAccess = false) {
   return render(
     <I18nProvider>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route
-            path="/calendars"
-            element={<NativeRoute />}
-          />
-          <Route
-            path="/plugins/:slug/:page"
-            element={<CalendarPageNavigation active="plugin:demo:calendar" />}
-          />
-        </Routes>
-        <Location />
-        <HistoryButtons />
-      </MemoryRouter>
+      <AuthContext.Provider value={maintenanceAccess ? calendarAuth : undefined}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route
+              path="/calendars"
+              element={<NativeRoute />}
+            />
+            <Route
+              path="/plugins/:slug/:page"
+              element={<CalendarPageNavigation active="plugin:demo:calendar" />}
+            />
+          </Routes>
+          <Location />
+          <HistoryButtons />
+        </MemoryRouter>
+      </AuthContext.Provider>
     </I18nProvider>,
   );
 }
@@ -103,6 +120,31 @@ describe('calendar page navigation', () => {
     );
     expect(screen.queryByRole('link', { name: 'Agenda' })).not.toBeInTheDocument();
     expect(getUIPages).toHaveBeenCalledTimes(1);
+  });
+
+  it('places permitted maintenance after the other native calendars and before plugin pages', async () => {
+    vi.mocked(getUIPages).mockResolvedValue({ contributions: [page('calendar')] });
+    const user = userEvent.setup();
+    renderAt('/calendars?tab=projects', true);
+    const group = screen.getByRole('group', { name: 'Calendriers' });
+    expect(await screen.findByRole('link', { name: 'Agenda' })).toBeInTheDocument();
+    expect(Array.from(group.children).map((item) => item.textContent)).toEqual([
+      'Calendrier général',
+      'Calendrier des projets',
+      'Calendrier de maintenance',
+      'Agenda',
+    ]);
+    await user.click(screen.getByRole('button', { name: 'Calendrier de maintenance' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/calendars?tab=maintenance');
+    expect(screen.getByRole('button', { name: 'Calendrier de maintenance' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await user.click(screen.getByRole('link', { name: 'Agenda' }));
+    expect(screen.getByRole('link', { name: 'Calendrier de maintenance' })).toHaveAttribute(
+      'href',
+      '/calendars?tab=maintenance',
+    );
   });
 
   it('sorts visible plugin pages and navigates in both directions', async () => {

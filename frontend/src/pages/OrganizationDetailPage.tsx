@@ -1,6 +1,6 @@
-import { ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
-import { Link, NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   deleteContact,
   deleteContactInfo,
@@ -97,13 +97,6 @@ export function OrganizationDetailPage({ kind }: { kind: OrganizationKind }) {
   const base = `/organizations/${kind}/${organizationId}`;
   return (
     <>
-      <Link
-        className={styles.back}
-        to={`/organizations/${kind}`}
-      >
-        <ArrowLeft aria-hidden="true" />
-        {t('organization.back')}
-      </Link>
       <PageHeader
         title={org.name}
         description={org.short_name}

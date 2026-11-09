@@ -40,6 +40,7 @@ import { useTranslation } from '../i18n/i18n';
 import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
 import { useEmployeeResource } from './useEmployeeResource';
+import { usePageTitle } from '../layout/PageTitleContext';
 import { SettingList } from '../components/SettingList';
 import { PluginTokensSection } from '../components/PluginTokensSection';
 import styles from './SettingsHubPage.module.css';
@@ -892,6 +893,7 @@ export function AdminPluginDetailPage() {
   const resource = useEmployeeResource(pluginKey, loader);
   const refreshDependencies = resource.refresh;
   const data: PluginDetail | null = resource.data;
+  usePageTitle(data?.human_name);
   const [confirmInstall, setConfirmInstall] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [installError, setInstallError] = useState('');
@@ -919,7 +921,6 @@ export function AdminPluginDetailPage() {
   }
   return (
     <div className={styles.content}>
-      <Link to="/settings/admin/plugins">← {t('settingsAdmin.plugins')}</Link>
       {resource.loading && <p role="status">{t('common.loading')}</p>}
       {!!resource.error && (
         <Alert tone="danger">

@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { Sidebar } from '../layout/Sidebar';
 import { Topbar } from '../layout/Topbar';
+import { PageTitleProvider } from '../layout/PageTitleProvider';
 import { useTranslation } from '../i18n/i18n';
 import styles from '../layout/AppShell.module.css';
 
@@ -29,44 +30,46 @@ export function AppShell() {
   if (auth.status !== 'authenticated') return null;
 
   return (
-    <div
-      className={styles.shell}
-      data-navigation-expanded={navigationExpanded}
-    >
-      <a
-        className="skip-link"
-        href="#main-content"
+    <PageTitleProvider>
+      <div
+        className={styles.shell}
+        data-navigation-expanded={navigationExpanded}
       >
-        {t('common.skipToContent')}
-      </a>
-      <Sidebar
-        expanded={navigationExpanded}
-        interactive={wideViewport || navigationExpanded}
-        onRequestExpand={() => setNavigationExpanded(true)}
-        user={auth.user}
-      />
-      {navigationExpanded && (
-        <button
-          className={styles.backdrop}
-          aria-label={t('common.closeNavigation')}
-          onClick={() => setNavigationExpanded(false)}
-          type="button"
+        <a
+          className="skip-link"
+          href="#main-content"
+        >
+          {t('common.skipToContent')}
+        </a>
+        <Sidebar
+          expanded={navigationExpanded}
+          interactive={wideViewport || navigationExpanded}
+          onRequestExpand={() => setNavigationExpanded(true)}
+          user={auth.user}
         />
-      )}
-      <Topbar
-        navigationExpanded={navigationExpanded}
-        onToggleNavigation={() => setNavigationExpanded((expanded) => !expanded)}
-        user={auth.user}
-      />
-      <main
-        className={styles.main}
-        id="main-content"
-        tabIndex={-1}
-      >
-        <div className={styles.content}>
-          <Outlet />
-        </div>
-      </main>
-    </div>
+        {navigationExpanded && (
+          <button
+            className={styles.backdrop}
+            aria-label={t('common.closeNavigation')}
+            onClick={() => setNavigationExpanded(false)}
+            type="button"
+          />
+        )}
+        <Topbar
+          navigationExpanded={navigationExpanded}
+          onToggleNavigation={() => setNavigationExpanded((expanded) => !expanded)}
+          user={auth.user}
+        />
+        <main
+          className={styles.main}
+          id="main-content"
+          tabIndex={-1}
+        >
+          <div className={styles.content}>
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </PageTitleProvider>
   );
 }

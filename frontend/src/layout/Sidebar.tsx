@@ -120,20 +120,6 @@ export function Sidebar({ expanded, interactive, onRequestExpand, user }: Sideba
             <span className={styles.label}>{t('equipment.title')}</span>
           </NavLink>
         )}
-        {user.capabilities.view_equipment_maintenance && (
-          <NavLink
-            className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
-            to="/equipment/maintenance-calendar"
-            title={t('equipmentMaintenance.calendar')}
-          >
-            <CalendarDays
-              aria-hidden="true"
-              size={19}
-              strokeWidth={1.8}
-            />
-            <span className={styles.label}>{t('equipmentMaintenance.calendar')}</span>
-          </NavLink>
-        )}
         {user.capabilities.view_team_list && (
           <NavLink
             className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
