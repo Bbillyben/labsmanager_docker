@@ -233,7 +233,7 @@ export function EquipmentDetailPage() {
                   <div>
                     <dt className="text-sm text-muted-foreground">{t('equipment.category')}</dt>
                     <dd>
-                      {item.category.name}
+                      {item.category.path || item.category.name}
                       {!item.category.is_active ? ` (${t('common.inactive')})` : ''}
                     </dd>
                   </div>

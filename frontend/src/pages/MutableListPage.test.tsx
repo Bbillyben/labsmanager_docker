@@ -105,6 +105,7 @@ describe('MutableListPage', () => {
       group: 'equipment',
       label: 'Equipment categories',
       fields: [
+        fields[2],
         fields[0],
         {
           key: 'is_active',
@@ -117,6 +118,7 @@ describe('MutableListPage', () => {
         },
       ],
       columns: ['name', 'is_active'],
+      renderers: { name: 'tree' },
     };
     const infoList = {
       ...list,
@@ -136,8 +138,16 @@ describe('MutableListPage', () => {
             rows: [
               {
                 ...row,
-                values: { name: 'Microscope', is_active: true },
-                editable_fields: ['name', 'is_active'],
+                values: { parent: null, name: 'Microscope', is_active: true },
+                editable_fields: ['parent', 'name', 'is_active'],
+                tree_level: 0,
+              },
+              {
+                ...row,
+                id: 2,
+                values: { parent: 1, name: 'Child', is_active: true },
+                editable_fields: ['parent', 'name', 'is_active'],
+                tree_level: 1,
               },
             ],
           }
@@ -149,9 +159,12 @@ describe('MutableListPage', () => {
       '/settings/lists/equipment',
     );
     expect(await screen.findByText('Microscope')).toBeInTheDocument();
+    expect(within(screen.getByRole('cell', { name: 'Child' })).getByText('└─')).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Types of equipment information' }),
     ).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ajouter' })[0]);
+    expect(screen.getByRole('combobox', { name: 'Parent' })).toBeInTheDocument();
     expect(api.getMutableList).toHaveBeenCalledWith(
       'equipment-categories',
       expect.any(AbortSignal),

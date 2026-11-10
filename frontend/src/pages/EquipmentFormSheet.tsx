@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   createEquipment,
+  equipmentCategoryLabel,
   listEquipmentCategories,
   updateEquipment,
   type Equipment,
@@ -139,7 +140,7 @@ export function EquipmentFormSheet({
                   key={item.id}
                   value={item.id}
                 >
-                  {item.name}
+                  {equipmentCategoryLabel(item)}
                   {!item.is_active ? ` (${t('common.inactive')})` : ''}
                 </option>
               ))}

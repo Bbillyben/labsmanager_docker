@@ -8,7 +8,22 @@ import { EquipmentDetailPage } from './EquipmentDetailPage';
 import { EquipmentCreatePage, EquipmentListPage } from './EquipmentListPage';
 
 const capabilities = { can_view: true, can_add: true, can_change: true, can_delete: true };
-const category = { id: 2, name: 'Microscopes', is_active: true };
+const category = {
+  id: 2,
+  name: 'Microscopes',
+  is_active: true,
+  parent: 1,
+  level: 1,
+  path: 'Laboratory / Microscopes',
+};
+const rootCategory = {
+  id: 1,
+  name: 'Laboratory',
+  is_active: true,
+  parent: null,
+  level: 0,
+  path: 'Laboratory',
+};
 const equipment = {
   id: 7,
   admin_url: null,
@@ -64,7 +79,8 @@ describe('Equipment pages', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input);
       requests.push(url);
-      if (url === '/api/v1/equipment/categories/') return jsonResponse(collection([category]));
+      if (url === '/api/v1/equipment/categories/')
+        return jsonResponse(collection([rootCategory, category]));
       if (url.startsWith('/api/v1/equipment/?'))
         return jsonResponse({
           count: 1,
@@ -113,7 +129,8 @@ describe('Equipment pages', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input);
       requests.push(url);
-      if (url === '/api/v1/equipment/categories/') return jsonResponse(collection([category]));
+      if (url === '/api/v1/equipment/categories/')
+        return jsonResponse(collection([rootCategory, category]));
       if (url.startsWith('/api/v1/equipment/?')) {
         const offset = new URL(url, 'http://localhost').searchParams.get('offset');
         return jsonResponse({
@@ -126,8 +143,11 @@ describe('Equipment pages', () => {
       }
       throw new Error(url);
     });
-    renderAt('/equipment/');
+    renderAt('/equipment/?category=1');
     expect(await screen.findByRole('link', { name: 'Zeiss Scope' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '└─ Microscopes' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Laboratory' })).toBeInTheDocument();
+    expect(requests.some((url) => url.includes('category=1'))).toBe(true);
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(requests.some((url) => url.includes('offset=25'))).toBe(true));
     await userEvent.type(screen.getByRole('textbox', { name: 'Name or reference' }), 'EQ-7');
@@ -144,7 +164,8 @@ describe('Equipment pages', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input);
       if (url === '/api/v1/equipment/capabilities/') return jsonResponse(capabilities);
-      if (url === '/api/v1/equipment/categories/') return jsonResponse(collection([category]));
+      if (url === '/api/v1/equipment/categories/')
+        return jsonResponse(collection([rootCategory, category]));
       if (url === '/api/v1/equipment/' && init?.method === 'POST') {
         writes.push(String(init.body));
         return jsonResponse(equipment, 201);
@@ -164,9 +185,12 @@ describe('Equipment pages', () => {
     expect(await screen.findByRole('heading', { name: 'Add equipment' })).toBeInTheDocument();
     await userEvent.type(screen.getByRole('textbox', { name: 'Name' }), 'Zeiss Scope');
     await userEvent.type(screen.getByRole('textbox', { name: 'Internal reference' }), 'EQ-7');
+    expect(screen.getByRole('option', { name: '└─ Microscopes' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Laboratory' })).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Category' }), '2');
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByRole('heading', { name: 'Zeiss Scope' })).toBeInTheDocument();
+    expect(screen.getByText('Laboratory / Microscopes')).toBeInTheDocument();
     expect(writes[0]).toContain('"internal_reference":"EQ-7"');
   });
 

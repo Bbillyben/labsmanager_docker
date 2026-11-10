@@ -4098,3 +4098,12 @@ msgstr "Proche de la cible"
 
 msgid "Not interpretable yet"
 msgstr "Non interprétable à ce stade"
+
+msgid "Parent"
+msgstr "Parent"
+
+msgid "A category cannot be moved under itself or a descendant."
+msgstr "Une catégorie ne peut pas être déplacée sous elle-même ou l'un de ses descendants."
+
+msgid "Category is used by equipment or has descendants."
+msgstr "Cette catégorie est utilisée par un équipement ou possède des sous-catégories."

@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { ApiError } from '../api/errors';
 import {
+  equipmentCategoryLabel,
   getEquipmentCapabilities,
   listEquipment,
   listEquipmentCategories,
@@ -200,7 +201,7 @@ export function EquipmentListPage() {
           choiceOptions={{
             categories: categories.data.items.map((item: EquipmentCategory) => ({
               value: String(item.id),
-              label: item.name,
+              label: equipmentCategoryLabel(item),
             })),
           }}
           query={query}

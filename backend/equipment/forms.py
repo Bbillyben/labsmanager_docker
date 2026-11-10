@@ -11,11 +11,13 @@ class EquipmentCategoryListForm(forms.ModelForm):
 
     class Meta:
         model = EquipmentCategory
-        fields = ("name", "is_active")
+        fields = ("parent", "name", "is_active")
 
     def __init__(self, *args, **kwargs):
         kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+        self.fields["parent"].queryset = EquipmentCategory.objects.order_by("tree_id", "lft")
+        self.fields["parent"].label_from_instance = lambda item: f'{"└─ " * item.level}{item.name}'
 
 
 class EquipmentInfoTypeListForm(forms.ModelForm):

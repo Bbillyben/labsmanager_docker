@@ -74,7 +74,8 @@ MUTABLE_LISTS = {
     "organization-info-types": MutableList("organization", OrganizationInfosType, OrganizationInfosTypeForm, ("name", "icon", "type")),
     "contact-info-types": MutableList("organization", ContactInfoType, ContactInfoTypeForm, ("name", "icon", "type")),
     "contact-types": MutableList("organization", ContactType, ContactTypeForm, ("name",)),
-    "equipment-categories": MutableList("equipment", EquipmentCategory, EquipmentCategoryListForm, ("name", "is_active"), allow_delete=True),
+    "equipment-categories": MutableList("equipment", EquipmentCategory, EquipmentCategoryListForm, ("name", "is_active"),
+                                         ("tree_id", "lft"), allow_delete=True, tree_column="name"),
     "equipment-info-types": MutableList("equipment", EquipmentGenericInfoType, EquipmentInfoTypeListForm, ("name", "icon"), allow_delete=True),
 }
 
@@ -102,7 +103,7 @@ def field_data(name, field):
     """Describe an editable field for the React list form."""
     if isinstance(field, forms.ModelChoiceField):
         kind = "relation"
-        choices = [{"value": obj.pk, "label": str(obj)} for obj in field.queryset]
+        choices = [{"value": obj.pk, "label": field.label_from_instance(obj)} for obj in field.queryset]
     elif isinstance(field, forms.BooleanField):
         kind, choices = "boolean", []
     elif isinstance(field, forms.TypedChoiceField) or isinstance(field, forms.ChoiceField):

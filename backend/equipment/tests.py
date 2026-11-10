@@ -85,6 +85,45 @@ class EquipmentV1Tests(APITestCase):
         self.assertEqual(self.client.get(self.base).status_code, 404)
         self.assertEqual(self.client.get("/api/v1/equipment/").status_code, 403)
 
+    def test_category_tree_moves_filters_and_protects_references(self):
+        root = EquipmentCategory.objects.create(name="Root")
+        child = EquipmentCategory.objects.create(name="Child", parent=root)
+        grandchild = EquipmentCategory.objects.create(name="Grandchild", parent=child)
+        sibling = EquipmentCategory.objects.create(name="Sibling")
+        Equipment.objects.create(name="Nested", internal_reference="EQ-NESTED", category=grandchild)
+        Equipment.objects.create(name="Sibling item", internal_reference="EQ-SIBLING", category=sibling)
+        categories_url = "/api/v1/equipment/categories/"
+        categories = {item["id"]: item for item in self.client.get(categories_url).json()["items"]}
+        self.assertEqual(categories[child.pk]["path"], "Root / Child")
+        self.assertEqual(categories[grandchild.pk]["level"], 2)
+        self.assertEqual(self.client.get("/api/v1/equipment/", {"category": root.pk}).json()["count"], 1)
+        self.assertEqual(self.client.get("/api/v1/equipment/", {"category": child.pk}).json()["count"], 1)
+        self.assertEqual(self.client.get("/api/v1/equipment/", {"category": sibling.pk}).json()["count"], 1)
+        self.assertEqual(self.client.get("/api/v1/equipment/", {"category": root.pk, "status": "retired"}).json()["count"], 0)
+        self.assertEqual(self.client.patch(f"{categories_url}{root.pk}/", {"parent": grandchild.pk}, format="json").status_code, 400)
+        self.assertEqual(self.client.delete(f"{categories_url}{root.pk}/").status_code, 400)
+        moved = self.client.patch(f"{categories_url}{child.pk}/", {"parent": sibling.pk}, format="json")
+        self.assertEqual(moved.status_code, 200, moved.content)
+        self.assertEqual(Equipment.objects.get(internal_reference="EQ-NESTED").category_id, grandchild.pk)
+        self.assertEqual(self.client.get("/api/v1/equipment/", {"category": root.pk}).json()["count"], 0)
+        self.assertEqual(self.client.get("/api/v1/equipment/", {"category": sibling.pk}).json()["count"], 2)
+        self.assertEqual(self.client.delete(f"{categories_url}{grandchild.pk}/").status_code, 400)
+        self.client.force_login(self.reader)
+        self.assertEqual(self.client.get(categories_url).status_code, 200)
+        self.assertEqual(self.client.patch(f"{categories_url}{child.pk}/", {"parent": None}, format="json").status_code, 403)
+
+    def test_settings_category_tree_uses_existing_mutable_list_contract(self):
+        url = "/api/v1/settings/lists/equipment-categories/"
+        root = EquipmentCategory.objects.create(name="Root")
+        created = self.client.post(url, {"parent": root.pk, "name": "Child", "is_active": True}, format="json")
+        self.assertEqual(created.status_code, 201, created.data)
+        response = self.client.get(url)
+        self.assertEqual(response.data["list"]["renderers"], {"name": "tree"})
+        rows = {row["id"]: row for row in response.data["rows"]}
+        self.assertEqual(rows[created.data["id"]]["tree_level"], 1)
+        self.assertEqual(rows[created.data["id"]]["values"]["parent"], root.pk)
+        self.assertEqual(self.client.delete(f"{url}{root.pk}/").status_code, 400)
+
     def test_current_responsible_and_institution_columns_and_filters(self):
         today = date.today()
         other = Equipment.objects.create(name="Scope B", internal_reference="EQ-OTHER", category=self.category)

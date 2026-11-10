@@ -1,5 +1,9 @@
 # État de la migration React
 
+## Equipment — catégories hiérarchiques
+
+`EquipmentCategory` utilise MPTT et conserve les catégories existantes comme racines. Le catalogue expose `parent`, `level` et `path`; le filtre catégorie de la liste inclut les descendants avant pagination. Settings Lists réutilise le renderer `tree` et ses formulaires permettent de choisir un parent. Les sélecteurs React indiquent la profondeur, et la fiche affiche le chemin complet. `equipment.0004_equipmentcategory_tree` est créée mais non appliquée à la base métier. Sur PostgreSQL de test, la migration de préservation et les 21 tests ciblés Equipment/Settings passent ; les 15 tests React ciblés passent. La validation navigateur reste à consigner.
+
 ## Equipment — lot 3.1 affectations métier depuis Expense
 
 Les menus des tableaux Expense communs et de l'explorateur financier ouvrent `ExpenseBusinessAssignments`. La section Equipment permet d'associer une dépense existante, de changer la nature ou l'Equipment, puis de détacher la liaison sans supprimer l'écriture. La fiche Equipment conserve création et consultation des dépenses mais ne propose plus la recherche d'une Expense existante. La route `/api/v1/expenses/:id/business-assignments/` résout l'Expense directement et applique les permissions financières et de liaison. `EquipmentExpenseLink` et les contrats du lot 3 restent inchangés ; aucune affectation Contract n'est encore implémentée et aucune migration supplémentaire n'est requise.

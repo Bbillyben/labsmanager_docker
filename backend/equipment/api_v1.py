@@ -4,7 +4,9 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Prefetch, ProtectedError, Q
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as django_filters
+from mptt.exceptions import InvalidMove
 from rest_framework import generics, permissions, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -90,7 +92,9 @@ class EquipmentReadSerializer(AdminUrlSerializerMixin, serializers.ModelSerializ
                   "acquisition_date", "commissioning_date", "decommissioning_date", "capabilities")
 
     def get_category(self, item):
-        return {"id": item.category_id, "name": item.category.name, "is_active": item.category.is_active}
+        return {"id": item.category_id, "name": item.category.name,
+                "is_active": item.category.is_active, "parent": item.category.parent_id,
+                "level": item.category.level, "path": item.category.path}
 
     def get_current_responsibles(self, item):
         relations = getattr(item, "current_responsibility_rows", None)
@@ -152,10 +156,16 @@ class EquipmentWriteSerializer(StrictModelSerializer):
 
 
 class EquipmentListFilter(django_filters.FilterSet):
-    category = django_filters.NumberFilter(field_name="category_id")
+    category = django_filters.NumberFilter(method="filter_category")
     status = django_filters.ChoiceFilter(choices=Equipment.Status.choices)
     institution = django_filters.NumberFilter(method="filter_institution")
     responsible = django_filters.NumberFilter(method="filter_responsible")
+
+    def filter_category(self, queryset, _name, value):
+        category = EquipmentCategory.objects.filter(pk=value).first()
+        if category is None:
+            return queryset.none()
+        return queryset.filter(category_id__in=category.get_descendants(include_self=True).values("pk"))
 
     def filter_institution(self, queryset, _name, value):
         user = self.request.user
@@ -301,22 +311,31 @@ class EquipmentInstitutionOptions(APIView):
 
 
 class CategorySerializer(StrictModelSerializer):
+    level = serializers.IntegerField(read_only=True)
+    path = serializers.CharField(read_only=True)
+
     class Meta:
         model = EquipmentCategory
-        fields = ("id", "name", "is_active")
-        read_only_fields = ("id",)
+        fields = ("id", "name", "is_active", "parent", "level", "path")
+        read_only_fields = ("id", "level", "path")
 
     def create(self, validated_data):
         item = self.Meta.model(**validated_data)
         validate_model(item)
-        item.save()
+        try:
+            item.save()
+        except InvalidMove as error:
+            raise serializers.ValidationError({"parent": str(error)}) from error
         return item
 
     def update(self, instance, validated_data):
         for key, value in validated_data.items():
             setattr(instance, key, value)
         validate_model(instance)
-        instance.save()
+        try:
+            instance.save()
+        except InvalidMove as error:
+            raise serializers.ValidationError({"parent": str(error)}) from error
         return instance
 
 
@@ -361,7 +380,7 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
         try:
             instance.delete()
         except ProtectedError as error:
-            raise serializers.ValidationError({"detail": "Category is used by equipment."}) from error
+            raise serializers.ValidationError({"detail": _("Category is used by equipment or has descendants.")}) from error
 
 
 class GenericInfoTypeSerializer(CategorySerializer):

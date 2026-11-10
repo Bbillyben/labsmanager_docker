@@ -6,18 +6,36 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
+from mptt.models import MPTTModel, TreeForeignKey
 
 from labsmanager.mixin import ActiveDateMixin, RightsCheckerMixin
 
 
-class EquipmentCategory(models.Model):
+class EquipmentCategory(MPTTModel):
+    parent = TreeForeignKey("self", on_delete=models.PROTECT, null=True, blank=True,
+                            related_name="children", verbose_name=_("Parent"))
     name = models.CharField(max_length=100, unique=True, verbose_name=_("Name"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
-        ordering = ("name", "pk")
+        ordering = ("tree_id", "lft")
         verbose_name = _("Equipment category")
         verbose_name_plural = _("Equipment categories")
+
+    class MPTTMeta:
+        order_insertion_by = ("name",)
+
+    def clean(self):
+        super().clean()
+        if self.parent_id and self.pk and (
+            self.parent_id == self.pk or self.parent.is_descendant_of(self)
+        ):
+            raise ValidationError({"parent": _("A category cannot be moved under itself or a descendant.")})
+
+    @property
+    def path(self):
+        """Return category names from the root to this category."""
+        return " / ".join(self.get_ancestors(include_self=True).values_list("name", flat=True))
 
     def __str__(self):
         return self.name

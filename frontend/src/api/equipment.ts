@@ -3,7 +3,18 @@ import type { ProjectCollection, ProjectGenericInfo } from './projects';
 
 export type EquipmentStatus = 'in_service' | 'out_of_service' | 'in_maintenance' | 'retired';
 export type InventoryStatus = 'registered' | 'closed';
-export type EquipmentCategory = { id: number; name: string; is_active: boolean };
+export type EquipmentCategory = {
+  id: number;
+  name: string;
+  is_active: boolean;
+  parent: number | null;
+  level: number;
+  path: string;
+};
+
+/** Match the parent marker used by the mutable-list tree renderer. */
+export const equipmentCategoryLabel = (category: EquipmentCategory) =>
+  `${'└─ '.repeat(category.level ?? 0)}${category.name}`;
 export type EquipmentInfoType = { id: number; name: string; icon: string | null };
 export type EquipmentCapabilities = {
   can_view: boolean;
@@ -103,11 +114,12 @@ export const deleteEquipment = (id: number) => apiRequest<void>(detail(id), { me
 
 export const listEquipmentCategories = (signal: AbortSignal) =>
   apiRequest<EquipmentCatalogue<EquipmentCategory>>(`${base}categories/`, { signal });
-export const createEquipmentCategory = (data: Pick<EquipmentCategory, 'name' | 'is_active'>) =>
-  apiRequest<EquipmentCategory>(`${base}categories/`, body('POST', data));
+export const createEquipmentCategory = (
+  data: Pick<EquipmentCategory, 'name' | 'is_active'> & { parent?: number | null },
+) => apiRequest<EquipmentCategory>(`${base}categories/`, body('POST', data));
 export const updateEquipmentCategory = (
   id: number,
-  data: Partial<Pick<EquipmentCategory, 'name' | 'is_active'>>,
+  data: Partial<Pick<EquipmentCategory, 'name' | 'is_active' | 'parent'>>,
 ) => apiRequest<EquipmentCategory>(`${base}categories/${id}/`, body('PATCH', data));
 export const deleteEquipmentCategory = (id: number) =>
   apiRequest<void>(`${base}categories/${id}/`, { method: 'DELETE' });
