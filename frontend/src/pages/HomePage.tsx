@@ -72,6 +72,7 @@ const recentTypeKeys: Record<string, TranslationKey> = {
   'fund-explorer': 'financial.fundItems',
   'budget-explorer': 'financial.budgets',
   expenses: 'financial.expenses',
+  equipment: 'equipment.title',
 };
 
 /** Assemble the signed-in home page from available quick links and support actions. */
@@ -119,8 +120,8 @@ export function HomePage() {
     // const database = [systemInfo?.database.vendor && (databaseNames[systemInfo.database.vendor] ?? systemInfo.database.vendor), systemInfo?.database.version].filter(Boolean).join(' ')
     const systemDetails = systemInfo
       ? Object.entries(systemInfo.system_info)
-          .filter(([, value]) => value !== null && value !== undefined && value !== '')
-          .map(([key, value]) => `${key}: ${formatSystemValue(key, value)}`)
+        .filter(([, value]) => value !== null && value !== undefined && value !== '')
+        .map(([key, value]) => `${key}: ${formatSystemValue(key, value)}`)
       : [];
     const details = [
       'LabsManager system information',

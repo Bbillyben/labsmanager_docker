@@ -3,6 +3,7 @@ import { apiRequest } from './client';
 export type RecentUrlId =
   | 'project'
   | 'employee'
+  | 'equipment'
   | 'fund'
   | 'budget'
   | 'contract'

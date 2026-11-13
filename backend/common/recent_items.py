@@ -3,7 +3,7 @@
 from django.utils.translation import gettext as _
 
 from global_search.business_providers import ContractSearchProvider, FundSearchProvider, TeamSearchProvider
-from global_search.providers import EmployeeSearchProvider, ProjectSearchProvider
+from global_search.providers import EmployeeSearchProvider, ProjectSearchProvider, EquipmentSearchProvider
 
 
 OBJECT_PROVIDERS = {
@@ -12,6 +12,7 @@ OBJECT_PROVIDERS = {
     "fund": FundSearchProvider(),
     "contract": ContractSearchProvider(),
     "team": TeamSearchProvider(),
+    "equipment":EquipmentSearchProvider(),
 }
 OBJECT_IDS = frozenset((*OBJECT_PROVIDERS, "budget", "institution", "funder"))
 PAGE_IDS = frozenset(("calendar", "fund-explorer", "budget-explorer", "expenses"))

@@ -32,6 +32,7 @@ import { EquipmentMaintenanceSection } from './EquipmentMaintenanceSection';
 import { ExpenseSection } from './ExpenseSection';
 import { GenericInfoSection } from './GenericInfoSection';
 import { useEmployeeResource } from './useEmployeeResource';
+import { useTrackRecent } from '../hooks/useTrackRecent';
 import styles from './EmployeeDetailPage.module.css';
 import overviewStyles from './ProjectOverview.module.css';
 
@@ -49,6 +50,7 @@ export function EquipmentDetailPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const resource = useEmployeeResource(equipmentId, getEquipment);
+  useTrackRecent('equipment', resource.data?.id, Boolean(resource.data) && !resource.loading && !resource.error);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [exportFormat, setExportFormat] = useState<'word' | 'pdf' | null>(null);
@@ -100,8 +102,8 @@ export function EquipmentDetailPage() {
   const date = (value: string | null) =>
     value
       ? new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(
-          new Date(`${value}T12:00:00`),
-        )
+        new Date(`${value}T12:00:00`),
+      )
       : '—';
   return (
     <>
@@ -137,45 +139,45 @@ export function EquipmentDetailPage() {
                 [
                   ...(item.capabilities.can_change
                     ? [
-                        {
-                          id: 'edit',
-                          label: t('common.edit'),
-                          icon: <Pencil aria-hidden="true" />,
-                          onSelect: () => setEditing(true),
-                        },
-                      ]
+                      {
+                        id: 'edit',
+                        label: t('common.edit'),
+                        icon: <Pencil aria-hidden="true" />,
+                        onSelect: () => setEditing(true),
+                      },
+                    ]
                     : []),
                   ...(item.capabilities.can_delete
                     ? [
-                        {
-                          id: 'delete',
-                          label: t('common.delete'),
-                          icon: <Trash2 aria-hidden="true" />,
-                          onSelect: () => setDeleting(true),
-                        },
-                      ]
+                      {
+                        id: 'delete',
+                        label: t('common.delete'),
+                        icon: <Trash2 aria-hidden="true" />,
+                        onSelect: () => setDeleting(true),
+                      },
+                    ]
                     : []),
                 ],
                 [
                   ...(item.capabilities.can_export_word
                     ? [
-                        {
-                          id: 'word',
-                          label: t('reports.word'),
-                          icon: <FileText aria-hidden="true" />,
-                          onSelect: () => setExportFormat('word' as const),
-                        },
-                      ]
+                      {
+                        id: 'word',
+                        label: t('reports.word'),
+                        icon: <FileText aria-hidden="true" />,
+                        onSelect: () => setExportFormat('word' as const),
+                      },
+                    ]
                     : []),
                   ...(item.capabilities.can_export_pdf
                     ? [
-                        {
-                          id: 'pdf',
-                          label: t('reports.pdf'),
-                          icon: <FileDown aria-hidden="true" />,
-                          onSelect: () => setExportFormat('pdf' as const),
-                        },
-                      ]
+                      {
+                        id: 'pdf',
+                        label: t('reports.pdf'),
+                        icon: <FileDown aria-hidden="true" />,
+                        onSelect: () => setExportFormat('pdf' as const),
+                      },
+                    ]
                     : []),
                 ],
               ]}
