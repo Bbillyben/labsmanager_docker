@@ -27,6 +27,7 @@ All notable changes to LabsManager are documented in this file.
 - Configurable Word and PDF Equipment reports, plus Equipment and maintenance indicators in personal dashboards.
 - Extensible plugin imports, user settings and tokens, and React UI contributions; iCalendar subscriptions are provided by ICalExport.
 - Calendars plugin support for native, assignment, and external calendars, including recurring events and iCalendar publication.
+- Equipement now contribute to the recent item list displayed in the homepage
 
 ### Changed
 

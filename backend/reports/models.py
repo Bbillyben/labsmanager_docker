@@ -310,6 +310,9 @@ class EmployeeReport(TemplateReport):
         status = Employee_Status.objects.filter(employee__pk=pk).order_by('start_date')
         context["status"]=status
         
+        current_status = Employee_Status.current.filter(employee__pk=pk).order_by('start_date')
+        context["current_status"]=current_status
+        
         contract = Contract.effective.filter(employee__pk=pk).order_by('start_date')
         context["contract"]=contract
         
