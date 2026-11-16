@@ -8,6 +8,8 @@ logger = logging.getLogger('labsmanager')
 
 @receiver(post_save, sender=Expense_point)
 def save_Expense_point_handler(sender, instance, **kwargs):
+    if kwargs.get("raw", False):
+        return
     # print('[save_Expense_point_handler] called')
     # print('  - sender :'+str(sender))    
     # print('  - instance :'+str(instance))

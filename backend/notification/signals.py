@@ -7,6 +7,7 @@ from .models import UserNotification
 from endpoints.models import Milestones
 from staff.models import Employee
 from project.models import Participant, Project
+from labsmanager.ready import isImportingData
 
 
 @receiver(m2m_changed, sender=Milestones.employee.through)
@@ -14,6 +15,8 @@ def employee_milestones_changed(sender, instance, action, reverse, model, pk_set
     '''
     Handle the modification in milestones attribution (add or remove employee)
     '''
+    if isImportingData():
+        return
     if action[:5] == 'post_':
         for employee_id in pk_set:
             emp = Employee.objects.get(pk=employee_id)
@@ -26,6 +29,8 @@ def track_status_change(sender, instance, **kwargs):
     '''
     Handle the modification of milestone's status (whether it's done or not, date change)
     '''
+    if kwargs.get("raw", False):
+        return
     if instance.pk:  # Vérifiez si l'instance existe déjà (mise à jour)
         old_instance = Milestones.objects.get(pk=instance.pk)
         # add leader(s) for notification
@@ -54,6 +59,8 @@ def track_participant_add(sender, instance, created, **kwargs):
     '''
     Handle the creation of new participant in project
     '''
+    if kwargs.get("raw", False):
+        return
     if created and not instance.employee.user is None:
         UserNotification.add_notification(user=instance.employee.user, instance=instance, action="add")
     

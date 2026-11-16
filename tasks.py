@@ -161,6 +161,7 @@ def content_excludes(
     excludes = [
         'contenttypes',
         'auth.permission',
+        'admin.logentry',
         'django_q.schedule',
         'django_q.task',
         'django_q.ormq',
@@ -184,7 +185,6 @@ def content_excludes(
 
 def contentorder():
     app_list = [
-        "admin.LogEntry",
         "auth.Permission",
         "auth.Group",
         "auth.User",
@@ -295,7 +295,7 @@ def export_records(c, filename='data.json', overwrite=False, include_permissions
     tmpfile = f"{filename}.tmp"
 
 
-    cmd = f"dumpdata {contentorder() if use_order else ''} --indent 2 --output '{tmpfile}' {content_excludes()}"
+    cmd = f"dumpdata {contentorder() if use_order else ''} --natural-foreign --natural-primary --indent 2 --output '{tmpfile}' {content_excludes()}"
     print(f'>> cmd : {cmd}')
     # Dump data to temporary file
     manage(c, cmd, pty=True)
@@ -305,6 +305,14 @@ def export_records(c, filename='data.json', overwrite=False, include_permissions
     # Post-process the file, to remove any "permissions" specified for a user or group
     with open(tmpfile, "r") as f_in:
         data = json.loads(f_in.read())
+        
+    data = [
+        entry for entry in data
+        if not (
+            entry.get("model") == "settings.labsmanagersetting"
+            and entry.get("fields", {}).get("key") == "_PLUGIN_REGISTRY_HASH"
+        )
+    ]
 
     if include_permissions is False:
         for entry in data:

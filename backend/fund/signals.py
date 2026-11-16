@@ -13,6 +13,8 @@ logger = logging.getLogger('labsmanager')
 
 @receiver(post_save, sender=Fund_Item)
 def save_Fund_Item_handler(sender, instance, **kwargs):
+    if kwargs.get("raw", False):
+        return
     logger.debug('[save_Fund_Item_handler] called')
     instance.fund.calculate()
     # async_task(
@@ -32,6 +34,8 @@ def delete_Fund_Item_handler(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Fund)
 def save_Fund_handler(sender, instance, **kwargs):
+    if kwargs.get("raw", False):
+        return
     logger.debug('[save_Fund_handler] called')
     instance.project.calculate()
     # async_task(

@@ -44,6 +44,8 @@ def close_open(queryset, reason, using, rule_key=CONTRACT_PARTICIPANT_RULE_KEY):
 @receiver(pre_save, sender=Contract)
 def remember_contract_relation(sender, instance, using, **kwargs):
     """Record the original Contract relation before mutation."""
+    if kwargs.get("raw", False):
+        return
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("employee_id", "fund_id", "start_date", "end_date").first()
@@ -54,6 +56,8 @@ def remember_contract_relation(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Contract)
 def close_changed_contract(sender, instance, using, **kwargs):
     """Close exceptions invalidated by a Contract change."""
+    if kwargs.get("raw", False):
+        return
     old = getattr(instance, "_consistency_old_relation", None)
     if old is None:
         return
@@ -77,6 +81,8 @@ def close_deleted_contract(sender, instance, using, **kwargs):
 @receiver(pre_save, sender=Fund)
 def remember_fund_project(sender, instance, using, **kwargs):
     """Record the original Fund Project before mutation."""
+    if kwargs.get("raw", False):
+        return
     instance._consistency_old_project_dates = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("project_id", "start_date", "end_date").first()
@@ -87,6 +93,8 @@ def remember_fund_project(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Fund)
 def close_changed_fund_project(sender, instance, using, **kwargs):
     """Close exceptions invalidated by a Fund relation change."""
+    if kwargs.get("raw", False):
+        return
     old = getattr(instance, "_consistency_old_project_dates", None)
     if old is None:
         return
@@ -115,6 +123,8 @@ def close_deleted_fund(sender, instance, using, **kwargs):
 @receiver(pre_save, sender=Project)
 def remember_project_dates(sender, instance, using, **kwargs):
     """Record Project dates before mutation for exception cleanup."""
+    if kwargs.get("raw", False):
+        return
     instance._consistency_old_dates = (
         sender.objects.using(using).filter(pk=instance.pk).values_list("start_date", "end_date").first()
         if instance.pk else None
@@ -124,6 +134,8 @@ def remember_project_dates(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Project)
 def close_changed_project_dates(sender, instance, using, **kwargs):
     """Close exceptions invalidated by Project date changes."""
+    if kwargs.get("raw", False):
+        return
     old = getattr(instance, "_consistency_old_dates", None)
     if old is None:
         return
@@ -137,6 +149,8 @@ def close_changed_project_dates(sender, instance, using, **kwargs):
 @receiver(pre_save, sender=Employee)
 def remember_employee_dates(sender, instance, using, **kwargs):
     """Record Employee dates before mutation for exception cleanup."""
+    if kwargs.get("raw", False):
+        return
     instance._consistency_old_dates = (
         sender.objects.using(using).filter(pk=instance.pk).values_list("entry_date", "exit_date").first()
         if instance.pk else None
@@ -146,6 +160,8 @@ def remember_employee_dates(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Employee)
 def close_changed_employee_dates(sender, instance, using, **kwargs):
     """Close exceptions invalidated by Employee date changes."""
+    if kwargs.get("raw", False):
+        return
     old = getattr(instance, "_consistency_old_dates", None)
     if old is None:
         return
@@ -158,6 +174,8 @@ def close_changed_employee_dates(sender, instance, using, **kwargs):
 @receiver(pre_save, sender=Milestones)
 def remember_milestone_relation(sender, instance, using, **kwargs):
     """Record a Milestone relation before mutation."""
+    if kwargs.get("raw", False):
+        return
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("project_id", "start_date", "end_date").first()
@@ -168,6 +186,8 @@ def remember_milestone_relation(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Milestones)
 def close_changed_milestone(sender, instance, using, **kwargs):
     """Close exceptions invalidated by a Milestone change."""
+    if kwargs.get("raw", False):
+        return
     old = getattr(instance, "_consistency_old_relation", None)
     if old is None:
         return
@@ -188,6 +208,8 @@ def close_deleted_milestone(sender, instance, using, **kwargs):
 @receiver(pre_save, sender=Expense)
 def remember_expense_relation(sender, instance, using, **kwargs):
     """Record Expense relations before mutation."""
+    if kwargs.get("raw", False):
+        return
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk).values_list("fund_item_id", "date").first()
         if instance.pk else None
@@ -197,6 +219,8 @@ def remember_expense_relation(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Expense)
 def close_changed_expense(sender, instance, using, **kwargs):
     """Close exceptions invalidated by an Expense change."""
+    if kwargs.get("raw", False):
+        return
     old = getattr(instance, "_consistency_old_relation", None)
     if old is None:
         return
@@ -216,6 +240,8 @@ def close_deleted_expense(sender, instance, using, **kwargs):
 @receiver(pre_save, sender=Participant)
 def remember_participant_relation(sender, instance, using, **kwargs):
     """Record Project participation before mutation."""
+    if kwargs.get("raw", False):
+        return
     instance._consistency_old_relation = (
         sender.objects.using(using).filter(pk=instance.pk)
         .values_list("employee_id", "project_id", "status").first()
@@ -226,6 +252,8 @@ def remember_participant_relation(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Participant)
 def close_resolved_participant(sender, instance, using, **kwargs):
     """Close exceptions resolved by participation changes."""
+    if kwargs.get("raw", False):
+        return
     old = getattr(instance, "_consistency_old_relation", None)
     current = sender.objects.using(using).filter(pk=instance.pk).values_list("employee_id", "project_id", "status").first()
     if old and old[:2] != current[:2]:
