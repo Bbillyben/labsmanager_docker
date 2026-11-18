@@ -1,6 +1,6 @@
-import type { FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import { ApiError } from '../api/errors';
 import {
   equipmentCategoryLabel,
@@ -22,6 +22,7 @@ import { PageHeader } from '../ui/PageHeader';
 import { StatusBadge } from '../ui/StatusBadge';
 import { useEmployeeResource } from './useEmployeeResource';
 import { EquipmentFormSheet } from './EquipmentFormSheet';
+import { ListExportDialog } from '../components/ListExportDialog';
 import tableStyles from './EmployeeListPage.module.css';
 
 const pageSize = 25;
@@ -67,6 +68,8 @@ function CompactRelations({
 export function EquipmentListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportButton = useRef<HTMLButtonElement | null>(null);
   const [query, setQuery] = useSearchParams();
   const categories = useEmployeeResource('equipment-categories', categoryLoader);
   const request = new URLSearchParams(query);
@@ -165,6 +168,14 @@ export function EquipmentListPage() {
           </label>
           <Button type="submit">{t('common.search')}</Button>
         </form>
+        <Button
+          ref={exportButton}
+          variant="secondary"
+          onClick={() => setExportOpen(true)}
+        >
+          <Download aria-hidden="true" />
+          {t('listExport.title')}
+        </Button>
         <label className="grid gap-1 text-sm">
           {t('equipment.sort')}
           <select
@@ -317,6 +328,14 @@ export function EquipmentListPage() {
             </div>
           </div>
         </>
+      )}
+      {exportOpen && (
+        <ListExportDialog
+          entity="equipment"
+          listQuery={query.toString()}
+          returnFocus={exportButton}
+          onClose={() => setExportOpen(false)}
+        />
       )}
     </>
   );

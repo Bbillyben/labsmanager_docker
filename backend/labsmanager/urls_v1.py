@@ -63,7 +63,7 @@ from data_consistency.api_v1 import (DataConsistencySummary, DataConsistencyIssu
     DataConsistencyAccept, DataConsistencyBatchAccept, DataConsistencyReopen)
 from global_search.api_v1 import SearchV1View, SearchSchemaV1View, SearchAutocompleteV1View
 from project.api_v1 import ProjectCapabilitiesV1View, ProjectDetailV1View, ProjectFilterOptionsV1View, ProjectListV1View, ProjectListExportV1View, ProjectOverviewOptionsV1View, project_child_view
-from equipment.api_v1 import (EquipmentCollection, EquipmentDetail, EquipmentCapabilities, EquipmentInstitutionOptions,
+from equipment.api_v1 import (EquipmentCollection, EquipmentListExport, EquipmentDetail, EquipmentCapabilities, EquipmentInstitutionOptions,
     CategoryCollection, CategoryDetail, GenericInfoTypeCollection, GenericInfoTypeDetail, child_view as equipment_child_view)
 from equipment.expenses_api_v1 import (EquipmentExpenses, EquipmentExpenseOptions,
     EquipmentExpenseCandidates, EquipmentExpenseDetail, EquipmentExpenseDelete)
@@ -281,6 +281,7 @@ urlpatterns = [
     path("employees/<int:employee_id>/contracts/<int:contract_id>/expenses/<int:expense_id>/", ExpenseDetailV1View.as_view(), name="contract-expense-detail"),
     path("projects/", ProjectListV1View.as_view(), name="projects"),
     path("equipment/", EquipmentCollection.as_view(), name="equipment-list"),
+    path("equipment/export/", EquipmentListExport.as_view(), name="equipment-list-export"),
     path("equipment/maintenances/", MaintenanceCollection.as_view(), name="equipment-maintenance-list"),
     path("equipment/maintenances/calendar/", MaintenanceCalendar.as_view(), name="equipment-maintenance-calendar"),
     path("equipment/maintenances/<int:maintenance_id>/", MaintenanceDetail.as_view(), name="equipment-maintenance-detail"),

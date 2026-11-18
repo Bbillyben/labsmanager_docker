@@ -159,6 +159,59 @@ describe('Equipment pages', () => {
     );
   });
 
+  it('exports all filtered Equipment through the shared list dialog', async () => {
+    const requests: string[] = [];
+    const originalCreate = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+    const originalRevoke = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: vi.fn(() => 'blob:equipment-export'),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      requests.push(url);
+      if (url === '/api/v1/equipment/categories/')
+        return jsonResponse(collection([rootCategory, category]));
+      if (url.startsWith('/api/v1/equipment/?'))
+        return jsonResponse({
+          count: 30,
+          next: null,
+          previous: null,
+          results: [equipment],
+          capabilities,
+        });
+      if (url.startsWith('/api/v1/equipment/export/'))
+        return new Response('file', {
+          headers: { 'Content-Disposition': 'attachment; filename="Equipment_test.xlsx"' },
+        });
+      throw new Error(url);
+    });
+    try {
+      renderAt('/equipment/?status=in_service&category=1&offset=25&limit=5');
+      await screen.findByRole('link', { name: 'Zeiss Scope' });
+      await userEvent.click(screen.getByRole('button', { name: 'Export' }));
+      expect(screen.getByRole('combobox', { name: 'Format' })).toHaveValue('xlsx');
+      await userEvent.click(screen.getByRole('button', { name: 'Download' }));
+      await waitFor(() =>
+        expect(requests.some((url) => url.startsWith('/api/v1/equipment/export/'))).toBe(true),
+      );
+      const exportUrl = requests.find((url) => url.startsWith('/api/v1/equipment/export/'))!;
+      const params = new URL(exportUrl, 'http://localhost').searchParams;
+      expect(params.get('status')).toBe('in_service');
+      expect(params.get('category')).toBe('1');
+      expect(params.get('format')).toBe('xlsx');
+      expect(params.has('offset')).toBe(false);
+      expect(params.has('limit')).toBe(false);
+    } finally {
+      if (originalCreate) Object.defineProperty(URL, 'createObjectURL', originalCreate);
+      else Reflect.deleteProperty(URL, 'createObjectURL');
+      if (originalRevoke) Object.defineProperty(URL, 'revokeObjectURL', originalRevoke);
+      else Reflect.deleteProperty(URL, 'revokeObjectURL');
+    }
+  });
+
   it('creates an equipment through the shared Sheet and opens its detail', async () => {
     const writes: string[] = [];
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {

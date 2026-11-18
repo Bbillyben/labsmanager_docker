@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 
 from infos.models import GenericNote
 from labsmanager.admin_links_v1 import AdminUrlSerializerMixin
+from labsmanager.list_export_v1 import ListExportContentNegotiation, export_list_queryset
 from labsmanager.pagination import LabPagination
 from project.models import Institution
 from staff.models import Employee
@@ -23,6 +24,7 @@ from .models import (
     Equipment, EquipmentCategory, EquipmentGenericInfo, EquipmentGenericInfoType,
     EquipmentInstitutionInventory, EquipmentResponsibility,
 )
+from .resources import EquipmentExportResource
 
 
 def validate_model(item):
@@ -294,6 +296,37 @@ class EquipmentCollection(generics.ListCreateAPIView):
         item = Equipment.objects.select_related("category").get(pk=response.data["id"])
         response.data = EquipmentReadSerializer(item, context=equipment_read_context(request, item)).data
         return response
+
+
+class EquipmentListExport(EquipmentCollection):
+    """Use the list's visibility and filters, then export every matching row."""
+
+    http_method_names = ("get", "head", "options")
+    content_negotiation_class = ListExportContentNegotiation
+
+    def get(self, request, *args, **kwargs):
+        require(request.user, "equipment.view_equipment")
+        queryset = self.filter_queryset(self.get_queryset())
+        if request.user.has_perm("equipment.view_equipmentresponsibility"):
+            visible_employees = Employee.get_instances_for_user(
+                "view", request.user, Employee.objects.all()
+            ).values("pk")
+            queryset = queryset.prefetch_related(Prefetch(
+                "responsibilities",
+                queryset=EquipmentResponsibility.objects.filter(
+                    employee_id__in=visible_employees
+                ).select_related("employee").order_by("pk"),
+                to_attr="export_responsibilities",
+            ))
+        if request.user.has_perm("equipment.view_equipmentinstitutioninventory") and (
+            request.user.has_perm("common.display_infos") or request.user.has_perm("project.view_institution")
+        ):
+            queryset = queryset.prefetch_related(Prefetch(
+                "institution_inventories",
+                queryset=EquipmentInstitutionInventory.objects.select_related("institution").order_by("pk"),
+                to_attr="export_inventories",
+            ))
+        return export_list_queryset(request, queryset, EquipmentExportResource, "Equipment")
 
 
 class EquipmentDetail(generics.RetrieveUpdateDestroyAPIView):

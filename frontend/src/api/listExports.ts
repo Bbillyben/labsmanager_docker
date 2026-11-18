@@ -2,6 +2,7 @@ import { apiFileRequest } from './client';
 
 export type ListExportEntity =
   | 'employees'
+  | 'equipment'
   | 'projects'
   | 'teams'
   | 'contracts'

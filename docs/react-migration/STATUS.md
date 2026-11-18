@@ -955,3 +955,7 @@ Lot 7 : l'onglet Equipment de la fiche Employee est placé entre Financement et 
 ### Restauration des fixtures Django
 
 Les signaux de sauvegarde Fund, Expense, Notification et Data Consistency ignorent désormais `raw=True` lors de `loaddata`. Les signaux M2M de Notification et du plugin Calendars utilisent `isImportingData()` pour les commandes CLI. Cette protection ne couvre pas nécessairement un appel à `call_command("loaddata", ...)` ; les totaux financiers et les exceptions de cohérence restent à vérifier après une restauration. L'ordre d'export `contentorder()` est conservé.
+
+## Equipment — lot 8.1 import
+
+Le profil Equipment rejoint le hub Import existant avec une feuille tabulaire unique, prévisualisation, transaction et contrôles de permissions. Plusieurs responsabilités et inventaires sont fournis en répétant la référence Equipment ; les historiques non mentionnés sont préservés et les relations ambiguës exigent un ID explicite. Aucun écran ou modèle supplémentaire n'est requis.

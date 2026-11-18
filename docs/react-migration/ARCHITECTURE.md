@@ -543,6 +543,11 @@ Les exports des listes Employee et Project appellent `get_queryset()` puis
 restent dans un seul pipeline. La pagination s'applique uniquement à la réponse
 JSON des listes ; les exports non paginés passent respectivement par
 `EmployeeResource` et `ProjectResource`, qui héritent de `labResource`.
+Equipment utilise le même parcours `ListExportDialog` et `export_list_queryset`.
+`/api/v1/equipment/export/` réutilise les filtres de la liste avant pagination ;
+sa Resource produit les colonnes du profil Import Equipment et associe par rang
+les historiques visibles de responsabilités et d'inventaires, sans produit
+cartésien. Les droits de vue des relations et des identités liées sont revérifiés.
 Pour Project, le même scope `Fund.get_instances_for_user("view", …)` que la liste
 alimente `ProjectResource` via `list_funds` préchargé. Le widget Fund et les six
 agrégats financiers utilisent uniquement cette collection dans les exports

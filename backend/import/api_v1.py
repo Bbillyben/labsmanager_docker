@@ -449,7 +449,7 @@ class ImportCommit(ImportBase):
                     raise ValidationError({"import_token": _("Preview has expired")})
                 dataset = tablib.import_set(transformed.read_bytes(), format="xlsx")
             else:
-                dataset, _ = _dataset(value, claimed)
+                dataset, _selected_sheet = _dataset(value, claimed)
             resource = item.resource_class()
             result = resource.import_data(_import_dataset(resource, dataset), dry_run=False, raise_errors=False,
                                           rollback_on_validation_errors=True,

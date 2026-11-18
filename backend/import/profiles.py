@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 import tablib
 
 from expense.resources import ExpenseResource, ExpensePointResource
+from equipment.resources import EquipmentImportResource
 from staff.ressources import EmployeeAdminResource
 
 logger = logging.getLogger("labsmanager")
@@ -65,6 +66,13 @@ class ImportProfile:
         return fields
 
 
+class EquipmentImportProfile(ImportProfile):
+    """Expose Equipment imports only to users who may read the catalogue."""
+
+    def allowed(self, user):
+        return super().allowed(user) and user.has_perm("equipment.view_equipment")
+
+
 # The historical /import/ view requires common.import for all four Resources.
 # Keep a permission on each profile so a future profile can choose its own rule.
 PROFILES = {
@@ -77,6 +85,12 @@ PROFILES = {
                       "common.import", identity_columns=("First Name", "Last Name"), join_identity=True),
         ImportProfile("expense-timepoint", _("Expense timepoints"), _("Import expenses by type"), ExpensePointResource,
                       "common.import", identity_columns=("Ref", "type"), join_identity=True),
+        EquipmentImportProfile(
+            "equipment", _("Equipment"), _("Import equipment and dated relations"),
+            EquipmentImportResource, "common.import", identity_columns=("Internal reference",),
+            formats=("csv", "tsv", "xls", "xlsx"), template_formats=("csv", "xlsx"),
+            preview_columns=("name", "category", "status", "employee_name", "institution_name"),
+        ),
     )
 }
 
