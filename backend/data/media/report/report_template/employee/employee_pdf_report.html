@@ -416,6 +416,61 @@ table td.cell_center{text-align:center}
 
 
 
+<!-- ##################################    Equipment    ################################## -->
+{% if equipment %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Equipment" %}</span>
+    </div>
+    <table class="table">
+        <thead>
+            <th class="cell_title">{% trans 'Name' %}</th>
+            <th class="cell_title">{% trans 'Internal reference' %}</th>
+            <th class="cell_title">{% trans 'Category' %}</th>
+            <th class="cell_title">{% trans 'Status' %}</th>
+        </thead>
+        <tbody>
+            {% for item in equipment %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.internal_reference }}</td>
+                <td>{{ item.category.name }}</td>
+                <td>{{ item.get_status_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>
+{% endif %}
+
+<!-- ##################################    Equipment current    ################################## -->
+{% if equipment_current %}
+<div class="table_container">
+    <div class="table_title general highlight">
+        <span>{% trans "Equipment current" %}</span>
+    </div>
+    <table class="table">
+        <thead>
+            <th class="cell_title">{% trans 'Name' %}</th>
+            <th class="cell_title">{% trans 'Internal reference' %}</th>
+            <th class="cell_title">{% trans 'Category' %}</th>
+            <th class="cell_title">{% trans 'Status' %}</th>
+        </thead>
+        <tbody>
+            {% for item in equipment_current %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.internal_reference }}</td>
+                <td>{{ item.category.name }}</td>
+                <td>{{ item.get_status_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="spacer"></div>
+{% endif %}
 <!-- ##################################    Leaces    ################################## -->
 {% if leave   %}
 <div class="table_container">

@@ -161,7 +161,7 @@ def content_excludes(
     excludes = [
         'contenttypes',
         'auth.permission',
-        'admin.logentry',
+        #'admin.logentry',
         'django_q.schedule',
         'django_q.task',
         'django_q.ormq',
@@ -185,6 +185,7 @@ def content_excludes(
 
 def contentorder():
     app_list = [
+        'admin.logentry',
         "auth.Permission",
         "auth.Group",
         "auth.User",

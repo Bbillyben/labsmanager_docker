@@ -1322,6 +1322,9 @@ export const translations = {
     'gantt.eventsError': 'Impossible de charger les événements Calendar.',
     'gantt.filtersError': 'Impossible de charger les filtres Calendar.',
     'employee.navFunding': 'Financement',
+    'employee.navEquipment': 'Équipements',
+    'employee.equipmentEmpty':
+      'Aucun équipement actuellement sous la responsabilité de cet employé.',
     'employee.navContributions': 'Contributions',
     'employee.navLeaves': 'Congés',
     'employee.navBudget': 'Budget',
@@ -3194,6 +3197,8 @@ export const translations = {
     'gantt.eventsError': 'Unable to load Calendar events.',
     'gantt.filtersError': 'Unable to load Calendar filters.',
     'employee.navFunding': 'Funding',
+    'employee.navEquipment': 'Equipment',
+    'employee.equipmentEmpty': 'No equipment is currently assigned to this employee.',
     'employee.navContributions': 'Contributions',
     'employee.navLeaves': 'Leave',
     'employee.navBudget': 'Budget',

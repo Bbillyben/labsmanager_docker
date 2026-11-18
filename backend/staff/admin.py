@@ -22,6 +22,11 @@ from .ressources import EmployeeAdminResource
 class EmployeeGenericInfoTypeAdmin(admin.ModelAdmin):
     """Keep Employee type administration textual."""
     list_display = ("name", "icon")
+    
+class EmployeeGenericInfoAdmin(admin.ModelAdmin):
+    """Keep Employee type administration textual."""
+    list_display = ("info", "employee", "value")
+    list_filter=('info',)
 
 # admin class
 class EmployeeStatusInline(admin.TabularInline):
@@ -92,6 +97,7 @@ admin.site.register(Employee_Type, EmployeeTypeAdmin)
 
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Employee_Status)
+admin.site.register(GenericInfo, EmployeeGenericInfoAdmin)
 admin.site.register(GenericInfoType, EmployeeGenericInfoTypeAdmin)
 
 # Keep the package's Invitation Admin, adding only LabsManager assignments.

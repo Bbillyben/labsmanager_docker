@@ -73,10 +73,13 @@ class MaintenanceWriteSerializer(StrictModelSerializer):
         return EquipmentMaintenance.objects.create(equipment=self.context["equipment"], **validated_data)
 
 
-def maintenance_data(item, user):
+def maintenance_data(item, user, visible_link_ids=None):
     """Financial identity is omitted unless both link and Expense are visible."""
     link = item.expense_link
-    visible_link = bool(link and financial_links(user, item.equipment).filter(pk=link.pk).exists())
+    visible_link = bool(link and link.equipment_id == item.equipment_id and (
+        link.pk in visible_link_ids if visible_link_ids is not None
+        else financial_links(user, item.equipment).filter(pk=link.pk).exists()
+    ))
     return {
         "id": item.pk, "equipment": {"id": item.equipment_id, "name": item.equipment.name},
         "title": item.title, "maintenance_type": item.maintenance_type, "status": item.status,
@@ -130,7 +133,15 @@ class MaintenanceCollection(APIView):
         queryset = filtered_maintenances(request, queryset).select_related("equipment", "expense_link__expense")
         paginator = LabPagination()
         page = paginator.paginate_queryset(queryset, request, view=self)
-        response = paginator.get_paginated_response([maintenance_data(item, request.user) for item in page])
+        link_ids = {item.expense_link_id for item in page if item.expense_link_id}
+        visible_link_ids = set()
+        if link_ids and request.user.has_perm("equipment.view_equipmentexpenselink"):
+            visible_link_ids = set(EquipmentExpenseLink.objects.filter(
+                pk__in=link_ids, expense__fund_item__in=visible_funds(request.user)
+            ).values_list("pk", flat=True))
+        response = paginator.get_paginated_response([
+            maintenance_data(item, request.user, visible_link_ids) for item in page
+        ])
         response.data["capabilities"] = maintenance_capabilities(request.user)
         return response
 

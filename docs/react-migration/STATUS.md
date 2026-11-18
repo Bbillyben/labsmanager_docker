@@ -950,6 +950,8 @@ Modèle Maintenance additif, API v1, section historique de la fiche Equipment et
 
 Lot 4.1 : la liste et la fiche Equipment reprennent les tableaux et la grille responsive de Project/Employee. La section Maintenance utilise les lignes et menus d'actions des Milestones, les champs partagés des Sheets et un basculement local Liste/Calendrier ; le calendrier général garde sa page dédiée. Aucun contrat backend ni règle métier ne change. Validation visuelle en navigateur attendue.
 
+Lot 7 : l'onglet Equipment de la fiche Employee est placé entre Financement et Congés. Il réutilise le filtre serveur des responsables actifs et le tableau à sélection ; les maintenances historiques se chargent seulement à l'ouverture d'une ligne et restent en lecture seule. La date locale et les droits Equipment/Maintenance bornent les réponses. Aucune migration ; validation navigateur attendue.
+
 ### Restauration des fixtures Django
 
 Les signaux de sauvegarde Fund, Expense, Notification et Data Consistency ignorent désormais `raw=True` lors de `loaddata`. Les signaux M2M de Notification et du plugin Calendars utilisent `isImportingData()` pour les commandes CLI. Cette protection ne couvre pas nécessairement un appel à `call_command("loaddata", ...)` ; les totaux financiers et les exceptions de cohérence restent à vérifier après une restauration. L'ordre d'export `contentorder()` est conservé.

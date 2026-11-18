@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Prefetch, ProtectedError, Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as django_filters
 from mptt.exceptions import InvalidMove
@@ -59,6 +60,14 @@ def visible_equipment(user):
     return Equipment.get_instances_for_user("view", user, Equipment.objects.all())
 
 
+def active_relation_filter():
+    """Evaluate dated Equipment relations in Django's local timezone."""
+    today = timezone.localdate()
+    return (Q(start_date__isnull=True) | Q(start_date__lte=today)) & (
+        Q(end_date__isnull=True) | Q(end_date__gte=today)
+    )
+
+
 def equipment_read_context(request, item):
     """Apply the same related-identity visibility rules to one Equipment."""
     ids = set(Employee.get_instances_for_user("view", request.user, Employee.objects.filter(
@@ -83,23 +92,27 @@ class EquipmentReadSerializer(AdminUrlSerializerMixin, serializers.ModelSerializ
     category = serializers.SerializerMethodField()
     current_responsibles = serializers.SerializerMethodField()
     current_institutions = serializers.SerializerMethodField()
+    current_inventories = serializers.SerializerMethodField()
+    responsibility_start_date = serializers.SerializerMethodField()
     status_label = serializers.CharField(source="get_status_display", read_only=True)
     capabilities = serializers.SerializerMethodField()
 
     class Meta:
         model = Equipment
-        fields = ("id", "admin_url", "name", "internal_reference", "category", "current_responsibles", "current_institutions", "status", "status_label",
+        fields = ("id", "admin_url", "name", "internal_reference", "category", "current_responsibles", "current_institutions", "current_inventories", "responsibility_start_date", "status", "status_label",
                   "acquisition_date", "commissioning_date", "decommissioning_date", "capabilities")
 
     def get_category(self, item):
+        paths = self.context.get("category_paths")
         return {"id": item.category_id, "name": item.category.name,
                 "is_active": item.category.is_active, "parent": item.category.parent_id,
-                "level": item.category.level, "path": item.category.path}
+                "level": item.category.level,
+                "path": paths[item.category_id] if paths is not None else item.category.path}
 
     def get_current_responsibles(self, item):
         relations = getattr(item, "current_responsibility_rows", None)
         if relations is None:
-            relations = item.responsibilities.filter(EquipmentResponsibility.get_active_filter()).select_related("employee")
+            relations = item.responsibilities.filter(active_relation_filter()).select_related("employee")
         visible = self.context.get("visible_employee_ids", set())
         return [{"id": row.employee_id if row.employee_id in visible else None,
                  "name": str(row.employee) if row.employee_id in visible else None}
@@ -109,11 +122,32 @@ class EquipmentReadSerializer(AdminUrlSerializerMixin, serializers.ModelSerializ
         relations = getattr(item, "current_institution_rows", None)
         if relations is None:
             relations = item.institution_inventories.filter(
-                EquipmentInstitutionInventory.get_active_filter(), status="registered"
+                active_relation_filter(), status="registered"
             ).select_related("institution")
         visible = self.context.get("can_view_institution", False)
         return [{"id": row.institution_id if visible else None,
                  "name": row.institution.short_name if visible else None} for row in relations]
+
+    def get_current_inventories(self, item):
+        if not self.context.get("can_view_institution", False):
+            return []
+        relations = getattr(item, "current_institution_rows", None)
+        if relations is None:
+            relations = item.institution_inventories.filter(
+                active_relation_filter(), status="registered"
+            ).select_related("institution")
+        return [{"institution": row.institution.short_name, "inventory_number": row.inventory_number}
+                for row in relations]
+
+    def get_responsibility_start_date(self, item):
+        employee_id = self.context.get("responsible_employee_id")
+        if employee_id is None:
+            return None
+        relations = getattr(item, "current_responsibility_rows", None)
+        if relations is None:
+            relations = item.responsibilities.filter(active_relation_filter(), employee_id=employee_id)
+        dates = [row.start_date for row in relations if row.employee_id == employee_id and row.start_date]
+        return min(dates) if dates else None
 
     def get_capabilities(self, item):
         user = self.context["request"].user
@@ -182,7 +216,7 @@ class EquipmentListFilter(django_filters.FilterSet):
         ).exists():
             return queryset.none()
         current = EquipmentResponsibility.objects.filter(
-            EquipmentResponsibility.get_active_filter(), employee_id=value
+            active_relation_filter(), employee_id=value
         ).values("equipment_id")
         return queryset.filter(pk__in=current)
 
@@ -200,9 +234,9 @@ class EquipmentCollection(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = visible_equipment(self.request.user).select_related("category").prefetch_related(
             Prefetch("responsibilities", queryset=EquipmentResponsibility.objects.filter(
-                EquipmentResponsibility.get_active_filter()).select_related("employee"), to_attr="current_responsibility_rows"),
+                active_relation_filter()).select_related("employee"), to_attr="current_responsibility_rows"),
             Prefetch("institution_inventories", queryset=EquipmentInstitutionInventory.objects.filter(
-                EquipmentInstitutionInventory.get_active_filter(), status="registered"
+                active_relation_filter(), status="registered"
             ).select_related("institution"), to_attr="current_institution_rows"),
         )
         query = self.request.query_params.get("search", "").strip()
@@ -221,12 +255,29 @@ class EquipmentCollection(generics.ListCreateAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         items = page if page is not None else list(queryset)
+        # MPTT paths are assembled once for the page instead of querying ancestors per row.
+        category_paths = {}
+        tree_ids = {item.category.tree_id for item in items}
+        if tree_ids:
+            names = []
+            current_tree = None
+            for category in EquipmentCategory.objects.filter(tree_id__in=tree_ids).order_by("tree_id", "lft").values(
+                "pk", "name", "level", "tree_id"
+            ):
+                if category["tree_id"] != current_tree:
+                    names = []
+                    current_tree = category["tree_id"]
+                names = names[:category["level"]]
+                names.append(category["name"])
+                category_paths[category["pk"]] = " / ".join(names)
         employee_ids = {row.employee_id for item in items for row in item.current_responsibility_rows}
         visible_ids = set(Employee.get_instances_for_user(
             "view", request.user, Employee.objects.filter(pk__in=employee_ids)
         ).values_list("pk", flat=True))
         serializer = self.get_serializer(items, many=True, context={**self.get_serializer_context(),
             "visible_employee_ids": visible_ids,
+            "category_paths": category_paths,
+            "responsible_employee_id": int(request.query_params["responsible"]) if request.query_params.get("responsible", "").isdigit() else None,
             "can_view_institution": request.user.has_perm("common.display_infos") or request.user.has_perm("project.view_institution")})
         response = self.get_paginated_response(serializer.data) if page is not None else Response(serializer.data)
         response.data["capabilities"] = equipment_capabilities(request.user)

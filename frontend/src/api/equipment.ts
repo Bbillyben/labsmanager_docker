@@ -33,6 +33,8 @@ export type Equipment = {
   category: EquipmentCategory;
   current_responsibles: Array<{ id: number | null; name: string | null }>;
   current_institutions: Array<{ id: number | null; name: string | null }>;
+  current_inventories: Array<{ institution: string; inventory_number: string }>;
+  responsibility_start_date: string | null;
   status: EquipmentStatus;
   status_label: string;
   acquisition_date: string | null;

@@ -223,6 +223,7 @@ const milestones = [
 ];
 
 type Payloads = {
+  currentUser?: unknown;
   detail?: unknown;
   statuses?: unknown;
   hierarchy?: unknown;
@@ -247,7 +248,7 @@ function mockApi(payloads: Payloads = {}) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input),
       method = init?.method ?? 'GET';
-    if (url === '/api/v1/me/') return jsonResponse(authenticatedUser);
+    if (url === '/api/v1/me/') return jsonResponse(payloads.currentUser ?? authenticatedUser);
     if (url === '/api/v1/ui-contributions/employee/12/')
       return jsonResponse({ contributions: payloads.uiContributions ?? [] });
     if (url === '/api/v1/ui-contributions/employee/12/plugin%3Ademo%3Afacts/')
@@ -330,6 +331,27 @@ function renderAt(id = 12, panel = '') {
 }
 
 describe('Employee R2 detail', () => {
+  it('places Equipment between Funding and Leave only with Equipment visibility', async () => {
+    mockApi({
+      currentUser: {
+        ...authenticatedUser,
+        capabilities: { ...authenticatedUser.capabilities, view_equipment_list: true },
+      },
+    });
+    renderAt();
+    const navigation = await screen.findByRole('navigation', {
+      name: 'Navigation de la fiche Employee',
+    });
+    const labels = within(navigation)
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(labels.indexOf('Financement')).toBeLessThan(labels.indexOf('Équipements'));
+    expect(labels.indexOf('Équipements')).toBeLessThan(labels.indexOf('Congés'));
+    expect(within(navigation).getByRole('link', { name: 'Équipements' })).toHaveAttribute(
+      'href',
+      '/app/employees/12/equipment',
+    );
+  });
   it('places plugin contributions in the Employee action menu and overview', async () => {
     mockApi({
       uiContributions: [
@@ -651,6 +673,7 @@ describe('Employee R2 detail', () => {
     expect(await screen.findByText('Aucun contrat visible.')).toBeInTheDocument();
 
     const fundingLink = within(navigation).getByRole('link', { name: 'Financement' });
+    expect(within(navigation).queryByRole('link', { name: 'Équipements' })).not.toBeInTheDocument();
     expect(fundingLink).toHaveAttribute('href', '/app/employees/12/funding');
     await user.click(fundingLink);
     expect(window.location.pathname).toBe('/app/employees/12/funding');

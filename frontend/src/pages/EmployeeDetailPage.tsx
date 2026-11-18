@@ -22,6 +22,7 @@ import { EmployeeSheet } from './EmployeeSheet';
 import { EmployeeDetailContext } from './employeeDetailContext';
 import { useEmployeeResource } from './useEmployeeResource';
 import { useTrackRecent } from '../hooks/useTrackRecent';
+import { useAuth } from '../auth/AuthContext';
 import styles from './EmployeeDetailPage.module.css';
 
 /** Show one permission-scoped Employee and its related detail sections. */
@@ -170,12 +171,14 @@ const resourceLinks: Array<{ path: string; label: TranslationKey; end?: boolean 
   { path: 'contracts', label: 'employee.navContracts' },
   { path: 'projects', label: 'employee.navProjects' },
   { path: 'funding', label: 'employee.navFunding' },
+  { path: 'equipment', label: 'employee.navEquipment' },
   { path: 'leaves', label: 'employee.navLeaves' },
   { path: 'notes', label: 'employee.navNotes' },
 ];
 
 function EmployeeResourceNav({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation();
+  const auth = useAuth();
   const location = useLocation();
   const base = `/employees/${employeeId}`;
   return (
@@ -187,19 +190,25 @@ function EmployeeResourceNav({ employeeId }: { employeeId: string }) {
         className={styles.resourceNavScroll}
         tabIndex={0}
       >
-        {resourceLinks.map((item) => (
-          <NavLink
-            className={({ isActive }) =>
-              `${styles.resourceLink} ${isActive ? styles.resourceLinkActive : ''}`
-            }
-            end={item.end}
-            key={item.path || 'overview'}
-            to={item.path ? `${base}/${item.path}` : base}
-            state={location.state}
-          >
-            {t(item.label)}
-          </NavLink>
-        ))}
+        {resourceLinks
+          .filter(
+            (item) =>
+              item.path !== 'equipment' ||
+              (auth.status === 'authenticated' && auth.user.capabilities.view_equipment_list),
+          )
+          .map((item) => (
+            <NavLink
+              className={({ isActive }) =>
+                `${styles.resourceLink} ${isActive ? styles.resourceLinkActive : ''}`
+              }
+              end={item.end}
+              key={item.path || 'overview'}
+              to={item.path ? `${base}/${item.path}` : base}
+              state={location.state}
+            >
+              {t(item.label)}
+            </NavLink>
+          ))}
         <PluginEntityTabs
           base={base}
           linkClassName={styles.resourceLink}

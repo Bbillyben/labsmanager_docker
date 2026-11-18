@@ -35,6 +35,7 @@ import { ProjectDetailPage } from '../pages/ProjectDetailPage';
 import { EmployeeDetailPage } from '../pages/EmployeeDetailPage';
 import { EmployeeContracts } from '../pages/EmployeeContracts';
 import { EmployeeFunding } from '../pages/EmployeeFunding';
+import { EmployeeEquipment } from '../pages/EmployeeEquipment';
 import { EmployeeLeaves } from '../pages/EmployeeLeaves';
 import { GenericNotes } from '../components/GenericNotes';
 import { EmployeeOverview } from '../pages/EmployeeOverview';
@@ -407,6 +408,10 @@ export function AppRouter() {
               <Route
                 path="funding"
                 element={<EmployeeFunding />}
+              />
+              <Route
+                path="equipment"
+                element={<EmployeeEquipment />}
               />
               <Route
                 path="leaves"

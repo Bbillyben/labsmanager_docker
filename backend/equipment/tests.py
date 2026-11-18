@@ -1,6 +1,7 @@
 """Equipment V1 catalogue, history, permissions, and note integration."""
 
 from datetime import date, timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -217,6 +218,37 @@ class EquipmentV1Tests(APITestCase):
         self.assertNotIn("email", str(item))
         with self.assertRaises(ProtectedError):
             self.employee.delete()
+
+    def test_employee_equipment_filter_uses_local_date_and_deduplicates(self):
+        today = date(2026, 11, 18)
+        self.grant(self.editor, "view_equipment")
+        self.editor.user_permissions.add(Permission.objects.get(content_type__app_label="staff", codename="view_employee"))
+        self.editor.user_permissions.add(Permission.objects.get(content_type__app_label="project", codename="view_institution"))
+        self.editor.__dict__.pop("_perm_cache", None)
+        active = self.equipment
+        future = Equipment.objects.create(name="Future", internal_reference="EQ-FUTURE", category=self.category)
+        ended = Equipment.objects.create(name="Ended", internal_reference="EQ-ENDED", category=self.category)
+        EquipmentResponsibility.objects.create(equipment=active, employee=self.employee, start_date=today - timedelta(days=10))
+        EquipmentResponsibility.objects.create(equipment=active, employee=self.employee, start_date=today - timedelta(days=3))
+        EquipmentResponsibility.objects.create(equipment=future, employee=self.employee, start_date=today + timedelta(days=1))
+        EquipmentResponsibility.objects.create(equipment=ended, employee=self.employee, end_date=today - timedelta(days=1))
+        EquipmentInstitutionInventory.objects.create(equipment=active, institution=self.institution,
+                                                     inventory_number="LAB-42", status="registered")
+        with patch("equipment.api_v1.timezone.localdate", return_value=today):
+            response = self.client.get("/api/v1/equipment/", {"responsible": self.employee.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["id"], active.pk)
+        self.assertEqual(response.data["results"][0]["responsibility_start_date"], today - timedelta(days=10))
+        self.assertEqual(response.data["results"][0]["current_inventories"],
+                         [{"institution": "LAB", "inventory_number": "LAB-42"}])
+        self.client.force_login(self.reader)
+        with patch("equipment.api_v1.timezone.localdate", return_value=today):
+            private = self.client.get("/api/v1/equipment/", {"responsible": self.employee.pk})
+        self.assertEqual(private.data["count"], 0)
+        self.assertEqual(self.client.get("/api/v1/equipment/").data["results"][0]["current_inventories"], [])
+        self.client.force_login(self.hidden)
+        self.assertEqual(self.client.get("/api/v1/equipment/", {"responsible": self.employee.pk}).status_code, 403)
 
     def test_institution_inventory_history(self):
         self.editor.user_permissions.add(Permission.objects.get(content_type__app_label="project", codename="view_institution"))

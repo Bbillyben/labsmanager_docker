@@ -1,7 +1,7 @@
 """Equipment report registration, context isolation, and document exports."""
 
 from copy import deepcopy
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -15,6 +15,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from docx import Document
 from rest_framework.test import APITestCase
 
@@ -26,7 +27,7 @@ from equipment.models import (
 from expense.models import Expense
 from infos.models import GenericNote
 from labsmanager.tests import test_api_v1_funding
-from reports.models import EquipmentPDFReport, EquipmentWordReport
+from reports.models import EmployeeWordReport, EquipmentPDFReport, EquipmentWordReport
 
 
 class EquipmentReportTests(APITestCase):
@@ -67,6 +68,49 @@ class EquipmentReportTests(APITestCase):
         report = EquipmentWordReport(name="Test", description="", template="unused.docx")
         with patch("reports.models.registry.with_mixin", return_value=[]):
             return report.get_context(SimpleNamespace(user=self.user, GET={}), {"pk": self.equipment.pk})
+
+    def test_employee_report_equipment_periods_deduplication_and_visibility(self):
+        today = timezone.localdate()
+        category = self.equipment.category
+        past = Equipment.objects.create(name="Past", internal_reference="EQ-R-PAST", category=category)
+        current = Equipment.objects.create(name="Current", internal_reference="EQ-R-CURRENT", category=category)
+        future = Equipment.objects.create(name="Future", internal_reference="EQ-R-FUTURE", category=category)
+        EquipmentResponsibility.objects.create(
+            equipment=past, employee=self.employee, end_date=today - timedelta(days=1),
+        )
+        EquipmentResponsibility.objects.create(
+            equipment=current, employee=self.employee, start_date=today, end_date=today,
+        )
+        EquipmentResponsibility.objects.create(
+            equipment=current, employee=self.employee, start_date=today - timedelta(days=1),
+        )
+        EquipmentResponsibility.objects.create(
+            equipment=future, employee=self.employee, start_date=today + timedelta(days=1),
+        )
+
+        report = EmployeeWordReport(name="Test", description="", template="unused.docx")
+
+        def equipment_context():
+            with patch("reports.models.registry.with_mixin", return_value=[]):
+                return report.get_context_data(
+                    SimpleNamespace(user=self.user, GET={}), {"pk": self.employee.pk},
+                )
+
+        context = equipment_context()
+        self.assertEqual(
+            set(context["equipment"]), {self.equipment, past, current, future},
+        )
+        self.assertEqual(context["equipment"].count(), 4)
+        self.assertEqual(set(context["equipment_current"]), {self.equipment, current})
+        self.assertEqual(context["equipment_current"].count(), 2)
+
+        self.user.user_permissions.remove(Permission.objects.get(
+            content_type__app_label="equipment", codename="view_equipment",
+        ))
+        self.user = get_user_model().objects.get(pk=self.user.pk)
+        context = equipment_context()
+        self.assertEqual(list(context["equipment"]), [])
+        self.assertEqual(list(context["equipment_current"]), [])
 
     def test_registration_selection_and_template_download_permissions(self):
         self.assertIn(EquipmentWordReport, admin.site._registry)

@@ -33,6 +33,8 @@ from fund.models import Budget, Fund, Fund_Item, Contribution
 from endpoints.models import Milestones
 from project.views import get_project_fund_overviewReport
 from infos.models import GenericNote  
+from equipment.api_v1 import active_relation_filter
+from equipment.models import Equipment, EquipmentResponsibility
 
 from . import serializers
 from labsmanager.helpers import DownloadFile
@@ -336,6 +338,17 @@ class EmployeeReport(TemplateReport):
         
         subordinate = Employee_Superior.objects.filter(superior = emp)
         context["subordinate"]=subordinate
+
+        responsibilities = EquipmentResponsibility.objects.filter(employee=emp)
+        visible_equipment = Equipment.get_instances_for_user(
+            "view", request.user, Equipment.objects.all()
+        )
+        context["equipment"] = visible_equipment.filter(
+            pk__in=responsibilities.values("equipment_id")
+        )
+        context["equipment_current"] = visible_equipment.filter(
+            pk__in=responsibilities.filter(active_relation_filter()).values("equipment_id")
+        )
         
         employee_content_type = ContentType.objects.get_for_model(Employee)
         notes = GenericNote.objects.filter(content_type=employee_content_type,object_id=emp.id)
